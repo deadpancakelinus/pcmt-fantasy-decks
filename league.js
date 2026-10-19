@@ -207,7 +207,7 @@
       if (!base) return text;
       return text + ' Transfers this gameweek: ' + Math.min(L.transfersUsed(slots), 99) + '/' + TRANSFERS + '.';
     },
-    // Called whenever the Deck Builder saves; sends a locked-in deck to the league.
+    // Called whenever the Deck Manager saves; sends a locked-in deck to the league.
     onDeck: function (s) {
       if (!me || !s.saved || submitting) return;
       var json = JSON.stringify({ slots: s.slots || {}, igl: s.igl || null, name: s.squadName || '' });
@@ -270,7 +270,7 @@
       });
       window.PCMT_STANDINGS = rows;
 
-      // Overall order (season total) for the Deck Builder's rank and the Champion's Aura.
+      // Overall order (season total) for the Deck Manager's rank and the Champion's Aura.
       function totalUpTo(row, key) { var s = 0; Object.keys(row.weeks).forEach(function (k) { if (k <= key) s += row.weeks[k]; }); return s; }
       var ranked = rows.map(function (r) { return { id: r.id, total: totalUpTo(r, curKey) }; }).sort(function (a, b) { return b.total - a.total; });
       var finished = weeks.filter(function (w) { return w.done; });

@@ -105,6 +105,6 @@ def players_js(main_logic):
     e = main_logic.index('];', s) + 2
     tw = re.search(r'var PCMT_TWIN = (\{[^}]*\});', main_logic).group(1)
     ch = re.search(r'var PCMT_CHAMPS = (\{[^}]*\});', main_logic).group(1)
-    return ('// Player list used for scoring (generated from the Deck Builder).\n' +
+    return ('// Player list used for scoring (generated from the Deck Manager).\n' +
             main_logic[s:e].replace('var PCMT_PLAYERS', 'var PCMT_SITE_PLAYERS', 1) + '\n' +
             'var PCMT_SITE_TWIN = ' + tw + ';\nvar PCMT_SITE_CHAMPS = ' + ch + ';\n')
