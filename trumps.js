@@ -167,14 +167,39 @@
       '</div><span class="tt-edge"></span></div>';
   }
 
-  function counts(s) {
-    var them = 1 - ui.me;
-    return '<div class="tt-counts">' +
-      '<div><span>' + esc(ui.names[ui.me]) + '</span><b>' + s.hands[ui.me].length + '</b></div>' +
-      '<div><span>Pot</span><b>' + s.pot.length + '</b></div>' +
-      '<div><span>' + esc(ui.names[them]) + '</span><b>' + s.hands[them].length + '</b></div>' +
-      '<div><span>Round</span><b>' + Math.min(s.round, ROUND_LIMIT) + '<small>/' + ROUND_LIMIT + '</small></b></div></div>';
+  // Card back for a seat. Everyone gets the deck card back for now; later, online players will show
+  // the card back they picked in Customization (look it up here by seat).
+  function backFor(seat) { return cardHTML(null, { hidden: true }); }
+
+  // A card that can lie face down or face up on the table (both faces stacked in one grid cell).
+  function flipHTML(front, seat, down, id) {
+    return '<div class="tt-flip' + (down ? ' is-down' : '') + '"' + (id ? ' id="' + id + '"' : '') + '><div class="tt-flip-in">' +
+      '<div class="tt-face tt-front">' + front + '</div><div class="tt-face tt-backface">' + backFor(seat) + '</div></div></div>';
   }
+  function deckHTML(seat, n) {
+    var layers = '', k = Math.min(n, 5);
+    for (var i = k - 1; i >= 0; i--) layers += '<div class="tt-stack-card" style="--k:' + i + '">' + backFor(seat) + '</div>';
+    var who = seat === ui.me ? 'me' : 'them';
+    return '<div class="tt-deck tt-deck-' + who + '" id="tt-deck-' + who + '">' +
+      '<div class="tt-stack' + (n ? '' : ' is-empty') + '">' + layers + '</div>' +
+      '<div class="tt-deck-label"><span>' + esc(ui.names[seat]) + '</span><b data-count="' + n + '">' + n + '</b></div></div>';
+  }
+  function potHTML(n) {
+    var layers = '';
+    for (var i = Math.min(n, 3) - 1; i >= 0; i--) layers += '<div class="tt-stack-card" style="--k:' + i + '">' + backFor(0) + '</div>';
+    return '<div class="tt-pot" id="tt-pot"><div class="tt-stack small' + (n ? '' : ' is-empty') + '">' + layers + '</div>' +
+      '<div class="tt-deck-label"><span>Pot</span><b data-count="' + n + '">' + n + '</b></div></div>';
+  }
+  function tableHTML(s, deckMe, deckThem, pot, middle) {
+    return '<div class="tt-tabletop">' +
+      '<img class="tt-felt-mark" src="' + REGIONS[s.region].logo + '" alt="" aria-hidden="true">' +
+      deckHTML(ui.me, deckMe) + potHTML(pot) + deckHTML(1 - ui.me, deckThem) + middle + '</div>';
+  }
+  function slotHTML(who, label, inner) {
+    return '<div class="tt-slot tt-slot-' + who + '" id="tt-slot-' + who + '"><div class="tt-seat">' + esc(label) + '</div>' + inner + '</div>';
+  }
+  var REDUCED = (function () { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } })();
+  function ms(n) { return REDUCED ? 1 : n; }
 
   function render() {
     var root = $('tt-app'); if (!root) return;
@@ -190,38 +215,103 @@
         '<button type="button" class="tt-btn ghost" data-act="leave">Leave room</button></div>';
       return;
     }
-    html += counts(s);
-    var last = s.last, showReveal = last && last.round > ui.seen;
+    var last = s.last, showReveal = last && last.round > ui.seen, phase;
+    var round = '<span class="tt-round">Round ' + Math.min(showReveal ? last.round : s.round, ROUND_LIMIT) + '<small>/' + ROUND_LIMIT + '</small></span>';
     if (showReveal) {
-      var mine = last.cards[ui.me], theirs = last.cards[them], st = STATS.filter(function (x) { return x.k === last.stat; })[0];
+      phase = 'reveal';
+      var mine = last.cards[ui.me], theirs = last.cards[them], st = STAT_BY_KEY[last.stat];
       var res = last.winner < 0 ? 'tie' : last.winner === ui.me ? 'win' : 'lose';
       var who = last.picker === ui.me ? 'You' : esc(ui.names[them]);
       var msg = res === 'tie' ? 'Tie on ' + st.label + '. Both cards go to the pot.' :
         res === 'win' ? 'You win the round' + (last.pot ? ' and the pot (+' + (last.pot + 1) + ' cards)' : ' (+1 card)') + '.' :
         esc(ui.names[them]) + ' wins the round' + (last.pot ? ' and the pot' : '') + '.';
-      html += '<div class="tt-result ' + res + '"><span>' + who + ' picked <b>' + st.label + '</b></span><strong>' + msg + '</strong></div>';
-      html += '<div class="tt-table"><div><div class="tt-seat">' + esc(ui.names[ui.me]) + '</div>' + cardHTML(mine, { stat: last.stat, result: res === 'tie' ? 'tie' : res }) + '</div>' +
-        '<div><div class="tt-seat">' + esc(ui.names[them]) + '</div>' + cardHTML(theirs, { stat: last.stat, result: res === 'tie' ? 'tie' : res === 'win' ? 'lose' : 'win' }) + '</div></div>';
-      html += '<div class="tt-actions"><button type="button" class="tt-btn" data-act="next">' + (s.over ? 'See result' : 'Next round') + '</button></div>';
+      // Counts as they look before the cards are collected (the two played cards are still on the table).
+      var d = [s.hands[0].length, s.hands[1].length], pot = s.pot.length;
+      if (last.winner < 0) pot -= 2; else { d[last.winner] -= 2 + last.pot; pot = last.pot; }
+      html += '<div class="tt-status">' + round + '<div class="tt-result ' + res + '"><span>' + who + ' picked <b>' + st.label + '</b></span><strong>' + msg + '</strong></div></div>';
+      html += tableHTML(s, d[ui.me], d[them], pot,
+        slotHTML('me', ui.names[ui.me], flipHTML(cardHTML(mine, { stat: last.stat, result: res === 'tie' ? 'tie' : res }), ui.me, false)) +
+        slotHTML('them', ui.names[them], flipHTML(cardHTML(theirs, { stat: last.stat, result: res === 'tie' ? 'tie' : res === 'win' ? 'lose' : 'win' }), them, ui.revealed !== last.round)));
+      html += '<div class="tt-actions"><button type="button" class="tt-btn" data-act="next"' + (ui.collecting ? ' disabled' : '') + '>' + (s.over ? 'See result' : 'Next round') + '</button></div>';
     } else if (s.over) {
+      phase = 'over';
       var w = s.over.winner, title = w < 0 ? 'Draw' : w === ui.me ? 'You win!' : esc(ui.names[them]) + ' wins';
-      html += '<div class="tt-panel tt-center"><div class="tt-kicker">GAME OVER</div><div class="tt-big">' + title + '</div><p>' +
-        (s.over.reason === 'limit' ? 'Round ' + ROUND_LIMIT + ' reached, so the most cards wins: ' + s.hands[ui.me].length + ' to ' + s.hands[them].length + '.' : 'Every card ended up in one hand.') +
+      html += '<div class="tt-status">' + round + '<div class="tt-turn">Game over</div></div>';
+      html += tableHTML(s, s.hands[ui.me].length, s.hands[them].length, s.pot.length,
+        '<div class="tt-over"><div class="tt-kicker">GAME OVER</div><div class="tt-big">' + title + '</div><p>' +
+        (s.over.reason === 'limit' ? 'Round ' + ROUND_LIMIT + ' reached, so the most cards wins: ' + s.hands[ui.me].length + ' to ' + s.hands[them].length + '.' : 'Every card ended up in one deck.') +
         '</p><div class="tt-actions">' + (ui.mode === 'bot' ? '<button type="button" class="tt-btn" data-act="again">Play again</button>' : '') +
-        '<button type="button" class="tt-btn ghost" data-act="leave">Back to lobby</button></div></div>';
+        '<button type="button" class="tt-btn ghost" data-act="leave">Back to lobby</button></div></div>');
     } else {
+      phase = 'pick';
       var myTurn = s.turn === ui.me;
-      html += '<div class="tt-turn">' + (myTurn ? 'Your pick. Choose the stat you think beats their card.' : esc(ui.names[them]) + ' is picking a stat…') + '</div>';
-      html += '<div class="tt-table"><div><div class="tt-seat">' + esc(ui.names[ui.me]) + '</div>' + cardHTML(s.hands[ui.me][0], { pick: myTurn && !ui.busy }) + '</div>' +
-        '<div><div class="tt-seat">' + esc(ui.names[them]) + '</div>' + cardHTML(null, { hidden: true }) + '</div></div>';
+      html += '<div class="tt-status">' + round + '<div class="tt-turn">' + (myTurn ? 'Your pick. Choose the stat you think beats their card.' : esc(ui.names[them]) + ' is picking a stat…') + '</div></div>';
+      html += tableHTML(s, s.hands[ui.me].length - 1, s.hands[them].length - 1, s.pot.length,
+        slotHTML('me', ui.names[ui.me], flipHTML(cardHTML(s.hands[ui.me][0], { pick: myTurn && !ui.busy }), ui.me, ui.dealt !== s.round)) +
+        slotHTML('them', ui.names[them], flipHTML('<div class="tt-card tt-blank"></div>', them, true)));
       html += '<div class="tt-actions"><button type="button" class="tt-btn ghost" data-act="leave">' + (ui.mode === 'online' ? 'Leave room' : 'Quit game') + '</button></div>';
     }
     if (ui.error) html += '<p class="tt-error" role="alert">' + esc(ui.error) + '</p>';
     root.innerHTML = html;
-    if (!showReveal && !s.over && s.turn !== ui.me && ui.mode === 'bot' && !ui.busy) {
+    animateIn(phase, s);
+    if (phase === 'pick' && s.turn !== ui.me && ui.mode === 'bot' && !ui.busy) {
       ui.busy = true;
-      setTimeout(function () { ui.busy = false; ui.state = play(ui.state, botPick(ui.state, 1)); render(); }, 900);
+      setTimeout(function () { ui.busy = false; if (ui.mode !== 'bot') return; ui.state = play(ui.state, botPick(ui.state, 1)); render(); }, ms(1700));
     }
+  }
+
+  // ---------- table animations ----------
+  function centre(el) { var r = el.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2, w: r.width }; }
+  function topOf(deckEl) { return deckEl.querySelector('.tt-stack-card:last-child') || deckEl.querySelector('.tt-stack'); }
+  function flyFrom(el, fromEl, dur, tilt) {
+    if (!el || !fromEl || !el.animate) return Promise.resolve();
+    var a = centre(fromEl), b = centre(el);
+    return el.animate([
+      { transform: 'translate(' + (a.x - b.x) + 'px,' + (a.y - b.y) + 'px) scale(' + (a.w / b.w) + ') rotate(' + tilt + 'deg)' },
+      { transform: 'translate(0,0) scale(1) rotate(0deg)' }
+    ], { duration: ms(dur), easing: 'cubic-bezier(.2,.8,.2,1)' }).finished.catch(function () {});
+  }
+  function flyTo(el, toEl, dur, delay, tilt) {
+    if (!el || !toEl || !el.animate) return Promise.resolve();
+    var a = centre(el), b = centre(toEl);
+    return el.animate([
+      { transform: 'translate(0,0) scale(1) rotate(0deg)', offset: 0 },
+      { transform: 'translate(0,-14px) scale(1.03) rotate(' + (tilt / 3) + 'deg)', offset: 0.18 },
+      { transform: 'translate(' + (b.x - a.x) + 'px,' + (b.y - a.y) + 'px) scale(' + (b.w / a.w) + ') rotate(' + tilt + 'deg)', offset: 1 }
+    ], { duration: ms(dur), delay: ms(delay), easing: 'cubic-bezier(.5,0,.25,1)', fill: 'forwards' }).finished.catch(function () {});
+  }
+  function animateIn(phase, s) {
+    if (phase === 'pick' && ui.dealt !== s.round) {
+      var round = s.round; ui.dealt = round;
+      var me = $('tt-slot-me'), th = $('tt-slot-them');
+      var cMe = me && me.querySelector('.tt-flip'), cTh = th && th.querySelector('.tt-flip');
+      Promise.all([flyFrom(cMe, topOf($('tt-deck-me')), 560, -10), flyFrom(cTh, topOf($('tt-deck-them')), 560, 10)]).then(function () {
+        if (cMe && document.body.contains(cMe) && ui.state && ui.state.round === round) cMe.classList.remove('is-down');
+      });
+    }
+    if (phase === 'reveal' && ui.revealed !== s.last.round) {
+      ui.revealed = s.last.round;
+      var flip = document.querySelector('#tt-slot-them .tt-flip');
+      if (flip) setTimeout(function () { flip.classList.remove('is-down'); }, ms(60));
+    }
+  }
+  function collect() {
+    var s = ui.state, last = s.last;
+    ui.collecting = true;
+    var nb = document.querySelector('[data-act="next"]'); if (nb) nb.disabled = true;
+    var target = last.winner < 0 ? $('tt-pot') : $(last.winner === ui.me ? 'tt-deck-me' : 'tt-deck-them');
+    var dest = target && (topOf(target) || target);
+    var tilt = last.winner === ui.me ? -14 : 14;
+    // Turn the played cards face down as they travel, so they land on the deck as card backs.
+    document.querySelectorAll('.tt-slot .tt-flip').forEach(function (f) { f.classList.add('is-down'); });
+    var moves = [flyTo(document.querySelector('#tt-slot-me .tt-flip'), dest, 620, 0, tilt),
+                 flyTo(document.querySelector('#tt-slot-them .tt-flip'), dest, 620, 90, tilt)];
+    if (last.winner >= 0 && last.pot) moves.push(flyTo(document.querySelector('#tt-pot .tt-stack'), dest, 520, 160, tilt));
+    Promise.all(moves).then(function () {
+      ui.collecting = false;
+      ui.seen = last.round;
+      render();
+    });
   }
 
   function renderLobby(root) {
@@ -249,6 +339,7 @@
   function stopPoll() { clearInterval(ui.poll); ui.poll = null; }
   function applyRoom(r) {
     var changed = !ui.room || r.version !== ui.version || (!ui.room.guest && r.guest);
+    if (ui.collecting) changed = false; // let the collect animation finish; the next poll catches up
     ui.room = r; ui.version = r.version; ui.state = r.state;
     ui.me = r.host === myId() ? 0 : 1;
     ui.names = ui.me === 0 ? ['You', r.guest_name || 'Waiting…'] : ['You', r.host_name || 'Host'];
@@ -262,7 +353,7 @@
       }).catch(function () {});
     }, 1500);
   }
-  function enterRoom(r) { ui.mode = 'online'; ui.seen = r.state.last ? r.state.last.round : 0; ui.room = null; ui.error = ''; applyRoom(r); startPoll(); render(); }
+  function enterRoom(r) { ui.mode = 'online'; ui.seen = r.state.last ? r.state.last.round : 0; ui.dealt = 0; ui.revealed = ui.seen; ui.collecting = false; ui.room = null; ui.error = ''; applyRoom(r); startPoll(); render(); }
 
   // ---------- actions ----------
   document.addEventListener('click', function (e) {
@@ -282,10 +373,10 @@
     var a = act.getAttribute('data-act');
     if (a === 'bot' || a === 'again') {
       var region = a === 'again' ? ui.state.region : ui.region;
-      ui.mode = 'bot'; ui.me = 0; ui.names = ['You', 'Bot']; ui.seen = 0; ui.error = '';
+      ui.mode = 'bot'; ui.me = 0; ui.names = ['You', 'Bot']; ui.seen = 0; ui.error = ''; ui.dealt = 0; ui.revealed = 0; ui.collecting = false;
       ui.state = newGame(region, (Math.random() * 4294967296) >>> 0); render();
     } else if (a === 'next') {
-      ui.seen = ui.state.last.round; render();
+      if (!ui.collecting) collect();
     } else if (a === 'leave') {
       stopPoll(); ui.mode = 'lobby'; ui.state = null; ui.room = null; ui.error = ''; render();
     } else if (a === 'signin') {

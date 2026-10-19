@@ -56,7 +56,7 @@ const check = (ok, msg) => { if (!ok) { bad++; console.log('FAIL ' + msg); } };
 
   // 2) Page: lobby, region toggle, a bot game, on desktop and phone.
   for (const w of [1440, 390]) {
-    const pg = await b.newPage({ viewport: { width: w, height: 900 } });
+    const pg = await b.newPage({ viewport: { width: w, height: 900 }, reducedMotion: w < 500 ? 'reduce' : 'no-preference' });
     const errs = [];
     pg.on('pageerror', e => errs.push(e.message));
     pg.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });
@@ -71,14 +71,14 @@ const check = (ok, msg) => { if (!ok) { bad++; console.log('FAIL ' + msg); } };
     const names = new Set();
     for (let i = 0; i < 6; i++) {
       // Wait for either our pick, the reveal, or the end.
-      await pg.waitForSelector('button.tt-stat, [data-act="next"], .tt-big', { timeout: 5000 });
+      await pg.waitForSelector('.tt-flip:not(.is-down) button.tt-stat, [data-act="next"]:not([disabled]), .tt-big', { timeout: 8000 });
       if (await pg.$('.tt-big')) break;
-      if (await pg.$('button.tt-stat')) {
+      if (await pg.$('.tt-flip:not(.is-down) button.tt-stat')) {
         names.add(await pg.textContent('.tt-card .tt-name'));
         if (i === 0) await pg.screenshot({ path: `${SHOTS}/pick-${w}.png`, fullPage: true });
         await pg.click('button.tt-stat >> nth=' + (i % 5));
       }
-      await pg.waitForSelector('[data-act="next"]', { timeout: 5000 });
+      await pg.waitForSelector('[data-act="next"]:not([disabled])', { timeout: 8000 });
       if (i === 0) await pg.screenshot({ path: `${SHOTS}/reveal-${w}.png`, fullPage: true });
       const region = await pg.evaluate(() => [...document.querySelectorAll('.tt-teamname')].map(e => e.textContent).join(' | '));
       check(/EMEA/.test(region) && !/S3 NA/.test(region), 'EMEA game showed a non-EMEA card: ' + region);
@@ -86,8 +86,8 @@ const check = (ok, msg) => { if (!ok) { bad++; console.log('FAIL ' + msg); } };
       check(wm.length === 2 && wm.every(x => x.includes('3c7e7374')), 'EMEA cards should carry the EMEA watermark: ' + wm);
       await pg.click('[data-act="next"]');
     }
-    const counts = await pg.$$eval('.tt-counts b', els => els.slice(0, 3).map(e => parseInt(e.textContent, 10)));
-    check(counts.length === 3 && counts[0] + counts[1] + counts[2] === 51, 'cards in play should total 51 EMEA, got ' + counts);
+    const counts = await pg.evaluate(() => [...document.querySelectorAll('[data-count]')].map(e => +e.dataset.count).concat(document.querySelectorAll('.tt-slot .tt-flip').length));
+    check(counts.length === 4 && counts.reduce((a, b) => a + b, 0) === 51, 'decks + pot + table should total 51 EMEA cards, got ' + counts);
     const over = await pg.evaluate(() => document.documentElement.scrollWidth - innerWidth);
     check(over <= 0, `${w}px sideways overflow ${over}px`);
     const real = errs.filter(e => !/fonts\.g|Failed to load resource/.test(e));
@@ -123,7 +123,7 @@ const check = (ok, msg) => { if (!ok) { bad++; console.log('FAIL ' + msg); } };
     // Guest joins; make it the host's turn so we can pick.
     room.guest = '22222222-2222-2222-2222-222222222222'; room.guest_name = 'Ethan'; room.version++; room.state.turn = 0;
     await pg.waitForSelector('button.tt-stat', { timeout: 5000 });
-    check((await pg.textContent('.tt-counts')).includes('Ethan'), 'guest name not shown');
+    check((await pg.textContent('.tt-tabletop')).includes('Ethan'), 'guest name not shown');
     await pg.click('button.tt-stat >> nth=1');
     await pg.waitForSelector('[data-act="next"]', { timeout: 5000 });
     check(moves.length === 1 && moves[0].p_state.last.stat === 'kast', 'move was not sent');
