@@ -1,4 +1,4 @@
-// PCMT Top Trumps (private beta). Rules engine, bot, online rooms (Supabase) and the page UI.
+// PCMT MVP VS (Top Trumps-style game, private beta). Rules engine, bot, online rooms (Supabase) and the page UI.
 // Cards come from trumps-cards.js (built by trumps/build_cards.py). Database setup: setup/trumps-setup.sql.
 (function () {
   'use strict';
@@ -132,7 +132,7 @@
 
   function cardHTML(id, o) {
     o = o || {};
-    if (o.hidden) return '<div class="tt-card tt-back" aria-label="Face-down card"><div class="tt-back-mark">PCMT</div><div class="tt-back-sub">TOP TRUMPS</div></div>';
+    if (o.hidden) return '<div class="tt-card tt-back" aria-label="Face-down card"><div class="tt-back-mark">PCMT</div><div class="tt-back-sub">MVP VS</div></div>';
     var c = BY_ID[id], logo = LOGOS[c.team];
     var rows = STATS.map(function (s) {
       var cls = 'tt-stat' + (o.stat === s.k ? ' is-picked ' + (o.result || '') : '');

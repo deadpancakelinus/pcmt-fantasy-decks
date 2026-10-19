@@ -66,9 +66,9 @@ Tables: `profiles`, `deck_history` (insert-only, server timestamps, 60/hour limi
 
 - Run `setup/fix-display-names.sql` in the Supabase SQL Editor if not done yet.
 - Connect fantasy.pcmt.gg: Cloudflare Pages → Custom domains, then add it to Supabase Redirect URLs.
-- **Top Trumps** (private beta, branch `trumps`, see section 9).
+- **MVP VS** (Top Trumps-style game, private beta, branch `trumps`, see section 9).
 
-## 9. Top Trumps (branch `trumps`, not merged, not pushed while the repo is public)
+## 9. MVP VS, the Top Trumps game (branch `trumps`, not merged, not pushed while the repo is public)
 
 - Files: `trumps.html`, `trumps.js` (engine, bot, online rooms, UI), `trumps-cards.js` (built), `trumps/build_cards.py`, `trumps/data/pcmt-stats.tsv`, `trumps/data/ratings.json`, `trumps/test.js`, `setup/trumps-setup.sql`. Nothing in the existing pages links to it.
 - Cards: every S3 NA and S2 EMEA player from pcmt.gg/stats (Show Subs on, Showmatches off, seasons not combined): 87 NA, 51 EMEA. A region toggle picks which set is dealt; a game never mixes them.
