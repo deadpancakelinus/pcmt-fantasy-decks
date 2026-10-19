@@ -95,3 +95,23 @@ grant execute on function public.redeem_code(text) to authenticated;
 -- Unlock keys: PRIDE, GOLD, TROPHY, ETHAN, HALO, MISSED, TEAMS (all team decks), a team code like 'T1', or ALL.
 insert into public.codes (code, unlocks) values ('PRIDE', array['PRIDE'])
   on conflict (code) do update set unlocks = excluded.unlocks;
+
+create or replace function public.profiles_real_name() returns trigger
+language plpgsql security definer set search_path = public, auth as $$
+declare md jsonb;
+begin
+  select raw_user_meta_data into md from auth.users where id = new.id;
+  new.name := left(regexp_replace(coalesce(
+      nullif(md -> 'custom_claims' ->> 'global_name', ''),
+      nullif(md ->> 'full_name', ''),
+      nullif(md ->> 'name', ''),
+      'Manager'), '#0$', ''), 40);
+  new.avatar_url := md ->> 'avatar_url';
+  new.updated_at := now();
+  return new;
+end $$;
+drop trigger if exists profiles_real_name on public.profiles;
+create trigger profiles_real_name before insert or update on public.profiles
+  for each row execute function public.profiles_real_name();
+-- Re-apply to anyone already signed up.
+update public.profiles set updated_at = now();

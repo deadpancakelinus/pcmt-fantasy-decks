@@ -1,0 +1,77 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "Customization.dc.html": {
+      "expand": "fill",
+      "h": 1750,
+      "is_interactive": true,
+      "title": "Customization",
+      "w": 1440,
+      "x": 6080,
+      "y": 0
+    },
+    "Leaderboard.dc.html": {
+      "expand": "fill",
+      "h": 1050,
+      "is_interactive": true,
+      "title": "Leaderboard",
+      "w": 1440,
+      "x": 1520,
+      "y": 0
+    },
+    "Login.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "title": "Log in",
+      "w": 1440,
+      "x": 4560,
+      "y": 0
+    },
+    "Main.dc.html": {
+      "expand": "fill",
+      "h": 2200,
+      "is_interactive": true,
+      "title": "Deck Builder",
+      "w": 1520,
+      "x": 0,
+      "y": 0
+    },
+    "Rules.dc.html": {
+      "expand": "fill",
+      "h": 1300,
+      "title": "Guide",
+      "w": 1440,
+      "x": 3040,
+      "y": 0
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-10-18T09:40:00Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "view": "canvas"
+  },
+  "notes": {
+    "title": {
+      "kind": "title1",
+      "maxW": 7520,
+      "text": "PCMT Fantasy Decks — Plat Chat Members Tourney",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "Customization.dc.html",
+    "Leaderboard.dc.html",
+    "Rules.dc.html",
+    "Login.dc.html"
+  ],
+  "pages": [],
+  "title": "PCMT Fantasy Decks"
+}

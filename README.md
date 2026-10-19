@@ -18,6 +18,8 @@ Live at https://pcmt-fantasy.pages.dev. Every push to `main` redeploys it throug
 | `league.js` | Discord sign-in (through Supabase), saving decks, scoring and the leaderboard |
 | `players.js` | Player list used for scoring (generated from the Deck Builder) |
 | `setup/supabase-setup.sql` | Database setup: paste into Supabase → SQL Editor → Run |
+| `setup/fix-display-names.sql` | Makes leaderboard names always come from Discord (already included in the setup file) |
+| `tools/` | Canvas source and build tools to rebuild the pages (see tools/README.md) |
 | `assets/` | Logos, role icons, deck art |
 | `_headers` | Tells Cloudflare not to cache `data.js`, so new results show right away |
 
