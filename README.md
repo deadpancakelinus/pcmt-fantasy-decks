@@ -6,22 +6,25 @@ Fantasy game for the Plat Chat Members Tourney (NA Season 3, EMEA Season 2).
 
 | Path | What it is |
 |---|---|
-| `site/` | **The website.** Upload this folder to any static host (see LAUNCH-CHECKLIST.md). |
-| `site/index.html` | Deck Builder (home page) |
-| `site/customization.html` | Card backs, auras, favorites, codes, card packs |
-| `site/leaderboard.html` | Leaderboard |
-| `site/guide.html` | How to play |
-| `site/login.html` | Discord log in (needs the Phase 3 backend to work) |
-| `site/data.js` | **Season data**: scheduled matches and finished results. The only file that changes week to week. |
-| `site/dc-lite.js` | The small engine that draws the pages |
-| `site/assets/` | Logos, role icons, deck art |
-| `site/_headers` | Tells Cloudflare not to cache `data.js`, so new results show right away |
-| `tools/build.py` | Rebuilds `site/` from the canvas boards after design changes |
+| `` | **The website.** Upload this folder to any static host (see LAUNCH-CHECKLIST.md). |
+| `index.html` | Deck Builder (home page) |
+| `customization.html` | Card backs, auras, favorites, codes, card packs |
+| `leaderboard.html` | Leaderboard |
+| `guide.html` | How to play |
+| `login.html` | Discord log in (needs the Phase 3 backend to work) |
+| `data.js` | **Season data**: scheduled matches and finished results. The only file that changes week to week. |
+| `dc-lite.js` | The small engine that draws the pages |
+| `league.js` | Discord sign-in (through Supabase), saving decks, scoring and the leaderboard |
+| `players.js` | Player list used for scoring (generated from the Deck Builder) |
+| `setup/supabase-setup.sql` | Database setup: paste into Supabase → SQL Editor → Run |
+| `assets/` | Logos, role icons, deck art |
+| `_headers` | Tells Cloudflare not to cache `data.js`, so new results show right away |
+| `tools/build.py` | Rebuilds `` from the canvas boards after design changes |
 | `LAUNCH-CHECKLIST.md` | Everything needed to go live, in order |
 
 ## Updating match data by hand
 
-Open `site/data.js`:
+Open `data.js`:
 
 - Add a scheduled series to `PCMT_MATCHES`:
   `{ region: 'NA', start: '2026-10-24T00:00:00Z', a: 'T1', b: 'NAVI', bo: 5, hours: 5, url: 'https://pcmt.gg/...' }`

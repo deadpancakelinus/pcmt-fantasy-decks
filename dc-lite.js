@@ -156,11 +156,17 @@
     inst.__render = function () {
       var vals;
       try { vals = inst.renderVals(); } catch (e) { console.error(e); return; }
-      patchKids(root, build(tree, [vals], []), false);
+      patchKids(root, build(tree, [{ auth: window.PCMT_AUTH || {}, league: window.PCMT_LEAGUE_VALS || {} }, vals], []), false);
     };
     inst.__render();
     if (inst.componentDidMount) inst.componentDidMount();
     window.addEventListener('pagehide', function () { if (inst.componentWillUnmount) inst.componentWillUnmount(); });
   }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+  // Wait for the league data (sign-in, decks, scores) but never longer than 5 seconds.
+  function start() {
+    var ready = window.PCMT_LEAGUE_READY || Promise.resolve();
+    var cap = new Promise(function (res) { setTimeout(res, 5000); });
+    Promise.race([ready, cap]).then(boot, boot);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 })();
