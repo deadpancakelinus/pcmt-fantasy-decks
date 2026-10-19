@@ -2,16 +2,17 @@
 
 Fantasy game for the Plat Chat Members Tourney (NA Season 3, EMEA Season 2).
 
-## What's in this folder
+Live at https://pcmt-fantasy.pages.dev. Every push to `main` redeploys it through Cloudflare Pages.
+
+## What's in this repo
 
 | Path | What it is |
 |---|---|
-| `` | **The website.** Upload this folder to any static host (see LAUNCH-CHECKLIST.md). |
 | `index.html` | Deck Builder (home page) |
 | `customization.html` | Card backs, auras, favorites, codes, card packs |
 | `leaderboard.html` | Leaderboard |
 | `guide.html` | How to play |
-| `login.html` | Discord log in (needs the Phase 3 backend to work) |
+| `login.html` | Discord log in |
 | `data.js` | **Season data**: scheduled matches and finished results. The only file that changes week to week. |
 | `dc-lite.js` | The small engine that draws the pages |
 | `league.js` | Discord sign-in (through Supabase), saving decks, scoring and the leaderboard |
@@ -19,8 +20,6 @@ Fantasy game for the Plat Chat Members Tourney (NA Season 3, EMEA Season 2).
 | `setup/supabase-setup.sql` | Database setup: paste into Supabase → SQL Editor → Run |
 | `assets/` | Logos, role icons, deck art |
 | `_headers` | Tells Cloudflare not to cache `data.js`, so new results show right away |
-| `tools/build.py` | Rebuilds `` from the canvas boards after design changes |
-| `LAUNCH-CHECKLIST.md` | Everything needed to go live, in order |
 
 ## Updating match data by hand
 
