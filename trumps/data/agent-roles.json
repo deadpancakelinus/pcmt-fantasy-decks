@@ -1,0 +1,20 @@
+{
+  "_how": "Maps per agent in the card's own season (pcmt.gg player page, Agents table, only that season switched on). Used for players not in The Deck's player list: the role with the most maps wins; a tie goes to the role of their single most-played agent. Key is region:player.",
+  "_source": "pcmt.gg player pages, read 2026-10-19",
+  "na:catsmeow": {"Fade": 9, "Sova": 6},
+  "na:pants": {"Sova": 5, "Cypher": 3, "Sage": 2, "Fade": 2, "Vyse": 1, "Killjoy": 1, "Omen": 1},
+  "na:latineao": {"Sova": 6, "Fade": 5, "Brimstone": 1, "Iso": 1, "Skye": 1},
+  "na:jolly": {"Fade": 3, "Sova": 1},
+  "na:sizeable": {"Chamber": 2, "Viper": 1, "Phoenix": 1},
+  "na:jalen": {"Jett": 1, "Vyse": 1, "Chamber": 1},
+  "na:thenam3less1": {"Sova": 4, "Vyse": 1},
+  "na:jooah": {"Astra": 1, "Omen": 1},
+  "na:epsilon": {"Fade": 2},
+  "emea:autumn": {"Jett": 4, "Gekko": 1, "Harbor": 1, "Reyna": 1, "Astra": 1, "Viper": 1},
+  "emea:alex": {"Cypher": 4, "Chamber": 4, "Vyse": 4},
+  "emea:denial": {"Sova": 6, "Fade": 3, "Raze": 2},
+  "emea:ghrf6": {"Sova": 4, "Fade": 4, "Sage": 3, "Viper": 3},
+  "emea:alet": {"Jett": 2, "Waylay": 2, "Clove": 2, "Neon": 1},
+  "emea:bi0": {"Sova": 6, "Fade": 2, "Neon": 2, "Sage": 1, "Harbor": 1},
+  "emea:syim": {"Cypher": 4, "Sage": 2, "Skye": 1, "Neon": 1, "Omen": 1}
+}

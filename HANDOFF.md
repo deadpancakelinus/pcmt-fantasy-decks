@@ -23,7 +23,7 @@ Start here. It covers what exists, how changes are made and shipped, and what's 
 | Leaderboard.dc.html | leaderboard.html | This gameweek / overall standings |
 | Rules.dc.html | guide.html | Guide + Patch Notes ("Version 1.0 BETA", "Welcome to the BETA") |
 | Login.dc.html | login.html | Discord log in |
-| MvpVs.dc.html | mvp-vs.html | **MVP VS** placeholder: "Coming soon" with the card loader (the game itself is on the `trumps` branch) |
+| (hand-written) | mvp-vs.html | **MVP VS** card game (see section 9). Its board MvpVs.dc.html is only the old "Coming soon" design and is not built. |
 
 Branding: header and titles say **fantasy.pcmt.gg**. Colors black + `#a5dcdd`; fonts Cabin Sketch / Space Grotesk / JetBrains Mono.
 
@@ -39,7 +39,7 @@ Branding: header and titles say **fantasy.pcmt.gg**. Colors black + `#a5dcdd`; f
 1. Edit the board(s) in `tools/canvas/*.dc.html`.
 2. Build: `python3 -I tools/build.py tools/canvas assets <out>`
 3. Test: copy the repo `data.js` into `<out>`, serve it (`python3 -m http.server 8766 --directory <out>`, in the background) and run `NODE_PATH=$(npm root -g) node tools/smoke-test.js http://localhost:8766 <out>/shots`. It mocks Supabase and checks every page on desktop and phone. Look at the screenshots for visual changes.
-4. Copy `index.html customization.html leaderboard.html guide.html login.html mvp-vs.html players.js league.js dc-lite.js _headers` from `<out>` into the repo root (**not** `data.js`, **not** `assets/`). Copy changed boards into `tools/canvas/`.
+4. Copy `index.html customization.html leaderboard.html guide.html login.html players.js league.js dc-lite.js _headers` from `<out>` into the repo root (**not** `data.js`, **not** `assets/`, **not** `mvp-vs.html`, which is the hand-written game). Copy changed boards into `tools/canvas/`.
 5. Update the design canvas with the changed boards so it stays in step with `tools/canvas/`.
 6. Commit, then `git fetch && git stash && git rebase origin/main && git stash pop && git push` (the scheduled check also pushes to `main`).
 
@@ -67,4 +67,18 @@ Tables: `profiles`, `deck_history` (insert-only, server timestamps, 60/hour limi
 
 - Run `setup/fix-display-names.sql` in the Supabase SQL Editor if not done yet.
 - Connect fantasy.pcmt.gg: Cloudflare Pages → Custom domains, then add it to Supabase Redirect URLs.
-- **Next project: Top Trumps** (multiplayer card game using the player cards). Plan agreed so far: build it on a separate branch (e.g. `trumps`) so it gets its own Cloudflare preview link, protect preview deployments with Cloudflare Access (approved emails only), and lock its Supabase tables to approved testers. Merge into `main` only when it's ready to go public. Design questions still open: which stats are compared, cards per hand, match format.
+- Run `setup/trumps-setup.sql` in the Supabase SQL Editor to switch on MVP VS online rooms (until then, online shows "not switched on yet" and the bot game works).
+- If Supabase Redirect URLs are not a wildcard, add `https://pcmt-fantasy.pages.dev/mvp-vs.html` so logging in from MVP VS returns there.
+
+## 9. MVP VS (mvp-vs.html, public since 2026-10-19)
+
+- Files: `mvp-vs.html` (page, hand-written, same header as the site), `trumps.js` (engine, bot, online rooms, UI), `trumps-cards.js` (built), `trumps/build_cards.py`, `trumps/data/pcmt-stats.tsv`, `trumps/data/agent-roles.json`, `trumps/test.js`, `setup/trumps-setup.sql`.
+- Cards: every S3 NA and S2 EMEA player from pcmt.gg/stats (Show Subs on, Showmatches off, seasons not combined): 87 NA, 51 EMEA. A region toggle picks which set is dealt; a game never mixes them.
+- Stats on each card, in order: ACS, KAST, HS%, DPR, Toxic rating, all from pcmt.gg/stats. Higher wins except DPR (lower wins).
+- Roles: from The Deck's player list; players not in it get the role they played most maps on that season (`trumps/data/agent-roles.json`, from pcmt.gg player pages; ties go to their top agent's role).
+- Refreshing stats: re-export the pcmt.gg/stats rows for S3 NA and S2 EMEA into `pcmt-stats.tsv` (same columns as the site, plus player link and logo path), then rebuild.
+- Rules: the whole region deck is dealt between two players (odd spare card starts in the pot). The better stat (higher, or lower for DPR) takes both cards and picks next; ties go to the pot. Win by holding every card, or most cards after round 60 (nearly every game, per simulation).
+- Game screen: a card table with each player's deck on their side and the pot in the middle. Cards are dealt from the decks, yours flips face up, theirs flips on the reveal, and both fly face down to the winner's deck (or the pot on a tie). Card backs come from `backFor(seat)` in `trumps.js`: everyone uses the deck card back for now; later, online players will show their chosen card back there.
+- Modes: vs bot, and 1v1 online with a 5-letter room code for anyone logged in with Discord (Supabase `trumps_rooms`, polled every 1.5 s; writes only through `trumps_create` / `trumps_join` / `trumps_move`; players only see rooms they sit in; rooms idle for a day are removed).
+- Known limit: the game state is trusted from the two players' browsers and holds both hands, so a player with dev tools could peek at the other hand or fake a move. Moving the rules into a Supabase function would fix it if that ever matters.
+- Test: serve the repo root (`python3 -m http.server 8767 --directory .`) and run `NODE_PATH=$(npm root -g) node trumps/test.js http://localhost:8767 <shots>`. The site smoke test also opens mvp-vs.

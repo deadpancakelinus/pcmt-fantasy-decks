@@ -13,7 +13,6 @@ PAGES = {  # board -> output file
     'Leaderboard.dc.html': 'leaderboard.html',
     'Rules.dc.html': 'guide.html',
     'Login.dc.html': 'login.html',
-    'MvpVs.dc.html': 'mvp-vs.html',
 }
 VOID = {'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source', 'track', 'wbr'}
 RAW = {'script', 'style'}
@@ -104,9 +103,15 @@ for f in os.listdir(ASSETS):
     blob_map[bid] = 'assets/' + f
 
 
+# Pages that are hand-written instead of compiled from a board; nav links to their board still point here.
+# MVP VS (mvp-vs.html) is the game itself (mvp-vs.html + trumps.js + trumps-cards.js); its canvas board
+# MvpVs.dc.html is only the old "Coming soon" design, so it is not built.
+LINKS = {'MvpVs.dc.html': 'mvp-vs.html'}
+
+
 def fix_refs(s):
     s = re.sub(r'/_blob/([0-9a-f]{32})', lambda m: blob_map[m.group(1)], s)
-    for b, o in PAGES.items():
+    for b, o in list(PAGES.items()) + list(LINKS.items()):
         s = s.replace(b, o)
     return s
 
