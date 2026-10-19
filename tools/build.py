@@ -13,6 +13,7 @@ PAGES = {  # board -> output file
     'Leaderboard.dc.html': 'leaderboard.html',
     'Rules.dc.html': 'guide.html',
     'Login.dc.html': 'login.html',
+    'MvpVs.dc.html': 'mvp-vs.html',
 }
 VOID = {'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source', 'track', 'wbr'}
 RAW = {'script', 'style'}
