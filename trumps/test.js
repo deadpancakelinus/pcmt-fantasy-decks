@@ -63,6 +63,15 @@ const check = (ok, msg) => { if (!ok) { bad++; console.log('FAIL ' + msg); } };
     await pg.route('https://wwrsavqipkxvdsxcemos.supabase.co/**', r => r.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
     await pg.goto(`${BASE}/mvp-vs.html`);
     await pg.waitForTimeout(400);
+    await pg.evaluate(() => {
+      window.__ttSeen = [];
+      new MutationObserver(() => {
+        const t = document.querySelector('.tt-tabletop'), r = document.querySelector('.tt-round'), p = document.querySelector('.tt-status .tt-result');
+        if (!t || !r || !p) return;
+        const phase = document.querySelector('[data-act="next"]') ? 'reveal' : document.querySelector('.tt-over') ? 'over' : 'pick';
+        window.__ttSeen.push({ phase, top: t.getBoundingClientRect().top + scrollY, round: r.offsetHeight, panel: p.offsetHeight });
+      }).observe(document.getElementById('tt-app'), { childList: true });
+    });
     await pg.screenshot({ path: `${SHOTS}/lobby-${w}.png`, fullPage: true });
     await pg.click('[data-region="emea"]');
     check((await pg.textContent('[data-act="bot"]')).includes('EMEA'), 'region toggle did not switch the deal button');
@@ -79,6 +88,7 @@ const check = (ok, msg) => { if (!ok) { bad++; console.log('FAIL ' + msg); } };
         await pg.click('button.tt-stat >> nth=' + (i % 5));
       }
       await pg.waitForSelector('[data-act="next"]:not([disabled])', { timeout: 8000 });
+
       if (i === 0) await pg.screenshot({ path: `${SHOTS}/reveal-${w}.png`, fullPage: true });
       const region = await pg.evaluate(() => [...document.querySelectorAll('.tt-teamname')].map(e => e.textContent).join(' | '));
       check(/EMEA/.test(region) && !/S3 NA/.test(region), 'EMEA game showed a non-EMEA card: ' + region);
@@ -92,7 +102,13 @@ const check = (ok, msg) => { if (!ok) { bad++; console.log('FAIL ' + msg); } };
     check(over <= 0, `${w}px sideways overflow ${over}px`);
     const real = errs.filter(e => !/fonts\.g|Failed to load resource/.test(e));
     check(!real.length, `${w}px page errors: ${real.join(' | ')}`);
-    console.log(`page ${w}px: played ${names.size}+ rounds, counts ${counts}, overflow ${over}px, errors ${real.length}`);
+    // Every screen the game drew: where the table sat, and the round/result panel heights.
+    const seen = await pg.evaluate(() => window.__ttSeen || []);
+    const phases = new Set(seen.map(x => x.phase)), topsY = seen.map(x => x.top);
+    check(phases.has('pick') && phases.has('reveal'), `${w}px saw phases ${[...phases]}`);
+    check(Math.max(...topsY) - Math.min(...topsY) < 1, `${w}px table moved between screens: ${Math.min(...topsY)}..${Math.max(...topsY)}`);
+    check(seen.every(x => x.round === x.panel), `${w}px round and message panels differ in height: ` + JSON.stringify(seen.find(x => x.round !== x.panel)));
+    console.log(`page ${w}px: ${seen.length} screens checked (${[...phases].join('/')}), table moved ${(Math.max(...topsY) - Math.min(...topsY)).toFixed(1)}px, played ${names.size}+ rounds, counts ${counts}, overflow ${over}px, errors ${real.length}`);
     await pg.close();
   }
 

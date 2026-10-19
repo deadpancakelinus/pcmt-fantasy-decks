@@ -21,7 +21,7 @@ Start here. It covers what exists, how changes are made and shipped, and what's 
 | Main.dc.html | index.html | **The Deck** (deck building, player store, next match, lock countdown) |
 | Customization.dc.html | customization.html | Card backs, auras, favorites, codes, card packs |
 | Leaderboard.dc.html | leaderboard.html | This gameweek / overall standings |
-| Rules.dc.html | guide.html | Guide + Patch Notes ("Version 1.0 BETA", "Welcome to the BETA") |
+| Rules.dc.html | guide.html | Guide + Patch Notes (site is "Version 1.5 BETA"; footers on every page show the version) |
 | Login.dc.html | login.html | Discord log in |
 | (hand-written) | mvp-vs.html | **MVP VS** card game (see section 9). Its board MvpVs.dc.html is only the old "Coming soon" design and is not built. |
 

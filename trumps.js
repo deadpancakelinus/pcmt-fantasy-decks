@@ -243,7 +243,7 @@
     } else if (s.over) {
       phase = 'over';
       var w = s.over.winner, title = w < 0 ? 'Draw' : w === ui.me ? 'You win!' : esc(ui.names[them]) + ' wins';
-      html += '<div class="tt-status">' + round + '<div class="tt-turn">Game over</div></div>';
+      html += '<div class="tt-status">' + round + '<div class="tt-result ' + (w < 0 ? 'tie' : w === ui.me ? 'win' : 'lose') + '"><span>Game over</span><strong>' + title + '</strong></div></div>';
       html += tableHTML(s, s.hands[ui.me].length, s.hands[them].length, s.pot.length,
         '<div class="tt-over"><div class="tt-kicker">GAME OVER</div><div class="tt-big">' + title + '</div><p>' +
         (s.over.reason === 'limit' ? 'Round ' + ROUND_LIMIT + ' reached, so the most cards wins: ' + s.hands[ui.me].length + ' to ' + s.hands[them].length + '.' : 'Every card ended up in one deck.') +
@@ -252,7 +252,8 @@
     } else {
       phase = 'pick';
       var myTurn = s.turn === ui.me;
-      html += '<div class="tt-status">' + round + '<div class="tt-turn">' + (myTurn ? 'Your pick. Choose the stat you think beats their card.' : esc(ui.names[them]) + ' is picking a stat…') + '</div></div>';
+      html += '<div class="tt-status">' + round + '<div class="tt-result neutral"><span>' + (myTurn ? 'Your pick' : esc(ui.names[them]) + '’s pick') + '</span><strong>' +
+        (myTurn ? 'Choose the stat you think beats their card.' : esc(ui.names[them]) + ' is picking a stat…') + '</strong></div></div>';
       html += tableHTML(s, s.hands[ui.me].length - 1, s.hands[them].length - 1, s.pot.length,
         slotHTML('me', ui.names[ui.me], flipHTML(cardHTML(s.hands[ui.me][0], { pick: myTurn && !ui.busy }), ui.me, ui.dealt !== s.round)) +
         slotHTML('them', ui.names[them], flipHTML('<div class="tt-card tt-blank"></div>', them, true)));
