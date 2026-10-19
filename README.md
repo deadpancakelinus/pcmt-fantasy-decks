@@ -1,4 +1,6 @@
-# PCMT Fantasy Decks (Version 1.0 BETA)
+# fantasy.pcmt.gg — PCMT Fantasy Decks (Version 1.0 BETA)
+
+**New to the project? Read [HANDOFF.md](HANDOFF.md) first.**
 
 Fantasy game for the Plat Chat Members Tourney (NA Season 3, EMEA Season 2).
 
@@ -8,7 +10,7 @@ Live at https://pcmt-fantasy.pages.dev. Every push to `main` redeploys it throug
 
 | Path | What it is |
 |---|---|
-| `index.html` | Deck Builder (home page) |
+| `index.html` | The Deck (home page) |
 | `customization.html` | Card backs, auras, favorites, codes, card packs |
 | `leaderboard.html` | Leaderboard |
 | `guide.html` | How to play |
@@ -16,7 +18,7 @@ Live at https://pcmt-fantasy.pages.dev. Every push to `main` redeploys it throug
 | `data.js` | **Season data**: scheduled matches and finished results. The only file that changes week to week. |
 | `dc-lite.js` | The small engine that draws the pages |
 | `league.js` | Discord sign-in (through Supabase), saving decks, scoring and the leaderboard |
-| `players.js` | Player list used for scoring (generated from the Deck Builder) |
+| `players.js` | Player list used for scoring (generated from The Deck) |
 | `setup/supabase-setup.sql` | Database setup: paste into Supabase → SQL Editor → Run |
 | `setup/fix-display-names.sql` | Makes leaderboard names always come from Discord (already included in the setup file) |
 | `tools/` | Canvas source and build tools to rebuild the pages (see tools/README.md) |
