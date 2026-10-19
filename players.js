@@ -1,4 +1,4 @@
-// Player list used for scoring (generated from the Deck Manager).
+// Player list used for scoring (generated from The Deck).
 var PCMT_SITE_PLAYERS = [
   { id: 'crocman', name: 'mrcrocman', team: 'T1', role: 'duelist', price: 13.5 },
   { id: 'pi', name: 'pi', team: 'T1', role: 'initiator', price: 9.5 },

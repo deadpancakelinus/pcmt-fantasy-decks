@@ -54,7 +54,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </a>
 <nav aria-label="Main" style="display: flex; flex-wrap: wrap; gap: 4px; flex: 1 1 auto">
 <a href="Leaderboard.dc.html" aria-current="page" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #000; background: #a5dcdd; font-weight: 600">Leaderboard</a>
-<a href="Main.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Deck Manager</a>
+<a href="Main.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">The Deck</a>
 <a href="Customization.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Customization</a>
 <a href="Rules.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Guide</a>
 </nav>
@@ -148,7 +148,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 // "Overall" = every gameweek of the season added together. me: true marks the signed-in manager.
 // The live site fills this from scoring. Empty until the first match is scored.
 var PCMT_STANDINGS = [];
-// Gameweeks turn over at 5:00 AM Monday EDT (09:00 UTC), same as the Deck Manager.
+// Gameweeks turn over at 5:00 AM Monday EDT (09:00 UTC), same as The Deck.
 function pcmtWeekKey(t) {
   var local = new Date(t - 4 * 3600000 - 5 * 3600000); // shift so the week starts at Monday 00:00
   var dow = (local.getUTCDay() + 6) % 7;
