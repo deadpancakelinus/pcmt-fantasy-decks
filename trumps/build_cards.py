@@ -47,6 +47,31 @@ def scale(p):
     return int(round(20 + p * 79))  # 20..99
 
 
+AGENT_ROLES = {
+    'duelist': ['Jett', 'Reyna', 'Raze', 'Phoenix', 'Yoru', 'Neon', 'Iso', 'Waylay'],
+    'initiator': ['Sova', 'Breach', 'Skye', 'KAY/O', 'Fade', 'Gekko', 'Tejo'],
+    'controller': ['Brimstone', 'Viper', 'Omen', 'Astra', 'Harbor', 'Clove'],
+    'sentinel': ['Killjoy', 'Cypher', 'Sage', 'Chamber', 'Deadlock', 'Vyse', 'Veto'],
+}
+AGENT_TO_ROLE = {a: r for r, agents in AGENT_ROLES.items() for a in agents}
+
+
+def role_from_agents(maps):
+    """Role with the most maps; a tie goes to the role of the single most-played agent."""
+    unknown = [a for a in maps if a not in AGENT_TO_ROLE]
+    if unknown:
+        raise SystemExit('Unknown agent(s) in agent-roles.json: ' + ', '.join(unknown))
+    totals = {}
+    for agent, n in maps.items():
+        totals[AGENT_TO_ROLE[agent]] = totals.get(AGENT_TO_ROLE[agent], 0) + n
+    best = max(totals.values())
+    tied = [r for r, n in totals.items() if n == best]
+    if len(tied) == 1:
+        return tied[0]
+    top_agent = max((a for a in maps if AGENT_TO_ROLE[a] in tied), key=lambda a: maps[a])
+    return AGENT_TO_ROLE[top_agent]
+
+
 def deck_info():
     """Team names/colors and player roles from The Deck board, so MVP VS cards look like deck cards."""
     src = open(os.path.join(ROOT, 'tools', 'canvas', 'Main.dc.html'), encoding='utf-8').read()
@@ -82,6 +107,8 @@ def main():
     path = os.path.join(HERE, 'data', 'ratings.json')
     overrides = json.load(open(path, encoding='utf-8')) if os.path.exists(path) else {}
     overrides = {k: v for k, v in overrides.items() if not k.startswith('_')}
+    ap = os.path.join(HERE, 'data', 'agent-roles.json')
+    agent_roles = {k: role_from_agents(v) for k, v in json.load(open(ap, encoding='utf-8')).items() if not k.startswith('_')} if os.path.exists(ap) else {}
 
     out = {'na': [], 'emea': []}
     for season, region in SEASONS.items():
@@ -109,7 +136,7 @@ def main():
                 'team': team,
                 'teamName': teams[team]['name'] if team in teams else ('Sub' if not team else team),
                 'color': teams[team]['color'] if team in teams else '#93a9aa',
-                'role': pick[0][1] if pick else '',
+                'role': pick[0][1] if pick else agent_roles.get(key, ''),
                 'champ': bool(pick and pick[0][2]),
                 'sub': r['team'] == '(sub)',
                 'maps': int(r['mp']),
@@ -120,7 +147,7 @@ def main():
                 'brains': int(ov.get('brains', scale(sum(b[i] for b in brain) / 4))),
                 'set': sorted(k for k in ('mechanics', 'brains') if k in ov),
             })
-    unknown = sorted(set(overrides) - {c['id'].replace('-', ':', 1) for r in out.values() for c in r})
+    unknown = sorted((set(overrides) | set(agent_roles)) - {c['id'].replace('-', ':', 1) for r in out.values() for c in r})
     if unknown:
         print('Warning: ratings.json names players that are not in the stats:', ', '.join(unknown))
 
@@ -129,6 +156,10 @@ def main():
     with open(os.path.join(ROOT, 'trumps-cards.js'), 'w', encoding='utf-8') as f:
         f.write(js)
     print('trumps-cards.js: %d NA, %d EMEA cards' % (len(out['na']), len(out['emea'])))
+    missing = [c['name'] for r in out.values() for c in r if not c['role']]
+    print('Roles from agents:', ', '.join('%s %s' % (k, v) for k, v in sorted(agent_roles.items())))
+    if missing:
+        print('Still no role:', ', '.join(missing))
 
 
 if __name__ == '__main__':
