@@ -10,21 +10,21 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cabin+Sketch:wght@400;700&family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-  :root { --bg: #000; --panel: #0b1011; --panel2: #101718; --line: #1d2a2c; --ink: #eaf4f4; --dim: #8a9a9b; --accent: #a5dcdd; --win: #55ff8f; --lose: #ff5a5a; --tie: #ffe94d; }
+  :root { color-scheme: dark; --bg: #000; --panel: #0b1011; --panel2: #101718; --line: #1d2a2c; --ink: #eaf4f4; --dim: #8a9a9b; --accent: #a5dcdd; --win: #55ff8f; --lose: #ff5a5a; --tie: #ffe94d; }
   * { box-sizing: border-box; }
   html, body { margin: 0; background: var(--bg); color: var(--ink); }
   body { font: 400 15px/1.5 'Space Grotesk', system-ui, sans-serif; min-height: 100vh; }
   button, input { font: inherit; color: inherit; }
   .mono, .tt-kicker, .tt-nav a, .tt-btn, .tt-seat, .tt-counts span, .tt-stat-v, .tt-meta, .tt-turn, .tt-region button { font-family: 'JetBrains Mono', monospace; }
   .tt-top { border-bottom: 1px solid var(--line); }
-  .tt-top-in { max-width: 1200px; margin: 0 auto; padding: 18px 16px; display: flex; align-items: center; gap: 28px; flex-wrap: wrap; }
+  .tt-top-in { max-width: 1200px; margin: 0 auto; padding-block: 18px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; align-items: center; gap: 28px; flex-wrap: wrap; }
   .tt-brand { font: 700 30px/1 'Cabin Sketch', cursive; color: var(--accent); text-decoration: none; }
   .tt-nav { display: flex; gap: 4px; flex-wrap: wrap; }
   .tt-nav a { color: var(--ink); text-decoration: none; font-size: 13px; letter-spacing: .08em; padding: 9px 12px; border-radius: 6px; }
   .tt-nav a:hover { background: var(--panel2); }
   .tt-nav a[aria-current] { background: var(--accent); color: #000; font-weight: 600; }
   .tt-beta { font: 600 10px/1 'JetBrains Mono', monospace; letter-spacing: .12em; color: var(--accent); border: 1px solid var(--accent); padding: 5px 7px; border-radius: 4px; margin-left: auto; }
-  main { max-width: 1200px; margin: 0 auto; padding: 36px 16px 72px; }
+  main { max-width: 1200px; margin: 0 auto; padding-block: 36px 72px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
   .tt-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-bottom: 28px; }
   h1 { font: 700 clamp(40px, 7vw, 64px)/1 'Cabin Sketch', cursive; margin: 0; }
   .tt-sub { color: var(--dim); margin: 10px 0 0; max-width: 560px; }
@@ -113,7 +113,7 @@
     .tt-top-in { gap: 12px; }
     .tt-brand { font-size: 24px; }
     .tt-nav a { padding: 8px; font-size: 11px; }
-    main { padding-top: 24px; }
+    main { padding-block-start: 24px; }
     .tt-counts { grid-template-columns: repeat(2, 1fr); }
     .tt-table { gap: 10px; }
     .tt-card { padding: 10px; min-height: 300px; border-radius: 10px; }

@@ -205,7 +205,9 @@
 
   function renderLobby(root) {
     var n = CARDS[ui.region].length, signedIn = !!session;
-    var online = !signedIn
+    var online = window.PCMT_TRUMPS_PREVIEW
+      ? '<p>Online rooms need the site itself (Discord log-in and the game database), so this test copy only has the bot. They work once the page is on a private site preview.</p>'
+      : !signedIn
       ? '<p>Online games use your Discord log-in from fantasy.pcmt.gg.</p><button type="button" class="tt-btn discord" data-act="signin">Log in with Discord</button>'
       : ui.tester === false
         ? '<p>Online play is in a private beta and your account isn’t on the tester list yet.</p>'
