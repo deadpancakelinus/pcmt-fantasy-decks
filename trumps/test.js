@@ -15,7 +15,7 @@ const check = (ok, msg) => { if (!ok) { bad++; console.log('FAIL ' + msg); } };
   // 1) Engine: play many bot-vs-bot games per region.
   {
     const pg = await b.newPage();
-    await pg.goto(`${BASE}/trumps.html`);
+    await pg.goto(`${BASE}/mvp-vs.html`);
     const r = await pg.evaluate(() => {
       const T = window.PCMT_TRUMPS, out = {};
       for (const region of ['na', 'emea']) {
@@ -61,7 +61,7 @@ const check = (ok, msg) => { if (!ok) { bad++; console.log('FAIL ' + msg); } };
     pg.on('pageerror', e => errs.push(e.message));
     pg.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });
     await pg.route('https://wwrsavqipkxvdsxcemos.supabase.co/**', r => r.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
-    await pg.goto(`${BASE}/trumps.html`);
+    await pg.goto(`${BASE}/mvp-vs.html`);
     await pg.waitForTimeout(400);
     await pg.screenshot({ path: `${SHOTS}/lobby-${w}.png`, fullPage: true });
     await pg.click('[data-region="emea"]');
@@ -113,7 +113,7 @@ const check = (ok, msg) => { if (!ok) { bad++; console.log('FAIL ' + msg); } };
       if (u.includes('/trumps_rooms')) return json(room ? [room] : []);
       return json([]);
     });
-    await pg.goto(`${BASE}/trumps.html`);
+    await pg.goto(`${BASE}/mvp-vs.html`);
     await pg.waitForSelector('[data-act="create"]');
     await pg.screenshot({ path: `${SHOTS}/online-lobby.png`, fullPage: true });
     await pg.click('[data-act="create"]');

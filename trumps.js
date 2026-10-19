@@ -1,4 +1,4 @@
-// PCMT MVP VS (Top Trumps-style game, private beta). Rules engine, bot, online rooms (Supabase) and the page UI.
+// PCMT MVP VS (Top Trumps-style card game). Rules engine, bot, online rooms (Supabase) and the page UI.
 // Cards come from trumps-cards.js (built by trumps/build_cards.py). Database setup: setup/trumps-setup.sql.
 (function () {
   'use strict';
@@ -110,6 +110,7 @@
     return refreshIfNeeded().then(function () {
       var h = { apikey: SB_KEY, 'Content-Type': 'application/json' };
       if (session) h.Authorization = 'Bearer ' + session.access_token;
+      if (opts.headers) Object.keys(opts.headers).forEach(function (k) { h[k] = opts.headers[k]; });
       return fetch(SB_URL + path, { method: opts.method || 'GET', headers: h, body: opts.body ? JSON.stringify(opts.body) : undefined });
     }).then(function (res) {
       return res.text().then(function (txt) {
@@ -119,7 +120,13 @@
       });
     });
   }
-  function rpc(name, body) { return api('/rest/v1/rpc/' + name, { method: 'POST', body: body }); }
+  function rpc(name, body) {
+    return api('/rest/v1/rpc/' + name, { method: 'POST', body: body }).catch(function (err) {
+      // Before setup/trumps-setup.sql has been run, Supabase answers "could not find the function".
+      if (/could not find the function|schema cache|does not exist/i.test(err.message)) throw new Error('Online play isn’t switched on yet. Play the bot for now.');
+      throw err;
+    });
+  }
   function myId() { try { return JSON.parse(atob(session.access_token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))).sub; } catch (e) { return null; } }
   function signIn() {
     location.href = SB_URL + '/auth/v1/authorize?provider=discord&redirect_to=' + encodeURIComponent(location.origin + location.pathname);
@@ -320,9 +327,7 @@
       ? '<p>Online rooms need the site itself (Discord log-in and the game database), so this test copy only has the bot. They work once the page is on a private site preview.</p>'
       : !signedIn
       ? '<p>Online games use your Discord log-in from fantasy.pcmt.gg.</p><button type="button" class="tt-btn discord" data-act="signin">Log in with Discord</button>'
-      : ui.tester === false
-        ? '<p>Online play is in a private beta and your account isn’t on the tester list yet.</p>'
-        : '<div class="tt-actions left"><button type="button" class="tt-btn" data-act="create"' + (ui.busy ? ' disabled' : '') + '>Create a room</button></div>' +
+      : '<div class="tt-actions left"><button type="button" class="tt-btn" data-act="create"' + (ui.busy ? ' disabled' : '') + '>Create a room</button></div>' +
           '<form class="tt-join" data-act="join"><label for="tt-code">Join with a code</label><div><input id="tt-code" maxlength="5" autocomplete="off" placeholder="ABCDE" value="' + esc(ui.joinCode) + '">' +
           '<button type="submit" class="tt-btn ghost"' + (ui.busy ? ' disabled' : '') + '>Join</button></div></form>';
     root.innerHTML =
@@ -408,7 +413,15 @@
     render();
     if (session) refreshIfNeeded().then(function () {
       if (!session) return render();
-      return rpc('trumps_is_tester', {}).then(function (ok) { ui.tester = !!ok; }, function () { ui.tester = null; }).then(render);
+      // Same as the other pages: show the Discord name in the header and keep the profile name fresh
+      // (rooms show each player's profile name).
+      return api('/auth/v1/user').then(function (user) {
+        if (!user || !user.id) return;
+        var md = user.user_metadata || {};
+        var name = String((md.custom_claims && md.custom_claims.global_name) || md.full_name || md.name || md.user_name || 'Manager').replace(/#0$/, '').slice(0, 40);
+        var lab = $('tt-auth-label'); if (lab) lab.textContent = name;
+        api('/rest/v1/profiles', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: { id: user.id, name: name, avatar_url: md.avatar_url || '', updated_at: new Date().toISOString() } }).catch(function () {});
+      }).catch(function () { writeSession(null); }).then(render);
     });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
