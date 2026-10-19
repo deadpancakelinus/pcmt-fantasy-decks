@@ -10,12 +10,14 @@
   var REGIONS = { na: { label: 'NA', season: 'S3 NA', logo: 'assets/c265e976f8968e60e4a2bdd32542b499.png' },
                   emea: { label: 'EMEA', season: 'S2 EMEA', logo: 'assets/3c7e7374dceead68d5c58818d0bcfe8a.png' } };
   var STATS = [
-    { k: 'toxic', label: 'Toxics rating', fmt: function (v) { return v.toFixed(2); } },
     { k: 'acs', label: 'ACS', fmt: String },
     { k: 'kast', label: 'KAST', fmt: function (v) { return v + '%'; } },
-    { k: 'mechanics', label: 'Mechanics', fmt: String },
-    { k: 'brains', label: 'Brains', fmt: String }
+    { k: 'hs', label: 'HS%', fmt: function (v) { return v + '%'; } },
+    { k: 'dpr', label: 'DPR', low: true, fmt: function (v) { return v.toFixed(2); } },
+    { k: 'toxic', label: 'Toxic rating', fmt: function (v) { return v.toFixed(2); } }
   ];
+  var STAT_BY_KEY = {};
+  STATS.forEach(function (s) { STAT_BY_KEY[s.k] = s; });
   var LOGOS = {
     '100T': '2afecaefb84157c171a79e0bae8932b5.png', ATLC: '086abe908c829ddcb51bee4b1db16b83.png', BAKA: '09e5595acee6eb70652c84027ef2e6d6.png',
     C9: '46ec4a1f510710db9670e64c202b0cee.png', DFM: 'a59455af931db22aaf5f61e2da9f3686.png', EPY: '2b237feaf70d67ef58a84efbab9a3e51.png',
@@ -36,7 +38,8 @@
       var vals = CARDS[r].map(function (c) { return c[s.k]; }).sort(function (a, b) { return a - b; });
       CARDS[r].forEach(function (c) {
         RANK[c.id] = RANK[c.id] || {};
-        RANK[c.id][s.k] = vals.length > 1 ? vals.indexOf(c[s.k]) / (vals.length - 1) : 0.5;
+        var p = vals.length > 1 ? vals.indexOf(c[s.k]) / (vals.length - 1) : 0.5;
+        RANK[c.id][s.k] = s.low ? 1 - p : p;
       });
     });
   });
@@ -61,6 +64,7 @@
     s = JSON.parse(JSON.stringify(s));
     var a = s.hands[0].shift(), b = s.hands[1].shift(), picker = s.turn;
     var va = BY_ID[a][stat], vb = BY_ID[b][stat];
+    if (STAT_BY_KEY[stat].low) { va = -va; vb = -vb; } // DPR: fewer deaths wins
     var w = va > vb ? 0 : vb > va ? 1 : -1, taken = 0;
     if (w < 0) {
       s.pot.push(a, b);
@@ -144,7 +148,7 @@
     var c = BY_ID[id], region = id.split('-')[0], logo = LOGOS[c.team];
     var rows = STATS.map(function (s) {
       var cls = 'tt-stat' + (o.stat === s.k ? ' is-picked ' + (o.result || '') : '');
-      var star = c.set.indexOf(s.k) < 0 && (s.k === 'mechanics' || s.k === 'brains') ? '<i title="Placeholder number, to be set by hand">*</i>' : '';
+      var star = s.low ? '<i title="Lower wins on this stat">lower wins</i>' : '';
       var inner = '<span class="tt-stat-l">' + s.label + star + '</span><span class="tt-stat-v">' + s.fmt(c[s.k]) + '</span>';
       return o.pick ? '<button type="button" class="' + cls + '" data-stat="' + s.k + '">' + inner + '</button>' : '<div class="' + cls + '">' + inner + '</div>';
     }).join('');
@@ -237,7 +241,7 @@
       '<button type="button" class="tt-btn" data-act="bot">Deal ' + REGIONS[ui.region].label + ' cards</button></div>' +
       '<div class="tt-panel"><div class="tt-kicker">ONLINE · 1V1</div><h2>Play a friend</h2>' + online + '</div>' +
       '</div>' + (ui.error ? '<p class="tt-error" role="alert">' + esc(ui.error) + '</p>' : '') +
-      '<div class="tt-preview"><div class="tt-kicker">' + REGIONS[ui.region].season + ' · TOP 3 BY TOXICS RATING</div><div class="tt-preview-row">' +
+      '<div class="tt-preview"><div class="tt-kicker">' + REGIONS[ui.region].season + ' · TOP 3 BY TOXIC RATING</div><div class="tt-preview-row">' +
       CARDS[ui.region].slice().sort(function (a, b) { return b.toxic - a.toxic; }).slice(0, 3).map(function (c) { return cardHTML(c.id); }).join('') + '</div></div>';
   }
 

@@ -37,7 +37,11 @@ const check = (ok, msg) => { if (!ok) { bad++; console.log('FAIL ' + msg); } };
         }
         // Same seed must give the same game (both online players run the engine).
         const a = JSON.stringify(T.play(T.newGame(region, 42), 'acs')), c = JSON.stringify(T.play(T.newGame(region, 42), 'acs'));
-        out[region] = { total, games, byCards, byLimit, draws, errors: errors.slice(0, 3), deterministic: a === c };
+        // DPR: the lower number must win; every other stat: the higher number.
+        const cs = T.cards[region], sorted = cs.slice().sort((x, y) => x.dpr - y.dpr), lo = sorted[0], hi = sorted[sorted.length - 1];
+        const base = { region, seed: 1, hands: [[hi.id, lo.id], [lo.id, hi.id]], pot: [], turn: 0, round: 1, last: null, over: null };
+        const dprOk = T.play(base, 'dpr').last.winner === 1 && T.play(base, 'acs').last.winner === (hi.acs > lo.acs ? 0 : hi.acs < lo.acs ? 1 : -1);
+        out[region] = { total, games, byCards, byLimit, draws, errors: errors.slice(0, 3), deterministic: a === c, dprOk };
       }
       return out;
     });
@@ -45,6 +49,7 @@ const check = (ok, msg) => { if (!ok) { bad++; console.log('FAIL ' + msg); } };
       console.log(`engine ${region}: ${x.total} cards, ${x.games} games, ${x.byCards} won by taking every card, ${x.byLimit} by round limit, ${x.draws} draws`);
       check(x.games === 2000 && !x.errors.length, `engine ${region}: ${x.errors.join('; ')}`);
       check(x.deterministic, `engine ${region} not deterministic`);
+      check(x.dprOk, `engine ${region}: lower DPR should win`);
     }
     await pg.close();
   }
@@ -121,7 +126,7 @@ const check = (ok, msg) => { if (!ok) { bad++; console.log('FAIL ' + msg); } };
     check((await pg.textContent('.tt-counts')).includes('Ethan'), 'guest name not shown');
     await pg.click('button.tt-stat >> nth=1');
     await pg.waitForSelector('[data-act="next"]', { timeout: 5000 });
-    check(moves.length === 1 && moves[0].p_state.last.stat === 'acs', 'move was not sent');
+    check(moves.length === 1 && moves[0].p_state.last.stat === 'kast', 'move was not sent');
     await pg.screenshot({ path: `${SHOTS}/online-reveal.png` });
     check(!errs.length, 'online page errors: ' + errs.join(' | '));
     console.log(`online: room ${room.code}, ${moves.length} move sent, version ${room.version}`);

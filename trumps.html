@@ -98,7 +98,7 @@
   .tt-stats { display: flex; flex-direction: column; gap: 5px; flex: 1; justify-content: center; }
   .tt-stat { display: flex; justify-content: space-between; align-items: center; gap: 10px; width: 100%; min-height: 40px; padding: 6px 12px; border-radius: 8px; border: 1px solid transparent; background: rgba(0, 0, 0, .45); text-align: left; }
   .tt-stat-l { font-size: 14px; }
-  .tt-stat-l i { font-style: normal; color: var(--dim); margin-left: 2px; }
+  .tt-stat-l i { font-style: normal; color: var(--dim); margin-left: 6px; font: 600 9px/1 'JetBrains Mono', monospace; letter-spacing: .08em; text-transform: uppercase; }
   .tt-stat-v { font-size: 17px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
   button.tt-stat { cursor: pointer; border-color: #1e2b2d; }
   button.tt-stat:hover { border-color: var(--team); background: rgba(165, 220, 221, .08); }
@@ -181,10 +181,9 @@
     <h2>How it works</h2>
     <ul>
       <li>Pick <b>NA</b> or <b>EMEA</b> before dealing. A game only ever uses one region's cards: every S3 NA player or every S2 EMEA player, subs included.</li>
-      <li>Each card has five stats: <b>Toxics rating</b>, <b>ACS</b> and <b>KAST</b> straight from the pcmt.gg stats page, plus <b>Mechanics</b> and <b>Brains</b>. The higher number always wins.</li>
-      <li>Whoever has the higher number takes both cards to the bottom of their pile and picks the next stat. A tie puts both cards in the pot, which goes to the next round's winner. With an odd number of players, the spare card starts in the pot.</li>
+      <li>Each card has five stats from the pcmt.gg stats page: <b>ACS</b>, <b>KAST</b>, <b>HS%</b>, <b>DPR</b> (deaths per round) and <b>Toxic rating</b>. The higher number wins, except DPR, where the lower number wins.</li>
+      <li>Whoever has the better number (higher, or lower for DPR) takes both cards to the bottom of their pile and picks the next stat. A tie puts both cards in the pot, which goes to the next round's winner. With an odd number of players, the spare card starts in the pot.</li>
       <li>You win by holding every card. If nobody has after round 60 (most games), whoever has more cards wins.</li>
-      <li>Mechanics and Brains marked <span class="mono">*</span> are placeholder numbers for now.</li>
     </ul>
   </section>
 </main>
