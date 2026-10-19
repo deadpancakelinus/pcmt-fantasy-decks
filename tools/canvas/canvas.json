@@ -40,7 +40,7 @@
     },
     "Rules.dc.html": {
       "expand": "fill",
-      "h": 1300,
+      "h": 1600,
       "title": "Guide",
       "w": 1440,
       "x": 3040,
@@ -59,7 +59,7 @@
     "title": {
       "kind": "title1",
       "maxW": 7520,
-      "text": "PCMT Fantasy Decks — Plat Chat Members Tourney",
+      "text": "PCMT Fantasy Decks \u2014 Plat Chat Members Tourney",
       "w": 240,
       "x": 0,
       "y": -300

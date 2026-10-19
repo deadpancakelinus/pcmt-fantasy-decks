@@ -267,7 +267,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <div class="{{g.inner}}">
 <sc-for list="{{g.slots}}" as="slot" hint-placeholder-count="2">
 <sc-if value="{{slot.filled}}" hint-placeholder-val="{{ false }}">
-<div data-player="{{slot.id}}" onClick="{{slot.removeTap}}" onPointerDown="{{slot.tiltDown}}" onPointerMove="{{slot.tiltMove}}" onPointerUp="{{slot.tiltUp}}" onPointerCancel="{{slot.tiltUp}}" title="{{slot.cardTitle}}" style="position: relative; z-index: {{slot.z}}; opacity: {{slot.dealOpacity}}; transform: {{slot.outerTransform}}; transition: {{slot.outerTransition}}; min-width: 0; height: 236px; box-sizing: border-box; display: flex; perspective: 900px; touch-action: {{slot.touchAction}}; cursor: {{slot.cursor}}; user-select: none">
+<div data-player="{{slot.id}}" onClick="{{slot.removeTap}}" onPointerDown="{{slot.tiltDown}}" onPointerMove="{{slot.tiltMove}}" onPointerUp="{{slot.tiltUp}}" onPointerCancel="{{slot.tiltUp}}" title="{{slot.cardTitle}}" style="position: relative; z-index: {{slot.z}}; opacity: {{slot.dealOpacity}}; transform: {{slot.outerTransform}}; transition: {{slot.outerTransition}}; min-width: 0; width: 100%; max-width: 216px; aspect-ratio: 5 / 7; justify-self: center; box-sizing: border-box; display: flex; perspective: 900px; touch-action: {{slot.touchAction}}; cursor: {{slot.cursor}}; user-select: none">
 <sc-if value="{{slot.zapOn}}" hint-placeholder-val="{{ false }}">
 <div class="pcmt-sparks" aria-hidden="true"><span class="pcmt-sk s1"></span><span class="pcmt-sk s2"></span><span class="pcmt-sk s3"></span><span class="pcmt-sk s4"></span><span class="pcmt-sk s5"></span><span class="pcmt-sk s6"></span><span class="pcmt-sk s7"></span><span class="pcmt-sk s8"></span><span class="pcmt-sk s9"></span><span class="pcmt-sk s10"></span><span class="pcmt-sk s11"></span><span class="pcmt-sk s12"></span></div>
 </sc-if>
@@ -376,7 +376,7 @@ AUTHENTIC
 </div>
 </sc-if>
 <sc-if value="{{slot.empty}}" hint-placeholder-val="{{ true }}">
-<button onClick="{{slot.openBuy}}" style="min-width: 0; height: 236px; box-sizing: border-box; border: 2px dashed #2c3d40; border-radius: 12px; background: transparent; padding: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: #93a9aa; text-align: center">
+<button onClick="{{slot.openBuy}}" style="min-width: 0; width: 100%; max-width: 216px; aspect-ratio: 5 / 7; justify-self: center; box-sizing: border-box; border: 2px dashed #2c3d40; border-radius: 12px; background: transparent; padding: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: #93a9aa; text-align: center">
 <svg aria-hidden="true" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
 <span style="font-size: 15px; color: #eaf4f4">{{slot.emptyText}}</span>
 <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px">{{slot.emptyHint}}</span>
@@ -388,7 +388,7 @@ AUTHENTIC
 </sc-for>
 <div class="pcmt-g1 pcmt-box" aria-hidden="true" style="min-width: 0; display: flex; flex-direction: column; gap: 10px">
 <div style="padding-bottom: 6px; border-bottom: 1px solid transparent; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.25">&nbsp;</div>
-<div id="pcmt-stack" class="{{stackClass}}" onClick="{{stackTap}}" onContextMenu="{{stackRight}}" title="Double tap to straighten the pile. Double right-click to mess it up" style="position: relative; height: 236px; border-radius: 12px; box-shadow: {{stackGlow}}; transition: box-shadow .15s; cursor: pointer; touch-action: manipulation; user-select: none">
+<div id="pcmt-stack" class="{{stackClass}}" onClick="{{stackTap}}" onContextMenu="{{stackRight}}" title="Double tap to straighten the pile. Double right-click to mess it up" style="position: relative; width: 100%; max-width: 216px; aspect-ratio: 5 / 7; align-self: center; border-radius: 12px; box-shadow: {{stackGlow}}; transition: box-shadow .15s; cursor: pointer; touch-action: manipulation; user-select: none">
 <div class="{{deck.bgClass}}" style="position: absolute; inset: 0; z-index: 1; transform: {{stackT1}}; transition: transform .45s cubic-bezier(.3,.7,.2,1); border-radius: 12px; border: 1px solid {{deck.edge}}; background: {{deck.bg}}; box-shadow: 0 6px 14px rgba(0,0,0,.45); display: grid; place-items: center; overflow: hidden">
 <div style="position: absolute; inset: 7px; border: 1px solid {{deck.frame}}; border-radius: 8px"></div>
 <div style="position: absolute; inset: 11px; border: 1px solid {{deck.frameSoft}}; border-radius: 6px"></div>
