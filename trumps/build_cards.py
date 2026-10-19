@@ -47,7 +47,28 @@ def scale(p):
     return int(round(20 + p * 79))  # 20..99
 
 
+def deck_info():
+    """Team names/colors and player roles from The Deck board, so MVP VS cards look like deck cards."""
+    src = open(os.path.join(ROOT, 'tools', 'canvas', 'Main.dc.html'), encoding='utf-8').read()
+    teams = {}
+    for m in re.finditer(r"""\{ ?code: '([A-Za-z0-9]+)', name: (['"])(.+?)\2, color: '(#[0-9a-fA-F]{6})'(, region: 'EMEA')?""", src):
+        teams[m.group(1)] = {'name': m.group(3), 'color': m.group(4).lower(), 'region': 'emea' if m.group(5) else 'na'}
+    roles = {}
+    champs = set()
+    pj = open(os.path.join(ROOT, 'players.js'), encoding='utf-8').read()
+    cm = re.search(r'PCMT_SITE_CHAMPS = \{([^}]*)\}', pj)
+    if cm:
+        champs = set(re.findall(r"'?([a-z0-9-]+)'?\s*:\s*true", cm.group(1)))
+    for m in re.finditer(r"\{ ?id: '([a-z0-9-]+)', name: '([^']+)', team: '([A-Za-z0-9]+)', role: '([a-z/]+)'", src):
+        pid, name, team, role = m.group(1), m.group(2).lower(), m.group(3), m.group(4).split('/')[0]
+        role = 'duelist' if role == 'yoru' else role
+        region = teams.get(team, {}).get('region', 'na')
+        roles.setdefault((region, name), []).append((team, role, pid in champs))
+    return teams, roles
+
+
 def main():
+    teams, roles = deck_info()
     rows = []
     with open(os.path.join(HERE, 'data', 'pcmt-stats.tsv'), encoding='utf-8') as f:
         for line in f.read().split('\n'):
@@ -79,10 +100,17 @@ def main():
             seen.add(slug)
             key = region + ':' + slug
             ov = overrides.get(key, {})
+            team = '' if r['team'] == '(sub)' else r['team']
+            cands = roles.get((region, r['name'].lower()), [])
+            pick = [c for c in cands if c[0] == team] or (cands if len(cands) == 1 else [])
             out[region].append({
                 'id': region + '-' + slug,
                 'name': r['name'],
-                'team': '' if r['team'] == '(sub)' else r['team'],
+                'team': team,
+                'teamName': teams[team]['name'] if team in teams else ('Sub' if not team else team),
+                'color': teams[team]['color'] if team in teams else '#93a9aa',
+                'role': pick[0][1] if pick else '',
+                'champ': bool(pick and pick[0][2]),
                 'sub': r['team'] == '(sub)',
                 'maps': int(r['mp']),
                 'toxic': num(r['toxic']),

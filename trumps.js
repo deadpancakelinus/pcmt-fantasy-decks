@@ -130,20 +130,37 @@
   var $ = function (id) { return document.getElementById(id); };
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
+  var ROLE_ICONS = { duelist: '3911a104cbddaf481d7a7bf070a2e696.png', initiator: '8f7fb7ffa93c48ba09a00fcd223c7f7c.png',
+                    sentinel: '006daf34642009c6f6749139f80a613e.png', controller: '783fdcc50fe04d2622938ee185d4ed32.png' };
+  var CHAMP_ICON = 'assets/7dd283457b69773e4aa58012ed89ad9a.png', EMBLEM = 'assets/3bf9d529cabff94109b561693539029f.png';
+
+  // Same build as the player cards in The Deck: team-colour edges, team logo, name, full team name,
+  // role icon, and the region logo as a faint watermark behind everything.
   function cardHTML(id, o) {
     o = o || {};
-    if (o.hidden) return '<div class="tt-card tt-back" aria-label="Face-down card"><div class="tt-back-mark">PCMT</div><div class="tt-back-sub">MVP VS</div></div>';
-    var c = BY_ID[id], logo = LOGOS[c.team];
+    if (o.hidden) return '<div class="tt-card tt-back" aria-label="Face-down card"><i class="tt-back-in1"></i><i class="tt-back-in2"></i>' +
+      '<i class="tt-gem t"></i><i class="tt-gem b"></i><i class="tt-gem l"></i><i class="tt-gem r"></i>' +
+      '<span class="tt-back-emblem"><img src="' + EMBLEM + '" alt=""></span></div>';
+    var c = BY_ID[id], region = id.split('-')[0], logo = LOGOS[c.team];
     var rows = STATS.map(function (s) {
       var cls = 'tt-stat' + (o.stat === s.k ? ' is-picked ' + (o.result || '') : '');
-      var inner = '<span class="tt-stat-l">' + s.label + (c.set.indexOf(s.k) < 0 && (s.k === 'mechanics' || s.k === 'brains') ? '<i title="Placeholder number, to be set by hand">*</i>' : '') +
-        '</span><span class="tt-stat-v">' + s.fmt(c[s.k]) + '</span>';
+      var star = c.set.indexOf(s.k) < 0 && (s.k === 'mechanics' || s.k === 'brains') ? '<i title="Placeholder number, to be set by hand">*</i>' : '';
+      var inner = '<span class="tt-stat-l">' + s.label + star + '</span><span class="tt-stat-v">' + s.fmt(c[s.k]) + '</span>';
       return o.pick ? '<button type="button" class="' + cls + '" data-stat="' + s.k + '">' + inner + '</button>' : '<div class="' + cls + '">' + inner + '</div>';
     }).join('');
-    return '<div class="tt-card' + (o.result ? ' ' + o.result : '') + '">' +
-      '<div class="tt-card-top">' + (logo ? '<img src="assets/' + logo + '" alt="' + esc(c.team) + '">' : '<span class="tt-nologo">' + (c.sub ? 'SUB' : '?') + '</span>') +
-      '<div><div class="tt-name">' + esc(c.name) + '</div><div class="tt-meta">' + (c.sub ? 'Sub' : esc(c.team)) + ' · ' + REGIONS[ui.state ? ui.state.region : ui.region].season + ' · ' + c.maps + ' maps</div></div></div>' +
-      '<div class="tt-stats">' + rows + '</div>' + (o.pick ? '<div class="tt-hint">Pick a stat</div>' : '') + '</div>';
+    var nameSize = Math.max(18, Math.min(34, Math.floor(230 / Math.max(4, c.name.length * 0.62))));
+    return '<div class="tt-card' + (o.result ? ' ' + o.result : '') + '" style="--team:' + c.color + '">' +
+      '<span class="tt-wm" aria-hidden="true"><img src="' + REGIONS[region].logo + '" alt=""></span>' +
+      '<span class="tt-edge"></span><div class="tt-card-body">' +
+      '<div class="tt-card-top">' + (logo ? '<img class="tt-team" src="assets/' + logo + '" alt="' + esc(c.teamName) + '" title="' + esc(c.teamName) + '">' : '<span class="tt-nologo">SUB</span>') +
+      '<span class="tt-maps" title="' + c.maps + ' maps played in ' + REGIONS[region].season + '">' + c.maps + '<small>MAPS</small></span></div>' +
+      '<div class="tt-name" style="font-size:' + nameSize + 'px"><span>' + esc(c.name) + '</span>' +
+      (c.champ ? '<img src="' + CHAMP_ICON + '" alt="PCMT champion" title="PCMT champion">' : '') + '</div>' +
+      '<div class="tt-teamname">' + esc(c.teamName) + ' · ' + REGIONS[region].season + '</div>' +
+      '<div class="tt-stats">' + rows + '</div>' +
+      '<div class="tt-card-foot">' + (c.role ? '<img src="assets/' + ROLE_ICONS[c.role] + '" alt="' + c.role + '" title="' + c.role.charAt(0).toUpperCase() + c.role.slice(1) + '">' : '<span></span>') +
+      (o.pick ? '<span class="tt-hint">Pick a stat</span>' : '') + '</div>' +
+      '</div><span class="tt-edge"></span></div>';
   }
 
   function counts(s) {

@@ -75,8 +75,10 @@ const check = (ok, msg) => { if (!ok) { bad++; console.log('FAIL ' + msg); } };
       }
       await pg.waitForSelector('[data-act="next"]', { timeout: 5000 });
       if (i === 0) await pg.screenshot({ path: `${SHOTS}/reveal-${w}.png`, fullPage: true });
-      const region = await pg.evaluate(() => document.querySelector('.tt-meta').textContent);
-      check(region.includes('EMEA'), 'EMEA game showed a non-EMEA card: ' + region);
+      const region = await pg.evaluate(() => [...document.querySelectorAll('.tt-teamname')].map(e => e.textContent).join(' | '));
+      check(/EMEA/.test(region) && !/S3 NA/.test(region), 'EMEA game showed a non-EMEA card: ' + region);
+      const wm = await pg.$$eval('.tt-wm img', els => els.map(e => e.getAttribute('src')));
+      check(wm.length === 2 && wm.every(x => x.includes('3c7e7374')), 'EMEA cards should carry the EMEA watermark: ' + wm);
       await pg.click('[data-act="next"]');
     }
     const counts = await pg.$$eval('.tt-counts b', els => els.slice(0, 3).map(e => parseInt(e.textContent, 10)));
