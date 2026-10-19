@@ -1,0 +1,1635 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PCMT Fantasy League Team Builder</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cabin+Sketch:wght@400;700&amp;family=JetBrains+Mono:wght@400;600&amp;family=Space+Grotesk:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#000}
+a{color:#a5dcdd}a:hover{color:#d4f0f0}
+button,input{font:inherit}
+button{cursor:pointer}
+button:disabled{cursor:not-allowed}
+.pcmt-sq{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px 10px}
+.pcmt-g1{grid-column:span 1}.pcmt-g2{grid-column:span 2}.pcmt-g3{grid-column:span 3}
+.pcmt-in2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.pcmt-in3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@keyframes pcmt-foldflip{0%{transform:rotateY(0deg) scale(1)}45%{transform:rotateY(105deg) scale(1.14) translateZ(40px)}100%{transform:rotateY(180deg) scale(1)}}
+.pcmt-fold{animation:pcmt-foldflip .8s cubic-bezier(.45,.05,.3,1) both}
+@media (prefers-reduced-motion: reduce){.pcmt-fold{animation-duration:.01s}}
+@keyframes pcmt-unfold{0%{transform:rotateX(0deg) rotateY(180deg) scale(1)}55%{transform:rotateX(0deg) rotateY(75deg) scale(1.14) translateZ(40px)}100%{transform:rotateX(0deg) rotateY(0deg) scale(1)}}
+.pcmt-unfold{animation:pcmt-unfold .8s cubic-bezier(.45,.05,.3,1) both}
+@media (prefers-reduced-motion: reduce){.pcmt-unfold{animation-duration:.01s}}
+.pcmt-zap{position:absolute;inset:0;z-index:6;pointer-events:none;border-radius:inherit;opacity:0}
+.pcmt-zap.on{opacity:1;box-shadow:inset 0 0 0 1px rgba(255,255,255,.85),inset 0 0 16px rgba(170,225,255,.45);animation:pcmt-arc .16s steps(2) infinite}
+@keyframes pcmt-arc{0%{opacity:1}50%{opacity:.45}100%{opacity:.9}}
+.pcmt-sparks{position:absolute;inset:0;z-index:70;pointer-events:none}
+.pcmt-sk{position:absolute;width:2px;height:11px;border-radius:2px;background:linear-gradient(180deg,#fff 0%,#e3f6ff 40%,rgba(140,210,255,0) 100%);box-shadow:0 0 3px #fff,0 0 9px rgba(140,210,255,.95);opacity:0;animation-timing-function:cubic-bezier(.15,.7,.35,1);animation-iteration-count:infinite}
+.pcmt-sk.s1{left:-1px;top:14%;animation-name:pcmt-skl;animation-duration:.52s;animation-delay:-.05s}
+.pcmt-sk.s2{left:-1px;top:58%;animation-name:pcmt-skl2;animation-duration:.61s;animation-delay:-.31s}
+.pcmt-sk.s3{right:-1px;top:22%;animation-name:pcmt-skr;animation-duration:.57s;animation-delay:-.18s}
+.pcmt-sk.s4{right:-1px;top:71%;animation-name:pcmt-skr2;animation-duration:.49s;animation-delay:-.4s}
+.pcmt-sk.s5{left:24%;top:-2px;animation-name:pcmt-skt;animation-duration:.66s;animation-delay:-.22s}
+.pcmt-sk.s6{left:71%;top:-2px;animation-name:pcmt-skt2;animation-duration:.58s;animation-delay:-.47s}
+.pcmt-sk.s7{left:38%;bottom:-2px;animation-name:pcmt-skb;animation-duration:.5s;animation-delay:-.12s}
+.pcmt-sk.s8{left:82%;bottom:-2px;animation-name:pcmt-skb2;animation-duration:.63s;animation-delay:-.36s}
+.pcmt-sk.s9{left:-1px;top:-1px;animation-name:pcmt-sktl;animation-duration:.55s;animation-delay:-.27s}
+.pcmt-sk.s10{right:-1px;bottom:-1px;animation-name:pcmt-skbr;animation-duration:.6s;animation-delay:-.09s}
+.pcmt-sk.s11{right:-1px;top:-1px;animation-name:pcmt-sktr;animation-duration:.47s;animation-delay:-.33s}
+.pcmt-sk.s12{left:-1px;bottom:-1px;animation-name:pcmt-skbl;animation-duration:.59s;animation-delay:-.5s}
+@keyframes pcmt-skl{0%{opacity:0;transform:translate(0,0) rotate(-62deg) scaleY(.3)}10%{opacity:1;transform:translate(-5px,-4px) rotate(-66deg) scaleY(1.1)}100%{opacity:0;transform:translate(-34px,20px) rotate(-118deg) scaleY(.45)}}
+@keyframes pcmt-skl2{0%{opacity:0;transform:translate(0,0) rotate(-84deg) scaleY(.3)}12%{opacity:1;transform:translate(-6px,-1px) rotate(-86deg) scaleY(1)}100%{opacity:0;transform:translate(-28px,26px) rotate(-140deg) scaleY(.4)}}
+@keyframes pcmt-skr{0%{opacity:0;transform:translate(0,0) rotate(62deg) scaleY(.3)}10%{opacity:1;transform:translate(5px,-4px) rotate(66deg) scaleY(1.1)}100%{opacity:0;transform:translate(36px,18px) rotate(118deg) scaleY(.45)}}
+@keyframes pcmt-skr2{0%{opacity:0;transform:translate(0,0) rotate(88deg) scaleY(.3)}12%{opacity:1;transform:translate(6px,0) rotate(90deg) scaleY(1)}100%{opacity:0;transform:translate(26px,28px) rotate(142deg) scaleY(.4)}}
+@keyframes pcmt-skt{0%{opacity:0;transform:translate(0,0) rotate(-14deg) scaleY(.3)}12%{opacity:1;transform:translate(-2px,-7px) rotate(-16deg) scaleY(1.1)}55%{transform:translate(-8px,-24px) rotate(-30deg) scaleY(.8)}100%{opacity:0;transform:translate(-14px,-10px) rotate(-150deg) scaleY(.4)}}
+@keyframes pcmt-skt2{0%{opacity:0;transform:translate(0,0) rotate(18deg) scaleY(.3)}12%{opacity:1;transform:translate(3px,-8px) rotate(20deg) scaleY(1.1)}55%{transform:translate(10px,-22px) rotate(34deg) scaleY(.8)}100%{opacity:0;transform:translate(17px,-6px) rotate(150deg) scaleY(.4)}}
+@keyframes pcmt-skb{0%{opacity:0;transform:translate(0,0) rotate(170deg) scaleY(.3)}12%{opacity:1;transform:translate(-1px,6px) rotate(172deg) scaleY(1.1)}100%{opacity:0;transform:translate(-9px,34px) rotate(186deg) scaleY(.5)}}
+@keyframes pcmt-skb2{0%{opacity:0;transform:translate(0,0) rotate(196deg) scaleY(.3)}12%{opacity:1;transform:translate(2px,5px) rotate(194deg) scaleY(1.1)}100%{opacity:0;transform:translate(12px,30px) rotate(178deg) scaleY(.5)}}
+@keyframes pcmt-sktl{0%{opacity:0;transform:translate(0,0) rotate(-40deg) scaleY(.3)}12%{opacity:1;transform:translate(-5px,-5px) rotate(-42deg) scaleY(1.1)}100%{opacity:0;transform:translate(-26px,4px) rotate(-120deg) scaleY(.45)}}
+@keyframes pcmt-skbr{0%{opacity:0;transform:translate(0,0) rotate(140deg) scaleY(.3)}12%{opacity:1;transform:translate(5px,5px) rotate(138deg) scaleY(1.1)}100%{opacity:0;transform:translate(24px,30px) rotate(160deg) scaleY(.45)}}
+@keyframes pcmt-sktr{0%{opacity:0;transform:translate(0,0) rotate(40deg) scaleY(.3)}12%{opacity:1;transform:translate(5px,-5px) rotate(42deg) scaleY(1.1)}100%{opacity:0;transform:translate(28px,6px) rotate(120deg) scaleY(.45)}}
+@keyframes pcmt-skbl{0%{opacity:0;transform:translate(0,0) rotate(-140deg) scaleY(.3)}12%{opacity:1;transform:translate(-5px,5px) rotate(-138deg) scaleY(1.1)}100%{opacity:0;transform:translate(-22px,32px) rotate(-162deg) scaleY(.45)}}
+@media (prefers-reduced-motion: reduce){.pcmt-zap.on{animation:none}.pcmt-sparks{display:none}}
+@keyframes pcmt-stackpulse{0%{transform:scale(1)}40%{transform:scale(1.05)}100%{transform:scale(1)}}
+.pcmt-stack-pulse{animation:pcmt-stackpulse .45s ease-out}
+@media (max-width: 760px){.pcmt-sq{grid-template-columns:repeat(2,minmax(0,1fr))}.pcmt-g1,.pcmt-g2,.pcmt-g3{grid-column:span 2}.pcmt-in3{grid-template-columns:repeat(2,minmax(0,1fr))}.pcmt-box{display:none}}
+.pcmt-champ{position:relative}
+.pcmt-champ::after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;background:linear-gradient(115deg,transparent 42%,rgba(255,236,170,.13) 50%,transparent 58%);background-size:260% 100%;animation:pcmt-shine 5s ease-in-out infinite}
+@keyframes pcmt-shine{0%{background-position:160% 0}55%,100%{background-position:-60% 0}}
+@media (prefers-reduced-motion: reduce){.pcmt-champ::after{animation:none;display:none}}
+.pcmt-flip{animation:pcmt-flip .9s cubic-bezier(.2,.7,.2,1) both}
+.pcmt-spark{position:absolute;inset:0;z-index:5;pointer-events:none;border-radius:inherit;opacity:0;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.28) 50%,transparent 65%);background-size:260% 100%}
+.pcmt-spark.on{animation:pcmt-sparkle 1.2s ease-out both}
+@keyframes pcmt-flip{0%{transform:rotateX(0deg) rotateY(-360deg) scale(1)}65%{transform:rotateX(0deg) rotateY(0deg) scale(1.05)}100%{transform:rotateX(0deg) rotateY(0deg) scale(1)}}
+@keyframes pcmt-sparkle{0%{opacity:0;background-position:170% 0}35%{opacity:1}100%{opacity:0;background-position:-70% 0}}
+@media (prefers-reduced-motion: reduce){.pcmt-flip{animation:none}.pcmt-spark.on{animation:none}}
+.pcmt-loader{--radius:78px;--speed:2.4s;position:relative;width:calc(var(--radius)*2 + 60px);height:calc(var(--radius)*2 + 60px)}
+.pcmt-loader span{position:absolute;left:50%;top:50%;width:34px;height:48px;margin:-24px 0 0 -17px;border-radius:5px;background:url("/_blob/21bac85ae3f0047e25ed574f47669d09") center/90% no-repeat,#000;border:1.5px solid #a5dcdd;box-shadow:0 2px 6px rgba(0,0,0,.35);animation:pcmt-card-splay var(--speed) cubic-bezier(.65,0,.35,1) infinite;animation-delay:calc(var(--i)*0.035s)}
+@keyframes pcmt-card-splay{0%,8%{transform:rotate(0deg) translateY(0)}40%,58%{transform:rotate(calc(var(--i)*24deg)) translateY(calc(var(--radius)*-1))}92%,100%{transform:rotate(360deg) translateY(0)}}
+@media (prefers-reduced-motion: reduce){.pcmt-loader span{animation-duration:calc(var(--speed)*3)}}
+.pcmt-loading{transition:opacity .4s ease}
+/* Champion's Aura watermark */
+.pcmt-aura{position:absolute;inset:0;z-index:0;pointer-events:none;display:grid;place-items:center;background:radial-gradient(ellipse at 50% 55%,rgba(245,215,110,.10),transparent 70%)}
+.pcmt-aura svg{width:150px;height:150px;transform:translateY(10px) rotate(-12deg);opacity:.16;filter:drop-shadow(0 0 6px rgba(245,215,110,.5))}
+.ea-t{fill:none;stroke-linecap:round;opacity:0;animation-duration:var(--dur,6s);animation-timing-function:linear;animation-iteration-count:infinite;animation-delay:calc(var(--d,0s) + var(--off,0s))}
+.ea-halo{stroke:#f5d76e;stroke-width:3.5px;stroke-dasharray:34 300;animation-name:ea-halo}
+.ea-mid{stroke:#ffe7a0;stroke-width:1.8px;stroke-dasharray:18 300;animation-name:ea-mid}
+.ea-core{stroke:#fffbe8;stroke-width:.7px;stroke-dasharray:6 300;animation-name:ea-core}
+@keyframes ea-halo{0%{stroke-dashoffset:34;opacity:0}6%{opacity:.28}40%{opacity:.28}46%{stroke-dashoffset:-100;opacity:0}100%{stroke-dashoffset:-100;opacity:0}}
+@keyframes ea-mid{0%{stroke-dashoffset:18;opacity:0}6%{opacity:.6}40%{opacity:.6}46%{stroke-dashoffset:-116;opacity:0}100%{stroke-dashoffset:-116;opacity:0}}
+@keyframes ea-core{0%{stroke-dashoffset:6;opacity:0}6%{opacity:1}40%{opacity:1}46%{stroke-dashoffset:-128;opacity:0}100%{stroke-dashoffset:-128;opacity:0}}
+@media (prefers-reduced-motion: reduce){.ea-t{animation:none;opacity:0}}
+.hl-g{opacity:0;animation:hl-fade var(--fade,6s) ease-in-out infinite;animation-delay:var(--fd,0s)}
+.hl-rev{transform:scaleX(-1);transform-box:view-box;transform-origin:50% 50%}
+.hl-t{fill:none;stroke-linecap:round;animation-duration:var(--dur,7s);animation-timing-function:linear;animation-iteration-count:infinite;animation-delay:var(--d,0s)}
+.hl-halo{stroke:#f5d76e;stroke-width:3.5px;stroke-opacity:.28;stroke-dasharray:34 66;animation-name:hl-halo}
+.hl-mid{stroke:#ffe7a0;stroke-width:1.8px;stroke-opacity:.6;stroke-dasharray:18 82;animation-name:hl-mid}
+.hl-core{stroke:#fffbe8;stroke-width:.8px;stroke-dasharray:6 94;animation-name:hl-core}
+@keyframes hl-halo{from{stroke-dashoffset:34}to{stroke-dashoffset:-66}}
+@keyframes hl-mid{from{stroke-dashoffset:18}to{stroke-dashoffset:-82}}
+@keyframes hl-core{from{stroke-dashoffset:6}to{stroke-dashoffset:-94}}
+@keyframes hl-fade{0%,100%{opacity:0}25%,70%{opacity:1}}
+@media (prefers-reduced-motion: reduce){.hl-g,.hl-t{animation:none}.hl-g{opacity:0}}
+.ea-svg > g,.hl-svg{transition:opacity .7s ease}
+.pcmt-aura-end .ea-svg > g,.pcmt-aura-end .hl-svg{opacity:0}
+.pcmt-bg-cotton{background:linear-gradient(90deg,transparent 0 33%,#61cefa 33% 40%,#f5a9b8 40% 47%,#f8f8f8 47% 53%,#f5a9b8 53% 60%,#61cefa 60% 67%,transparent 67% 100%),radial-gradient(circle at 50% 50%,#1d4049 0%,#0f262b 100%) !important}
+.pcmt-bg-galactic{background:linear-gradient(90deg,transparent 0 58.5%,rgba(255,255,255,.07) 58.5% 62%,transparent 62% 100%),linear-gradient(90deg,transparent 0 33%,#fcef42 33% 41.5%,#fdfeff 41.5% 50%,#9240e6 50% 58.5%,#050506 58.5% 67%,transparent 67% 100%),radial-gradient(circle at 50% 50%,#173039 0%,#0b1d24 100%) !important}
+.pcmt-bg-mint{background:linear-gradient(90deg,transparent 0 33%,#3f217d 33.00% 37.86%,#5253d5 37.86% 42.71%,#7db1e5 42.71% 47.57%,#ffffff 47.57% 52.43%,#8be4b7 52.43% 57.29%,#12c9a4 57.29% 62.14%,#038366 62.14% 67.00%,transparent 67% 100%),radial-gradient(circle at 50% 50%,#1d3a42 0%,#0f242b 100%) !important}
+.pcmt-bg-primary{background:linear-gradient(90deg,transparent 0 33%,#ff1b8d 33% 44.33%,#ffd900 44.33% 55.67%,#1bb3ff 55.67% 67%,transparent 67% 100%),radial-gradient(circle at 50% 50%,#173039 0%,#0b1d24 100%) !important}
+.pcmt-bg-rainbow{background:linear-gradient(90deg,transparent 0 33%,#740b87 33.00% 38.67%,#044bff 38.67% 44.33%,#007d33 44.33% 50.00%,#ffef00 50.00% 55.67%,#ff9800 55.67% 61.33%,#e70200 61.33% 67.00%,transparent 67% 100%),radial-gradient(circle at 50% 50%,#173039 0%,#0b1d24 100%) !important}
+.pcmt-bg-sherbet{background:linear-gradient(90deg,transparent 0 33%,#d43200 33.00% 39.80%,#ffac63 39.80% 46.60%,#fff4ec 46.60% 53.40%,#d56ba9 53.40% 60.20%,#a71567 60.20% 67.00%,transparent 67% 100%),radial-gradient(circle at 50% 50%,#173039 0%,#0b1d24 100%) !important}
+.pcmt-bg-sunset{background:linear-gradient(90deg,transparent 0 33%,#da137b 33% 46.6%,#9b5ba6 46.6% 53.4%,#1045c2 53.4% 67%,transparent 67% 100%),radial-gradient(circle at 50% 50%,#173039 0%,#0b1d24 100%) !important}
+.pcmt-bg-twilight{background:linear-gradient(90deg,transparent 0 33%,rgba(255,255,255,.07) 33% 36.5%,transparent 36.5% 100%),linear-gradient(90deg,transparent 0 33%,#050506 33% 41.5%,#abacac 41.5% 50%,#ffffff 50% 58.5%,#7a0a7c 58.5% 67%,transparent 67% 100%),radial-gradient(circle at 50% 50%,#173039 0%,#0b1d24 100%) !important}
+.hl-w .hl-halo{stroke:#ffffff;stroke-opacity:.32}
+.hl-w .hl-mid{stroke:#f2f8ff;stroke-opacity:.7}
+.hl-w .hl-core{stroke:#ffffff}
+.hl-rb .hl-halo{stroke:var(--c);stroke-opacity:.6;stroke-width:4.5px}
+.hl-rb .hl-mid{stroke:var(--c);stroke-opacity:1;stroke-width:2.2px}
+.hl-rb .hl-core{stroke:#ffffff;stroke-opacity:.95}
+.pcmt-bg-trophy{background:linear-gradient(115deg,transparent 25%,rgba(255,246,214,.13) 42%,transparent 58%),radial-gradient(circle at 50% 50%,#0b1011 0 26%,rgba(11,16,17,0) 52%),repeating-linear-gradient(45deg,rgba(247,220,132,.32) 0 1px,transparent 1px 11px),repeating-linear-gradient(-45deg,rgba(247,220,132,.32) 0 1px,transparent 1px 11px),radial-gradient(circle at 50% 50%,#1a1d17 0%,#0a0b08 100%) !important}
+.pcmt-ring-trophy{overflow:visible !important;padding:0 !important;background:radial-gradient(circle at 50% 45%,#2a2614 0%,#0a0b08 70%) !important}
+.pcmt-ring-trophy img{transform:rotate(14deg) scale(1.3);border-radius:0 !important;object-fit:contain !important;filter:drop-shadow(0 6px 10px rgba(0,0,0,.65)) drop-shadow(0 0 14px rgba(247,220,132,.35))}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !important;box-shadow:0 0 0 3px rgba(165,220,221,.3)}
+</style>
+</helmet>
+<div data-pcmt-root="Main" style="position: relative; min-height: 100vh; background: #000; color: #eaf4f4; font-family: 'Space Grotesk', system-ui, sans-serif">
+<sc-if value="{{loaderOn}}" hint-placeholder-val="{{ false }}">
+<div class="pcmt-loading" role="status" aria-live="polite" style="position: absolute; inset: 0; z-index: 9999; background: #000; opacity: {{loaderOpacity}}; pointer-events: {{loaderPointer}}">
+<div style="position: sticky; top: 0; height: 100vh; max-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px">
+<div class="pcmt-loader" aria-hidden="true"><span style="--i:0"></span><span style="--i:1"></span><span style="--i:2"></span><span style="--i:3"></span><span style="--i:4"></span><span style="--i:5"></span><span style="--i:6"></span><span style="--i:7"></span><span style="--i:8"></span><span style="--i:9"></span><span style="--i:10"></span><span style="--i:11"></span><span style="--i:12"></span><span style="--i:13"></span><span style="--i:14"></span></div>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.12em; color: #a5dcdd">{{loaderLabel}}</span>
+</div>
+</div>
+</sc-if>
+
+
+<header style="border-bottom: 1px solid #1e2b2d; background: #050808">
+<div style="max-width: 1280px; margin: 0 auto; padding: 14px 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 32px">
+<a href="Main.dc.html" style="display: flex; align-items: baseline; gap: 10px; text-decoration: none">
+<span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 32px; color: #a5dcdd; line-height: 1">PCMT Fantasy League</span>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.08em">NA · S3</span>
+</a>
+<nav aria-label="Main" style="display: flex; flex-wrap: wrap; gap: 4px; flex: 1 1 auto">
+<a href="Leaderboard.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Leaderboard</a>
+<a href="Main.dc.html" aria-current="page" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #000; background: #a5dcdd; font-weight: 600">Team Builder</a>
+<a href="Customization.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Customization</a>
+<a href="Rules.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Guide</a>
+</nav>
+<a href="Login.dc.html" style="min-height: 44px; display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; border-radius: 8px; background: #4752C4; color: #fff; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; text-decoration: none"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><path d="M10 17l5-5-5-5"></path><path d="M15 12H3"></path></svg>Log in with Discord</a>
+</div>
+</header>
+
+<div style="border-bottom: 1px solid #1e2b2d; background: #0b1011">
+<div style="max-width: 1280px; margin: 0 auto; padding: 12px 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 28px; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #93a9aa">
+<span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 20px; line-height: 1; color: #a5dcdd">Next Match</span>
+<a href="https://pcmt.gg/events/s3-na/t1-vs-navi-s3-playoffs-2026-10-24-2" target="_blank" rel="noopener" style="color: #93a9aa; text-decoration: none"><span style="color: #FF0000; font-weight: 600">T1</span> vs <span style="color: #FF6EB4; font-weight: 600">NAVI</span> · Bo5 · <span style="color: #eaf4f4">{{matchTime}}</span></a>
+<span title="{{lockTitle}}" style="margin-left: auto; display: inline-flex; align-items: center; gap: 6px; color: {{lockColor}}">
+<svg role="img" aria-label="{{lockTitle}}" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="{{lockPath}}"></path></svg>
+{{lockNote}}
+<sc-if value="{{showCountdown}}" hint-placeholder-val="{{ true }}">
+<span title="{{countdownTitle}}" style="display: inline-flex; align-items: baseline; gap: 6px; color: #93a9aa">Locks in <span data-pcmt-countdown="" style="color: #eaf4f4; font-weight: 600; font-variant-numeric: tabular-nums">{{countdown}}</span></span>
+</sc-if>
+</span>
+</div>
+</div>
+
+<main style="max-width: 1280px; margin: 0 auto; padding: 36px 24px 64px; display: flex; flex-direction: column; gap: 28px">
+
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 20px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h1 style="margin: 0; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 60px; line-height: 1; color: #eaf4f4">Team Builder</h1>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px; flex: 0 1 340px; min-width: 240px">
+<label for="squad-name" style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.06em; text-transform: uppercase">Squad name</label>
+<input id="squad-name" type="text" maxlength="32" value="{{squadName}}" onChange="{{setSquadName}}" placeholder="Name your squad" style="height: 46px; box-sizing: border-box; padding: 0 14px; border-radius: 8px; border: 1px solid #2c3d40; background: #0b1011; color: #eaf4f4; font-size: 16px">
+</div>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 16px">
+<div style="flex: 1 1 160px; background: #0b1011; border: 1px solid #1e2b2d; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+<span style="display: inline-flex; align-items: center; gap: 6px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.06em; text-transform: uppercase"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="#f5d76e"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 20.9l1.6-7L2 9.2l7.1-.6z"></path></svg>{{mvpLabel}}</span>
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+<div style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 34px; line-height: 1.1; word-break: break-word; min-width: 0; color: #f5d76e">{{mvpName}}</div>
+<sc-if value="{{mvpHasLogo}}" hint-placeholder-val="{{ false }}">
+<img src="{{mvpLogo}}" alt="{{mvpTeam}}" style="height: {{mvpLogoH}}px; width: auto; max-width: 90px; object-fit: contain; display: block; flex: none; margin-right: 14px">
+</sc-if>
+</div>
+</div>
+<div style="flex: 1 1 160px; background: #0b1011; border: 1px solid #1e2b2d; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.06em; text-transform: uppercase">Total points</span>
+<div style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 44px; line-height: 1">0</div>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">Rank —</span>
+</div>
+<div style="flex: 2 1 320px; background: #0b1011; border: 1px solid #1e2b2d; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px">
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.06em; text-transform: uppercase">Budget left</span>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">{{spentLabel}} / {{budgetLabel}}</span>
+</div>
+<div style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 44px; line-height: 1; color: #a5dcdd">{{leftLabel}}</div>
+<div style="height: 8px; border-radius: 4px; background: #1e2b2d; overflow: hidden" role="img" aria-label="{{spentPct}} percent of budget spent">
+<div style="height: 8px; border-radius: 4px; background: #a5dcdd; width: {{spentPct}}%"></div>
+</div>
+</div>
+<div style="flex: 1 1 160px; background: #0b1011; border: 1px solid #1e2b2d; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.06em; text-transform: uppercase">Players</span>
+<div style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 44px; line-height: 1">{{countLabel}}</div>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">Max {{teamLimit}} per team</span>
+</div>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start">
+
+<section aria-labelledby="squad-h" style="flex: 999 1 600px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+<sc-if value="{{dragging}}" hint-placeholder-val="{{ false }}">
+<div aria-hidden="true" style="position: fixed; left: {{dragX}}px; top: {{dragY}}px; transform: translate(-50%, -50%) rotate(-12deg); z-index: 1000; pointer-events: none; filter: drop-shadow(0 0 10px rgba(245,215,110,.7))">
+<svg width="40" height="40" viewBox="0 0 24 24" fill="#f5d76e" stroke="#f5d76e" stroke-width="1.6" stroke-linejoin="round"><path d="M3 18h18L19 7l-4.5 4L12 5l-2.5 6L5 7z"></path></svg>
+</div>
+</sc-if>
+<div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap">
+<sc-if value="{{hasSquadName}}" hint-placeholder-val="{{ false }}">
+<h2 id="squad-h" style="margin: 0; font-family: 'Cabin Sketch', cursive; font-size: 30px; font-weight: 700; line-height: 1.1; color: #a5dcdd; word-break: break-word; min-width: 0">{{squadName}}</h2>
+</sc-if>
+<sc-if value="{{noSquadName}}" hint-placeholder-val="{{ true }}">
+<h2 id="squad-h" style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">[ MY_SQUAD ]</h2>
+</sc-if>
+<button onClick="{{crownClick}}" onPointerDown="{{crownDown}}" onPointerMove="{{crownMove}}" onPointerUp="{{crownUp}}" onPointerCancel="{{crownCancel}}" aria-pressed="{{crownArmed}}" aria-label="IGL crown. Drag onto a player, or press then choose a player." title="Drag onto a player to make them your IGL" style="width: 44px; height: 44px; flex: none; display: grid; place-items: center; border-radius: 10px; border: 1px solid {{crownBorder}}; background: {{crownBg}}; color: #f5d76e; touch-action: none; cursor: grab">
+<svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="#f5d76e" stroke="#f5d76e" stroke-width="1.6" stroke-linejoin="round"><path d="M3 18h18L19 7l-4.5 4L12 5l-2.5 6L5 7z"></path></svg>
+</button>
+<sc-if value="{{crownArmed}}" hint-placeholder-val="{{ false }}">
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #f5d76e">Pick a card for your IGL</span>
+</sc-if>
+<span style="flex: 1 1 auto"></span>
+<button onClick="{{reset}}" disabled="{{actionsDisabled}}" title="Double tap to clear your squad" style="min-height: 44px; padding: 0 16px; border-radius: 8px; border: 1px solid {{clearBorder}}; background: transparent; color: {{clearColor}}; font-family: 'JetBrains Mono', monospace; font-size: 13px; touch-action: manipulation">{{clearLabel}}</button>
+</div>
+
+<div class="pcmt-sq">
+<sc-for list="{{groups}}" as="g" hint-placeholder-count="5">
+<div class="{{g.cls}}" style="min-width: 0; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; border-bottom: 1px solid #1e2b2d; padding-bottom: 6px">
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em; text-transform: uppercase">{{g.label}}</span>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">{{g.filledLabel}}</span>
+</div>
+<div class="{{g.inner}}">
+<sc-for list="{{g.slots}}" as="slot" hint-placeholder-count="2">
+<sc-if value="{{slot.filled}}" hint-placeholder-val="{{ false }}">
+<div data-player="{{slot.id}}" onClick="{{slot.removeTap}}" onPointerDown="{{slot.tiltDown}}" onPointerMove="{{slot.tiltMove}}" onPointerUp="{{slot.tiltUp}}" onPointerCancel="{{slot.tiltUp}}" title="{{slot.cardTitle}}" style="position: relative; z-index: {{slot.z}}; opacity: {{slot.dealOpacity}}; transform: {{slot.outerTransform}}; transition: {{slot.outerTransition}}; min-width: 0; height: 236px; box-sizing: border-box; display: flex; perspective: 900px; touch-action: {{slot.touchAction}}; cursor: {{slot.cursor}}; user-select: none">
+<sc-if value="{{slot.zapOn}}" hint-placeholder-val="{{ false }}">
+<div class="pcmt-sparks" aria-hidden="true"><span class="pcmt-sk s1"></span><span class="pcmt-sk s2"></span><span class="pcmt-sk s3"></span><span class="pcmt-sk s4"></span><span class="pcmt-sk s5"></span><span class="pcmt-sk s6"></span><span class="pcmt-sk s7"></span><span class="pcmt-sk s8"></span><span class="pcmt-sk s9"></span><span class="pcmt-sk s10"></span><span class="pcmt-sk s11"></span><span class="pcmt-sk s12"></span></div>
+</sc-if>
+<div class="{{slot.innerClass}}" style="position: relative; flex: 1; display: flex; transform-style: preserve-3d; transform: {{slot.tiltTransform}}; transition: {{slot.tiltTransition}}; animation-delay: {{slot.delay}}ms">
+<div class="{{slot.frontClass}}" style="position: relative; flex: 1; backface-visibility: hidden; -webkit-backface-visibility: hidden; background: #0b1011; border: 1px solid #1e2b2d; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; box-shadow: {{slot.glow}}">
+<span aria-hidden="true" class="{{slot.sparkClass}}" style="animation-delay: {{slot.sparkDelay}}ms"></span>
+<span aria-hidden="true" class="{{slot.zapClass}}"></span>
+<sc-if value="{{auraOn}}" hint-placeholder-val="{{ false }}">
+<div aria-hidden="true" class="pcmt-aura"><svg viewBox="0 0 24 24" fill="none" stroke="#f5d76e" stroke-width="0.9" stroke-linejoin="round"><path d="M3 18h18L19 7l-4.5 4L12 5l-2.5 6L5 7z" fill="rgba(245,215,110,0.35)"></path><path d="M4 20.5h16"></path><circle cx="12" cy="3.6" r="0.9" fill="#f5d76e" stroke="none"></circle><circle cx="2.6" cy="5.8" r="0.8" fill="#f5d76e" stroke="none"></circle><circle cx="21.4" cy="5.8" r="0.8" fill="#f5d76e" stroke="none"></circle></svg></div>
+</sc-if>
+<div style="height: 5px; background: {{slot.teamColor}}"></div>
+<div style="position: relative; z-index: 1; padding: 14px; display: flex; flex-direction: column; gap: 8px; flex: 1">
+<div style="display: flex; justify-content: space-between; align-items: center; height: 30px; flex: none">
+<span style="display: inline-flex; align-items: center; gap: 8px; min-width: 0">
+<sc-if value="{{slot.hasLogo}}" hint-placeholder-val="{{ false }}">
+<img src="{{slot.logo}}" alt="{{slot.teamFull}}" title="{{slot.teamFull}}" style="height: {{slot.logoH}}px; width: auto; max-width: 70px; object-fit: contain; display: block">
+</sc-if>
+<sc-if value="{{slot.noLogo}}" hint-placeholder-val="{{ true }}">
+<span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 20px; line-height: 1; color: {{slot.teamColor}}">{{slot.team}}</span>
+</sc-if>
+<sc-if value="{{slot.isIgl}}" hint-placeholder-val="{{ false }}">
+<span title="IGL" style="display: inline-flex; align-items: center; gap: 4px; min-height: 28px; box-sizing: border-box; padding: 4px 9px; border-radius: 999px; background: #f5d76e; color: #000; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600">
+<svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3 18h18L19 7l-4.5 4L12 5l-2.5 6L5 7z"></path></svg>
+IGL
+</span>
+</sc-if>
+</span>
+<span title="{{slot.pointsTitle}}" style="flex: none; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 30px; line-height: 1; color: {{slot.teamColor}}; font-variant-numeric: tabular-nums">{{slot.points}}</span>
+</div>
+<div style="container-type: inline-size; font-family: 'Cabin Sketch', cursive; font-weight: 700; line-height: 1.1; white-space: nowrap; overflow: hidden; height: 38px; flex: none; display: flex; align-items: center; gap: 6px">
+<span style="overflow: hidden; text-overflow: clip; min-width: 0; font-size: {{slot.nameFont}}">{{slot.name}}</span>
+<sc-if value="{{slot.champ}}" hint-placeholder-val="{{ false }}">
+<svg role="img" aria-label="Season 2 champion" width="17" height="17" viewBox="0 0 24 24" fill="#f5d76e" style="flex: none; filter: drop-shadow(0 0 4px rgba(245,215,110,.6))"><title>Season 2 champion</title><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 20.9l1.6-7L2 9.2l7.1-.6z"></path></svg>
+</sc-if>
+</div>
+<div style="height: 26px; flex: none; display: flex; align-items: center; min-width: 0">
+<span style="font-size: {{slot.teamFullSize}}px; line-height: 1.2; font-weight: 500; color: {{slot.teamColor}}; opacity: 0.85; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; word-break: break-word">{{slot.teamFull}}</span>
+</div>
+<sc-if value="{{slot.hasTags}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-wrap: nowrap; gap: 4px; min-width: 0; height: 20px; overflow: hidden">
+<sc-if value="{{slot.isMvp}}" hint-placeholder-val="{{ false }}">
+<span style="display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 999px; border: 1px solid #f5d76e; color: #f5d76e; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.04em; white-space: nowrap">WEEK MVP
+</span>
+</sc-if>
+<sc-if value="{{slot.isTop}}" hint-placeholder-val="{{ false }}">
+<span style="display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 999px; border: 1px solid {{slot.teamColor}}; color: {{slot.teamColor}}; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.04em; white-space: nowrap">TEAM MVP</span>
+</sc-if>
+</div>
+</sc-if>
+<div style="margin-top: auto; display: flex; align-items: center; gap: 6px; height: 26px; flex: none; min-width: 0">
+<img src="{{slot.roleIcon}}" alt="{{slot.roleLabel}}" title="{{slot.roleLabel}}" style="width: 24px; height: 24px; display: block; flex: none">
+<span style="position: relative; margin-left: auto; flex: none; height: 26px; min-width: 60px; display: flex; align-items: center; justify-content: flex-end">
+<span title="Price {{slot.priceLabel}}" style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 44px; line-height: 1; color: #eaf4f4; opacity: 0.19; letter-spacing: -0.02em; user-select: none">{{slot.priceLabel}}</span>
+<sc-if value="{{slot.authentic}}" hint-placeholder-val="{{ false }}">
+<span title="Authentic {{slot.team}} card" style="position: absolute; right: 0; top: 50%; margin-top: -10px; z-index: 1; flex: none; display: inline-flex; align-items: center; gap: 3px; padding: 3px 6px; border: 1.5px solid {{slot.teamColor}}; border-radius: 4px; box-shadow: inset 0 0 0 2px #0b1011, inset 0 0 0 3px {{slot.teamColor}}; color: {{slot.teamColor}}; font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 600; letter-spacing: 0.12em; transform: rotate(-9deg); opacity: 0.92; white-space: nowrap">
+<svg aria-hidden="true" width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 20.9l1.6-7L2 9.2l7.1-.6z"></path></svg>
+AUTHENTIC
+</span>
+</sc-if>
+</span>
+</div>
+</div>
+<div style="height: 5px; background: {{slot.teamColor}}"></div>
+<sc-if value="{{crownArmed}}" hint-placeholder-val="{{ false }}">
+<button onClick="{{slot.makeIgl}}" aria-label="Make {{slot.name}} your IGL" style="position: absolute; inset: 0; z-index: 3; border: 2px dashed #f5d76e; border-radius: 12px; background: rgba(245,215,110,.08); color: #f5d76e; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; display: grid; place-items: center">Crown {{slot.name}}</button>
+</sc-if>
+</div>
+<div aria-hidden="true" class="{{auraEndClass}} {{deck.bgClass}}" style="position: absolute; inset: 0; transform: rotateY(180deg); backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 12px; border: 1px solid {{deck.edge}}; background: {{deckBackBg}}; --off: {{slot.auraOff}}; display: grid; place-items: center; overflow: hidden">
+<sc-if value="{{ethanOn}}" hint-placeholder-val="{{ false }}">
+<svg class="ea-svg" aria-hidden="true" viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice" style="position: absolute; inset: 0; width: 100%; height: 100%; display: block"><defs><filter id="ea-soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.4"></feGaussianBlur></filter></defs><path d="M0 15L15 0 M0 30L30 0 M0 45L45 0 M0 60L60 0 M0 75L75 0 M0 90L90 0 M0 105L105 0 M0 120L120 0 M0 135L135 0 M0 150L150 0 M0 165L165 0 M0 180L180 0 M0 195L195 0 M10 200L200 10 M25 200L200 25 M40 200L200 40 M55 200L200 55 M70 200L200 70 M85 200L200 85 M100 200L200 100 M115 200L200 115 M130 200L200 130 M145 200L200 145 M160 200L200 160 M175 200L200 175 M190 200L200 190 M0 195L5 200 M0 180L20 200 M0 165L35 200 M0 150L50 200 M0 135L65 200 M0 120L80 200 M0 105L95 200 M0 90L110 200 M0 75L125 200 M0 60L140 200 M0 45L155 200 M0 30L170 200 M0 15L185 200 M0 0L200 200 M15 0L200 185 M30 0L200 170 M45 0L200 155 M60 0L200 140 M75 0L200 125 M90 0L200 110 M105 0L200 95 M120 0L200 80 M135 0L200 65 M150 0L200 50 M165 0L200 35 M180 0L200 20 M195 0L200 5" fill="none" stroke="{{deck.lattice}}" stroke-width="1" vector-effect="non-scaling-stroke"></path><g style="--dur: {{aura.t0.dur}}; --d: {{aura.t0.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t0.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t0.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t0.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t1.dur}}; --d: {{aura.t1.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t1.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t1.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t1.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t2.dur}}; --d: {{aura.t2.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t2.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t2.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t2.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t3.dur}}; --d: {{aura.t3.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t3.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t3.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t3.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t4.dur}}; --d: {{aura.t4.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t4.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t4.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t4.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t5.dur}}; --d: {{aura.t5.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t5.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t5.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t5.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t6.dur}}; --d: {{aura.t6.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t6.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t6.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t6.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t7.dur}}; --d: {{aura.t7.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t7.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t7.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t7.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t8.dur}}; --d: {{aura.t8.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t8.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t8.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t8.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t9.dur}}; --d: {{aura.t9.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t9.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t9.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t9.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t10.dur}}; --d: {{aura.t10.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t10.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t10.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t10.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t11.dur}}; --d: {{aura.t11.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t11.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t11.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t11.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t12.dur}}; --d: {{aura.t12.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t12.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t12.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t12.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t13.dur}}; --d: {{aura.t13.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t13.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t13.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t13.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t14.dur}}; --d: {{aura.t14.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t14.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t14.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t14.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t15.dur}}; --d: {{aura.t15.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t15.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t15.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t15.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t16.dur}}; --d: {{aura.t16.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t16.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t16.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t16.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t17.dur}}; --d: {{aura.t17.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t17.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t17.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t17.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t18.dur}}; --d: {{aura.t18.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t18.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t18.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t18.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t19.dur}}; --d: {{aura.t19.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t19.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t19.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t19.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t20.dur}}; --d: {{aura.t20.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t20.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t20.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t20.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t21.dur}}; --d: {{aura.t21.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t21.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t21.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t21.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t22.dur}}; --d: {{aura.t22.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t22.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t22.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t22.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t23.dur}}; --d: {{aura.t23.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t23.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t23.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t23.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g></svg><div style="position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, #0b1011 0 28%, rgba(11,16,17,0) 50%)"></div>
+</sc-if>
+<div style="position: absolute; inset: 7px; border: 1px solid {{deck.frame}}; border-radius: 8px"></div>
+<div style="position: absolute; inset: 11px; border: 1px solid {{deck.frameSoft}}; border-radius: 6px"></div>
+<sc-if value="{{prideOn}}" hint-placeholder-val="{{ false }}">
+<svg class="hl-svg hl-rb" aria-hidden="true" style="position: absolute; left: 7px; top: 7px; width: calc(100% - 14px); height: calc(100% - 14px); overflow: visible; pointer-events: none"><defs><filter id="hl-soft-rb" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="1.3"></feGaussianBlur></filter></defs><g class="hl-g {{prideA.o0.rev}}" style="--c: #ff5a5a; --dur: {{prideA.o0.dur}}; --d: {{prideA.o0.delay}}; --fade: {{prideA.o0.fade}}; --fd: {{prideA.o0.fd}}"><rect class="hl-t hl-halo" filter="url(#hl-soft-rb)" x="0.5" y="0.5" width="100%" height="100%" rx="7.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-mid" filter="url(#hl-soft-rb)" x="0.5" y="0.5" width="100%" height="100%" rx="7.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-core" x="0.5" y="0.5" width="100%" height="100%" rx="7.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect></g><g class="hl-g {{prideA.o1.rev}}" style="--c: #ffe94d; --dur: {{prideA.o1.dur}}; --d: {{prideA.o1.delay}}; --fade: {{prideA.o1.fade}}; --fd: {{prideA.o1.fd}}"><rect class="hl-t hl-halo" filter="url(#hl-soft-rb)" x="0.5" y="0.5" width="100%" height="100%" rx="7.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-mid" filter="url(#hl-soft-rb)" x="0.5" y="0.5" width="100%" height="100%" rx="7.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-core" x="0.5" y="0.5" width="100%" height="100%" rx="7.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect></g><g class="hl-g {{prideA.o2.rev}}" style="--c: #5cb0ff; --dur: {{prideA.o2.dur}}; --d: {{prideA.o2.delay}}; --fade: {{prideA.o2.fade}}; --fd: {{prideA.o2.fd}}"><rect class="hl-t hl-halo" filter="url(#hl-soft-rb)" x="0.5" y="0.5" width="100%" height="100%" rx="7.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-mid" filter="url(#hl-soft-rb)" x="0.5" y="0.5" width="100%" height="100%" rx="7.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-core" x="0.5" y="0.5" width="100%" height="100%" rx="7.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect></g></svg><svg class="hl-svg hl-rb" aria-hidden="true" style="position: absolute; left: 11px; top: 11px; width: calc(100% - 22px); height: calc(100% - 22px); overflow: visible; pointer-events: none"><g class="hl-g {{prideA.i0.rev}}" style="--c: #ffb347; --dur: {{prideA.i0.dur}}; --d: {{prideA.i0.delay}}; --fade: {{prideA.i0.fade}}; --fd: {{prideA.i0.fd}}"><rect class="hl-t hl-halo" filter="url(#hl-soft-rb)" x="0.5" y="0.5" width="100%" height="100%" rx="5.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-mid" filter="url(#hl-soft-rb)" x="0.5" y="0.5" width="100%" height="100%" rx="5.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-core" x="0.5" y="0.5" width="100%" height="100%" rx="5.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect></g><g class="hl-g {{prideA.i1.rev}}" style="--c: #55ff8f; --dur: {{prideA.i1.dur}}; --d: {{prideA.i1.delay}}; --fade: {{prideA.i1.fade}}; --fd: {{prideA.i1.fd}}"><rect class="hl-t hl-halo" filter="url(#hl-soft-rb)" x="0.5" y="0.5" width="100%" height="100%" rx="5.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-mid" filter="url(#hl-soft-rb)" x="0.5" y="0.5" width="100%" height="100%" rx="5.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-core" x="0.5" y="0.5" width="100%" height="100%" rx="5.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect></g></svg>
+</sc-if>
+<sc-if value="{{haloOn}}" hint-placeholder-val="{{ false }}">
+<svg class="hl-svg" aria-hidden="true" style="position: absolute; left: 7px; top: 7px; width: calc(100% - 14px); height: calc(100% - 14px); overflow: visible; pointer-events: none"><defs><filter id="hl-soft" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="1.3"></feGaussianBlur></filter></defs><g class="hl-g {{halo.o0.rev}}" style="--dur: {{halo.o0.dur}}; --d: {{halo.o0.delay}}; --fade: {{halo.o0.fade}}; --fd: {{halo.o0.fd}}"><rect class="hl-t hl-halo" filter="url(#hl-soft)" x="0.5" y="0.5" width="100%" height="100%" rx="7.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-mid" filter="url(#hl-soft)" x="0.5" y="0.5" width="100%" height="100%" rx="7.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-core" x="0.5" y="0.5" width="100%" height="100%" rx="7.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect></g><g class="hl-g {{halo.o1.rev}}" style="--dur: {{halo.o1.dur}}; --d: {{halo.o1.delay}}; --fade: {{halo.o1.fade}}; --fd: {{halo.o1.fd}}"><rect class="hl-t hl-halo" filter="url(#hl-soft)" x="0.5" y="0.5" width="100%" height="100%" rx="7.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-mid" filter="url(#hl-soft)" x="0.5" y="0.5" width="100%" height="100%" rx="7.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-core" x="0.5" y="0.5" width="100%" height="100%" rx="7.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect></g><g class="hl-g {{halo.o2.rev}}" style="--dur: {{halo.o2.dur}}; --d: {{halo.o2.delay}}; --fade: {{halo.o2.fade}}; --fd: {{halo.o2.fd}}"><rect class="hl-t hl-halo" filter="url(#hl-soft)" x="0.5" y="0.5" width="100%" height="100%" rx="7.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-mid" filter="url(#hl-soft)" x="0.5" y="0.5" width="100%" height="100%" rx="7.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-core" x="0.5" y="0.5" width="100%" height="100%" rx="7.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect></g></svg><svg class="hl-svg" aria-hidden="true" style="position: absolute; left: 11px; top: 11px; width: calc(100% - 22px); height: calc(100% - 22px); overflow: visible; pointer-events: none"><g class="hl-g {{halo.i0.rev}}" style="--dur: {{halo.i0.dur}}; --d: {{halo.i0.delay}}; --fade: {{halo.i0.fade}}; --fd: {{halo.i0.fd}}"><rect class="hl-t hl-halo" filter="url(#hl-soft)" x="0.5" y="0.5" width="100%" height="100%" rx="5.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-mid" filter="url(#hl-soft)" x="0.5" y="0.5" width="100%" height="100%" rx="5.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-core" x="0.5" y="0.5" width="100%" height="100%" rx="5.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect></g><g class="hl-g {{halo.i1.rev}}" style="--dur: {{halo.i1.dur}}; --d: {{halo.i1.delay}}; --fade: {{halo.i1.fade}}; --fd: {{halo.i1.fd}}"><rect class="hl-t hl-halo" filter="url(#hl-soft)" x="0.5" y="0.5" width="100%" height="100%" rx="5.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-mid" filter="url(#hl-soft)" x="0.5" y="0.5" width="100%" height="100%" rx="5.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-core" x="0.5" y="0.5" width="100%" height="100%" rx="5.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect></g></svg>
+</sc-if>
+<div style="position: absolute; top: 3px; left: 50%; width: 9px; height: 9px; margin-left: -4.5px; transform: rotate(45deg); background: {{deck.color}}"></div>
+<div style="position: absolute; bottom: 3px; left: 50%; width: 9px; height: 9px; margin-left: -4.5px; transform: rotate(45deg); background: {{deck.color}}"></div>
+<div style="position: absolute; left: 3px; top: 50%; width: 9px; height: 9px; margin-top: -4.5px; transform: rotate(45deg); background: {{deck.color}}"></div>
+<div style="position: absolute; right: 3px; top: 50%; width: 9px; height: 9px; margin-top: -4.5px; transform: rotate(45deg); background: {{deck.color}}"></div>
+<div style="position: absolute; top: 15px; left: 15px; width: 7px; height: 7px; transform: rotate(45deg); border: 1px solid {{deck.frame}}"></div>
+<div style="position: absolute; top: 15px; right: 15px; width: 7px; height: 7px; transform: rotate(45deg); border: 1px solid {{deck.frame}}"></div>
+<div style="position: absolute; bottom: 15px; left: 15px; width: 7px; height: 7px; transform: rotate(45deg); border: 1px solid {{deck.frame}}"></div>
+<div style="position: absolute; bottom: 15px; right: 15px; width: 7px; height: 7px; transform: rotate(45deg); border: 1px solid {{deck.frame}}"></div>
+<div class="{{deck.ringClass}}" style="position: relative; width: 70%; max-width: 150px; aspect-ratio: 1; border-radius: 50%; border: 1.5px solid {{deck.color}}; display: grid; place-items: center; background: #080b0c; padding: 5px; box-sizing: border-box; box-shadow: 0 0 0 4px rgba(8,11,12,.9), 0 0 0 5px {{deck.frameSoft}}, 0 0 18px {{deck.glow}}">
+<img src="{{deck.logo}}" alt="" style="width: {{deck.imgSize}}; height: {{deck.imgSize}}; object-fit: contain; display: block; border-radius: {{deck.imgRadius}}">
+<sc-if value="{{ringOn}}" hint-placeholder-val="{{ false }}">
+<svg class="hl-svg hl-w" aria-hidden="true" viewBox="0 0 100 100" style="position: absolute; left: -1.5px; top: -1.5px; width: calc(100% + 3px); height: calc(100% + 3px); overflow: visible; pointer-events: none"><defs><filter id="hl-soft-w" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="1.3"></feGaussianBlur></filter></defs><g class="hl-g {{ring.c0.rev}}" style="--dur: {{ring.c0.dur}}; --d: {{ring.c0.delay}}; --fade: {{ring.c0.fade}}; --fd: {{ring.c0.fd}}"><circle class="hl-t hl-halo" filter="url(#hl-soft-w)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-mid" filter="url(#hl-soft-w)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-core" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle></g><g class="hl-g {{ring.c1.rev}}" style="--dur: {{ring.c1.dur}}; --d: {{ring.c1.delay}}; --fade: {{ring.c1.fade}}; --fd: {{ring.c1.fd}}"><circle class="hl-t hl-halo" filter="url(#hl-soft-w)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-mid" filter="url(#hl-soft-w)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-core" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle></g><g class="hl-g {{ring.c2.rev}}" style="--dur: {{ring.c2.dur}}; --d: {{ring.c2.delay}}; --fade: {{ring.c2.fade}}; --fd: {{ring.c2.fd}}"><circle class="hl-t hl-halo" filter="url(#hl-soft-w)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-mid" filter="url(#hl-soft-w)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-core" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle></g></svg>
+</sc-if>
+<sc-if value="{{prideOn}}" hint-placeholder-val="{{ false }}">
+<svg class="hl-svg hl-rb" aria-hidden="true" viewBox="0 0 100 100" style="position: absolute; left: -1.5px; top: -1.5px; width: calc(100% + 3px); height: calc(100% + 3px); overflow: visible; pointer-events: none"><g class="hl-g {{prideA.c0.rev}}" style="--c: #d08bff; --dur: {{prideA.c0.dur}}; --d: {{prideA.c0.delay}}; --fade: {{prideA.c0.fade}}; --fd: {{prideA.c0.fd}}"><circle class="hl-t hl-halo" filter="url(#hl-soft-rb)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-mid" filter="url(#hl-soft-rb)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-core" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle></g><g class="hl-g {{prideA.c1.rev}}" style="--c: #ff7ac8; --dur: {{prideA.c1.dur}}; --d: {{prideA.c1.delay}}; --fade: {{prideA.c1.fade}}; --fd: {{prideA.c1.fd}}"><circle class="hl-t hl-halo" filter="url(#hl-soft-rb)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-mid" filter="url(#hl-soft-rb)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-core" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle></g><g class="hl-g {{prideA.c2.rev}}" style="--c: #5cffff; --dur: {{prideA.c2.dur}}; --d: {{prideA.c2.delay}}; --fade: {{prideA.c2.fade}}; --fd: {{prideA.c2.fd}}"><circle class="hl-t hl-halo" filter="url(#hl-soft-rb)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-mid" filter="url(#hl-soft-rb)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-core" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle></g></svg>
+</sc-if>
+<sc-if value="{{haloOn}}" hint-placeholder-val="{{ false }}">
+<svg class="hl-svg" aria-hidden="true" viewBox="0 0 100 100" style="position: absolute; left: -1.5px; top: -1.5px; width: calc(100% + 3px); height: calc(100% + 3px); overflow: visible; pointer-events: none"><g class="hl-g {{halo.c0.rev}}" style="--dur: {{halo.c0.dur}}; --d: {{halo.c0.delay}}; --fade: {{halo.c0.fade}}; --fd: {{halo.c0.fd}}"><circle class="hl-t hl-halo" filter="url(#hl-soft)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-mid" filter="url(#hl-soft)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-core" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle></g><g class="hl-g {{halo.c1.rev}}" style="--dur: {{halo.c1.dur}}; --d: {{halo.c1.delay}}; --fade: {{halo.c1.fade}}; --fd: {{halo.c1.fd}}"><circle class="hl-t hl-halo" filter="url(#hl-soft)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-mid" filter="url(#hl-soft)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-core" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle></g><g class="hl-g {{halo.c2.rev}}" style="--dur: {{halo.c2.dur}}; --d: {{halo.c2.delay}}; --fade: {{halo.c2.fade}}; --fd: {{halo.c2.fd}}"><circle class="hl-t hl-halo" filter="url(#hl-soft)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-mid" filter="url(#hl-soft)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-core" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle></g></svg>
+</sc-if>
+</div>
+</div>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{slot.empty}}" hint-placeholder-val="{{ true }}">
+<button onClick="{{slot.openBuy}}" style="min-width: 0; height: 236px; box-sizing: border-box; border: 2px dashed #2c3d40; border-radius: 12px; background: transparent; padding: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: #93a9aa; text-align: center">
+<svg aria-hidden="true" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+<span style="font-size: 15px; color: #eaf4f4">{{slot.emptyText}}</span>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 11px">{{slot.emptyHint}}</span>
+</button>
+</sc-if>
+</sc-for>
+</div>
+</div>
+</sc-for>
+<div class="pcmt-g1 pcmt-box" aria-hidden="true" style="min-width: 0; display: flex; flex-direction: column; gap: 10px">
+<div style="padding-bottom: 6px; border-bottom: 1px solid transparent; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.25">&nbsp;</div>
+<div id="pcmt-stack" class="{{stackClass}}" onClick="{{stackTap}}" onContextMenu="{{stackRight}}" title="Double tap to straighten the pile. Double right-click to mess it up" style="position: relative; height: 236px; border-radius: 12px; box-shadow: {{stackGlow}}; transition: box-shadow .15s; cursor: pointer; touch-action: manipulation; user-select: none">
+<div class="{{deck.bgClass}}" style="position: absolute; inset: 0; z-index: 1; transform: {{stackT1}}; transition: transform .45s cubic-bezier(.3,.7,.2,1); border-radius: 12px; border: 1px solid {{deck.edge}}; background: {{deck.bg}}; box-shadow: 0 6px 14px rgba(0,0,0,.45); display: grid; place-items: center; overflow: hidden">
+<div style="position: absolute; inset: 7px; border: 1px solid {{deck.frame}}; border-radius: 8px"></div>
+<div style="position: absolute; inset: 11px; border: 1px solid {{deck.frameSoft}}; border-radius: 6px"></div>
+</div>
+<div class="{{deck.bgClass}}" style="position: absolute; inset: 0; z-index: 2; transform: {{stackT2}}; transition: transform .45s cubic-bezier(.3,.7,.2,1); border-radius: 12px; border: 1px solid {{deck.edge}}; background: {{deck.bg}}; box-shadow: 0 6px 14px rgba(0,0,0,.45); display: grid; place-items: center; overflow: hidden">
+<div style="position: absolute; inset: 7px; border: 1px solid {{deck.frame}}; border-radius: 8px"></div>
+<div style="position: absolute; inset: 11px; border: 1px solid {{deck.frameSoft}}; border-radius: 6px"></div>
+</div>
+<div class="{{deck.bgClass}}" style="position: absolute; inset: 0; z-index: 3; transform: {{stackT3}}; transition: transform .45s cubic-bezier(.3,.7,.2,1); border-radius: 12px; border: 1px solid {{deck.edge}}; background: {{deck.bg}}; box-shadow: 0 6px 14px rgba(0,0,0,.45); display: grid; place-items: center; overflow: hidden">
+<div style="position: absolute; inset: 7px; border: 1px solid {{deck.frame}}; border-radius: 8px"></div>
+<div style="position: absolute; inset: 11px; border: 1px solid {{deck.frameSoft}}; border-radius: 6px"></div>
+</div>
+<div class="{{auraEndClass}} {{deck.bgClass}}" style="position: absolute; inset: 0; z-index: 4; transform: none; border-radius: 12px; border: 1px solid {{deck.edge}}; background: {{deckBackBg}}; box-shadow: 0 6px 14px rgba(0,0,0,.45); display: grid; place-items: center; overflow: hidden">
+<sc-if value="{{ethanOn}}" hint-placeholder-val="{{ false }}">
+<svg class="ea-svg" aria-hidden="true" viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice" style="position: absolute; inset: 0; width: 100%; height: 100%; display: block"><defs><filter id="ea-soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.4"></feGaussianBlur></filter></defs><path d="M0 15L15 0 M0 30L30 0 M0 45L45 0 M0 60L60 0 M0 75L75 0 M0 90L90 0 M0 105L105 0 M0 120L120 0 M0 135L135 0 M0 150L150 0 M0 165L165 0 M0 180L180 0 M0 195L195 0 M10 200L200 10 M25 200L200 25 M40 200L200 40 M55 200L200 55 M70 200L200 70 M85 200L200 85 M100 200L200 100 M115 200L200 115 M130 200L200 130 M145 200L200 145 M160 200L200 160 M175 200L200 175 M190 200L200 190 M0 195L5 200 M0 180L20 200 M0 165L35 200 M0 150L50 200 M0 135L65 200 M0 120L80 200 M0 105L95 200 M0 90L110 200 M0 75L125 200 M0 60L140 200 M0 45L155 200 M0 30L170 200 M0 15L185 200 M0 0L200 200 M15 0L200 185 M30 0L200 170 M45 0L200 155 M60 0L200 140 M75 0L200 125 M90 0L200 110 M105 0L200 95 M120 0L200 80 M135 0L200 65 M150 0L200 50 M165 0L200 35 M180 0L200 20 M195 0L200 5" fill="none" stroke="{{deck.lattice}}" stroke-width="1" vector-effect="non-scaling-stroke"></path><g style="--dur: {{aura.t0.dur}}; --d: {{aura.t0.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t0.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t0.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t0.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t1.dur}}; --d: {{aura.t1.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t1.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t1.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t1.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t2.dur}}; --d: {{aura.t2.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t2.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t2.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t2.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t3.dur}}; --d: {{aura.t3.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t3.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t3.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t3.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t4.dur}}; --d: {{aura.t4.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t4.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t4.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t4.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t5.dur}}; --d: {{aura.t5.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t5.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t5.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t5.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t6.dur}}; --d: {{aura.t6.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t6.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t6.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t6.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t7.dur}}; --d: {{aura.t7.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t7.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t7.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t7.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t8.dur}}; --d: {{aura.t8.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t8.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t8.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t8.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t9.dur}}; --d: {{aura.t9.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t9.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t9.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t9.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t10.dur}}; --d: {{aura.t10.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t10.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t10.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t10.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t11.dur}}; --d: {{aura.t11.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t11.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t11.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t11.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t12.dur}}; --d: {{aura.t12.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t12.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t12.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t12.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t13.dur}}; --d: {{aura.t13.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t13.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t13.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t13.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t14.dur}}; --d: {{aura.t14.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t14.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t14.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t14.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t15.dur}}; --d: {{aura.t15.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t15.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t15.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t15.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t16.dur}}; --d: {{aura.t16.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t16.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t16.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t16.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t17.dur}}; --d: {{aura.t17.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t17.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t17.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t17.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t18.dur}}; --d: {{aura.t18.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t18.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t18.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t18.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t19.dur}}; --d: {{aura.t19.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t19.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t19.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t19.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t20.dur}}; --d: {{aura.t20.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t20.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t20.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t20.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t21.dur}}; --d: {{aura.t21.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t21.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t21.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t21.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t22.dur}}; --d: {{aura.t22.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t22.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t22.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t22.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t23.dur}}; --d: {{aura.t23.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t23.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t23.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t23.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g></svg><div style="position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, #0b1011 0 28%, rgba(11,16,17,0) 50%)"></div>
+</sc-if>
+<div style="position: absolute; inset: 7px; border: 1px solid {{deck.frame}}; border-radius: 8px"></div>
+<div style="position: absolute; inset: 11px; border: 1px solid {{deck.frameSoft}}; border-radius: 6px"></div>
+<sc-if value="{{prideOn}}" hint-placeholder-val="{{ false }}">
+<svg class="hl-svg hl-rb" aria-hidden="true" style="position: absolute; left: 7px; top: 7px; width: calc(100% - 14px); height: calc(100% - 14px); overflow: visible; pointer-events: none"><defs><filter id="hl-soft-rb" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="1.3"></feGaussianBlur></filter></defs><g class="hl-g {{prideA.o0.rev}}" style="--c: #ff5a5a; --dur: {{prideA.o0.dur}}; --d: {{prideA.o0.delay}}; --fade: {{prideA.o0.fade}}; --fd: {{prideA.o0.fd}}"><rect class="hl-t hl-halo" filter="url(#hl-soft-rb)" x="0.5" y="0.5" width="100%" height="100%" rx="7.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-mid" filter="url(#hl-soft-rb)" x="0.5" y="0.5" width="100%" height="100%" rx="7.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-core" x="0.5" y="0.5" width="100%" height="100%" rx="7.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect></g><g class="hl-g {{prideA.o1.rev}}" style="--c: #ffe94d; --dur: {{prideA.o1.dur}}; --d: {{prideA.o1.delay}}; --fade: {{prideA.o1.fade}}; --fd: {{prideA.o1.fd}}"><rect class="hl-t hl-halo" filter="url(#hl-soft-rb)" x="0.5" y="0.5" width="100%" height="100%" rx="7.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-mid" filter="url(#hl-soft-rb)" x="0.5" y="0.5" width="100%" height="100%" rx="7.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-core" x="0.5" y="0.5" width="100%" height="100%" rx="7.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect></g><g class="hl-g {{prideA.o2.rev}}" style="--c: #5cb0ff; --dur: {{prideA.o2.dur}}; --d: {{prideA.o2.delay}}; --fade: {{prideA.o2.fade}}; --fd: {{prideA.o2.fd}}"><rect class="hl-t hl-halo" filter="url(#hl-soft-rb)" x="0.5" y="0.5" width="100%" height="100%" rx="7.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-mid" filter="url(#hl-soft-rb)" x="0.5" y="0.5" width="100%" height="100%" rx="7.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-core" x="0.5" y="0.5" width="100%" height="100%" rx="7.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect></g></svg><svg class="hl-svg hl-rb" aria-hidden="true" style="position: absolute; left: 11px; top: 11px; width: calc(100% - 22px); height: calc(100% - 22px); overflow: visible; pointer-events: none"><g class="hl-g {{prideA.i0.rev}}" style="--c: #ffb347; --dur: {{prideA.i0.dur}}; --d: {{prideA.i0.delay}}; --fade: {{prideA.i0.fade}}; --fd: {{prideA.i0.fd}}"><rect class="hl-t hl-halo" filter="url(#hl-soft-rb)" x="0.5" y="0.5" width="100%" height="100%" rx="5.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-mid" filter="url(#hl-soft-rb)" x="0.5" y="0.5" width="100%" height="100%" rx="5.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-core" x="0.5" y="0.5" width="100%" height="100%" rx="5.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect></g><g class="hl-g {{prideA.i1.rev}}" style="--c: #55ff8f; --dur: {{prideA.i1.dur}}; --d: {{prideA.i1.delay}}; --fade: {{prideA.i1.fade}}; --fd: {{prideA.i1.fd}}"><rect class="hl-t hl-halo" filter="url(#hl-soft-rb)" x="0.5" y="0.5" width="100%" height="100%" rx="5.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-mid" filter="url(#hl-soft-rb)" x="0.5" y="0.5" width="100%" height="100%" rx="5.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-core" x="0.5" y="0.5" width="100%" height="100%" rx="5.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect></g></svg>
+</sc-if>
+<sc-if value="{{haloOn}}" hint-placeholder-val="{{ false }}">
+<svg class="hl-svg" aria-hidden="true" style="position: absolute; left: 7px; top: 7px; width: calc(100% - 14px); height: calc(100% - 14px); overflow: visible; pointer-events: none"><defs><filter id="hl-soft" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="1.3"></feGaussianBlur></filter></defs><g class="hl-g {{halo.o0.rev}}" style="--dur: {{halo.o0.dur}}; --d: {{halo.o0.delay}}; --fade: {{halo.o0.fade}}; --fd: {{halo.o0.fd}}"><rect class="hl-t hl-halo" filter="url(#hl-soft)" x="0.5" y="0.5" width="100%" height="100%" rx="7.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-mid" filter="url(#hl-soft)" x="0.5" y="0.5" width="100%" height="100%" rx="7.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-core" x="0.5" y="0.5" width="100%" height="100%" rx="7.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect></g><g class="hl-g {{halo.o1.rev}}" style="--dur: {{halo.o1.dur}}; --d: {{halo.o1.delay}}; --fade: {{halo.o1.fade}}; --fd: {{halo.o1.fd}}"><rect class="hl-t hl-halo" filter="url(#hl-soft)" x="0.5" y="0.5" width="100%" height="100%" rx="7.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-mid" filter="url(#hl-soft)" x="0.5" y="0.5" width="100%" height="100%" rx="7.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-core" x="0.5" y="0.5" width="100%" height="100%" rx="7.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect></g><g class="hl-g {{halo.o2.rev}}" style="--dur: {{halo.o2.dur}}; --d: {{halo.o2.delay}}; --fade: {{halo.o2.fade}}; --fd: {{halo.o2.fd}}"><rect class="hl-t hl-halo" filter="url(#hl-soft)" x="0.5" y="0.5" width="100%" height="100%" rx="7.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-mid" filter="url(#hl-soft)" x="0.5" y="0.5" width="100%" height="100%" rx="7.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-core" x="0.5" y="0.5" width="100%" height="100%" rx="7.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect></g></svg><svg class="hl-svg" aria-hidden="true" style="position: absolute; left: 11px; top: 11px; width: calc(100% - 22px); height: calc(100% - 22px); overflow: visible; pointer-events: none"><g class="hl-g {{halo.i0.rev}}" style="--dur: {{halo.i0.dur}}; --d: {{halo.i0.delay}}; --fade: {{halo.i0.fade}}; --fd: {{halo.i0.fd}}"><rect class="hl-t hl-halo" filter="url(#hl-soft)" x="0.5" y="0.5" width="100%" height="100%" rx="5.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-mid" filter="url(#hl-soft)" x="0.5" y="0.5" width="100%" height="100%" rx="5.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-core" x="0.5" y="0.5" width="100%" height="100%" rx="5.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect></g><g class="hl-g {{halo.i1.rev}}" style="--dur: {{halo.i1.dur}}; --d: {{halo.i1.delay}}; --fade: {{halo.i1.fade}}; --fd: {{halo.i1.fd}}"><rect class="hl-t hl-halo" filter="url(#hl-soft)" x="0.5" y="0.5" width="100%" height="100%" rx="5.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-mid" filter="url(#hl-soft)" x="0.5" y="0.5" width="100%" height="100%" rx="5.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-core" x="0.5" y="0.5" width="100%" height="100%" rx="5.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect></g></svg>
+</sc-if>
+<div class="{{deck.ringClass}}" style="position: relative; width: 64%; max-width: 120px; aspect-ratio: 1; border-radius: 50%; border: 1.5px solid {{deck.color}}; display: grid; place-items: center; background: #080b0c; padding: 4px; box-sizing: border-box; box-shadow: 0 0 0 3px rgba(8,11,12,.9), 0 0 0 4px {{deck.frameSoft}}, 0 0 16px {{deck.glow}}">
+<img src="{{deck.logo}}" alt="" style="width: {{deck.imgSize}}; height: {{deck.imgSize}}; object-fit: contain; display: block; border-radius: {{deck.imgRadius}}">
+<sc-if value="{{ringOn}}" hint-placeholder-val="{{ false }}">
+<svg class="hl-svg hl-w" aria-hidden="true" viewBox="0 0 100 100" style="position: absolute; left: -1.5px; top: -1.5px; width: calc(100% + 3px); height: calc(100% + 3px); overflow: visible; pointer-events: none"><defs><filter id="hl-soft-w" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="1.3"></feGaussianBlur></filter></defs><g class="hl-g {{ring.c0.rev}}" style="--dur: {{ring.c0.dur}}; --d: {{ring.c0.delay}}; --fade: {{ring.c0.fade}}; --fd: {{ring.c0.fd}}"><circle class="hl-t hl-halo" filter="url(#hl-soft-w)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-mid" filter="url(#hl-soft-w)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-core" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle></g><g class="hl-g {{ring.c1.rev}}" style="--dur: {{ring.c1.dur}}; --d: {{ring.c1.delay}}; --fade: {{ring.c1.fade}}; --fd: {{ring.c1.fd}}"><circle class="hl-t hl-halo" filter="url(#hl-soft-w)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-mid" filter="url(#hl-soft-w)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-core" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle></g><g class="hl-g {{ring.c2.rev}}" style="--dur: {{ring.c2.dur}}; --d: {{ring.c2.delay}}; --fade: {{ring.c2.fade}}; --fd: {{ring.c2.fd}}"><circle class="hl-t hl-halo" filter="url(#hl-soft-w)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-mid" filter="url(#hl-soft-w)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-core" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle></g></svg>
+</sc-if>
+<sc-if value="{{prideOn}}" hint-placeholder-val="{{ false }}">
+<svg class="hl-svg hl-rb" aria-hidden="true" viewBox="0 0 100 100" style="position: absolute; left: -1.5px; top: -1.5px; width: calc(100% + 3px); height: calc(100% + 3px); overflow: visible; pointer-events: none"><g class="hl-g {{prideA.c0.rev}}" style="--c: #d08bff; --dur: {{prideA.c0.dur}}; --d: {{prideA.c0.delay}}; --fade: {{prideA.c0.fade}}; --fd: {{prideA.c0.fd}}"><circle class="hl-t hl-halo" filter="url(#hl-soft-rb)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-mid" filter="url(#hl-soft-rb)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-core" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle></g><g class="hl-g {{prideA.c1.rev}}" style="--c: #ff7ac8; --dur: {{prideA.c1.dur}}; --d: {{prideA.c1.delay}}; --fade: {{prideA.c1.fade}}; --fd: {{prideA.c1.fd}}"><circle class="hl-t hl-halo" filter="url(#hl-soft-rb)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-mid" filter="url(#hl-soft-rb)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-core" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle></g><g class="hl-g {{prideA.c2.rev}}" style="--c: #5cffff; --dur: {{prideA.c2.dur}}; --d: {{prideA.c2.delay}}; --fade: {{prideA.c2.fade}}; --fd: {{prideA.c2.fd}}"><circle class="hl-t hl-halo" filter="url(#hl-soft-rb)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-mid" filter="url(#hl-soft-rb)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-core" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle></g></svg>
+</sc-if>
+<sc-if value="{{haloOn}}" hint-placeholder-val="{{ false }}">
+<svg class="hl-svg" aria-hidden="true" viewBox="0 0 100 100" style="position: absolute; left: -1.5px; top: -1.5px; width: calc(100% + 3px); height: calc(100% + 3px); overflow: visible; pointer-events: none"><g class="hl-g {{halo.c0.rev}}" style="--dur: {{halo.c0.dur}}; --d: {{halo.c0.delay}}; --fade: {{halo.c0.fade}}; --fd: {{halo.c0.fd}}"><circle class="hl-t hl-halo" filter="url(#hl-soft)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-mid" filter="url(#hl-soft)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-core" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle></g><g class="hl-g {{halo.c1.rev}}" style="--dur: {{halo.c1.dur}}; --d: {{halo.c1.delay}}; --fade: {{halo.c1.fade}}; --fd: {{halo.c1.fd}}"><circle class="hl-t hl-halo" filter="url(#hl-soft)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-mid" filter="url(#hl-soft)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-core" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle></g><g class="hl-g {{halo.c2.rev}}" style="--dur: {{halo.c2.dur}}; --d: {{halo.c2.delay}}; --fade: {{halo.c2.fade}}; --fd: {{halo.c2.fd}}"><circle class="hl-t hl-halo" filter="url(#hl-soft)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-mid" filter="url(#hl-soft)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-core" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle></g></svg>
+</sc-if>
+</div>
+</div>
+<sc-for list="{{stackExtras}}" as="x" hint-placeholder-count="0">
+<div class="{{deck.bgClass}}" style="position: absolute; inset: 0; z-index: {{x.z}}; transform: translate({{x.jx}}px, {{x.jy}}px) rotate({{x.rz}}deg); transition: transform .45s cubic-bezier(.3,.7,.2,1); border-radius: 12px; border: 1px solid {{deck.edge}}; background: {{deck.bg}}; box-shadow: 0 3px 8px rgba(0,0,0,.5); display: grid; place-items: center; overflow: hidden">
+<div style="position: absolute; inset: 7px; border: 1px solid {{deck.frame}}; border-radius: 8px"></div>
+<div style="position: absolute; inset: 11px; border: 1px solid {{deck.frameSoft}}; border-radius: 6px"></div>
+<div class="{{deck.ringClass}}" style="width: 64%; max-width: 120px; aspect-ratio: 1; border-radius: 50%; border: 1.5px solid {{deck.color}}; display: grid; place-items: center; background: #080b0c; padding: 4px; box-sizing: border-box; box-shadow: 0 0 0 3px rgba(8,11,12,.9), 0 0 0 4px {{deck.frameSoft}}, 0 0 16px {{deck.glow}}">
+<img src="{{deck.logo}}" alt="" style="width: {{deck.imgSize}}; height: {{deck.imgSize}}; object-fit: contain; display: block; border-radius: {{deck.imgRadius}}">
+</div>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; padding: 18px 20px; border-radius: 12px; background: #0b1011; border: 1px solid #1e2b2d">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.06em">SQUAD STATUS</span>
+<span style="font-size: 17px; font-weight: 500">{{statusText}}</span>
+</div>
+<sc-if value="{{ready}}" hint-placeholder-val="{{ false }}">
+<button onClick="{{save}}" style="min-height: 48px; padding: 0 28px; border-radius: 8px; border: none; background: #a5dcdd; color: #000; font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600; letter-spacing: 0.04em">LOCK IN SQUAD</button>
+</sc-if>
+<sc-if value="{{notReady}}" hint-placeholder-val="{{ true }}">
+<button disabled="{{ true }}" style="min-height: 48px; padding: 0 28px; border-radius: 8px; border: 1px solid #2c3d40; background: #111819; color: #93a9aa; font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600; letter-spacing: 0.04em">LOCK IN SQUAD</button>
+</sc-if>
+</div>
+
+<section aria-labelledby="decks-h" style="display: flex; flex-direction: column; gap: 14px; padding: 18px 20px; border-radius: 12px; background: #0b1011; border: 1px solid #1e2b2d">
+<h3 id="decks-h" style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 400; color: #93a9aa; letter-spacing: 0.06em">SQUAD DECKS</h3>
+<div style="display: flex; flex-wrap: wrap; gap: 14px">
+<div style="flex: 1 1 280px; display: flex; align-items: center; gap: 16px; padding: 14px; border-radius: 10px; border: 1px solid #1e2b2d; background: #080b0c">
+<div class="{{deck.bgClass}}" aria-hidden="true" style="position: relative; width: 64px; height: 90px; flex: none; border-radius: 7px; border: 1px solid {{deck.edge}}; background: {{deck.bg}}; display: grid; place-items: center; transform: rotate(-6deg); box-shadow: 6px 4px 0 -1px #0a0d0e, 6px 4px 0 0 {{deck.edge}}">
+<div style="position: absolute; inset: 4px; border: 1px solid {{deck.frame}}; border-radius: 5px"></div>
+<span class="{{deck.ringClass}}" style="width: 36px; height: 36px; border-radius: 50%; border: 1px solid {{deck.color}}; background: #080b0c; display: grid; place-items: center; overflow: hidden"><img src="{{deck.logo}}" alt="" style="width: {{deck.imgSize}}; height: {{deck.imgSize}}; object-fit: contain; display: block; border-radius: {{deck.imgRadius}}"></span>
+</div>
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+<span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 24px; line-height: 1.1; color: #f5d76e">The Bren</span>
+<span style="font-size: 14px; color: #c4d4d4; line-height: 1.4">Fills your squad with random players that fit the budget, roles and team limit.</span>
+</div>
+<button onClick="{{dealBren}}" disabled="{{actionsDisabled}}" style="opacity: {{actionOpacity}}; min-height: 44px; padding: 0 18px; flex: none; border-radius: 8px; border: 1px solid #d4af37; background: transparent; color: #f5d76e; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600">Deal</button>
+</div>
+<div style="flex: 1 1 280px; display: flex; align-items: center; gap: 16px; padding: 14px; border-radius: 10px; border: 1px solid #1e2b2d; background: #080b0c">
+<div class="{{deck.bgClass}}" aria-hidden="true" style="position: relative; width: 64px; height: 90px; flex: none; border-radius: 7px; border: 1px solid {{deck.edge}}; background: {{deck.bg}}; display: grid; place-items: center; transform: rotate(5deg); box-shadow: 6px 4px 0 -1px #0a0d0e, 6px 4px 0 0 {{deck.edge}}">
+<div style="position: absolute; inset: 4px; border: 1px solid {{deck.frame}}; border-radius: 5px"></div>
+<span class="{{deck.ringClass}}" style="width: 36px; height: 36px; border-radius: 50%; border: 1px solid {{deck.color}}; background: #080b0c; display: grid; place-items: center; overflow: hidden"><img src="{{deck.logo}}" alt="" style="width: {{deck.imgSize}}; height: {{deck.imgSize}}; object-fit: contain; display: block; border-radius: {{deck.imgRadius}}"></span>
+</div>
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+<span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 24px; line-height: 1.1; color: #f5d76e">The Glue Fest</span>
+<span style="font-size: 14px; color: #c4d4d4; line-height: 1.4">The 2 lowest-rated players in every role, plus 3 random wildcards from the top 20.</span>
+</div>
+<button onClick="{{dealGlue}}" disabled="{{actionsDisabled}}" style="opacity: {{actionOpacity}}; min-height: 44px; padding: 0 18px; flex: none; border-radius: 8px; border: 1px solid #d4af37; background: transparent; color: #f5d76e; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600">Deal</button>
+</div>
+<div style="flex: 1 1 280px; display: flex; align-items: center; gap: 16px; padding: 14px; border-radius: 10px; border: 1px solid #1e2b2d; background: #080b0c">
+<div class="{{deck.bgClass}}" aria-hidden="true" style="position: relative; width: 64px; height: 90px; flex: none; border-radius: 7px; border: 1px solid {{deck.edge}}; background: {{deck.bg}}; display: grid; place-items: center; transform: rotate(-2deg); box-shadow: 6px 4px 0 -1px #0a0d0e, 6px 4px 0 0 {{deck.edge}}">
+<div style="position: absolute; inset: 4px; border: 1px solid {{deck.frame}}; border-radius: 5px"></div>
+<span class="{{deck.ringClass}}" style="width: 36px; height: 36px; border-radius: 50%; border: 1px solid {{deck.color}}; background: #080b0c; display: grid; place-items: center; overflow: hidden"><img src="{{deck.logo}}" alt="" style="width: {{deck.imgSize}}; height: {{deck.imgSize}}; object-fit: contain; display: block; border-radius: {{deck.imgRadius}}"></span>
+</div>
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+<span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 24px; line-height: 1.1; color: #f5d76e">The John Valorant</span>
+<span style="font-size: 14px; color: #c4d4d4; line-height: 1.4">One random pick from the top half and one from the bottom half of every role, plus 3 random wildcards.</span>
+</div>
+<button onClick="{{dealJohn}}" disabled="{{actionsDisabled}}" style="opacity: {{actionOpacity}}; min-height: 44px; padding: 0 18px; flex: none; border-radius: 8px; border: 1px solid #d4af37; background: transparent; color: #f5d76e; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600">Deal</button>
+</div>
+<div style="flex: 1 1 280px; display: flex; align-items: center; gap: 16px; padding: 14px; border-radius: 10px; border: 1px solid #1e2b2d; background: #080b0c">
+<div class="{{deck.bgClass}}" aria-hidden="true" style="position: relative; width: 64px; height: 90px; flex: none; margin: 0 6px 0 14px; border-radius: 7px; border: 1px solid {{deck.edge}}; background: {{deck.bg}}; display: grid; place-items: center; transform: rotate(12deg); box-shadow: -5px 3px 0 -1px #0a0d0e, -5px 3px 0 0 {{deck.edge}}, -10px 6px 0 -1px #0a0d0e, -10px 6px 0 0 {{deck.edge}}">
+<div style="position: absolute; inset: 4px; border: 1px solid {{deck.frame}}; border-radius: 5px"></div>
+<span class="{{deck.ringClass}}" style="width: 36px; height: 36px; border-radius: 50%; border: 1px solid {{deck.color}}; background: #080b0c; display: grid; place-items: center; overflow: hidden"><img src="{{deck.logo}}" alt="" style="width: {{deck.imgSize}}; height: {{deck.imgSize}}; object-fit: contain; display: block; border-radius: {{deck.imgRadius}}"></span>
+</div>
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+<span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 24px; line-height: 1.1; color: #f5d76e">The Majority</span>
+<span style="font-size: 14px; color: #c4d4d4; line-height: 1.4">A random squad made only of players outside the top 25.</span>
+</div>
+<button onClick="{{dealMajority}}" disabled="{{actionsDisabled}}" style="opacity: {{actionOpacity}}; min-height: 44px; padding: 0 18px; flex: none; border-radius: 8px; border: 1px solid #d4af37; background: transparent; color: #f5d76e; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600">Deal</button>
+</div>
+</div>
+</section>
+</section>
+
+<section aria-labelledby="market-h" style="flex: 1 1 400px; min-width: 0; background: #0b1011; border: 1px solid #1e2b2d; border-radius: 12px; overflow: hidden">
+<div style="padding: 18px 18px 14px; display: flex; flex-direction: column; gap: 14px; border-bottom: 1px solid #1e2b2d">
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px">
+<h2 id="market-h" style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">STORE // {{tabCode}}</h2>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">{{poolCount}} players</span>
+</div>
+<div role="group" aria-label="Store by role" style="display: flex; flex-wrap: wrap; gap: 8px">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="6">
+<sc-if value="{{t.active}}" hint-placeholder-val="{{ false }}">
+<button onClick="{{t.pick}}" aria-pressed="true" aria-label="{{t.label}}, {{t.count}} filled" title="{{t.label}}" style="min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid #a5dcdd; background: #13292b; box-shadow: 0 0 0 1px #a5dcdd inset, 0 0 12px rgba(165,220,221,0.25); color: #a5dcdd; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px"><sc-for list="{{t.icons}}" as="ic" hint-placeholder-count="1"><img src="{{ic.src}}" alt="" style="width: 20px; height: 20px; display: block; flex: none"></sc-for><span style="margin-left: 4px">{{t.count}}</span></button>
+</sc-if>
+<sc-if value="{{t.inactive}}" hint-placeholder-val="{{ true }}">
+<button onClick="{{t.pick}}" aria-pressed="false" aria-label="{{t.label}}, {{t.count}} filled" title="{{t.label}}" style="min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid #2c3d40; background: transparent; color: #93a9aa; font-family: 'JetBrains Mono', monospace; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; opacity: 0.85"><sc-for list="{{t.icons}}" as="ic" hint-placeholder-count="1"><img src="{{ic.src}}" alt="" style="width: 20px; height: 20px; display: block; flex: none"></sc-for><span style="margin-left: 4px">{{t.count}}</span></button>
+</sc-if>
+</sc-for>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="player-search" style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.06em; text-transform: uppercase">Search</label>
+<input id="player-search" type="search" value="{{search}}" onChange="{{setSearch}}" placeholder="Player name" autocomplete="off" style="height: 46px; width: 100%; box-sizing: border-box; padding: 0 12px; border-radius: 8px; border: 1px solid #2c3d40; background: #000; color: #eaf4f4; font-family: 'JetBrains Mono', monospace; font-size: 14px">
+</div>
+</div>
+<div style="display: flex; flex-direction: column; max-height: 1100px; overflow-y: auto">
+<sc-if value="{{noResults}}" hint-placeholder-val="{{ false }}">
+<p style="margin: 0; padding: 24px 18px; color: #93a9aa; font-size: 14px">No players match that search.</p>
+</sc-if>
+<sc-for list="{{pool}}" as="p" hint-placeholder-count="8">
+<div style="display: flex; align-items: center; gap: 12px; padding: 10px 18px; border-bottom: 1px solid #1e2b2d; background: {{p.rowBg}}">
+<span title="{{p.teamName}}" style="width: 48px; height: 40px; flex: none; display: grid; place-items: center">
+<img src="{{p.logo}}" alt="{{p.teamName}}" style="max-width: 44px; max-height: 36px; width: auto; height: auto; object-fit: contain; display: block">
+</span>
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+<span style="display: flex; align-items: center; gap: 6px; min-width: 0">
+<span style="font-weight: 600; font-size: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{p.name}}</span>
+<sc-if value="{{p.champ}}" hint-placeholder-val="{{ false }}">
+<svg role="img" aria-label="Season 2 champion" width="13" height="13" viewBox="0 0 24 24" fill="#f5d76e" style="flex: none"><title>Season 2 champion</title><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 20.9l1.6-7L2 9.2l7.1-.6z"></path></svg>
+</sc-if>
+<img src="{{p.roleIcon}}" alt="{{p.roleLabel}}" title="{{p.roleLabel}}" style="width: 18px; height: 18px; display: block; flex: none; margin-left: 8px">
+</span>
+</div>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; min-width: 56px; text-align: right">{{p.priceLabel}}</span>
+<sc-if value="{{p.isPicked}}" hint-placeholder-val="{{ false }}">
+<button onClick="{{p.toggle}}" aria-label="Remove {{p.name}}" style="width: 96px; min-height: 44px; border-radius: 8px; border: 1px solid #a5dcdd; background: #13292b; color: #a5dcdd; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600">In squad</button>
+</sc-if>
+<sc-if value="{{p.canAdd}}" hint-placeholder-val="{{ true }}">
+<button onClick="{{p.toggle}}" aria-label="Buy {{p.name}}" style="width: 96px; min-height: 44px; border-radius: 8px; border: none; background: #a5dcdd; color: #000; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600">+ Buy</button>
+</sc-if>
+<sc-if value="{{p.blocked}}" hint-placeholder-val="{{ false }}">
+<button disabled="{{ true }}" style="width: 96px; min-height: 44px; border-radius: 8px; border: 1px solid #2c3d40; background: transparent; color: #93a9aa; font-family: 'JetBrains Mono', monospace; font-size: 11px">{{p.reason}}</button>
+</sc-if>
+</div>
+</sc-for>
+</div>
+</section>
+
+</div>
+</main>
+
+<footer style="border-top: 1px solid #1e2b2d">
+<div style="max-width: 1280px; margin: 0 auto; padding: 22px 24px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">
+<span>PCMT Fantasy League · Plat Chat Members Tourney NA S3</span>
+<a href="https://pcmt.gg" target="_blank" rel="noopener">Stats on PCMT.gg</a>
+</div>
+</footer>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"lockPreview":{"editor":"enum","options":["Live","Open","Locked"],"default":"Live","section":"Preview"},"samplePoints":{"editor":"boolean","default":false,"section":"Preview"},"auraPreview":{"editor":"enum","options":["Live","On","Off"],"default":"Live","section":"Preview","label":"Champion's Aura"},"budget":{"editor":"float","default":95,"min":50,"max":300,"step":0.5,"unit":"cr","section":"Rules"},"teamLimit":{"editor":"int","default":2,"min":1,"max":5,"section":"Rules"},"mvpPlayer":{"editor":"text","default":"kaydeg","section":"Preview"},"mvpWeek":{"editor":"int","default":1,"min":1,"max":20,"section":"Preview"},"topPlayer":{"editor":"text","default":"pi","section":"Preview"},"$preview":{"width":1440,"height":2200}}'>
+var PCMT_TEAM_LIST = [
+  { code: 'T1', name: 'Team 1', color: '#FF0000' },
+  { code: 'TL', name: 'Team Dyslexia', color: '#1c9ad8' },
+  { code: 'IHOP', name: 'I Hate Odin Party', color: '#3d95dc' },
+  { code: 'FSG', name: 'Furry Squirrels Gaming', color: '#e8603c' },
+  { code: 'FNC', name: 'cow paulo FaN Club', color: '#ff8a1f' },
+  { code: 'SSG', name: 'Squirtle Squad Gaming', color: '#f2b01e' },
+  { code: 'RRQ', name: 'Rage Re-Queuers', color: '#f5d90a' },
+  { code: 'C9', name: 'Clown9', color: '#4dc3ef' },
+  { code: 'SRB', name: 'Sunshine and Rainbows', color: '#58c47a' },
+  { code: 'TS', name: 'Team Slugshow', color: '#9b6be8' },
+  { code: 'EPY', name: 'Team Entropy', color: '#e6e6e6' },
+  { code: 'DFM', name: 'Dementia Found Me', color: '#5a78ff' },
+  { code: 'BAKA', name: 'Beautiful and Kinda Adorable', color: '#b98ad9' },
+  { code: 'NAVI', name: 'No Actual Valorant Intellegence', color: '#FF6EB4' },
+  { code: '100T', name: "100 Tony's", color: '#45dfe8' },
+  { code: 'SPG', name: 'Spank Ptheory Gaming', color: '#ff7f66' }
+];
+var PCMT_PLAYERS = [
+  { id: 'crocman', name: 'mrcrocman', team: 'T1', role: 'duelist', price: 13.5 },
+  { id: 'pi', name: 'pi', team: 'T1', role: 'initiator', price: 9.5 },
+  { id: 'ceiliuir', name: 'ceiliuir', team: 'T1', role: 'sentinel', price: 7.5 },
+  { id: 'roro', name: 'roro', team: 'T1', role: 'controller', price: 6.0 },
+  { id: 'radical', name: 'radical', team: 'T1', role: 'duelist', price: 6.0 },
+  { id: 'haych', name: 'haych', team: 'TL', role: 'sentinel', price: 11.5 },
+  { id: 'caleb', name: 'caleb', team: 'TL', role: 'controller', price: 7.5 },
+  { id: 'ender', name: 'ender', team: 'TL', role: 'initiator', price: 8.0 },
+  { id: 'tans', name: 'tans', team: 'TL', role: 'controller', price: 7.0 },
+  { id: 'slow', name: 'slow', team: 'TL', role: 'duelist', price: 6.0 },
+  { id: 'eve', name: 'eve', team: 'IHOP', role: 'duelist', price: 8.0 },
+  { id: 'pavel', name: 'pavel', team: 'IHOP', role: 'duelist', price: 8.5 },
+  { id: 'platinum', name: 'platinum', team: 'IHOP', role: 'initiator', price: 6.5 },
+  { id: 'ethan', name: 'ethan', team: 'IHOP', role: 'controller', price: 10.5 },
+  { id: 'maple', name: 'maple', team: 'IHOP', role: 'sentinel', price: 5.0 },
+  { id: 'nolan', name: 'nolan', team: 'FSG', role: 'sentinel', price: 9.5 },
+  { id: 'skye', name: 'skye', team: 'FSG', role: 'duelist', price: 7.5 },
+  { id: 'rudra', name: 'rudra', team: 'FSG', role: 'controller', price: 7.0 },
+  { id: 'corina', name: 'corina', team: 'FSG', role: 'duelist', price: 7.0 },
+  { id: 'james', name: 'james', team: 'FNC', role: 'duelist', price: 11.0 },
+  { id: 'niboos', name: 'niboos', team: 'FNC', role: 'duelist', price: 7.0 },
+  { id: 'li', name: 'li', team: 'FNC', role: 'sentinel', price: 7.0 },
+  { id: 'xixi', name: 'xixi', team: 'FNC', role: 'initiator', price: 4.0 },
+  { id: 'colt', name: 'colt', team: 'SSG', role: 'duelist', price: 11.5 },
+  { id: 'darshan', name: 'darshan', team: 'SSG', role: 'initiator', price: 10.0 },
+  { id: 'aleks', name: 'aleks', team: 'SSG', role: 'controller', price: 10.5 },
+  { id: 'nameless', name: 'nameless', team: 'SSG', role: 'initiator', price: 6.5 },
+  { id: 'cardamom', name: 'cardamom', team: 'SSG', role: 'controller', price: 4.5 },
+  { id: 'angus', name: 'angus', team: 'RRQ', role: 'duelist', price: 11.0 },
+  { id: 'snowfall', name: 'snowfall', team: 'RRQ', role: 'controller', price: 8.0 },
+  { id: 'platy', name: 'platy', team: 'RRQ', role: 'sentinel', price: 7.0 },
+  { id: 'twon', name: 'twon', team: 'RRQ', role: 'sentinel', price: 6.0 },
+  { id: 'tery', name: 'tery', team: 'RRQ', role: 'controller', price: 5.0 },
+  { id: 'claps', name: 'claps', team: 'C9', role: 'controller', price: 15.0 },
+  { id: 'art', name: 'art', team: 'C9', role: 'sentinel', price: 8.5 },
+  { id: 'igneous', name: 'igneous', team: 'C9', role: 'initiator', price: 7.0 },
+  { id: 'makya', name: 'makya', team: 'C9', role: 'controller', price: 8.0 },
+  { id: 'caesparz', name: 'caesparz', team: 'C9', role: 'initiator', price: 5.5 },
+  { id: 'izz', name: 'izz', team: 'SRB', role: 'duelist', price: 13.5 },
+  { id: 'jaypee', name: 'jaypee', team: 'SRB', role: 'duelist', price: 9.0 },
+  { id: 'timothy', name: 'timothy', team: 'SRB', role: 'initiator', price: 6.0 },
+  { id: 'nova', name: 'nova', team: 'SRB', role: 'initiator', price: 6.5 },
+  { id: 'androobee', name: 'androobee', team: 'SRB', role: 'duelist', price: 6.5 },
+  { id: 'straight', name: 'straight', team: 'TS', role: 'duelist', price: 10.0 },
+  { id: 'avi', name: 'avi', team: 'TS', role: 'duelist', price: 12.5 },
+  { id: 'dino', name: 'dino', team: 'TS', role: 'controller', price: 6.5 },
+  { id: 'lore', name: 'lore', team: 'TS', role: 'initiator', price: 5.5 },
+  { id: 'paul', name: 'paul', team: 'TS', role: 'initiator', price: 5.0 },
+  { id: 'solar', name: 'solar', team: 'EPY', role: 'controller', price: 9.0 },
+  { id: 'blitz', name: 'blitz', team: 'EPY', role: 'duelist', price: 9.5 },
+  { id: 'apple', name: 'apple', team: 'EPY', role: 'sentinel', price: 10.5 },
+  { id: 'robohobo', name: 'robohobo', team: 'EPY', role: 'duelist', price: 7.0 },
+  { id: 'latin', name: 'latin', team: 'EPY', role: 'initiator', price: 4.0 },
+  { id: 'nik', name: 'nik', team: 'DFM', role: 'controller', price: 8.0 },
+  { id: 'masao', name: 'masao', team: 'DFM', role: 'initiator', price: 8.0 },
+  { id: 'longclaw', name: 'longclaw', team: 'DFM', role: 'controller', price: 7.0 },
+  { id: 'teklo', name: 'teklo', team: 'DFM', role: 'duelist', price: 5.5 },
+  { id: 'hascan', name: 'hascan', team: 'DFM', role: 'controller', price: 6.5 },
+  { id: 'lucas', name: 'lucas', team: 'BAKA', role: 'duelist', price: 12.0 },
+  { id: 'night', name: 'night', team: 'BAKA', role: 'controller', price: 8.5 },
+  { id: 'asher', name: 'asher', team: 'BAKA', role: 'controller', price: 7.0 },
+  { id: 'devil', name: 'devil', team: 'BAKA', role: 'duelist', price: 5.0 },
+  { id: 'tenyaku', name: 'tenyaku', team: 'BAKA', role: 'sentinel', price: 6.5 },
+  { id: 'stingray', name: 'stingray', team: 'NAVI', role: 'initiator', price: 12.5 },
+  { id: 'kaydeg', name: 'kaydeg', team: 'NAVI', role: 'duelist', price: 7.5 },
+  { id: 'linus', name: 'linus', team: 'NAVI', role: 'controller', price: 7.0 },
+  { id: 'cassie', name: 'cassie', team: 'NAVI', role: 'initiator', price: 7.0 },
+  { id: 'abstracq', name: 'abstracq', team: '100T', role: 'duelist', price: 10.5 },
+  { id: 'psyclone', name: 'psyclone', team: '100T', role: 'initiator', price: 9.5 },
+  { id: 'shadow', name: 'shadow', team: '100T', role: 'controller', price: 7.5 },
+  { id: 'xyn', name: 'xyn', team: '100T', role: 'initiator', price: 7.0 },
+  { id: 'thecatsmeow', name: 'thecatsmeow', team: '100T', role: 'initiator', price: 5.5 },
+  { id: 'thighs', name: 'thighs', team: 'SPG', role: 'initiator', price: 10.0 },
+  { id: 'cooleo', name: 'cooleo', team: 'SPG', role: 'sentinel', price: 12.5 },
+  { id: 'derpina', name: 'derpina', team: 'SPG', role: 'duelist', price: 8.0 },
+  { id: 'phuzzy', name: 'phuzzy', team: 'SPG', role: 'sentinel', price: 9.5 },
+  { id: 'dunkn', name: 'dunkn', team: 'SPG', role: 'controller', price: 7.5 }
+];
+var PCMT_TEAMS = {};
+var PCMT_TEAM_NAMES = {};
+PCMT_TEAM_LIST.forEach(function (t) { PCMT_TEAMS[t.code] = t.color; PCMT_TEAM_NAMES[t.code] = t.name; });
+var PCMT_LOGOS = {
+  T1: '/_blob/fcef5b76df5525c76b7498644d980203',
+  NAVI: '/_blob/416211d20da2e4c47782f1cf06388bd1',
+  TL: '/_blob/41c5c14bc863138dfc782d7173221a30',
+  RRQ: '/_blob/acf07edf818b6343db088540360439b5',
+  SSG: '/_blob/9662570a651a26ba6e9f9a1280e33534',
+  FSG: '/_blob/2f2d4a58b7b22b799ae95dd9b4bbb034',
+  IHOP: '/_blob/537e343312c404670bd0918f334d854b',
+  FNC: '/_blob/3ab4b88e6d56ca702c2e48d77d8e8e9b',
+  C9: '/_blob/eb00e4ac16ebd0dc2f6aaa50c0d4195f',
+  TS: '/_blob/07429f020d6512232b75c6d80e9e0ccc',
+  '100T': '/_blob/69b065b263a6f4b1ae28fb075be9b6d6',
+  BAKA: '/_blob/76fe93075b1ef8c2b3557abc2b8b7455',
+  DFM: '/_blob/dbdcd4d263bb9ca3bc4cc04afa93c2d3',
+  EPY: '/_blob/616b87a1e9bedf86b251df776ea9d18f',
+  SRB: '/_blob/f57c73b236981be65bc8ebd62be804aa',
+  SPG: '/_blob/f390223a7a35a69b07beb60de0d4a084'
+};
+function pcmtRgba(hex, a) {
+  var h = hex.replace('#', '');
+  return 'rgba(' + parseInt(h.slice(0, 2), 16) + ',' + parseInt(h.slice(2, 4), 16) + ',' + parseInt(h.slice(4, 6), 16) + ',' + a + ')';
+}
+// Card-back backgrounds for the special decks (applied inline so they always win over the default lattice).
+var PCMT_DECK_BG = {
+  "COTTON": "linear-gradient(90deg,transparent 0 33%,#61cefa 33% 40%,#f5a9b8 40% 47%,#f8f8f8 47% 53%,#f5a9b8 53% 60%,#61cefa 60% 67%,transparent 67% 100%),radial-gradient(circle at 50% 50%,#1d4049 0%,#0f262b 100%)",
+  "GALACTIC": "linear-gradient(90deg,transparent 0 58.5%,rgba(255,255,255,.07) 58.5% 62%,transparent 62% 100%),linear-gradient(90deg,transparent 0 33%,#fcef42 33% 41.5%,#fdfeff 41.5% 50%,#9240e6 50% 58.5%,#050506 58.5% 67%,transparent 67% 100%),radial-gradient(circle at 50% 50%,#173039 0%,#0b1d24 100%)",
+  "MINT": "linear-gradient(90deg,transparent 0 33%,#3f217d 33.00% 37.86%,#5253d5 37.86% 42.71%,#7db1e5 42.71% 47.57%,#ffffff 47.57% 52.43%,#8be4b7 52.43% 57.29%,#12c9a4 57.29% 62.14%,#038366 62.14% 67.00%,transparent 67% 100%),radial-gradient(circle at 50% 50%,#1d3a42 0%,#0f242b 100%)",
+  "PRIMARY": "linear-gradient(90deg,transparent 0 33%,#ff1b8d 33% 44.33%,#ffd900 44.33% 55.67%,#1bb3ff 55.67% 67%,transparent 67% 100%),radial-gradient(circle at 50% 50%,#173039 0%,#0b1d24 100%)",
+  "RAINBOW": "linear-gradient(90deg,transparent 0 33%,#740b87 33.00% 38.67%,#044bff 38.67% 44.33%,#007d33 44.33% 50.00%,#ffef00 50.00% 55.67%,#ff9800 55.67% 61.33%,#e70200 61.33% 67.00%,transparent 67% 100%),radial-gradient(circle at 50% 50%,#173039 0%,#0b1d24 100%)",
+  "SHERBET": "linear-gradient(90deg,transparent 0 33%,#d43200 33.00% 39.80%,#ffac63 39.80% 46.60%,#fff4ec 46.60% 53.40%,#d56ba9 53.40% 60.20%,#a71567 60.20% 67.00%,transparent 67% 100%),radial-gradient(circle at 50% 50%,#173039 0%,#0b1d24 100%)",
+  "SUNSET": "linear-gradient(90deg,transparent 0 33%,#da137b 33% 46.6%,#9b5ba6 46.6% 53.4%,#1045c2 53.4% 67%,transparent 67% 100%),radial-gradient(circle at 50% 50%,#173039 0%,#0b1d24 100%)",
+  "TWILIGHT": "linear-gradient(90deg,transparent 0 33%,rgba(255,255,255,.07) 33% 36.5%,transparent 36.5% 100%),linear-gradient(90deg,transparent 0 33%,#050506 33% 41.5%,#abacac 41.5% 50%,#ffffff 50% 58.5%,#7a0a7c 58.5% 67%,transparent 67% 100%),radial-gradient(circle at 50% 50%,#173039 0%,#0b1d24 100%)",
+  "TROPHY": "linear-gradient(115deg,transparent 25%,rgba(255,246,214,.13) 42%,transparent 58%),radial-gradient(circle at 50% 50%,#0b1011 0 26%,rgba(11,16,17,0) 52%),repeating-linear-gradient(45deg,rgba(247,220,132,.32) 0 1px,transparent 1px 11px),repeating-linear-gradient(-45deg,rgba(247,220,132,.32) 0 1px,transparent 1px 11px),radial-gradient(circle at 50% 50%,#1a1d17 0%,#0a0b08 100%)"
+  };
+function pcmtDeckTheme(code) {
+  var team = !!(code && PCMT_TEAMS[code]);
+  var blue = code === 'BLUE';
+  var retro = code === 'RETRO';
+  var cotton = code === 'COTTON';
+  var galactic = code === 'GALACTIC';
+  var mint = code === 'MINT';
+  var primary = code === 'PRIMARY';
+  var rainbow = code === 'RAINBOW';
+  var trophy = code === 'TROPHY';
+  var sherbet = code === 'SHERBET';
+  var sunset = code === 'SUNSET';
+  var twilight = code === 'TWILIGHT';
+  var color = team ? PCMT_TEAMS[code] : (blue ? '#a5dcdd' : retro ? '#9869d7' : cotton ? '#f5a9b8' : galactic ? '#b37ff2' : mint ? '#8be4b7' : primary ? '#ffd900' : rainbow ? '#ff9800' : sherbet ? '#ffac63' : sunset ? '#ef5aa7' : twilight ? '#c47fc6' : trophy ? '#f7dc84' : '#d4af37');
+  return {
+    color: color,
+    edge: team ? pcmtRgba(color, 0.35) : (blue ? '#1f3a3b' : retro ? '#2e2240' : cotton ? '#5bcefa' : galactic ? '#fcef42' : mint ? '#5253d5' : primary ? '#1bb3ff' : rainbow ? '#740b87' : sherbet ? '#a71567' : sunset ? '#1045c2' : twilight ? '#abacac' : trophy ? '#5a4a1e' : '#3a3220'),
+    ringClass: trophy ? 'pcmt-ring-trophy' : '',
+    bgClass: cotton ? 'pcmt-bg-cotton' : galactic ? 'pcmt-bg-galactic' : mint ? 'pcmt-bg-mint' : primary ? 'pcmt-bg-primary' : rainbow ? 'pcmt-bg-rainbow' : sherbet ? 'pcmt-bg-sherbet' : sunset ? 'pcmt-bg-sunset' : twilight ? 'pcmt-bg-twilight' : trophy ? 'pcmt-bg-trophy' : '',
+    frame: pcmtRgba(color, team ? 0.8 : 0.75),
+    frameSoft: pcmtRgba(color, team ? 0.4 : 0.35),
+    glow: pcmtRgba(color, team ? 0.3 : 0.25),
+    bg: PCMT_DECK_BG[code] || 'radial-gradient(circle at 50% 50%, #0b1011 0 28%, rgba(11,16,17,0) 50%), repeating-linear-gradient(45deg, ' + pcmtRgba(color, team ? 0.24 : 0.22) + ' 0 1px, transparent 1px 11px), repeating-linear-gradient(-45deg, ' + pcmtRgba(color, team ? 0.24 : 0.22) + ' 0 1px, transparent 1px 11px), radial-gradient(circle at 50% 50%, #12191a 0%, #080b0c 100%)',
+    lattice: pcmtRgba(color, team ? 0.24 : 0.22),
+    plainBg: PCMT_DECK_BG[code] || 'radial-gradient(circle at 50% 50%, #12191a 0%, #080b0c 100%)',
+    logo: team ? PCMT_LOGOS[code] : trophy ? '/_blob/9d42e16345ed757425887cb5aee44b5e' : (retro ? '/_blob/f8a91e606eaae06f221639a42f108255' : '/_blob/2a4e23ef347f57092db2e86baf2b96f2'),
+    imgSize: team ? '70%' : '100%',
+    imgRadius: (team || trophy) ? '0' : '50%'
+  };
+}
+// Ethan Arnold: streaks of gold light that run along random lines of the card-back lattice.
+function pcmtAuraTraces() {
+  var out = {};
+  for (var i = 0; i < 24; i++) {
+    var up = Math.random() < 0.5, k = Math.floor(Math.random() * 15) - 7, x1, y1, x2, y2;
+    if (up) { var c = 200 + k * 15; if (c <= 200) { x1 = 0; y1 = c; x2 = c; y2 = 0; } else { x1 = c - 200; y1 = 200; x2 = 200; y2 = c - 200; } }
+    else { var d = k * 15; if (d >= 0) { x1 = d; y1 = 0; x2 = 200; y2 = 200 - d; } else { x1 = 0; y1 = -d; x2 = 200 + d; y2 = 200; } }
+    if (Math.random() < 0.5) { var tx = x1, ty = y1; x1 = x2; y1 = y2; x2 = tx; y2 = ty; }
+    out['t' + i] = {
+      d: 'M' + x1 + ' ' + y1 + 'L' + x2 + ' ' + y2,
+      dur: (4.5 + Math.random() * 4).toFixed(2) + 's',
+      delay: (Math.random() * 6).toFixed(2) + 's'
+    };
+  }
+  return out;
+}
+// Halo aura: the same soft light, running around the card's frame lines and the centre ring.
+function pcmtHaloTraces() {
+  var out = {};
+  ['o0', 'o1', 'o2', 'i0', 'i1', 'c0', 'c1', 'c2'].forEach(function (k) {
+    out[k] = {
+      dur: (6 + Math.random() * 6).toFixed(2) + 's',
+      delay: (-Math.random() * 12).toFixed(2) + 's',
+      fade: (5 + Math.random() * 5).toFixed(2) + 's',
+      fd: (-Math.random() * 10).toFixed(2) + 's',
+      rev: Math.random() < 0.5 ? 'hl-rev' : ''
+    };
+  });
+  return out;
+}
+function pcmtReadAura() {
+  try { var v = window.localStorage.getItem('pcmt-aura') || ''; return v === '1' ? 'ethan' : v; } catch (e) { return ''; }
+}
+function pcmtReadDeck() {
+  try { var v = window.localStorage.getItem('pcmt-deck'); return v && v !== 'ETHAN' ? v : 'BLUE'; } catch (e) { return 'BLUE'; }
+}
+var PCMT_ROLE_ICONS = {
+  duelist: '/_blob/2706dbde6f7abf59f1ca79cc3bac29d6',
+  initiator: '/_blob/56fd13645665fcd34f237b4b3eac9a9f',
+  sentinel: '/_blob/1ee56590c018a0c216ac6a1330e7af56',
+  controller: '/_blob/cc2a082791cb1321eda60888e6cae0f8'
+};
+var PCMT_CHAMPS = { james: true, stingray: true };
+var PCMT_LOGO_H = { T1: 20, IHOP: 20, RRQ: 26, SSG: 26 };
+var PCMT_ROLES = [
+  { key: 'duelist', label: 'Duelist' },
+  { key: 'controller', label: 'Controller' },
+  { key: 'initiator', label: 'Initiator' },
+  { key: 'sentinel', label: 'Sentinel' }
+];
+var PCMT_PER_ROLE = 2;
+var PCMT_WILD = 3;
+var PCMT_SIZE = PCMT_ROLES.length * PCMT_PER_ROLE + PCMT_WILD;
+
+function pcmtNum(n) {
+  var r = Math.round(n * 10) / 10;
+  return r % 1 === 0 ? String(r) : r.toFixed(1);
+}
+var PCMT_NEXT_MATCH = '2026-10-24T00:00:00Z'; // Fri Oct 23, 7:00 PM CDT
+// NA matches only, from pcmt.gg/matches (EMEA ignored). The live site refreshes this list from PCMT.gg.
+var PCMT_NA_MATCHES = [
+  { start: '2026-10-24T00:00:00Z', label: 'T1 vs NAVI', hours: 5 }
+];
+var PCMT_LOCK_LEAD_H = 12;
+// Points each player has scored this gameweek, added up across all of their games. Resets at the 5:00 AM Monday rollover.
+// The live site fills this from match results on PCMT.gg.
+var PCMT_WEEK_POINTS = {};
+// Champion's Aura: held by one manager at a time — whoever was #1 on the overall leaderboard
+// when the previous gameweek ended. It switches over at the 5:00 AM Monday rollover.
+// The live site fills this from the leaderboard; null until Week 1 has finished.
+var PCMT_AURA = { holderId: null, me: null };
+// Gameweeks turn over at 5:00 AM Monday in the viewer's own time zone.
+var PCMT_REOPEN_HOUR = 5;
+function pcmtMondayStart(t) {
+  var d = new Date(t); d.setHours(PCMT_REOPEN_HOUR, 0, 0, 0);
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+  if (d.getTime() > t) d.setDate(d.getDate() - 7);
+  return d.getTime();
+}
+function pcmtAddDays(t, n) { var d = new Date(t); d.setDate(d.getDate() + n); return d.getTime(); }
+function pcmtUnlockAfter(boundary) {
+  var at = boundary;
+  PCMT_NA_MATCHES.forEach(function (m) {
+    var st = Date.parse(m.start), en = st + m.hours * 3600000;
+    if (st <= boundary && en > at) at = en;
+  });
+  return at;
+}
+function pcmtWeekLock(now) {
+  var b = pcmtMondayStart(now), next = pcmtAddDays(b, 7);
+  var opened = pcmtUnlockAfter(b), reopen = pcmtUnlockAfter(next);
+  if (now < opened) return { locked: true, until: opened, lockAt: null };
+  var first = null;
+  PCMT_NA_MATCHES.forEach(function (m) {
+    var st = Date.parse(m.start);
+    if (st >= b && st < next && (first === null || st < first)) first = st;
+  });
+  if (first === null) return { locked: false, until: null, lockAt: null };
+  var lockAt = first - PCMT_LOCK_LEAD_H * 3600000;
+  if (now >= lockAt) return { locked: true, until: reopen, lockAt: lockAt };
+  return { locked: false, until: null, lockAt: lockAt };
+}
+// Next time squads lock: 12h before the first NA match of whichever gameweek comes next.
+function pcmtNextLock(now) {
+  var best = null;
+  PCMT_NA_MATCHES.forEach(function (m) {
+    var st = Date.parse(m.start), b = pcmtMondayStart(st), first = st;
+    PCMT_NA_MATCHES.forEach(function (o) {
+      var t = Date.parse(o.start);
+      if (t >= b && t < pcmtAddDays(b, 7) && t < first) first = t;
+    });
+    var at = first - PCMT_LOCK_LEAD_H * 3600000;
+    if (at > now && (best === null || at < best)) best = at;
+  });
+  return best;
+}
+function pcmtCountdown(ms) {
+  if (ms <= 0) return '0:00:00';
+  var s = Math.floor(ms / 1000), d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60), sec = s % 60;
+  function two(n) { return (n < 10 ? '0' : '') + n; }
+  return (d ? d + 'd ' : '') + (d ? two(h) : h) + ':' + two(m) + ':' + two(sec);
+}
+function pcmtWhen(t) {
+  try {
+    var d = new Date(t);
+    return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }) + ' · ' + d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', timeZoneName: 'short' });
+  } catch (e) { return new Date(t).toString(); }
+}
+function pcmtMatchTime(iso) {
+  try {
+    var d = new Date(iso);
+    var day = d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+    var time = d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', timeZoneName: 'short' });
+    return day + ' · ' + time;
+  } catch (e) {
+    return 'Fri, Oct 23 · 7:00 PM CT';
+  }
+}
+function pcmtRole(p) {
+  var r = p.role.split('/')[0];
+  return r === 'yoru' ? 'duelist' : r;
+}
+function pcmtSlotKeys() {
+  var keys = [];
+  PCMT_ROLES.forEach(function (r) { for (var i = 1; i <= PCMT_PER_ROLE; i++) keys.push(r.key + '-' + i); });
+  for (var w = 1; w <= PCMT_WILD; w++) keys.push('wild-' + w);
+  return keys;
+}
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      slots: { 'duelist-1': 'kaydeg', 'initiator-1': 'pi', 'sentinel-1': 'ceiliuir' },
+      igl: 'kaydeg', tab: 'all', squadName: '', dragging: false, dragX: 0, dragY: 0, hoverId: null, crownArmed: false, iglFlip: null, filter: 'ALL', search: '', saved: false
+    };
+  }
+
+  _pageDidMount() {
+    var self = this;
+    this._onStorage = function (e) {
+      if (!e || e.key === 'pcmt-deck') self.setState({ deckCode: pcmtReadDeck() });
+      if (!e || e.key === 'pcmt-aura') self.setState({ auraKind: pcmtReadAura() });
+    };
+    try { window.addEventListener('storage', this._onStorage); } catch (e) {}
+    this.setState({ deckCode: pcmtReadDeck(), auraKind: pcmtReadAura(), now: Date.now() });
+    this._clock = setInterval(function () { self.setState({ now: Date.now() }); }, 30000);
+    this._tick = setInterval(function () {
+      var at = self._lockTarget;
+      if (!at) return;
+      var left = at - Date.now();
+      try {
+        document.querySelectorAll('[data-pcmt-countdown]').forEach(function (el) { el.textContent = pcmtCountdown(left); });
+      } catch (e) {}
+      if (left <= 0) { self._lockTarget = null; self.setState({ now: Date.now() }); }
+    }, 1000);
+  }
+
+  weekLock() {
+    var mode = this.props.lockPreview ?? 'Live';
+    var w = pcmtWeekLock(this.state.now || Date.now());
+    if (mode === 'Locked') return { locked: true, until: w.until || pcmtAddDays(pcmtMondayStart(Date.now()), 7), lockAt: w.lockAt };
+    if (mode === 'Open') return { locked: false, until: null, lockAt: w.lockAt };
+    return w;
+  }
+
+  isLocked() { return this.weekLock().locked; }
+
+  // Points a player has scored so far this gameweek (every game they've played since the 5:00 AM Monday reset).
+  weekPoints(id) {
+    if (this.props.samplePoints) {
+      var h = 0;
+      for (var i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) % 997;
+      return h % 46;
+    }
+    return PCMT_WEEK_POINTS[id] || 0;
+  }
+
+  _pageWillUnmount() {
+    clearInterval(this._clock); clearInterval(this._tick);
+    try { window.removeEventListener('storage', this._onStorage); } catch (e) {}
+    clearTimeout(this._flipStart); clearTimeout(this._flipEnd); clearTimeout(this._iglFlip); clearTimeout(this._clearTimer); clearTimeout(this._foldTimer); clearTimeout(this._dealT1); clearTimeout(this._dealT2); clearTimeout(this._dealT3);
+  }
+
+  animateDeal(ids, top) {
+    var self = this, hidden = {};
+    top = top || { jx: 0, jy: 0, rz: 0 };
+    clearTimeout(this._dealT1); clearTimeout(this._dealT2); clearTimeout(this._dealT3);
+    ids.forEach(function (id) { hidden[id] = true; });
+    this.setState({ dealHidden: hidden, dealVec: null, dealPhase: null });
+    this._dealT1 = setTimeout(function () {
+      var vec = {}, n = 0, maxD = 0;
+      try {
+        var sr = document.getElementById('pcmt-stack').getBoundingClientRect();
+        if (sr && sr.width) {
+          ids.forEach(function (id) {
+            var el = document.querySelector('[data-player="' + id + '"]');
+            if (!el) return;
+            var r = el.getBoundingClientRect();
+            var d = n * 120;
+            vec[id] = { x: Math.round(sr.left + sr.width / 2 - (r.left + r.width / 2)) + top.jx, y: Math.round(sr.top + sr.height / 2 - (r.top + r.height / 2)) + top.jy, rz: top.rz, d: d, i: n };
+            maxD = d; n++;
+          });
+        }
+      } catch (e) { vec = {}; n = 0; }
+      if (!n) { self.setState({ dealHidden: null }); return; }
+      Object.keys(vec).forEach(function (id) { vec[id].z = n - vec[id].i; });
+      self.setState({ dealHidden: null, dealVec: vec, dealPhase: 'start' });
+      self._dealT2 = setTimeout(function () {
+        self.setState({ dealPhase: 'go' });
+        self._dealT3 = setTimeout(function () { self.setState({ dealVec: null, dealPhase: null }); }, maxD + 900);
+      }, 40);
+    }, 30);
+  }
+
+  replayDeal(squad) {
+    if (this.isLocked()) return;
+    clearTimeout(this._flipStart); clearTimeout(this._flipEnd); clearTimeout(this._iglFlip);
+    this.setState({ slots: squad.slots, igl: squad.igl, saved: false, clearArmed: false, crownArmed: false, lockAnim: false, iglFlip: null, tilt: null, stackExtras: [], stackNeat: false, blessedId: null });
+    var order = pcmtSlotKeys().filter(function (k) { return squad.slots[k]; }).map(function (k) { return squad.slots[k]; });
+    try {
+      var h = document.getElementById('squad-h');
+      var sec = h && h.closest('section');
+      if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch (e) {}
+    this.animateDeal(order);
+  }
+
+  setIgl(id) {
+    if (this.isLocked()) return;
+    var self = this;
+    clearTimeout(this._iglFlip);
+    this.setState({ igl: id, saved: false, crownArmed: false, iglFlip: null });
+    this._iglFlip = setTimeout(function () {
+      self.setState({ iglFlip: id });
+      self._iglFlip = setTimeout(function () { self.setState({ iglFlip: null }); }, 1400);
+    }, 30);
+  }
+
+  playerAt(x, y) {
+    try {
+      var el = document.elementFromPoint(x, y);
+      var card = el && el.closest('[data-player]');
+      var id = card && card.getAttribute('data-player');
+      return id && this.state.slots && Object.keys(this.state.slots).some(function (k) { return this.state.slots[k] === id; }, this) ? id : null;
+    } catch (e) { return null; }
+  }
+
+  overStack(x, y) {
+    try {
+      var r = document.getElementById('pcmt-stack').getBoundingClientRect();
+      return r.width > 0 && x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
+    } catch (e) { return false; }
+  }
+
+  discardToPile(id) {
+    if (this.isLocked()) { this.setState({ drag: null }); return; }
+    var self = this, d = this.state.drag || { dx: 0, dy: 0 };
+    var vec = {}, land = null;
+    try {
+      var sr = document.getElementById('pcmt-stack').getBoundingClientRect();
+      var r = document.querySelector('[data-player="' + id + '"]').getBoundingClientRect();
+      var rz = Math.round((Math.random() * 12 - 6) * 10) / 10;
+      var jx = Math.round(Math.random() * 8 - 4), jy = Math.round(Math.random() * 6 - 3);
+      vec[id] = { x: Math.round(d.dx + sr.left + sr.width / 2 - (r.left + r.width / 2)) + jx, y: Math.round(d.dy + sr.top + sr.height / 2 - (r.top + r.height / 2)) + jy, rz: rz, d: 0, i: 0 };
+      land = { rz: rz, jx: jx, jy: jy };
+    } catch (e) {}
+    if (!land) { this.setState({ drag: null }); this.toggle(id); return; }
+    clearTimeout(this._foldTimer);
+    this.setState({ drag: null, clearing: true, clearVec: vec, stackNeat: false, tilt: null });
+    this._foldTimer = setTimeout(function () {
+      self.toggle(id);
+      var extras = (self.state.stackExtras || []).concat([land]).slice(-12);
+      self.setState({ clearing: false, clearVec: null, stackExtras: extras, stackPulse: true });
+      self._foldTimer = setTimeout(function () { self.setState({ stackPulse: false }); }, 500);
+    }, 860);
+  }
+
+  foldIntoStack() {
+    if (this.isLocked()) { this.setState({ clearArmed: false }); return; }
+    var self = this, vec = {}, n = 0, maxD = 0, landed = [];
+    try {
+      var stack = document.getElementById('pcmt-stack');
+      var sr = stack && stack.getBoundingClientRect();
+      var keys = pcmtSlotKeys().filter(function (k) { return self.state.slots[k]; });
+      keys.forEach(function (k) {
+        var id = self.state.slots[k];
+        var el = document.querySelector('[data-player="' + id + '"]');
+        if (!el || !sr || !sr.width) return;
+        var r = el.getBoundingClientRect();
+        var d = n * 170;
+        var rz = Math.round((Math.random() * 12 - 6) * 10) / 10;
+        var jx = Math.round(Math.random() * 8 - 4), jy = Math.round(Math.random() * 6 - 3);
+        vec[id] = { x: Math.round(sr.left + sr.width / 2 - (r.left + r.width / 2)) + jx, y: Math.round(sr.top + sr.height / 2 - (r.top + r.height / 2)) + jy, rz: rz, d: d, i: n };
+        landed.push({ rz: rz, jx: jx, jy: jy });
+        maxD = d; n++;
+      });
+    } catch (e) { vec = {}; landed = []; }
+    clearTimeout(this._foldTimer);
+    if (!n) {
+      this.setState({ slots: {}, igl: null, saved: false, clearArmed: false, blessedId: null });
+      return;
+    }
+    this.setState({ clearing: true, clearVec: vec, clearArmed: false, crownArmed: false, tilt: null, lockAnim: false, iglFlip: null, stackNeat: false });
+    this._foldTimer = setTimeout(function () {
+      var extras = (self.state.stackExtras || []).concat(landed).slice(-12);
+      self.setState({ slots: {}, igl: null, saved: false, clearing: false, clearVec: null, stackExtras: extras, stackPulse: true, blessedId: null });
+      self._foldTimer = setTimeout(function () { self.setState({ stackPulse: false }); }, 500);
+    }, maxD + 860);
+  }
+
+  johnSquad(budget, teamLimit) {
+    function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+    var halves = {};
+    PCMT_ROLES.forEach(function (r) {
+      var list = PCMT_PLAYERS.filter(function (p) { return pcmtRole(p) === r.key; }).sort(function (a, b) { return b.price - a.price || a.name.localeCompare(b.name); });
+      var cut = Math.ceil(list.length / 2);
+      halves[r.key] = { top: list.slice(0, cut), bottom: list.slice(cut) };
+    });
+    var lc = this.find('longclaw');
+    var wantLc = !!lc && Math.random() < 0.75;
+    for (var attempt = 0; attempt < 600; attempt++) {
+      var used = {}, counts = {}, slots = {}, cost = 0, ok = true;
+      if (lc) {
+        used.longclaw = true;
+        if (wantLc) { counts[lc.team] = 1; cost += lc.price; }
+      }
+      var take = function (pool) {
+        var list = shuffle(pool);
+        for (var i = 0; i < list.length; i++) {
+          var p = list[i];
+          if (used[p.id] || (counts[p.team] || 0) >= teamLimit) continue;
+          used[p.id] = true; counts[p.team] = (counts[p.team] || 0) + 1; cost += p.price;
+          return p;
+        }
+        return null;
+      };
+      PCMT_ROLES.forEach(function (r) {
+        if (!ok) return;
+        var hi = take(halves[r.key].top);
+        var lo = hi && take(halves[r.key].bottom);
+        if (hi && lo) { slots[r.key + '-1'] = hi.id; slots[r.key + '-2'] = lo.id; } else ok = false;
+      });
+      var lcSlot = wantLc ? 1 + Math.floor(Math.random() * PCMT_WILD) : 0;
+      for (var w = 1; w <= PCMT_WILD && ok; w++) {
+        if (w === lcSlot) { slots['wild-' + w] = 'longclaw'; continue; }
+        var q = take(PCMT_PLAYERS);
+        if (q) slots['wild-' + w] = q.id; else ok = false;
+      }
+      if (ok && cost <= budget + 1e-9) {
+        var ids = Object.keys(slots).map(function (k) { return slots[k]; });
+        return { slots: slots, igl: ids[Math.floor(Math.random() * ids.length)] };
+      }
+    }
+    return null;
+  }
+
+  glueSquad(budget, teamLimit) {
+    function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+    var byPrice = PCMT_PLAYERS.slice().sort(function (a, b) { return a.price - b.price || a.name.localeCompare(b.name); });
+    var used = {}, counts = {}, slots = {}, cost = 0;
+    var ok = PCMT_ROLES.every(function (r) {
+      var got = 0;
+      for (var i = 0; i < byPrice.length && got < PCMT_PER_ROLE; i++) {
+        var p = byPrice[i];
+        if (pcmtRole(p) !== r.key || used[p.id] || (counts[p.team] || 0) >= teamLimit) continue;
+        used[p.id] = true; counts[p.team] = (counts[p.team] || 0) + 1; cost += p.price;
+        got++; slots[r.key + '-' + got] = p.id;
+      }
+      return got === PCMT_PER_ROLE;
+    });
+    if (!ok) return null;
+    var top20 = PCMT_PLAYERS.slice().sort(function (a, b) { return b.price - a.price || a.name.localeCompare(b.name); }).slice(0, 20);
+    for (var attempt = 0; attempt < 300; attempt++) {
+      var c2 = Object.assign({}, counts), u2 = Object.assign({}, used), s2 = Object.assign({}, slots), cost2 = cost, w = 0;
+      shuffle(top20).forEach(function (p) {
+        if (w >= PCMT_WILD || u2[p.id] || (c2[p.team] || 0) >= teamLimit) return;
+        u2[p.id] = true; c2[p.team] = (c2[p.team] || 0) + 1; cost2 += p.price;
+        w++; s2['wild-' + w] = p.id;
+      });
+      if (w === PCMT_WILD && cost2 <= budget + 1e-9) {
+        var ids = Object.keys(s2).map(function (k) { return s2[k]; });
+        return { slots: s2, igl: ids[Math.floor(Math.random() * ids.length)] };
+      }
+    }
+    return null;
+  }
+
+  majoritySquad(budget, teamLimit) {
+    var top25 = {};
+    PCMT_PLAYERS.slice().sort(function (a, b) { return b.price - a.price || a.name.localeCompare(b.name); })
+      .slice(0, 25).forEach(function (p) { top25[p.id] = true; });
+    return this.randomSquad(budget, teamLimit, PCMT_PLAYERS.filter(function (p) { return !top25[p.id]; }));
+  }
+
+  randomSquad(budget, teamLimit, source) {
+    function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+    for (var attempt = 0; attempt < 600; attempt++) {
+      var pool = shuffle(source || PCMT_PLAYERS), used = {}, counts = {}, slots = {}, cost = 0, ok = true;
+      var take = function (match) {
+        for (var i = 0; i < pool.length; i++) {
+          var p = pool[i];
+          if (used[p.id] || (counts[p.team] || 0) >= teamLimit || !match(p)) continue;
+          used[p.id] = true; counts[p.team] = (counts[p.team] || 0) + 1; cost += p.price;
+          return p;
+        }
+        return null;
+      };
+      PCMT_ROLES.forEach(function (r) {
+        for (var n = 1; n <= PCMT_PER_ROLE && ok; n++) {
+          var p = take(function (x) { return pcmtRole(x) === r.key; });
+          if (p) slots[r.key + '-' + n] = p.id; else ok = false;
+        }
+      });
+      for (var w = 1; w <= PCMT_WILD && ok; w++) {
+        var q = take(function () { return true; });
+        if (q) slots['wild-' + w] = q.id; else ok = false;
+      }
+      if (ok && cost <= budget + 1e-9) {
+        var ids = Object.keys(slots).map(function (k) { return slots[k]; });
+        return { slots: slots, igl: ids[Math.floor(Math.random() * ids.length)] };
+      }
+    }
+    return null;
+  }
+
+  find(id) {
+    return PCMT_PLAYERS.find(function (p) { return p.id === id; });
+  }
+
+  openSlotFor(role, slots) {
+    for (var i = 1; i <= PCMT_PER_ROLE; i++) if (!slots[role + '-' + i]) return role + '-' + i;
+    for (var w = 1; w <= PCMT_WILD; w++) if (!slots['wild-' + w]) return 'wild-' + w;
+    return null;
+  }
+
+  toggle(id) {
+    if (this.isLocked()) return;
+    var s = this.state;
+    var slots = Object.assign({}, s.slots);
+    var key = Object.keys(slots).find(function (k) { return slots[k] === id; });
+    if (key) {
+      delete slots[key];
+      var left = Object.keys(slots).map(function (k) { return slots[k]; });
+      this.setState({ slots: slots, igl: s.igl === id ? null : s.igl, saved: false, blessedId: s.blessedId === id ? null : s.blessedId });
+      return;
+    }
+    var p = this.find(id);
+    var target = this.openSlotFor(pcmtRole(p), slots);
+    if (!target) return;
+    slots[target] = id;
+    var ex = s.stackExtras || [];
+    var top = ex.length ? (s.stackNeat ? { jx: 0, jy: -Math.min(ex.length, 6), rz: 0 } : { jx: ex[ex.length - 1].jx, jy: ex[ex.length - 1].jy, rz: ex[ex.length - 1].rz }) : { jx: 0, jy: 0, rz: 0 };
+    this.setState({ slots: slots, saved: false, stackExtras: ex.slice(0, -1) });
+    this.animateDeal([id], top);
+  }
+
+  componentDidMount() {
+    var self = this, start = Date.now();
+    if (this._pageDidMount) this._pageDidMount();
+    this._navClick = function (e) {
+      if (e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+      if (!a || a.target === '_blank') return;
+      var root = a.closest('[data-pcmt-root]');
+      if (!root || root.getAttribute('data-pcmt-root') !== 'Main') return;
+      if (!/\.dc\.html(#|$|\?)/.test(a.getAttribute('href'))) return;
+      try { window.sessionStorage.setItem('pcmt-nav', String(Date.now())); } catch (err) {}
+    };
+    document.addEventListener('click', this._navClick, true);
+    function imagesReady() {
+      var imgs = Array.prototype.slice.call(document.images || []);
+      return Promise.all(imgs.map(function (im) {
+        return im.complete ? null : new Promise(function (res) { im.addEventListener('load', res, { once: true }); im.addEventListener('error', res, { once: true }); });
+      }));
+    }
+    var fonts = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+    var cap = new Promise(function (res) { self._loaderCap = setTimeout(res, 5000); });
+    Promise.race([Promise.all([fonts, imagesReady()]), cap]).then(function () {
+      self._loaderMin = setTimeout(function () { self.hideLoader(); }, Math.max(0, 1200 - (Date.now() - start)));
+    });
+  }
+
+  componentWillUnmount() {
+    clearTimeout(this._loaderCap); clearTimeout(this._loaderMin); clearTimeout(this._loaderFade); clearTimeout(this._loaderBuf); clearTimeout(this._loaderNav); clearTimeout(this._navHide);
+    if (this._navClick) document.removeEventListener('click', this._navClick, true);
+    if (this._pageWillUnmount) this._pageWillUnmount();
+  }
+
+  showLoader(label) {
+    clearTimeout(this._loaderFade);
+    this.setState({ loaderPhase: 'on', loaderLabel: label || 'Loading' });
+  }
+
+  hideLoader() {
+    var self = this;
+    if ((this.state && this.state.loaderPhase) === 'gone') return;
+    this.setState({ loaderPhase: 'fade' });
+    clearTimeout(this._loaderFade);
+    this._loaderFade = setTimeout(function () { self.setState({ loaderPhase: 'gone' }); }, 420);
+  }
+
+  bufferFor(label, ms, done) {
+    var self = this;
+    this.showLoader(label);
+    clearTimeout(this._loaderBuf);
+    this._loaderBuf = setTimeout(function () { if (done) done(); self.hideLoader(); }, ms);
+  }
+
+  renderVals() {
+    if (this._arrived === undefined) {
+      this._arrived = false;
+      try {
+        var t = Number(window.sessionStorage.getItem('pcmt-nav') || 0);
+        if (t && Date.now() - t < 4000) { this._arrived = true; window.sessionStorage.removeItem('pcmt-nav'); }
+      } catch (err) {}
+    }
+    var phase = (this.state && this.state.loaderPhase) || (this._arrived ? 'gone' : 'on');
+    return Object.assign(this._pageVals(), {
+      loaderOn: phase !== 'gone',
+      loaderOpacity: phase === 'on' ? 1 : 0,
+      loaderPointer: phase === 'on' ? 'auto' : 'none',
+      loaderLabel: ((this.state && this.state.loaderLabel) || 'Loading').toUpperCase()
+    });
+  }
+
+  _pageVals() {
+    var self = this;
+    var s = this.state;
+    var budget = this.props.budget ?? 95;
+    var teamLimit = this.props.teamLimit ?? 2;
+    var wk = this.weekLock();
+    var weekLocked = wk.locked;
+    var nextLock = weekLocked ? null : ((this.props.lockPreview ?? 'Live') === 'Live' ? pcmtNextLock(Date.now()) : (wk.lockAt && wk.lockAt > Date.now() ? wk.lockAt : pcmtNextLock(Date.now())));
+    this._lockTarget = nextLock;
+    var mvpId = String(this.props.mvpPlayer ?? 'kaydeg').trim().toLowerCase();
+    var topId = String(this.props.topPlayer ?? 'pi').trim().toLowerCase();
+    var keys = pcmtSlotKeys();
+    var pickedIds = keys.map(function (k) { return s.slots[k]; }).filter(Boolean);
+    var picked = pickedIds.map(function (id) { return self.find(id); }).filter(Boolean);
+    var spent = picked.reduce(function (a, p) { return a + p.price; }, 0);
+    var left = budget - spent;
+    var counts = {};
+    picked.forEach(function (p) { counts[p.team] = (counts[p.team] || 0) + 1; });
+    var full = picked.length >= PCMT_SIZE;
+    var iglPlayer = s.igl ? this.find(s.igl) : null;
+    var allTab = s.tab === 'all';
+    var tabRole = allTab ? { key: 'all', label: 'All players' } : (PCMT_ROLES.find(function (r) { return r.key === s.tab; }) || PCMT_ROLES[0]);
+
+    function roleFilled(role) {
+      var n = 0;
+      for (var i = 1; i <= PCMT_PER_ROLE; i++) if (s.slots[role + '-' + i]) n++;
+      return n;
+    }
+    var wildFilled = 0;
+    for (var w = 1; w <= PCMT_WILD; w++) if (s.slots['wild-' + w]) wildFilled++;
+
+    var q = (s.search || '').trim().toLowerCase();
+    var pool = PCMT_PLAYERS
+      .filter(function (p) { return (allTab || pcmtRole(p) === tabRole.key) && (s.filter === 'ALL' || p.team === s.filter) && (!q || p.name.toLowerCase().indexOf(q) >= 0); })
+      .slice().sort(function (a, b) { return b.price - a.price || a.name.localeCompare(b.name); })
+      .map(function (p) {
+        var isPicked = pickedIds.indexOf(p.id) >= 0;
+        var reason = '';
+        if (!isPicked) {
+          if (weekLocked) reason = 'Locked';
+          else if (full) reason = 'Squad full';
+          else if (!self.openSlotFor(pcmtRole(p), s.slots)) reason = 'Role full';
+          else if (p.price > left + 1e-9) reason = 'No budget';
+          else if ((counts[p.team] || 0) >= teamLimit) reason = 'Team limit';
+        }
+        return {
+          id: p.id, name: p.name, team: p.team, role: p.role,
+          roleIcon: PCMT_ROLE_ICONS[pcmtRole(p)], roleLabel: pcmtRole(p).charAt(0).toUpperCase() + pcmtRole(p).slice(1),
+          champ: !!PCMT_CHAMPS[p.id],
+          logo: PCMT_LOGOS[p.team] || '',
+          teamName: PCMT_TEAM_NAMES[p.team] || p.team,
+          priceLabel: pcmtNum(p.price),
+          teamColor: PCMT_TEAMS[p.team],
+          rowBg: isPicked ? '#0f1d1e' : 'transparent',
+          isPicked: isPicked, blocked: !!reason, reason: reason,
+          canAdd: !isPicked && !reason,
+          toggle: function () { self.toggle(p.id); }
+        };
+      });
+
+    var flipIdx = 0;
+    function slotView(key, roleKey, emptyText, emptyHint) {
+      var id = s.slots[key];
+      var p = id ? self.find(id) : null;
+      if (!p) {
+        return {
+          filled: false, empty: true, emptyText: emptyText, emptyHint: emptyHint,
+          openBuy: function () { if (roleKey) self.setState({ tab: roleKey }); }
+        };
+      }
+      return {
+        filled: true, empty: false,
+        auraOff: (((p.id.charCodeAt(0) * 7 + p.id.length * 13) % 40) / 10).toFixed(1) + 's',
+        name: p.name, team: p.team, role: p.role,
+        roleIcon: PCMT_ROLE_ICONS[pcmtRole(p)], roleLabel: pcmtRole(p).charAt(0).toUpperCase() + pcmtRole(p).slice(1),
+        nameFont: 'clamp(14px, calc((100cqw - ' + (PCMT_CHAMPS[p.id] ? 24 : 2) + 'px) / ' + (p.name.length * 0.58 + 0.2).toFixed(2) + '), 34px)',
+        champ: !!PCMT_CHAMPS[p.id],
+        frontClass: PCMT_CHAMPS[p.id] ? 'pcmt-champ' : '',
+        dealOpacity: (s.dealHidden && s.dealHidden[p.id]) ? 0 : 1,
+        innerClass: ((s.dealVec && s.dealVec[p.id]) && s.dealPhase === 'go') ? 'pcmt-unfold' : (s.dealVec && s.dealVec[p.id]) ? '' : (s.clearing && s.clearVec && s.clearVec[p.id]) ? 'pcmt-fold' : (s.lockAnim || s.iglFlip === p.id) ? 'pcmt-flip' : '',
+        zapOn: !!(s.blessedId === p.id && ((s.tilt && s.tilt.id === p.id) || (s.drag && s.drag.id === p.id))),
+        zapClass: (s.blessedId === p.id && ((s.tilt && s.tilt.id === p.id) || (s.drag && s.drag.id === p.id))) ? 'pcmt-zap on' : 'pcmt-zap',
+        sparkClass: (!s.clearing && (s.lockAnim || s.iglFlip === p.id)) ? 'pcmt-spark on' : 'pcmt-spark',
+        cardTitle: s.saved ? 'Click and drag to turn ' + p.name + ' over · double tap to remove' : 'Drag ' + p.name + ' onto the pile or double tap to remove',
+        touchAction: 'none',
+        cursor: (s.tilt && s.tilt.id === p.id) || (s.drag && s.drag.id === p.id) ? 'grabbing' : 'grab',
+        tiltTransform: (s.dealVec && s.dealVec[p.id]) ? (s.dealPhase === 'go' ? 'rotateX(0deg) rotateY(0deg) scale(1)' : 'rotateX(0deg) rotateY(180deg) scale(1)') : (s.clearing && s.clearVec && s.clearVec[p.id]) ? 'none' : (s.tilt && s.tilt.id === p.id) ? 'rotateX(' + s.tilt.rx + 'deg) rotateY(' + s.tilt.ry + 'deg) scale(1)' : 'rotateX(0deg) rotateY(0deg) scale(1)',
+        z: (s.drag && s.drag.id === p.id) ? 200 : (s.dealVec && s.dealVec[p.id]) ? (s.dealPhase === 'go' ? 1 : 100 + s.dealVec[p.id].z) : (s.clearing && s.clearVec && s.clearVec[p.id]) ? 100 + s.clearVec[p.id].i : 1,
+        outerTransform: (s.dealVec && s.dealVec[p.id]) ? (s.dealPhase === 'go' ? 'none' : 'translate(' + s.dealVec[p.id].x + 'px,' + s.dealVec[p.id].y + 'px) rotate(' + s.dealVec[p.id].rz + 'deg)') : (s.drag && s.drag.id === p.id) ? 'translate(' + s.drag.dx + 'px,' + s.drag.dy + 'px) rotate(' + Math.max(-8, Math.min(8, s.drag.dx * 0.03)).toFixed(1) + 'deg) scale(1.04)' : (s.clearing && s.clearVec && s.clearVec[p.id]) ? 'translate(' + s.clearVec[p.id].x + 'px,' + s.clearVec[p.id].y + 'px) rotate(' + s.clearVec[p.id].rz + 'deg)' : 'none',
+        outerTransition: (s.dealVec && s.dealVec[p.id]) ? (s.dealPhase === 'go' ? 'transform .8s cubic-bezier(.5,.05,.25,1) ' + s.dealVec[p.id].d + 'ms, z-index 0s linear ' + (s.dealVec[p.id].d + 800) + 'ms' : 'none') : (s.drag && s.drag.id === p.id) ? 'none' : (s.clearing && s.clearVec && s.clearVec[p.id]) ? 'transform .8s cubic-bezier(.5,.05,.25,1) ' + s.clearVec[p.id].d + 'ms, z-index 0s linear ' + s.clearVec[p.id].d + 'ms' : 'transform .35s cubic-bezier(.2,.8,.2,1)',
+        tiltTransition: ((s.dealVec && s.dealVec[p.id]) || (s.clearing && s.clearVec && s.clearVec[p.id])) ? 'none' : (s.tilt && s.tilt.id === p.id) ? 'none' : 'transform .7s cubic-bezier(.2,.8,.2,1)',
+        tiltDown: function (e) {
+          if (self.state.crownArmed || self.state.clearing || (self.state.dealVec && self.state.dealVec[p.id])) return;
+          try { e.currentTarget.setPointerCapture(e.pointerId); } catch (err) {}
+          self._tilt = { id: p.id, x: e.clientX, y: e.clientY, moved: false, mode: (self.state.saved || self.isLocked()) ? 'tilt' : 'drag' };
+        },
+        tiltMove: function (e) {
+          var t = self._tilt;
+          if (!t || t.id !== p.id) return;
+          var dx = e.clientX - t.x, dy = e.clientY - t.y;
+          if (!t.moved && Math.abs(dx) + Math.abs(dy) > 5) t.moved = true;
+          if (!t.moved) return;
+          if (t.mode === 'drag') {
+            self.setState({ drag: { id: p.id, dx: dx, dy: dy, over: self.overStack(e.clientX, e.clientY) } });
+            return;
+          }
+          var ry = Math.max(-200, Math.min(200, dx * 0.9));
+          var rx = Math.max(-30, Math.min(30, -dy * 0.3));
+          self.setState({ tilt: { id: p.id, rx: Math.round(rx), ry: Math.round(ry) } });
+        },
+        tiltUp: function (e) {
+          var t = self._tilt;
+          self._tilt = null;
+          if (t && t.moved) self._suppressTap = Date.now();
+          if (t && t.mode === 'drag' && t.moved) {
+            if (e && self.overStack(e.clientX, e.clientY)) self.discardToPile(p.id);
+            else self.setState({ drag: null });
+            return;
+          }
+          if (self.state.tilt) self.setState({ tilt: null });
+        },
+        delay: (s.dealVec && s.dealVec[p.id]) ? s.dealVec[p.id].d : (s.clearing && s.clearVec && s.clearVec[p.id]) ? s.clearVec[p.id].d : (s.iglFlip === p.id && !s.lockAnim) ? 0 : (flipIdx++) * 70,
+        sparkDelay: (s.iglFlip === p.id && !s.lockAnim) ? 250 : flipIdx * 70 + 250,
+        isMvp: p.id === mvpId, isTop: p.id === topId,
+        authentic: !!(s.deckCode && s.deckCode === p.team),
+        priceMargin: (s.deckCode && s.deckCode === p.team) ? '8px' : 'auto',
+        hasTags: p.id === mvpId || p.id === topId,
+        glow: [
+          p.id === mvpId ? '0 0 0 1px rgba(245,215,110,.9), 0 0 24px rgba(245,215,110,.45)' : null,
+          p.id === topId ? '0 0 0 1px ' + PCMT_TEAMS[p.team] + ', 0 0 24px ' + PCMT_TEAMS[p.team] + '70' : null,
+          PCMT_CHAMPS[p.id] && p.id !== mvpId ? '0 0 0 1px rgba(245,215,110,.55), 0 0 16px rgba(245,215,110,.16)' : null,
+          s.dragging && s.hoverId === p.id ? '0 0 0 3px #f5d76e, 0 0 28px rgba(245,215,110,.55)' : null,
+          s.blessedId === p.id ? '0 0 0 1px rgba(255,255,255,.9), 0 0 22px rgba(255,255,255,.55)' : null
+        ].filter(Boolean).join(', ') || 'none',
+        priceLabel: pcmtNum(p.price),
+        teamColor: PCMT_TEAMS[p.team],
+        logo: PCMT_LOGOS[p.team] || '',
+        hasLogo: !!PCMT_LOGOS[p.team], noLogo: !PCMT_LOGOS[p.team],
+        logoH: PCMT_LOGO_H[p.team] || 30,
+        teamFull: PCMT_TEAM_NAMES[p.team] || p.team,
+        teamFullSize: (PCMT_TEAM_NAMES[p.team] || p.team).length <= 16 ? 11 : 9.5,
+        id: p.id,
+        isIgl: s.igl === p.id, notIgl: s.igl !== p.id,
+        points: pcmtNum(self.weekPoints(p.id)),
+        pointsTitle: pcmtNum(self.weekPoints(p.id)) + ' points this gameweek',
+        makeIgl: function () { self.setIgl(p.id); },
+        removeTap: function () {
+          if (self.state.crownArmed || self.state.clearing || self.isLocked()) return;
+          if (self._suppressTap && Date.now() - self._suppressTap < 350) return;
+          var now = Date.now();
+          if (self._lastCardTap && self._lastCardTap.id === p.id && now - self._lastCardTap.t < 400) {
+            self._lastCardTap = null;
+            self.toggle(p.id);
+          } else {
+            self._lastCardTap = { id: p.id, t: now };
+          }
+        },
+        remove: function () { self.toggle(p.id); }
+      };
+    }
+
+    var groups = PCMT_ROLES.map(function (r) {
+      var slots = [];
+      for (var i = 1; i <= PCMT_PER_ROLE; i++) slots.push(slotView(r.key + '-' + i, r.key, 'Buy a ' + r.label.toLowerCase(), 'opens ' + r.label.toUpperCase() + ' page'));
+      return { label: r.label, cls: 'pcmt-g2', inner: 'pcmt-in2', filledLabel: roleFilled(r.key) + '/' + PCMT_PER_ROLE, slots: slots };
+    });
+    var wildSlots = [];
+    for (var j = 1; j <= PCMT_WILD; j++) wildSlots.push(slotView('wild-' + j, null, 'Wildcard', 'any role, once its slots are full'));
+    groups.push({ label: 'Wildcards', cls: 'pcmt-g3', inner: 'pcmt-in3', filledLabel: wildFilled + '/' + PCMT_WILD, slots: wildSlots });
+
+    var tabs = [{
+      label: 'All players', icons: PCMT_ROLES.map(function (r) { return { src: PCMT_ROLE_ICONS[r.key] }; }), count: picked.length + '/' + PCMT_SIZE,
+      active: allTab, inactive: !allTab,
+      pick: function () { self.setState({ tab: 'all' }); }
+    }].concat(PCMT_ROLES.map(function (r) {
+      return {
+        label: r.label, icons: [{ src: PCMT_ROLE_ICONS[r.key] }], count: roleFilled(r.key) + '/' + PCMT_PER_ROLE,
+        active: r.key === tabRole.key, inactive: r.key !== tabRole.key,
+        pick: function () { self.setState({ tab: r.key }); }
+      };
+    }));
+
+    var need = PCMT_SIZE - picked.length;
+    var openRole = allTab ? 0 : PCMT_PER_ROLE - roleFilled(tabRole.key);
+    var openWild = PCMT_WILD - wildFilled;
+    var buyNote;
+    if (allTab) buyNote = need > 0 ? need + ' of ' + PCMT_SIZE + ' slots open. Players go into their role first, then a wildcard.' : 'Squad full. Sell a player to buy another.';
+    else if (openRole > 0) buyNote = openRole + ' ' + tabRole.label.toLowerCase() + ' slot' + (openRole === 1 ? '' : 's') + ' open.';
+    else if (openWild > 0) buyNote = tabRole.label + ' slots are full. A buy here fills a wildcard (' + openWild + ' left).';
+    else buyNote = tabRole.label + ' slots and wildcards are full. Sell a player to buy another.';
+
+    var ready = need === 0 && !!iglPlayer && !weekLocked;
+    var statusText;
+    var missing = PCMT_ROLES.map(function (r) {
+      var n = PCMT_PER_ROLE - roleFilled(r.key);
+      return n > 0 ? n + ' ' + r.label.toLowerCase() : null;
+    }).filter(Boolean);
+    var openWildAll = PCMT_WILD - wildFilled;
+    if (weekLocked) statusText = 'Gameweek locked. Squad changes reopen ' + pcmtWhen(wk.until) + '.';
+    else if (s.saved) statusText = 'Squad locked in. Edits are open until ' + (wk.lockAt ? pcmtWhen(wk.lockAt) : 'the next match') + '.';
+    else if (missing.length) statusText = 'No points until every role is filled. Still need: ' + missing.join(', ') + '.';
+    else if (need > 0) statusText = 'Every role is filled. Pick ' + openWildAll + ' more wildcard' + (openWildAll === 1 ? '' : 's') + ' to complete your squad.';
+    else if (!iglPlayer) statusText = 'Drag the crown onto a player to pick your IGL.';
+    else statusText = 'Ready to lock in.';
+
+    var teamOptions = [{ key: 'ALL', label: 'All teams' }].concat(PCMT_TEAM_LIST.map(function (t) {
+      return { key: t.code, label: t.code + ' · ' + t.name };
+    }));
+
+    return {
+      pool: pool, groups: groups, tabs: tabs, teamOptions: teamOptions,
+      tabCode: allTab ? 'ALL PLAYERS' : tabRole.label.toUpperCase(),
+      deck: pcmtDeckTheme(s.deckCode),
+      ethanOn: !!s.saved && s.auraKind === 'ethan',
+      haloOn: !!s.saved && s.auraKind === 'halo',
+      ringOn: !!s.saved && s.auraKind === 'ring',
+      prideOn: !!s.saved && s.auraKind === 'pride',
+      prideA: this._prideTraces || (this._prideTraces = pcmtHaloTraces()),
+      ring: this._ringTraces || (this._ringTraces = pcmtHaloTraces()),
+      auraEndClass: s.auraEnding ? 'pcmt-aura-end' : '',
+      halo: this._haloTraces || (this._haloTraces = pcmtHaloTraces()),
+      deckBackBg: (s.saved && s.auraKind === 'ethan') ? pcmtDeckTheme(s.deckCode).plainBg : pcmtDeckTheme(s.deckCode).bg,
+      aura: this._auraTraces || (this._auraTraces = pcmtAuraTraces()),
+      dragging: !!s.dragging, dragX: s.dragX || 0, dragY: s.dragY || 0,
+      crownArmed: !!s.crownArmed,
+      crownBorder: s.crownArmed ? '#f5d76e' : 'rgba(245,215,110,.5)',
+      crownBg: s.crownArmed ? 'rgba(245,215,110,.15)' : 'transparent',
+      crownDown: function (e) {
+        if (weekLocked) return;
+        try { e.currentTarget.setPointerCapture(e.pointerId); } catch (err) {}
+        self._crownStart = { x: e.clientX, y: e.clientY, moved: false };
+      },
+      crownMove: function (e) {
+        var st = self._crownStart;
+        if (!st) return;
+        if (!st.moved && Math.abs(e.clientX - st.x) + Math.abs(e.clientY - st.y) > 6) st.moved = true;
+        if (st.moved) self.setState({ dragging: true, crownArmed: false, dragX: e.clientX, dragY: e.clientY, hoverId: self.playerAt(e.clientX, e.clientY) });
+      },
+      crownUp: function (e) {
+        if (weekLocked) { self._crownStart = null; return; }
+        var st = self._crownStart; self._crownStart = null;
+        if (!st) return;
+        if (st.moved) {
+          var id = self.playerAt(e.clientX, e.clientY);
+          self.setState({ dragging: false, hoverId: null });
+          if (id) self.setIgl(id);
+        } else {
+          self.setState({ crownArmed: !self.state.crownArmed });
+        }
+      },
+      crownClick: function (e) { if (!weekLocked && e && e.detail === 0) self.setState({ crownArmed: !self.state.crownArmed }); },
+      crownCancel: function () { self._crownStart = null; self.setState({ dragging: false, hoverId: null }); },
+      squadName: s.squadName || '',
+      hasSquadName: !!(s.squadName || '').trim(),
+      noSquadName: !(s.squadName || '').trim(),
+      setSquadName: function (e) { self.setState({ squadName: e && e.target ? e.target.value : '' }); },
+      matchTime: pcmtMatchTime(PCMT_NEXT_MATCH),
+      weekLocked: weekLocked, weekOpen: !weekLocked,
+      lockNote: weekLocked ? 'Locked until ' + pcmtWhen(wk.until) : '',
+      showCountdown: !weekLocked && !!nextLock,
+      countdown: nextLock ? pcmtCountdown(nextLock - Date.now()) : '',
+      countdownTitle: nextLock ? 'Squads lock ' + pcmtWhen(nextLock) + ' (12 hours before the first match of the week)' : '',
+      lockTitle: weekLocked ? 'Squad locked' : 'Squad open for changes',
+      actionsDisabled: weekLocked,
+      actionOpacity: weekLocked ? 0.4 : 1,
+      lockColor: weekLocked ? '#ff7f66' : '#93a9aa',
+      lockPath: weekLocked ? 'M8 11V7a4 4 0 0 1 8 0v4' : 'M8 11V7a4 4 0 0 1 7.5-2',
+      mvpLabel: (pickedIds.indexOf(mvpId) >= 0 && self.find(mvpId)) ? 'Your MVP · Week ' + (this.props.mvpWeek ?? 1) : 'Your MVP',
+      mvpName: (pickedIds.indexOf(mvpId) >= 0 && self.find(mvpId)) ? self.find(mvpId).name : '—',
+      mvpHasLogo: !!(pickedIds.indexOf(mvpId) >= 0 && self.find(mvpId) && PCMT_LOGOS[self.find(mvpId).team]),
+      mvpLogo: (self.find(mvpId) && PCMT_LOGOS[self.find(mvpId).team]) || '',
+      mvpTeam: self.find(mvpId) ? self.find(mvpId).team : '',
+      mvpLogoH: self.find(mvpId) ? Math.round((PCMT_LOGO_H[self.find(mvpId).team] || 30) * 1.3) : 39,
+      buyNote: buyNote,
+      filter: s.filter,
+      poolCount: pool.length,
+      search: s.search || '',
+      auraOn: (function () {
+        var m = self.props.auraPreview ?? 'Live';
+        if (m === 'On') return true;
+        if (m === 'Off') return false;
+        return !!PCMT_AURA.holderId && PCMT_AURA.holderId === PCMT_AURA.me;
+      })(),
+      noResults: pool.length === 0,
+      setSearch: function (e) { self.setState({ search: e && e.target ? e.target.value : '' }); },
+      pickTeam: function (e) { self.setState({ filter: e && e.target ? e.target.value : 'ALL' }); },
+      spentLabel: pcmtNum(spent),
+      leftLabel: pcmtNum(left),
+      budgetLabel: pcmtNum(budget),
+      spentPct: Math.min(100, Math.round((spent / budget) * 100)),
+      countLabel: picked.length + '/' + PCMT_SIZE,
+      teamLimit: teamLimit,
+      iglName: iglPlayer ? iglPlayer.name : '—',
+      statusText: statusText,
+      ready: ready && !s.saved, notReady: !(ready && !s.saved),
+      save: function () {
+        if (weekLocked) return;
+        self.setState({ saved: true, stackNeat: true });
+        try {
+          var h = document.getElementById('squad-h');
+          var sec = h && h.closest('section');
+          if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } catch (e) {}
+        clearTimeout(self._flipStart); clearTimeout(self._flipEnd); clearTimeout(self._iglFlip);
+        self.setState({ lockAnim: false, iglFlip: null, tilt: null });
+        self._flipStart = setTimeout(function () {
+          self.setState({ lockAnim: true });
+          self._flipEnd = setTimeout(function () { self.setState({ lockAnim: false }); }, 2400);
+        }, 450);
+      },
+      stackClass: s.stackPulse ? 'pcmt-stack-pulse' : '',
+      stackGlow: (s.drag && s.drag.over) ? '0 0 0 2px ' + pcmtDeckTheme(s.deckCode).color + ', 0 0 28px ' + pcmtDeckTheme(s.deckCode).glow : 'none',
+      stackExtras: (s.stackExtras || []).map(function (x, i) { return s.stackNeat ? { rz: 0, jx: 0, jy: -Math.min(i + 1, 6), z: 5 + i } : { rz: x.rz, jx: x.jx, jy: x.jy, z: 5 + i }; }),
+      stackT1: s.stackNeat ? 'translate(3px, 3px)' : (s.stackMess ? s.stackMess[0] : 'translate(10px, 10px) rotate(4deg)'),
+      stackT2: s.stackNeat ? 'translate(2px, 2px)' : (s.stackMess ? s.stackMess[1] : 'translate(6px, 5px) rotate(-3deg)'),
+      stackT3: s.stackNeat ? 'translate(1px, 1px)' : (s.stackMess ? s.stackMess[2] : 'translate(2px, 2px) rotate(1.5deg)'),
+      stackRight: function (e) {
+        if (e && e.preventDefault) e.preventDefault();
+        if (self.state.clearing) return;
+        var now = Date.now();
+        if (self._lastStackRight && now - self._lastStackRight < 450) {
+          self._lastStackRight = 0;
+          function r(n) { return Math.round((Math.random() * 2 - 1) * n * 10) / 10; }
+          var mess = [0, 1, 2].map(function () { return 'translate(' + r(14) + 'px, ' + r(12) + 'px) rotate(' + r(13) + 'deg)'; });
+          var ex = (self.state.stackExtras || []).map(function () { return { jx: Math.round(r(16)), jy: Math.round(r(12)), rz: r(15) }; });
+          self.setState({ stackNeat: false, stackMess: mess, stackExtras: ex });
+        } else {
+          self._lastStackRight = now;
+        }
+      },
+      stackTap: function () {
+        if (self.state.clearing) return;
+        var now = Date.now();
+        if (self._lastStackTap && now - self._lastStackTap < 400) { self._lastStackTap = 0; self.setState({ stackNeat: true }); }
+        else self._lastStackTap = now;
+      },
+      clearLabel: s.clearArmed ? 'Tap again to clear' : 'Clear squad',
+      clearBorder: s.clearArmed ? '#ff7f66' : '#2c3d40',
+      clearColor: s.clearArmed ? '#ff7f66' : '#93a9aa',
+      dealJohn: function () {
+        if (self.isLocked()) return;
+        var squad = self.johnSquad(budget, teamLimit);
+        if (!squad) return;
+        self.replayDeal(squad);
+        var has = Object.keys(squad.slots).some(function (k) { return squad.slots[k] === 'longclaw'; });
+        if (has) self.setState({ blessedId: 'longclaw' });
+      },
+      dealGlue: function () {
+        var squad = self.glueSquad(budget, teamLimit);
+        if (!squad) return;
+        self.replayDeal(squad);
+      },
+      dealMajority: function () {
+        if (self.isLocked()) return;
+        var squad = self.majoritySquad(budget, teamLimit);
+        if (!squad) return;
+        self.replayDeal(squad);
+      },
+      dealBren: function () {
+        var squad = self.randomSquad(budget, teamLimit);
+        if (!squad) return;
+        self.replayDeal(squad);
+      },
+      reset: function () {
+        clearTimeout(self._clearTimer);
+        if (self.state.clearArmed) {
+          if (self.state.saved && self.state.auraKind && !self.isLocked()) {
+            self.setState({ auraEnding: true, clearArmed: false });
+            self._clearTimer = setTimeout(function () {
+              self.setState({ auraEnding: false, saved: false });
+              self.foldIntoStack();
+            }, 800);
+          } else {
+            self.foldIntoStack();
+          }
+        } else {
+          self.setState({ clearArmed: true });
+          self._clearTimer = setTimeout(function () { self.setState({ clearArmed: false }); }, 1500);
+        }
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

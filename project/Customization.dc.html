@@ -1,0 +1,639 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PCMT Fantasy League Customization</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cabin+Sketch:wght@400;700&amp;family=JetBrains+Mono:wght@400;600&amp;family=Space+Grotesk:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#000}
+a{color:#a5dcdd}a:hover{color:#d4f0f0}
+.pcmt-loader{--radius:78px;--speed:2.4s;position:relative;width:calc(var(--radius)*2 + 60px);height:calc(var(--radius)*2 + 60px)}
+.pcmt-loader span{position:absolute;left:50%;top:50%;width:34px;height:48px;margin:-24px 0 0 -17px;border-radius:5px;background:url("/_blob/21bac85ae3f0047e25ed574f47669d09") center/90% no-repeat,#000;border:1.5px solid #a5dcdd;box-shadow:0 2px 6px rgba(0,0,0,.35);animation:pcmt-card-splay var(--speed) cubic-bezier(.65,0,.35,1) infinite;animation-delay:calc(var(--i)*0.035s)}
+@keyframes pcmt-card-splay{0%,8%{transform:rotate(0deg) translateY(0)}40%,58%{transform:rotate(calc(var(--i)*24deg)) translateY(calc(var(--radius)*-1))}92%,100%{transform:rotate(360deg) translateY(0)}}
+@media (prefers-reduced-motion: reduce){.pcmt-loader span{animation-duration:calc(var(--speed)*3)}}
+.pcmt-loading{transition:opacity .4s ease}
+.ea-t{fill:none;stroke-linecap:round;opacity:0;animation-duration:var(--dur,6s);animation-timing-function:linear;animation-iteration-count:infinite;animation-delay:calc(var(--d,0s) + var(--off,0s))}
+.ea-halo{stroke:#f5d76e;stroke-width:3.5px;stroke-dasharray:34 300;animation-name:ea-halo}
+.ea-mid{stroke:#ffe7a0;stroke-width:1.8px;stroke-dasharray:18 300;animation-name:ea-mid}
+.ea-core{stroke:#fffbe8;stroke-width:.7px;stroke-dasharray:6 300;animation-name:ea-core}
+@keyframes ea-halo{0%{stroke-dashoffset:34;opacity:0}6%{opacity:.28}40%{opacity:.28}46%{stroke-dashoffset:-100;opacity:0}100%{stroke-dashoffset:-100;opacity:0}}
+@keyframes ea-mid{0%{stroke-dashoffset:18;opacity:0}6%{opacity:.6}40%{opacity:.6}46%{stroke-dashoffset:-116;opacity:0}100%{stroke-dashoffset:-116;opacity:0}}
+@keyframes ea-core{0%{stroke-dashoffset:6;opacity:0}6%{opacity:1}40%{opacity:1}46%{stroke-dashoffset:-128;opacity:0}100%{stroke-dashoffset:-128;opacity:0}}
+@media (prefers-reduced-motion: reduce){.ea-t{animation:none;opacity:0}}
+.ea-card:focus-visible{outline:2px solid #f5d76e;outline-offset:3px}
+.hl-g{opacity:0;animation:hl-fade var(--fade,6s) ease-in-out infinite;animation-delay:var(--fd,0s)}
+.hl-rev{transform:scaleX(-1);transform-box:view-box;transform-origin:50% 50%}
+.hl-t{fill:none;stroke-linecap:round;animation-duration:var(--dur,7s);animation-timing-function:linear;animation-iteration-count:infinite;animation-delay:var(--d,0s)}
+.hl-halo{stroke:#f5d76e;stroke-width:3.5px;stroke-opacity:.28;stroke-dasharray:34 66;animation-name:hl-halo}
+.hl-mid{stroke:#ffe7a0;stroke-width:1.8px;stroke-opacity:.6;stroke-dasharray:18 82;animation-name:hl-mid}
+.hl-core{stroke:#fffbe8;stroke-width:.8px;stroke-dasharray:6 94;animation-name:hl-core}
+@keyframes hl-halo{from{stroke-dashoffset:34}to{stroke-dashoffset:-66}}
+@keyframes hl-mid{from{stroke-dashoffset:18}to{stroke-dashoffset:-82}}
+@keyframes hl-core{from{stroke-dashoffset:6}to{stroke-dashoffset:-94}}
+@keyframes hl-fade{0%,100%{opacity:0}25%,70%{opacity:1}}
+@media (prefers-reduced-motion: reduce){.hl-g,.hl-t{animation:none}.hl-g{opacity:0}}
+.pcmt-bg-cotton{background:linear-gradient(90deg,transparent 0 33%,#61cefa 33% 40%,#f5a9b8 40% 47%,#f8f8f8 47% 53%,#f5a9b8 53% 60%,#61cefa 60% 67%,transparent 67% 100%),radial-gradient(circle at 50% 50%,#1d4049 0%,#0f262b 100%) !important}
+.pcmt-bg-galactic{background:linear-gradient(90deg,transparent 0 58.5%,rgba(255,255,255,.07) 58.5% 62%,transparent 62% 100%),linear-gradient(90deg,transparent 0 33%,#fcef42 33% 41.5%,#fdfeff 41.5% 50%,#9240e6 50% 58.5%,#050506 58.5% 67%,transparent 67% 100%),radial-gradient(circle at 50% 50%,#173039 0%,#0b1d24 100%) !important}
+.pcmt-bg-mint{background:linear-gradient(90deg,transparent 0 33%,#3f217d 33.00% 37.86%,#5253d5 37.86% 42.71%,#7db1e5 42.71% 47.57%,#ffffff 47.57% 52.43%,#8be4b7 52.43% 57.29%,#12c9a4 57.29% 62.14%,#038366 62.14% 67.00%,transparent 67% 100%),radial-gradient(circle at 50% 50%,#1d3a42 0%,#0f242b 100%) !important}
+.pcmt-bg-primary{background:linear-gradient(90deg,transparent 0 33%,#ff1b8d 33% 44.33%,#ffd900 44.33% 55.67%,#1bb3ff 55.67% 67%,transparent 67% 100%),radial-gradient(circle at 50% 50%,#173039 0%,#0b1d24 100%) !important}
+.pcmt-bg-rainbow{background:linear-gradient(90deg,transparent 0 33%,#740b87 33.00% 38.67%,#044bff 38.67% 44.33%,#007d33 44.33% 50.00%,#ffef00 50.00% 55.67%,#ff9800 55.67% 61.33%,#e70200 61.33% 67.00%,transparent 67% 100%),radial-gradient(circle at 50% 50%,#173039 0%,#0b1d24 100%) !important}
+.pcmt-bg-sherbet{background:linear-gradient(90deg,transparent 0 33%,#d43200 33.00% 39.80%,#ffac63 39.80% 46.60%,#fff4ec 46.60% 53.40%,#d56ba9 53.40% 60.20%,#a71567 60.20% 67.00%,transparent 67% 100%),radial-gradient(circle at 50% 50%,#173039 0%,#0b1d24 100%) !important}
+.pcmt-bg-sunset{background:linear-gradient(90deg,transparent 0 33%,#da137b 33% 46.6%,#9b5ba6 46.6% 53.4%,#1045c2 53.4% 67%,transparent 67% 100%),radial-gradient(circle at 50% 50%,#173039 0%,#0b1d24 100%) !important}
+.pcmt-bg-twilight{background:linear-gradient(90deg,transparent 0 33%,rgba(255,255,255,.07) 33% 36.5%,transparent 36.5% 100%),linear-gradient(90deg,transparent 0 33%,#050506 33% 41.5%,#abacac 41.5% 50%,#ffffff 50% 58.5%,#7a0a7c 58.5% 67%,transparent 67% 100%),radial-gradient(circle at 50% 50%,#173039 0%,#0b1d24 100%) !important}
+.hl-w .hl-halo{stroke:#ffffff;stroke-opacity:.32}
+.hl-w .hl-mid{stroke:#f2f8ff;stroke-opacity:.7}
+.hl-w .hl-core{stroke:#ffffff}
+.hl-rb .hl-halo{stroke:var(--c);stroke-opacity:.6;stroke-width:4.5px}
+.hl-rb .hl-mid{stroke:var(--c);stroke-opacity:1;stroke-width:2.2px}
+.hl-rb .hl-core{stroke:#ffffff;stroke-opacity:.95}
+.pcmt-bg-trophy{background:linear-gradient(115deg,transparent 25%,rgba(255,246,214,.13) 42%,transparent 58%),radial-gradient(circle at 50% 50%,#0b1011 0 26%,rgba(11,16,17,0) 52%),repeating-linear-gradient(45deg,rgba(247,220,132,.32) 0 1px,transparent 1px 11px),repeating-linear-gradient(-45deg,rgba(247,220,132,.32) 0 1px,transparent 1px 11px),radial-gradient(circle at 50% 50%,#1a1d17 0%,#0a0b08 100%) !important}
+.pcmt-ring-trophy{overflow:visible !important;padding:0 !important;background:radial-gradient(circle at 50% 45%,#2a2614 0%,#0a0b08 70%) !important}
+.pcmt-ring-trophy img{transform:rotate(14deg) scale(1.3);border-radius:0 !important;object-fit:contain !important;filter:drop-shadow(0 6px 10px rgba(0,0,0,.65)) drop-shadow(0 0 14px rgba(247,220,132,.35))}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !important;box-shadow:0 0 0 3px rgba(165,220,221,.3)}
+</style>
+</helmet>
+<div data-pcmt-root="Customization" style="position: relative; min-height: 100vh; background: #000; color: #eaf4f4; font-family: 'Space Grotesk', system-ui, sans-serif; display: flex; flex-direction: column">
+<sc-if value="{{loaderOn}}" hint-placeholder-val="{{ false }}">
+<div class="pcmt-loading" role="status" aria-live="polite" style="position: absolute; inset: 0; z-index: 9999; background: #000; opacity: {{loaderOpacity}}; pointer-events: {{loaderPointer}}">
+<div style="position: sticky; top: 0; height: 100vh; max-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px">
+<div class="pcmt-loader" aria-hidden="true"><span style="--i:0"></span><span style="--i:1"></span><span style="--i:2"></span><span style="--i:3"></span><span style="--i:4"></span><span style="--i:5"></span><span style="--i:6"></span><span style="--i:7"></span><span style="--i:8"></span><span style="--i:9"></span><span style="--i:10"></span><span style="--i:11"></span><span style="--i:12"></span><span style="--i:13"></span><span style="--i:14"></span></div>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.12em; color: #a5dcdd">{{loaderLabel}}</span>
+</div>
+</div>
+</sc-if>
+
+
+<header style="border-bottom: 1px solid #1e2b2d; background: #050808">
+<div style="max-width: 1280px; margin: 0 auto; padding: 14px 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 32px">
+<a href="Main.dc.html" style="display: flex; align-items: baseline; gap: 10px; text-decoration: none">
+<span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 32px; color: #a5dcdd; line-height: 1">PCMT Fantasy League</span>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.08em">NA · S3</span>
+</a>
+<nav aria-label="Main" style="display: flex; flex-wrap: wrap; gap: 4px; flex: 1 1 auto">
+<a href="Leaderboard.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Leaderboard</a>
+<a href="Main.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Team Builder</a>
+<a href="Customization.dc.html" aria-current="page" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #000; background: #a5dcdd; font-weight: 600">Customization</a>
+<a href="Rules.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Guide</a>
+</nav>
+<a href="Login.dc.html" style="min-height: 44px; display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; border-radius: 8px; background: #4752C4; color: #fff; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; text-decoration: none"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><path d="M10 17l5-5-5-5"></path><path d="M15 12H3"></path></svg>Log in with Discord</a>
+</div>
+</header>
+
+<main style="flex: 1; width: 100%; max-width: 1280px; box-sizing: border-box; margin: 0 auto; padding: 36px 24px 64px; display: flex; flex-direction: column; gap: 32px">
+
+<h1 style="margin: 0; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 60px; line-height: 1">Customization</h1>
+
+<section aria-labelledby="defaults-h" style="display: flex; flex-direction: column; gap: 18px; padding: 22px; border-radius: 12px; background: #0b1011; border: 1px solid #1e2b2d">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px">
+<h2 id="defaults-h" style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">PCMT Decks</h2>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">PCMT · {{defaultCount}}</span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 18px 14px">
+<sc-for list="{{defaults}}" as="d" hint-placeholder-count="2">
+<button onClick="{{d.equip}}" aria-pressed="{{d.on}}" aria-disabled="{{d.locked}}" aria-label="{{d.label}}" title="{{d.title}}" style="display: flex; flex-direction: column; gap: 8px; padding: 0; border: none; background: transparent; color: inherit; font: inherit; text-align: left; cursor: {{d.cursor}}; min-width: 0">
+<div aria-hidden="true" class="{{d.bgClass}}" style="position: relative; width: 100%; aspect-ratio: 5 / 7; border-radius: 10px; border: 1px solid {{d.edge}}; background: {{d.bg}}; box-shadow: {{d.ring}}; display: grid; place-items: center; overflow: hidden">
+<div style="position: absolute; inset: 6px; border: 1px solid {{d.frame}}; border-radius: 7px"></div>
+<div style="position: absolute; inset: 10px; border: 1px solid {{d.frameSoft}}; border-radius: 5px"></div>
+<div class="{{d.ringClass}}" style="width: 70%; aspect-ratio: 1; border-radius: 50%; border: 1.5px solid {{d.color}}; padding: 5px; box-sizing: border-box; box-shadow: 0 0 0 4px rgba(8,11,12,.9), 0 0 0 5px {{d.frameSoft}}, 0 0 18px {{d.glow}}">
+<img src="{{d.logo}}" alt="" style="width: 100%; height: 100%; object-fit: {{d.fit}}; display: block; border-radius: {{d.radius}}">
+</div>
+<sc-if value="{{d.locked}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; inset: 0; background: rgba(0,0,0,0.6); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px">
+<span style="width: 34px; height: 34px; border-radius: 50%; background: #000; border: 1px solid {{d.color}}; color: {{d.color}}; display: grid; place-items: center"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg></span>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; color: {{d.color}}">LOCKED</span>
+</div>
+</sc-if>
+</div>
+<span style="display: flex; justify-content: space-between; align-items: center; gap: 6px; min-width: 0">
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: {{d.color}}">{{d.name}}</span>
+<sc-if value="{{d.on}}" hint-placeholder-val="{{ false }}">
+<span style="padding: 2px 7px; border-radius: 999px; background: {{d.color}}; color: #000; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.04em">EQUIPPED</span>
+</sc-if>
+</span>
+<sc-if value="{{d.locked}}" hint-placeholder-val="{{ false }}">
+<span style="font-size: 12px; color: #93a9aa; line-height: 1.4">{{d.hint}}</span>
+</sc-if>
+</button>
+</sc-for>
+</div>
+</section>
+
+<section aria-labelledby="pride-h" style="display: flex; flex-direction: column; gap: 18px; padding: 22px; border-radius: 12px; background: #0b1011; border: 1px solid #1e2b2d">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px">
+<h2 id="pride-h" style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">Pride Collection</h2>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">{{prideCount}} decks</span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 18px 14px">
+<sc-for list="{{pride}}" as="d" hint-placeholder-count="1">
+<button onClick="{{d.equip}}" aria-pressed="{{d.on}}" aria-label="{{d.name}} deck" style="display: flex; flex-direction: column; gap: 8px; padding: 0; border: none; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; min-width: 0">
+<div aria-hidden="true" class="{{d.bgClass}}" style="position: relative; width: 100%; aspect-ratio: 5 / 7; border-radius: 10px; border: 1px solid {{d.edge}}; box-shadow: {{d.ring}}; display: grid; place-items: center; overflow: hidden">
+<div style="position: absolute; inset: 6px; border: 1px solid {{d.frame}}; border-radius: 7px"></div>
+<div style="position: absolute; inset: 10px; border: 1px solid {{d.frameSoft}}; border-radius: 5px"></div>
+<div style="width: 70%; aspect-ratio: 1; border-radius: 50%; border: 1.5px solid {{d.color}}; padding: 5px; box-sizing: border-box; box-shadow: 0 0 0 4px rgba(8,11,12,.9), 0 0 0 5px {{d.frameSoft}}, 0 0 18px {{d.glow}}">
+<img src="/_blob/2a4e23ef347f57092db2e86baf2b96f2" alt="" style="width: 100%; height: 100%; display: block; border-radius: 50%">
+</div>
+</div>
+<span style="display: flex; justify-content: space-between; align-items: center; gap: 6px; min-width: 0">
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: {{d.color}}">{{d.name}}</span>
+<sc-if value="{{d.on}}" hint-placeholder-val="{{ false }}">
+<span style="padding: 2px 7px; border-radius: 999px; background: {{d.color}}; color: #000; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.04em">EQUIPPED</span>
+</sc-if>
+</span>
+</button>
+</sc-for>
+</div>
+</section>
+
+<section aria-labelledby="decks-h" style="display: flex; flex-direction: column; gap: 18px; padding: 22px; border-radius: 12px; background: #0b1011; border: 1px solid #1e2b2d">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px">
+<h2 id="decks-h" style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">North American Team Decks</h2>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">{{deckUnlocked}} of {{deckCount}} unlocked</span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 18px 14px">
+<sc-for list="{{decks}}" as="d" hint-placeholder-count="16">
+<button onClick="{{d.equip}}" aria-pressed="{{d.on}}" aria-disabled="{{d.locked}}" aria-label="{{d.label}}" title="{{d.title}}" style="display: flex; flex-direction: column; gap: 8px; padding: 0; border: none; background: transparent; color: inherit; font: inherit; text-align: left; cursor: {{d.cursor}}; min-width: 0">
+<div aria-hidden="true" style="position: relative; width: 100%; aspect-ratio: 5 / 7; border-radius: 10px; border: 1px solid {{d.edge}}; background: {{d.bg}}; box-shadow: {{d.ring}}; display: grid; place-items: center; overflow: hidden">
+<div style="position: absolute; inset: 6px; border: 1px solid {{d.frame}}; border-radius: 7px"></div>
+<div style="position: absolute; inset: 10px; border: 1px solid {{d.frameSoft}}; border-radius: 5px"></div>
+<div style="width: 62%; aspect-ratio: 1; border-radius: 50%; border: 1.5px solid {{d.color}}; background: #080b0c; box-sizing: border-box; display: grid; place-items: center; box-shadow: 0 0 0 3px rgba(8,11,12,.9), 0 0 0 4px {{d.frameSoft}}, 0 0 14px {{d.glow}}">
+<img src="{{d.logo}}" alt="" style="max-width: 70%; max-height: 70%; width: auto; height: auto; object-fit: contain; display: block">
+</div>
+<sc-if value="{{d.locked}}" hint-placeholder-val="{{ true }}">
+<div style="position: absolute; inset: 0; background: rgba(0,0,0,0.6); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px">
+<span style="width: 34px; height: 34px; border-radius: 50%; background: #000; border: 1px solid {{d.color}}; color: {{d.color}}; display: grid; place-items: center"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg></span>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; color: {{d.color}}">LOCKED</span>
+</div>
+</sc-if>
+</div>
+<span style="display: flex; justify-content: space-between; align-items: center; gap: 6px; min-width: 0">
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: {{d.color}}">{{d.code}}</span>
+<sc-if value="{{d.on}}" hint-placeholder-val="{{ false }}">
+<span style="padding: 2px 7px; border-radius: 999px; background: {{d.color}}; color: #000; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.04em">EQUIPPED</span>
+</sc-if>
+</span>
+<span style="font-size: 13px; color: #93a9aa; line-height: 1.3">{{d.name}}</span>
+<sc-if value="{{d.locked}}" hint-placeholder-val="{{ true }}">
+<span style="display: flex; flex-direction: column; gap: 4px">
+<span style="height: 4px; border-radius: 999px; background: #1e2b2d; overflow: hidden"><span style="display: block; height: 100%; width: {{d.pct}}; background: {{d.color}}; border-radius: 999px"></span></span>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #93a9aa">{{d.progress}}</span>
+</span>
+</sc-if>
+</button>
+</sc-for>
+</div>
+</section>
+
+<section aria-labelledby="eu-decks-h" style="display: flex; flex-direction: column; gap: 18px; padding: 22px; border-radius: 12px; background: #0b1011; border: 1px solid #1e2b2d">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px">
+<h2 id="eu-decks-h" style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">European Team Decks</h2>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">Coming soon</span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 18px 14px">
+<div style="grid-column: 1 / -1; min-height: 120px; border: 2px dashed #2c3d40; border-radius: 10px; display: flex; align-items: center; justify-content: center; padding: 20px; text-align: center; color: #93a9aa; font-size: 14px; line-height: 1.5">European team decks are on the way.</div>
+</div>
+</section>
+
+<section aria-labelledby="unlock-h" style="display: flex; flex-direction: column; gap: 18px; padding: 22px; border-radius: 12px; background: #0b1011; border: 1px solid #1e2b2d">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px">
+<h2 id="unlock-h" style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">Aura</h2>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">{{unlockedCount}} of 4 unlocked</span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 18px 14px">
+<button class="ea-card" onClick="{{ringA.toggle}}" aria-pressed="{{ringA.on}}" aria-label="{{ringA.label}}" title="{{ringA.title}}" style="display: flex; flex-direction: column; gap: 8px; padding: 0; border: none; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; min-width: 0">
+<div aria-hidden="true" class="{{cur.bgClass}}" style="position: relative; width: 100%; aspect-ratio: 5 / 7; border-radius: 10px; border: 1px solid {{cur.edge}}; background: {{cur.bg}}; box-shadow: {{ringA.ring}}; display: grid; place-items: center; overflow: hidden">
+<div style="position: absolute; inset: 6px; border: 1px solid {{cur.frame}}; border-radius: 7px"></div>
+<div style="position: absolute; inset: 10px; border: 1px solid {{cur.frameSoft}}; border-radius: 5px"></div>
+<div class="{{cur.ringClass}}" style="position: relative; width: {{cur.ringSize}}; aspect-ratio: 1; border-radius: 50%; border: 1.5px solid {{cur.color}}; padding: {{cur.ringPad}}; background: #080b0c; box-sizing: border-box; display: grid; place-items: center; box-shadow: 0 0 0 4px rgba(8,11,12,.9), 0 0 0 5px {{cur.frameSoft}}, 0 0 18px {{cur.glow}}">
+<img src="{{cur.logo}}" alt="" style="width: {{cur.imgSize}}; height: {{cur.imgSize}}; object-fit: contain; display: block; border-radius: {{cur.imgRadius}}">
+<svg class="hl-svg hl-w" aria-hidden="true" viewBox="0 0 100 100" style="position: absolute; left: -1.5px; top: -1.5px; width: calc(100% + 3px); height: calc(100% + 3px); overflow: visible; pointer-events: none"><defs><filter id="hl-soft-w" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="1.3"></feGaussianBlur></filter></defs><g class="hl-g {{ring.c0.rev}}" style="--dur: {{ring.c0.dur}}; --d: {{ring.c0.delay}}; --fade: {{ring.c0.fade}}; --fd: {{ring.c0.fd}}"><circle class="hl-t hl-halo" filter="url(#hl-soft-w)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-mid" filter="url(#hl-soft-w)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-core" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle></g><g class="hl-g {{ring.c1.rev}}" style="--dur: {{ring.c1.dur}}; --d: {{ring.c1.delay}}; --fade: {{ring.c1.fade}}; --fd: {{ring.c1.fd}}"><circle class="hl-t hl-halo" filter="url(#hl-soft-w)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-mid" filter="url(#hl-soft-w)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-core" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle></g><g class="hl-g {{ring.c2.rev}}" style="--dur: {{ring.c2.dur}}; --d: {{ring.c2.delay}}; --fade: {{ring.c2.fade}}; --fd: {{ring.c2.fd}}"><circle class="hl-t hl-halo" filter="url(#hl-soft-w)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-mid" filter="url(#hl-soft-w)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-core" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle></g></svg>
+</div>
+</div>
+<span style="display: flex; justify-content: space-between; align-items: center; gap: 6px; min-width: 0">
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: #f5d76e">Halo</span>
+<sc-if value="{{ringA.on}}" hint-placeholder-val="{{ false }}">
+<span style="padding: 2px 7px; border-radius: 999px; background: #d4af37; color: #000; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.04em">ON</span>
+</sc-if>
+</span>
+</button>
+<button class="ea-card" onClick="{{prideA.toggle}}" aria-pressed="{{prideA.on}}" aria-label="{{prideA.label}}" title="{{prideA.title}}" style="display: flex; flex-direction: column; gap: 8px; padding: 0; border: none; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; min-width: 0">
+<div aria-hidden="true" class="{{cur.bgClass}}" style="position: relative; width: 100%; aspect-ratio: 5 / 7; border-radius: 10px; border: 1px solid {{cur.edge}}; background: {{cur.bg}}; box-shadow: {{prideA.ring}}; display: grid; place-items: center; overflow: hidden">
+<div style="position: absolute; inset: 6px; border: 1px solid {{cur.frame}}; border-radius: 7px"></div>
+<div style="position: absolute; inset: 10px; border: 1px solid {{cur.frameSoft}}; border-radius: 5px"></div>
+<svg class="hl-svg hl-rb" aria-hidden="true" style="position: absolute; left: 6px; top: 6px; width: calc(100% - 12px); height: calc(100% - 12px); overflow: visible; pointer-events: none"><defs><filter id="hl-soft-rb" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="1.3"></feGaussianBlur></filter></defs><g class="hl-g {{prideA.o0.rev}}" style="--c: #ff5a5a; --dur: {{prideA.o0.dur}}; --d: {{prideA.o0.delay}}; --fade: {{prideA.o0.fade}}; --fd: {{prideA.o0.fd}}"><rect class="hl-t hl-halo" filter="url(#hl-soft-rb)" x="0.5" y="0.5" width="100%" height="100%" rx="6.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-mid" filter="url(#hl-soft-rb)" x="0.5" y="0.5" width="100%" height="100%" rx="6.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-core" x="0.5" y="0.5" width="100%" height="100%" rx="6.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect></g><g class="hl-g {{prideA.o1.rev}}" style="--c: #ffe94d; --dur: {{prideA.o1.dur}}; --d: {{prideA.o1.delay}}; --fade: {{prideA.o1.fade}}; --fd: {{prideA.o1.fd}}"><rect class="hl-t hl-halo" filter="url(#hl-soft-rb)" x="0.5" y="0.5" width="100%" height="100%" rx="6.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-mid" filter="url(#hl-soft-rb)" x="0.5" y="0.5" width="100%" height="100%" rx="6.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-core" x="0.5" y="0.5" width="100%" height="100%" rx="6.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect></g><g class="hl-g {{prideA.o2.rev}}" style="--c: #5cb0ff; --dur: {{prideA.o2.dur}}; --d: {{prideA.o2.delay}}; --fade: {{prideA.o2.fade}}; --fd: {{prideA.o2.fd}}"><rect class="hl-t hl-halo" filter="url(#hl-soft-rb)" x="0.5" y="0.5" width="100%" height="100%" rx="6.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-mid" filter="url(#hl-soft-rb)" x="0.5" y="0.5" width="100%" height="100%" rx="6.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-core" x="0.5" y="0.5" width="100%" height="100%" rx="6.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect></g></svg><svg class="hl-svg hl-rb" aria-hidden="true" style="position: absolute; left: 10px; top: 10px; width: calc(100% - 20px); height: calc(100% - 20px); overflow: visible; pointer-events: none"><g class="hl-g {{prideA.i0.rev}}" style="--c: #ffb347; --dur: {{prideA.i0.dur}}; --d: {{prideA.i0.delay}}; --fade: {{prideA.i0.fade}}; --fd: {{prideA.i0.fd}}"><rect class="hl-t hl-halo" filter="url(#hl-soft-rb)" x="0.5" y="0.5" width="100%" height="100%" rx="4.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-mid" filter="url(#hl-soft-rb)" x="0.5" y="0.5" width="100%" height="100%" rx="4.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-core" x="0.5" y="0.5" width="100%" height="100%" rx="4.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect></g><g class="hl-g {{prideA.i1.rev}}" style="--c: #55ff8f; --dur: {{prideA.i1.dur}}; --d: {{prideA.i1.delay}}; --fade: {{prideA.i1.fade}}; --fd: {{prideA.i1.fd}}"><rect class="hl-t hl-halo" filter="url(#hl-soft-rb)" x="0.5" y="0.5" width="100%" height="100%" rx="4.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-mid" filter="url(#hl-soft-rb)" x="0.5" y="0.5" width="100%" height="100%" rx="4.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-core" x="0.5" y="0.5" width="100%" height="100%" rx="4.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect></g></svg>
+<div class="{{cur.ringClass}}" style="position: relative; width: {{cur.ringSize}}; aspect-ratio: 1; border-radius: 50%; border: 1.5px solid {{cur.color}}; padding: {{cur.ringPad}}; background: #080b0c; box-sizing: border-box; display: grid; place-items: center; box-shadow: 0 0 0 4px rgba(8,11,12,.9), 0 0 0 5px {{cur.frameSoft}}, 0 0 18px {{cur.glow}}">
+<img src="{{cur.logo}}" alt="" style="width: {{cur.imgSize}}; height: {{cur.imgSize}}; object-fit: contain; display: block; border-radius: {{cur.imgRadius}}">
+<svg class="hl-svg hl-rb" aria-hidden="true" viewBox="0 0 100 100" style="position: absolute; left: -1.5px; top: -1.5px; width: calc(100% + 3px); height: calc(100% + 3px); overflow: visible; pointer-events: none"><g class="hl-g {{prideA.c0.rev}}" style="--c: #d08bff; --dur: {{prideA.c0.dur}}; --d: {{prideA.c0.delay}}; --fade: {{prideA.c0.fade}}; --fd: {{prideA.c0.fd}}"><circle class="hl-t hl-halo" filter="url(#hl-soft-rb)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-mid" filter="url(#hl-soft-rb)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-core" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle></g><g class="hl-g {{prideA.c1.rev}}" style="--c: #ff7ac8; --dur: {{prideA.c1.dur}}; --d: {{prideA.c1.delay}}; --fade: {{prideA.c1.fade}}; --fd: {{prideA.c1.fd}}"><circle class="hl-t hl-halo" filter="url(#hl-soft-rb)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-mid" filter="url(#hl-soft-rb)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-core" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle></g><g class="hl-g {{prideA.c2.rev}}" style="--c: #5cffff; --dur: {{prideA.c2.dur}}; --d: {{prideA.c2.delay}}; --fade: {{prideA.c2.fade}}; --fd: {{prideA.c2.fd}}"><circle class="hl-t hl-halo" filter="url(#hl-soft-rb)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-mid" filter="url(#hl-soft-rb)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-core" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle></g></svg>
+</div>
+</div>
+<span style="display: flex; justify-content: space-between; align-items: center; gap: 6px; min-width: 0">
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: #f5d76e">Pride // Aura</span>
+<sc-if value="{{prideA.on}}" hint-placeholder-val="{{ false }}">
+<span style="padding: 2px 7px; border-radius: 999px; background: #d4af37; color: #000; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.04em">ON</span>
+</sc-if>
+</span>
+</button>
+<button class="ea-card" onClick="{{ethan.toggle}}" aria-pressed="{{ethan.on}}" aria-disabled="{{ethan.locked}}" aria-label="{{ethan.label}}" title="{{ethan.title}}" style="display: flex; flex-direction: column; gap: 8px; padding: 0; border: none; background: transparent; color: inherit; font: inherit; text-align: left; cursor: {{ethan.cursor}}; min-width: 0">
+<div aria-hidden="true" class="{{cur.bgClass}}" style="position: relative; width: 100%; aspect-ratio: 5 / 7; border-radius: 10px; border: 1px solid {{cur.edge}}; background: {{cur.plainBg}}; box-shadow: {{ethan.ring}}; display: grid; place-items: center; overflow: hidden">
+<svg aria-hidden="true" viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice" style="position: absolute; inset: 0; width: 100%; height: 100%; display: block"><defs><filter id="ea-soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.4"></feGaussianBlur></filter></defs><path d="M0 15L15 0 M0 30L30 0 M0 45L45 0 M0 60L60 0 M0 75L75 0 M0 90L90 0 M0 105L105 0 M0 120L120 0 M0 135L135 0 M0 150L150 0 M0 165L165 0 M0 180L180 0 M0 195L195 0 M10 200L200 10 M25 200L200 25 M40 200L200 40 M55 200L200 55 M70 200L200 70 M85 200L200 85 M100 200L200 100 M115 200L200 115 M130 200L200 130 M145 200L200 145 M160 200L200 160 M175 200L200 175 M190 200L200 190 M0 195L5 200 M0 180L20 200 M0 165L35 200 M0 150L50 200 M0 135L65 200 M0 120L80 200 M0 105L95 200 M0 90L110 200 M0 75L125 200 M0 60L140 200 M0 45L155 200 M0 30L170 200 M0 15L185 200 M0 0L200 200 M15 0L200 185 M30 0L200 170 M45 0L200 155 M60 0L200 140 M75 0L200 125 M90 0L200 110 M105 0L200 95 M120 0L200 80 M135 0L200 65 M150 0L200 50 M165 0L200 35 M180 0L200 20 M195 0L200 5" fill="none" stroke="{{cur.lattice}}" stroke-width="1" vector-effect="non-scaling-stroke"></path><g style="--dur: {{aura.t0.dur}}; --d: {{aura.t0.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t0.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t0.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t0.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t1.dur}}; --d: {{aura.t1.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t1.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t1.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t1.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t2.dur}}; --d: {{aura.t2.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t2.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t2.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t2.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t3.dur}}; --d: {{aura.t3.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t3.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t3.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t3.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t4.dur}}; --d: {{aura.t4.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t4.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t4.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t4.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t5.dur}}; --d: {{aura.t5.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t5.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t5.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t5.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t6.dur}}; --d: {{aura.t6.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t6.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t6.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t6.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t7.dur}}; --d: {{aura.t7.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t7.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t7.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t7.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t8.dur}}; --d: {{aura.t8.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t8.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t8.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t8.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t9.dur}}; --d: {{aura.t9.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t9.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t9.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t9.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t10.dur}}; --d: {{aura.t10.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t10.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t10.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t10.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t11.dur}}; --d: {{aura.t11.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t11.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t11.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t11.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t12.dur}}; --d: {{aura.t12.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t12.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t12.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t12.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t13.dur}}; --d: {{aura.t13.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t13.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t13.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t13.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t14.dur}}; --d: {{aura.t14.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t14.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t14.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t14.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t15.dur}}; --d: {{aura.t15.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t15.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t15.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t15.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t16.dur}}; --d: {{aura.t16.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t16.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t16.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t16.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t17.dur}}; --d: {{aura.t17.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t17.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t17.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t17.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t18.dur}}; --d: {{aura.t18.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t18.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t18.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t18.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t19.dur}}; --d: {{aura.t19.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t19.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t19.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t19.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t20.dur}}; --d: {{aura.t20.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t20.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t20.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t20.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t21.dur}}; --d: {{aura.t21.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t21.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t21.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t21.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t22.dur}}; --d: {{aura.t22.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t22.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t22.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t22.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g><g style="--dur: {{aura.t23.dur}}; --d: {{aura.t23.delay}}"><path class="ea-t ea-halo" filter="url(#ea-soft)" d="{{aura.t23.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-mid" filter="url(#ea-soft)" d="{{aura.t23.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path><path class="ea-t ea-core" d="{{aura.t23.d}}" pathLength="100" vector-effect="non-scaling-stroke"></path></g></svg><div style="position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, #0b1011 0 28%, rgba(11,16,17,0) 50%)"></div>
+<div style="position: absolute; inset: 6px; border: 1px solid {{cur.frame}}; border-radius: 7px"></div>
+<div style="position: absolute; inset: 10px; border: 1px solid {{cur.frameSoft}}; border-radius: 5px"></div>
+<div class="{{cur.ringClass}}" style="position: relative; width: {{cur.ringSize}}; aspect-ratio: 1; border-radius: 50%; border: 1.5px solid {{cur.color}}; padding: {{cur.ringPad}}; background: #080b0c; box-sizing: border-box; display: grid; place-items: center; box-shadow: 0 0 0 4px rgba(8,11,12,.9), 0 0 0 5px {{cur.frameSoft}}, 0 0 18px {{cur.glow}}">
+<img src="{{cur.logo}}" alt="" style="width: {{cur.imgSize}}; height: {{cur.imgSize}}; object-fit: contain; display: block; border-radius: {{cur.imgRadius}}">
+</div>
+<sc-if value="{{ethan.locked}}" hint-placeholder-val="{{ true }}">
+<div style="position: absolute; inset: 0; background: rgba(0,0,0,0.55); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 12px; box-sizing: border-box; text-align: center">
+<span style="width: 40px; height: 40px; border-radius: 50%; background: #000; border: 1px solid #d4af37; color: #f5d76e; display: grid; place-items: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg></span>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; color: #f5d76e">LOCKED</span>
+</div>
+</sc-if>
+</div>
+<span style="display: flex; justify-content: space-between; align-items: center; gap: 6px; min-width: 0">
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: #f5d76e">Ethan Arnold</span>
+<sc-if value="{{ethan.on}}" hint-placeholder-val="{{ false }}">
+<span style="padding: 2px 7px; border-radius: 999px; background: #d4af37; color: #000; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.04em">ON</span>
+</sc-if>
+</span>
+<span style="font-size: 12px; color: #93a9aa; line-height: 1.4">{{ethan.hint}}</span>
+</button>
+<button class="ea-card" onClick="{{halo.toggle}}" aria-pressed="{{halo.on}}" aria-disabled="{{halo.locked}}" aria-label="{{halo.label}}" title="{{halo.title}}" style="display: flex; flex-direction: column; gap: 8px; padding: 0; border: none; background: transparent; color: inherit; font: inherit; text-align: left; cursor: {{halo.cursor}}; min-width: 0">
+<div aria-hidden="true" class="{{cur.bgClass}}" style="position: relative; width: 100%; aspect-ratio: 5 / 7; border-radius: 10px; border: 1px solid {{cur.edge}}; background: {{cur.bg}}; box-shadow: {{halo.ring}}; display: grid; place-items: center; overflow: hidden">
+<div style="position: absolute; inset: 6px; border: 1px solid {{cur.frame}}; border-radius: 7px"></div>
+<div style="position: absolute; inset: 10px; border: 1px solid {{cur.frameSoft}}; border-radius: 5px"></div>
+<svg aria-hidden="true" style="position: absolute; left: 6px; top: 6px; width: calc(100% - 12px); height: calc(100% - 12px); overflow: visible; pointer-events: none"><defs><filter id="hl-soft" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="1.3"></feGaussianBlur></filter></defs><g class="hl-g {{halo.o0.rev}}" style="--dur: {{halo.o0.dur}}; --d: {{halo.o0.delay}}; --fade: {{halo.o0.fade}}; --fd: {{halo.o0.fd}}"><rect class="hl-t hl-halo" filter="url(#hl-soft)" x="0.5" y="0.5" width="100%" height="100%" rx="6.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-mid" filter="url(#hl-soft)" x="0.5" y="0.5" width="100%" height="100%" rx="6.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-core" x="0.5" y="0.5" width="100%" height="100%" rx="6.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect></g><g class="hl-g {{halo.o1.rev}}" style="--dur: {{halo.o1.dur}}; --d: {{halo.o1.delay}}; --fade: {{halo.o1.fade}}; --fd: {{halo.o1.fd}}"><rect class="hl-t hl-halo" filter="url(#hl-soft)" x="0.5" y="0.5" width="100%" height="100%" rx="6.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-mid" filter="url(#hl-soft)" x="0.5" y="0.5" width="100%" height="100%" rx="6.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-core" x="0.5" y="0.5" width="100%" height="100%" rx="6.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect></g><g class="hl-g {{halo.o2.rev}}" style="--dur: {{halo.o2.dur}}; --d: {{halo.o2.delay}}; --fade: {{halo.o2.fade}}; --fd: {{halo.o2.fd}}"><rect class="hl-t hl-halo" filter="url(#hl-soft)" x="0.5" y="0.5" width="100%" height="100%" rx="6.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-mid" filter="url(#hl-soft)" x="0.5" y="0.5" width="100%" height="100%" rx="6.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-core" x="0.5" y="0.5" width="100%" height="100%" rx="6.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect></g></svg><svg aria-hidden="true" style="position: absolute; left: 10px; top: 10px; width: calc(100% - 20px); height: calc(100% - 20px); overflow: visible; pointer-events: none"><g class="hl-g {{halo.i0.rev}}" style="--dur: {{halo.i0.dur}}; --d: {{halo.i0.delay}}; --fade: {{halo.i0.fade}}; --fd: {{halo.i0.fd}}"><rect class="hl-t hl-halo" filter="url(#hl-soft)" x="0.5" y="0.5" width="100%" height="100%" rx="4.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-mid" filter="url(#hl-soft)" x="0.5" y="0.5" width="100%" height="100%" rx="4.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-core" x="0.5" y="0.5" width="100%" height="100%" rx="4.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect></g><g class="hl-g {{halo.i1.rev}}" style="--dur: {{halo.i1.dur}}; --d: {{halo.i1.delay}}; --fade: {{halo.i1.fade}}; --fd: {{halo.i1.fd}}"><rect class="hl-t hl-halo" filter="url(#hl-soft)" x="0.5" y="0.5" width="100%" height="100%" rx="4.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-mid" filter="url(#hl-soft)" x="0.5" y="0.5" width="100%" height="100%" rx="4.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect><rect class="hl-t hl-core" x="0.5" y="0.5" width="100%" height="100%" rx="4.5" pathLength="100" style="width: calc(100% - 1px); height: calc(100% - 1px)"></rect></g></svg>
+<div class="{{cur.ringClass}}" style="position: relative; width: {{cur.ringSize}}; aspect-ratio: 1; border-radius: 50%; border: 1.5px solid {{cur.color}}; padding: {{cur.ringPad}}; background: #080b0c; box-sizing: border-box; display: grid; place-items: center; box-shadow: 0 0 0 4px rgba(8,11,12,.9), 0 0 0 5px {{cur.frameSoft}}, 0 0 18px {{cur.glow}}">
+<img src="{{cur.logo}}" alt="" style="width: {{cur.imgSize}}; height: {{cur.imgSize}}; object-fit: contain; display: block; border-radius: {{cur.imgRadius}}">
+<svg aria-hidden="true" viewBox="0 0 100 100" style="position: absolute; left: -1.5px; top: -1.5px; width: calc(100% + 3px); height: calc(100% + 3px); overflow: visible; pointer-events: none"><g class="hl-g {{halo.c0.rev}}" style="--dur: {{halo.c0.dur}}; --d: {{halo.c0.delay}}; --fade: {{halo.c0.fade}}; --fd: {{halo.c0.fd}}"><circle class="hl-t hl-halo" filter="url(#hl-soft)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-mid" filter="url(#hl-soft)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-core" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle></g><g class="hl-g {{halo.c1.rev}}" style="--dur: {{halo.c1.dur}}; --d: {{halo.c1.delay}}; --fade: {{halo.c1.fade}}; --fd: {{halo.c1.fd}}"><circle class="hl-t hl-halo" filter="url(#hl-soft)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-mid" filter="url(#hl-soft)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-core" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle></g><g class="hl-g {{halo.c2.rev}}" style="--dur: {{halo.c2.dur}}; --d: {{halo.c2.delay}}; --fade: {{halo.c2.fade}}; --fd: {{halo.c2.fd}}"><circle class="hl-t hl-halo" filter="url(#hl-soft)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-mid" filter="url(#hl-soft)" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle><circle class="hl-t hl-core" cx="50" cy="50" r="49.3" pathLength="100" vector-effect="non-scaling-stroke"></circle></g></svg>
+</div>
+<sc-if value="{{halo.locked}}" hint-placeholder-val="{{ true }}">
+<div style="position: absolute; inset: 0; background: rgba(0,0,0,0.55); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 12px; box-sizing: border-box; text-align: center">
+<span style="width: 40px; height: 40px; border-radius: 50%; background: #000; border: 1px solid #d4af37; color: #f5d76e; display: grid; place-items: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg></span>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; color: #f5d76e">LOCKED</span>
+</div>
+</sc-if>
+</div>
+<span style="display: flex; justify-content: space-between; align-items: center; gap: 6px; min-width: 0">
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: #f5d76e">Midlife Crisis</span>
+<sc-if value="{{halo.on}}" hint-placeholder-val="{{ false }}">
+<span style="padding: 2px 7px; border-radius: 999px; background: #d4af37; color: #000; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.04em">ON</span>
+</sc-if>
+</span>
+<span style="font-size: 12px; color: #93a9aa; line-height: 1.4">{{halo.hint}}</span>
+</button>
+
+</div>
+</section>
+
+
+</main>
+
+<footer style="border-top: 1px solid #1e2b2d">
+<div style="max-width: 1280px; margin: 0 auto; padding: 22px 24px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">
+<span>PCMT Fantasy League · Plat Chat Members Tourney NA S3</span>
+<a href="https://pcmt.gg" target="_blank" rel="noopener">Stats on PCMT.gg</a>
+</div>
+</footer>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"ethanPreview":{"editor":"enum","options":["Live","Unlocked","Locked"],"default":"Live","section":"Preview"},"haloPreview":{"editor":"enum","options":["Live","Unlocked","Locked"],"default":"Live","section":"Preview"},"goldPreview":{"editor":"enum","options":["Live","Unlocked","Locked"],"default":"Live","section":"Preview"},"championPreview":{"editor":"enum","options":["Live","Unlocked","Locked"],"default":"Live","section":"Preview"},"teamDeckPreview":{"editor":"enum","options":["Live","Unlocked","Locked","Sample progress"],"default":"Live","section":"Preview"},"$preview":{"width":1440,"height":1500}}'>
+// Ethan Arnold: streaks of gold light that run along random lines of the card-back lattice.
+function pcmtAuraTraces() {
+  var out = {};
+  for (var i = 0; i < 24; i++) {
+    var up = Math.random() < 0.5, k = Math.floor(Math.random() * 15) - 7, x1, y1, x2, y2;
+    if (up) { var c = 200 + k * 15; if (c <= 200) { x1 = 0; y1 = c; x2 = c; y2 = 0; } else { x1 = c - 200; y1 = 200; x2 = 200; y2 = c - 200; } }
+    else { var d = k * 15; if (d >= 0) { x1 = d; y1 = 0; x2 = 200; y2 = 200 - d; } else { x1 = 0; y1 = -d; x2 = 200 + d; y2 = 200; } }
+    if (Math.random() < 0.5) { var tx = x1, ty = y1; x1 = x2; y1 = y2; x2 = tx; y2 = ty; }
+    out['t' + i] = {
+      d: 'M' + x1 + ' ' + y1 + 'L' + x2 + ' ' + y2,
+      dur: (4.5 + Math.random() * 4).toFixed(2) + 's',
+      delay: (Math.random() * 6).toFixed(2) + 's'
+    };
+  }
+  return out;
+}
+// How many gameweeks in a row this manager has finished #1 overall. The live site fills this in.
+// Halo aura: the same soft light, running around the card's frame lines and the centre ring.
+function pcmtHaloTraces() {
+  var out = {};
+  ['o0', 'o1', 'o2', 'i0', 'i1', 'c0', 'c1', 'c2'].forEach(function (k) {
+    out[k] = {
+      dur: (6 + Math.random() * 6).toFixed(2) + 's',
+      delay: (-Math.random() * 12).toFixed(2) + 's',
+      fade: (5 + Math.random() * 5).toFixed(2) + 's',
+      fd: (-Math.random() * 10).toFixed(2) + 's',
+      rev: Math.random() < 0.5 ? 'hl-rev' : ''
+    };
+  });
+  return out;
+}
+// Card-back backgrounds for the special decks (applied inline so they always win over the default lattice).
+var PCMT_DECK_BG = {
+  "COTTON": "linear-gradient(90deg,transparent 0 33%,#61cefa 33% 40%,#f5a9b8 40% 47%,#f8f8f8 47% 53%,#f5a9b8 53% 60%,#61cefa 60% 67%,transparent 67% 100%),radial-gradient(circle at 50% 50%,#1d4049 0%,#0f262b 100%)",
+  "GALACTIC": "linear-gradient(90deg,transparent 0 58.5%,rgba(255,255,255,.07) 58.5% 62%,transparent 62% 100%),linear-gradient(90deg,transparent 0 33%,#fcef42 33% 41.5%,#fdfeff 41.5% 50%,#9240e6 50% 58.5%,#050506 58.5% 67%,transparent 67% 100%),radial-gradient(circle at 50% 50%,#173039 0%,#0b1d24 100%)",
+  "MINT": "linear-gradient(90deg,transparent 0 33%,#3f217d 33.00% 37.86%,#5253d5 37.86% 42.71%,#7db1e5 42.71% 47.57%,#ffffff 47.57% 52.43%,#8be4b7 52.43% 57.29%,#12c9a4 57.29% 62.14%,#038366 62.14% 67.00%,transparent 67% 100%),radial-gradient(circle at 50% 50%,#1d3a42 0%,#0f242b 100%)",
+  "PRIMARY": "linear-gradient(90deg,transparent 0 33%,#ff1b8d 33% 44.33%,#ffd900 44.33% 55.67%,#1bb3ff 55.67% 67%,transparent 67% 100%),radial-gradient(circle at 50% 50%,#173039 0%,#0b1d24 100%)",
+  "RAINBOW": "linear-gradient(90deg,transparent 0 33%,#740b87 33.00% 38.67%,#044bff 38.67% 44.33%,#007d33 44.33% 50.00%,#ffef00 50.00% 55.67%,#ff9800 55.67% 61.33%,#e70200 61.33% 67.00%,transparent 67% 100%),radial-gradient(circle at 50% 50%,#173039 0%,#0b1d24 100%)",
+  "SHERBET": "linear-gradient(90deg,transparent 0 33%,#d43200 33.00% 39.80%,#ffac63 39.80% 46.60%,#fff4ec 46.60% 53.40%,#d56ba9 53.40% 60.20%,#a71567 60.20% 67.00%,transparent 67% 100%),radial-gradient(circle at 50% 50%,#173039 0%,#0b1d24 100%)",
+  "SUNSET": "linear-gradient(90deg,transparent 0 33%,#da137b 33% 46.6%,#9b5ba6 46.6% 53.4%,#1045c2 53.4% 67%,transparent 67% 100%),radial-gradient(circle at 50% 50%,#173039 0%,#0b1d24 100%)",
+  "TWILIGHT": "linear-gradient(90deg,transparent 0 33%,rgba(255,255,255,.07) 33% 36.5%,transparent 36.5% 100%),linear-gradient(90deg,transparent 0 33%,#050506 33% 41.5%,#abacac 41.5% 50%,#ffffff 50% 58.5%,#7a0a7c 58.5% 67%,transparent 67% 100%),radial-gradient(circle at 50% 50%,#173039 0%,#0b1d24 100%)",
+  "TROPHY": "linear-gradient(115deg,transparent 25%,rgba(255,246,214,.13) 42%,transparent 58%),radial-gradient(circle at 50% 50%,#0b1011 0 26%,rgba(11,16,17,0) 52%),repeating-linear-gradient(45deg,rgba(247,220,132,.32) 0 1px,transparent 1px 11px),repeating-linear-gradient(-45deg,rgba(247,220,132,.32) 0 1px,transparent 1px 11px),radial-gradient(circle at 50% 50%,#1a1d17 0%,#0a0b08 100%)"
+  };
+var PCMT_TOP_STREAK = 0;
+// Completed gameweeks this manager played with an active (locked-in, complete) squad. PCMT Gold unlocks at 1.
+var PCMT_ACTIVE_WEEKS = 0;
+// PCMT Champion unlocks the moment a match ends (per PCMT.gg) in which a Season 1 or Season 2 champion
+// who was in this manager's squad was on the winning team. The live site sets this flag.
+var PCMT_S1_CHAMPS = []; // [add Season 1 champion player ids]
+var PCMT_S2_CHAMPS = ['james', 'stingray'];
+var PCMT_CHAMPION_WIN = false;
+// Points this manager has banked from each team's players across the season (only while they were in the squad).
+// A team's deck unlocks at 50. The live site fills this in.
+var PCMT_TEAM_POINTS = {};
+var PCMT_DECK_UNLOCK = 50;
+// This manager's best single-gameweek score. Halo unlocks at 50. The live site fills this in.
+var PCMT_BEST_WEEK = 0;
+var PCMT_DECK_TEAMS = [
+  { code: 'T1', name: 'Team 1', color: '#FF0000', logo: '/_blob/fcef5b76df5525c76b7498644d980203' },
+  { code: 'TL', name: 'Team Dyslexia', color: '#1c9ad8', logo: '/_blob/41c5c14bc863138dfc782d7173221a30' },
+  { code: 'IHOP', name: 'I Hate Odin Party', color: '#3d95dc', logo: '/_blob/537e343312c404670bd0918f334d854b' },
+  { code: 'FSG', name: 'Furry Squirrels Gaming', color: '#e8603c', logo: '/_blob/2f2d4a58b7b22b799ae95dd9b4bbb034' },
+  { code: 'FNC', name: 'cow paulo FaN Club', color: '#ff8a1f', logo: '/_blob/3ab4b88e6d56ca702c2e48d77d8e8e9b' },
+  { code: 'SSG', name: 'Squirtle Squad Gaming', color: '#f2b01e', logo: '/_blob/9662570a651a26ba6e9f9a1280e33534' },
+  { code: 'RRQ', name: 'Rage Re-Queuers', color: '#f5d90a', logo: '/_blob/acf07edf818b6343db088540360439b5' },
+  { code: 'C9', name: 'Clown9', color: '#4dc3ef', logo: '/_blob/eb00e4ac16ebd0dc2f6aaa50c0d4195f' },
+  { code: 'SRB', name: 'Sunshine and Rainbows', color: '#58c47a', logo: '/_blob/f57c73b236981be65bc8ebd62be804aa' },
+  { code: 'TS', name: 'Team Slugshow', color: '#9b6be8', logo: '/_blob/07429f020d6512232b75c6d80e9e0ccc' },
+  { code: 'EPY', name: 'Team Entropy', color: '#e6e6e6', logo: '/_blob/616b87a1e9bedf86b251df776ea9d18f' },
+  { code: 'DFM', name: 'Dementia Found Me', color: '#5a78ff', logo: '/_blob/dbdcd4d263bb9ca3bc4cc04afa93c2d3' },
+  { code: 'BAKA', name: 'Beautiful and Kinda Adorable', color: '#b98ad9', logo: '/_blob/76fe93075b1ef8c2b3557abc2b8b7455' },
+  { code: 'NAVI', name: 'No Actual Valorant Intellegence', color: '#FF6EB4', logo: '/_blob/416211d20da2e4c47782f1cf06388bd1' },
+  { code: '100T', name: "100 Tony's", color: '#45dfe8', logo: '/_blob/69b065b263a6f4b1ae28fb075be9b6d6' },
+  { code: 'SPG', name: 'Spank Ptheory Gaming', color: '#ff7f66', logo: '/_blob/f390223a7a35a69b07beb60de0d4a084' }
+];
+function pcmtRgba(hex, a) {
+  var h = hex.replace('#', '');
+  return 'rgba(' + parseInt(h.slice(0, 2), 16) + ',' + parseInt(h.slice(2, 4), 16) + ',' + parseInt(h.slice(4, 6), 16) + ',' + a + ')';
+}
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    var saved = 'BLUE';
+    try { saved = window.localStorage.getItem('pcmt-deck') || 'BLUE'; } catch (e) {}
+    var aura = '';
+    try { aura = window.localStorage.getItem('pcmt-aura') || ''; if (aura === '1') aura = 'ethan'; } catch (e) {}
+    this.state = { equipped: saved, aura: aura };
+  }
+  equip(code) {
+    try { window.localStorage.setItem('pcmt-deck', code); } catch (e) {}
+    this.setState({ equipped: code });
+  }
+  componentDidMount() {
+    var self = this, start = Date.now();
+    if (this._pageDidMount) this._pageDidMount();
+    this._navClick = function (e) {
+      if (e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+      if (!a || a.target === '_blank') return;
+      var root = a.closest('[data-pcmt-root]');
+      if (!root || root.getAttribute('data-pcmt-root') !== 'Customization') return;
+      if (!/\.dc\.html(#|$|\?)/.test(a.getAttribute('href'))) return;
+      try { window.sessionStorage.setItem('pcmt-nav', String(Date.now())); } catch (err) {}
+    };
+    document.addEventListener('click', this._navClick, true);
+    function imagesReady() {
+      var imgs = Array.prototype.slice.call(document.images || []);
+      return Promise.all(imgs.map(function (im) {
+        return im.complete ? null : new Promise(function (res) { im.addEventListener('load', res, { once: true }); im.addEventListener('error', res, { once: true }); });
+      }));
+    }
+    var fonts = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+    var cap = new Promise(function (res) { self._loaderCap = setTimeout(res, 5000); });
+    Promise.race([Promise.all([fonts, imagesReady()]), cap]).then(function () {
+      self._loaderMin = setTimeout(function () { self.hideLoader(); }, Math.max(0, 1200 - (Date.now() - start)));
+    });
+  }
+
+  componentWillUnmount() {
+    clearTimeout(this._loaderCap); clearTimeout(this._loaderMin); clearTimeout(this._loaderFade); clearTimeout(this._loaderBuf); clearTimeout(this._loaderNav); clearTimeout(this._navHide);
+    if (this._navClick) document.removeEventListener('click', this._navClick, true);
+    if (this._pageWillUnmount) this._pageWillUnmount();
+  }
+
+  showLoader(label) {
+    clearTimeout(this._loaderFade);
+    this.setState({ loaderPhase: 'on', loaderLabel: label || 'Loading' });
+  }
+
+  hideLoader() {
+    var self = this;
+    if ((this.state && this.state.loaderPhase) === 'gone') return;
+    this.setState({ loaderPhase: 'fade' });
+    clearTimeout(this._loaderFade);
+    this._loaderFade = setTimeout(function () { self.setState({ loaderPhase: 'gone' }); }, 420);
+  }
+
+  bufferFor(label, ms, done) {
+    var self = this;
+    this.showLoader(label);
+    clearTimeout(this._loaderBuf);
+    this._loaderBuf = setTimeout(function () { if (done) done(); self.hideLoader(); }, ms);
+  }
+
+  renderVals() {
+    if (this._arrived === undefined) {
+      this._arrived = false;
+      try {
+        var t = Number(window.sessionStorage.getItem('pcmt-nav') || 0);
+        if (t && Date.now() - t < 4000) { this._arrived = true; window.sessionStorage.removeItem('pcmt-nav'); }
+      } catch (err) {}
+    }
+    var phase = (this.state && this.state.loaderPhase) || (this._arrived ? 'gone' : 'on');
+    return Object.assign(this._pageVals(), {
+      loaderOn: phase !== 'gone',
+      loaderOpacity: phase === 'on' ? 1 : 0,
+      loaderPointer: phase === 'on' ? 'auto' : 'none',
+      loaderLabel: ((this.state && this.state.loaderLabel) || 'Loading').toUpperCase()
+    });
+  }
+
+  _pageVals() {
+    var self = this, eq = this.state.equipped;
+    var mode = this.props.ethanPreview ?? 'Live';
+    var unlocked = mode === 'Unlocked' || (mode === 'Live' && PCMT_TOP_STREAK >= 2);
+    if (eq === 'ETHAN') { try { window.localStorage.setItem('pcmt-deck', 'BLUE'); } catch (e) {} eq = 'BLUE'; }
+    var auraOn = unlocked && this.state.aura === 'ethan';
+    if (!unlocked && this.state.aura === 'ethan') { try { window.localStorage.setItem('pcmt-aura', ''); } catch (e) {} }
+    function setAura(kind) {
+      var next = self.state.aura === kind ? '' : kind;
+      try { window.localStorage.setItem('pcmt-aura', next); } catch (e) {}
+      self.setState({ aura: next });
+    }
+    var tdMode = this.props.teamDeckPreview ?? 'Live';
+    function teamPts(code, i) {
+      if (tdMode === 'Unlocked') return PCMT_DECK_UNLOCK;
+      if (tdMode === 'Locked') return 0;
+      if (tdMode === 'Sample progress') return [62, 12, 47, 0, 30, 55, 8, 21, 0, 39, 4, 50, 17, 26, 0, 44][i % 16];
+      return PCMT_TEAM_POINTS[code] || 0;
+    }
+    var teamLocked = {};
+    PCMT_DECK_TEAMS.forEach(function (t, i) { teamLocked[t.code] = teamPts(t.code, i) < PCMT_DECK_UNLOCK; });
+    if (teamLocked[eq]) { try { window.localStorage.setItem('pcmt-deck', 'BLUE'); } catch (e) {} eq = 'BLUE'; }
+    var gMode = this.props.goldPreview ?? 'Live';
+    var goldLocked = !(gMode === 'Unlocked' || (gMode === 'Live' && PCMT_ACTIVE_WEEKS >= 1));
+    var cMode = this.props.championPreview ?? 'Live';
+    var champLocked = !(cMode === 'Unlocked' || (cMode === 'Live' && PCMT_CHAMPION_WIN));
+    if (champLocked && eq === 'TROPHY') { try { window.localStorage.setItem('pcmt-deck', 'BLUE'); } catch (e) {} eq = 'BLUE'; }
+    if (goldLocked && eq === 'GOLD') { try { window.localStorage.setItem('pcmt-deck', 'BLUE'); } catch (e) {} eq = 'BLUE'; }
+    var decks = PCMT_DECK_TEAMS.map(function (t, i) {
+      var on = eq === t.code;
+      var pts = Math.min(teamPts(t.code, i), PCMT_DECK_UNLOCK), locked = teamLocked[t.code];
+      return {
+        locked: locked,
+        cursor: locked ? 'not-allowed' : 'pointer',
+        pct: Math.round(pts / PCMT_DECK_UNLOCK * 100) + '%',
+        progress: pts + ' / ' + PCMT_DECK_UNLOCK + ' pts',
+        label: t.name + ' deck' + (locked ? ', locked. ' + pts + ' of ' + PCMT_DECK_UNLOCK + ' points from ' + t.code + ' players.' : ''),
+        title: locked ? 'Earn ' + PCMT_DECK_UNLOCK + ' points from ' + t.code + ' players to unlock (' + pts + ' so far)' : t.name,
+        code: t.code, name: t.name, color: t.color, logo: t.logo, on: on,
+        edge: pcmtRgba(t.color, 0.35),
+        frame: pcmtRgba(t.color, 0.8),
+        frameSoft: pcmtRgba(t.color, 0.4),
+        glow: pcmtRgba(t.color, 0.3),
+        bg: 'radial-gradient(circle at 50% 50%, #0b1011 0 26%, rgba(11,16,17,0) 50%), repeating-linear-gradient(45deg, ' + pcmtRgba(t.color, 0.24) + ' 0 1px, transparent 1px 10px), repeating-linear-gradient(-45deg, ' + pcmtRgba(t.color, 0.24) + ' 0 1px, transparent 1px 10px), radial-gradient(circle at 50% 50%, #12191a 0%, #080b0c 100%)',
+        ring: on ? '0 0 0 2px ' + t.color + ', 0 8px 18px rgba(0,0,0,.5)' : '0 6px 14px rgba(0,0,0,.45)',
+        equip: function () { if (!locked) self.equip(t.code); }
+      };
+    });
+    var defaults = [
+      { code: 'BLUE', name: 'PCMT Blue', color: '#a5dcdd', edge: '#1f3a3b' },
+      { code: 'RETRO', name: 'PCMT Retro', color: '#9869d7', edge: '#2e2240', logo: '/_blob/f8a91e606eaae06f221639a42f108255' },
+      { code: 'GOLD', name: 'PCMT Gold', color: '#d4af37', edge: '#3a3220' },
+      { code: 'TROPHY', name: 'PCMT Champion', color: '#f7dc84', edge: '#5a4a1e', logo: '/_blob/9d42e16345ed757425887cb5aee44b5e', bgClass: 'pcmt-bg-trophy', ringClass: 'pcmt-ring-trophy' }
+    ].map(function (t) {
+      var on = eq === t.code;
+      var locked = (t.code === 'GOLD' && goldLocked) || (t.code === 'TROPHY' && champLocked);
+      var why = t.code === 'TROPHY' ? 'Have a Season 1 or Season 2 champion in your squad when they win a match.' : 'Play one full gameweek with an active squad to unlock.';
+      return {
+        locked: locked,
+        bgClass: t.bgClass || '', ringClass: t.ringClass || '',
+        fit: t.code === 'TROPHY' ? 'contain' : 'cover', radius: t.code === 'TROPHY' ? '0' : '50%',
+        logo: t.logo || '/_blob/2a4e23ef347f57092db2e86baf2b96f2',
+        cursor: locked ? 'not-allowed' : 'pointer',
+        hint: locked ? why : '',
+        label: t.name + ' deck' + (locked ? ', locked. ' + why : ''),
+        title: locked ? 'Locked: ' + why : t.name,
+        code: t.code, name: t.name, color: t.color, on: on, edge: t.edge,
+        frame: pcmtRgba(t.color, 0.75),
+        frameSoft: pcmtRgba(t.color, 0.4),
+        glow: pcmtRgba(t.color, 0.25),
+        bg: PCMT_DECK_BG[t.code] || 'radial-gradient(circle at 50% 50%, #0b1011 0 28%, rgba(11,16,17,0) 50%), repeating-linear-gradient(45deg, ' + pcmtRgba(t.color, 0.22) + ' 0 1px, transparent 1px 11px), repeating-linear-gradient(-45deg, ' + pcmtRgba(t.color, 0.22) + ' 0 1px, transparent 1px 11px), radial-gradient(circle at 50% 50%, #12191a 0%, #080b0c 100%)',
+        ring: on ? '0 0 0 2px ' + t.color + ', 0 8px 20px rgba(0,0,0,.5)' : '0 6px 14px rgba(0,0,0,.45)',
+        equip: function () { if (!locked) self.equip(t.code); }
+      };
+    });
+    var team = PCMT_DECK_TEAMS.find(function (t) { return t.code === eq; });
+    var curColor = team ? team.color : (eq === 'BLUE' ? '#a5dcdd' : eq === 'RETRO' ? '#9869d7' : eq === 'COTTON' ? '#f5a9b8' : eq === 'GALACTIC' ? '#b37ff2' : eq === 'MINT' ? '#8be4b7' : eq === 'PRIMARY' ? '#ffd900' : eq === 'RAINBOW' ? '#ff9800' : eq === 'SHERBET' ? '#ffac63' : eq === 'SUNSET' ? '#ef5aa7' : eq === 'TWILIGHT' ? '#c47fc6' : eq === 'TROPHY' ? '#f7dc84' : '#d4af37');
+    var cur = {
+      color: curColor,
+      edge: team ? pcmtRgba(curColor, 0.35) : (eq === 'BLUE' ? '#1f3a3b' : eq === 'RETRO' ? '#2e2240' : eq === 'COTTON' ? '#5bcefa' : eq === 'GALACTIC' ? '#fcef42' : eq === 'MINT' ? '#5253d5' : eq === 'PRIMARY' ? '#1bb3ff' : eq === 'RAINBOW' ? '#740b87' : eq === 'SHERBET' ? '#a71567' : eq === 'SUNSET' ? '#1045c2' : eq === 'TWILIGHT' ? '#abacac' : eq === 'TROPHY' ? '#5a4a1e' : '#3a3220'),
+      ringClass: eq === 'TROPHY' ? 'pcmt-ring-trophy' : '',
+      bgClass: eq === 'COTTON' ? 'pcmt-bg-cotton' : eq === 'GALACTIC' ? 'pcmt-bg-galactic' : eq === 'MINT' ? 'pcmt-bg-mint' : eq === 'PRIMARY' ? 'pcmt-bg-primary' : eq === 'RAINBOW' ? 'pcmt-bg-rainbow' : eq === 'SHERBET' ? 'pcmt-bg-sherbet' : eq === 'SUNSET' ? 'pcmt-bg-sunset' : eq === 'TWILIGHT' ? 'pcmt-bg-twilight' : eq === 'TROPHY' ? 'pcmt-bg-trophy' : '',
+      frame: pcmtRgba(curColor, team ? 0.8 : 0.75),
+      frameSoft: pcmtRgba(curColor, 0.4),
+      glow: pcmtRgba(curColor, 0.3),
+      lattice: pcmtRgba(curColor, team ? 0.24 : 0.22),
+      logo: team ? team.logo : eq === 'TROPHY' ? '/_blob/9d42e16345ed757425887cb5aee44b5e' : (eq === 'RETRO' ? '/_blob/f8a91e606eaae06f221639a42f108255' : '/_blob/2a4e23ef347f57092db2e86baf2b96f2'),
+      ringSize: team ? '62%' : '70%', ringPad: team ? '0' : '5px',
+      imgSize: team ? '70%' : '100%', imgRadius: (team || eq === 'TROPHY') ? '0' : '50%',
+      plainBg: PCMT_DECK_BG[eq] || 'radial-gradient(circle at 50% 50%, #12191a 0%, #080b0c 100%)',
+      bg: PCMT_DECK_BG[eq] || 'radial-gradient(circle at 50% 50%, #0b1011 0 28%, rgba(11,16,17,0) 50%), repeating-linear-gradient(45deg, ' + pcmtRgba(curColor, team ? 0.24 : 0.22) + ' 0 1px, transparent 1px 11px), repeating-linear-gradient(-45deg, ' + pcmtRgba(curColor, team ? 0.24 : 0.22) + ' 0 1px, transparent 1px 11px), radial-gradient(circle at 50% 50%, #12191a 0%, #080b0c 100%)'
+    };
+    var ethan = {
+      locked: !unlocked, on: auraOn,
+      cursor: unlocked ? 'pointer' : 'not-allowed',
+      label: unlocked ? "Ethan Arnold, " + (auraOn ? 'on' : 'off') + '. Adds gold light to your card backs.' : "Ethan Arnold, locked. Finish top of the leaderboard two weeks in a row to unlock.",
+      title: unlocked ? (auraOn ? "Ethan Arnold is on. Tap to turn off" : "Tap to turn on Ethan Arnold") : 'Locked: finish top of the leaderboard 2 weeks in a row',
+      hint: unlocked ? 'Gold light on top of whichever deck you have equipped.' : 'Finish #1 on the leaderboard 2 weeks in a row to unlock.',
+      ring: auraOn ? '0 0 0 2px #f5d76e, 0 0 22px rgba(245,215,110,.35), 0 8px 20px rgba(0,0,0,.5)' : '0 6px 14px rgba(0,0,0,.45)',
+      toggle: function () { if (unlocked) setAura('ethan'); }
+    };
+    var hMode = this.props.haloPreview ?? 'Live';
+    var haloUnlocked = hMode === 'Unlocked' || (hMode === 'Live' && PCMT_BEST_WEEK >= 50);
+    if (!haloUnlocked && this.state.aura === 'halo') { try { window.localStorage.setItem('pcmt-aura', ''); } catch (e) {} }
+    var haloOn = haloUnlocked && this.state.aura === 'halo';
+    var halo = {
+      on: haloOn, locked: !haloUnlocked,
+      cursor: haloUnlocked ? 'pointer' : 'not-allowed',
+      label: haloUnlocked ? 'Midlife Crisis aura, ' + (haloOn ? 'on' : 'off') + '. Adds gold light around the edges of your card backs.' : 'Midlife Crisis aura, locked. Score 50 points in a single gameweek to unlock.',
+      title: haloUnlocked ? (haloOn ? 'Midlife Crisis is on. Tap to turn off' : 'Tap to turn on Midlife Crisis') : 'Locked: score 50 points in a single gameweek',
+      hint: haloUnlocked ? "Gold light that runs around the card's edges and centre ring." : 'Score 50 points in a single gameweek to unlock.',
+      ring: haloOn ? '0 0 0 2px #f5d76e, 0 0 22px rgba(245,215,110,.35), 0 8px 20px rgba(0,0,0,.5)' : '0 6px 14px rgba(0,0,0,.45)',
+      toggle: function () { if (haloUnlocked) setAura('halo'); }
+    };
+    var pride = [
+      { code: 'COTTON', name: 'Pride // Cotton Candy', color: '#f5a9b8', edge: '#5bcefa', bgClass: 'pcmt-bg-cotton' },
+      { code: 'GALACTIC', name: 'Pride // Galactic', color: '#b37ff2', edge: '#fcef42', bgClass: 'pcmt-bg-galactic' },
+      { code: 'MINT', name: 'Pride // Mint', color: '#8be4b7', edge: '#5253d5', bgClass: 'pcmt-bg-mint' },
+      { code: 'PRIMARY', name: 'Pride // Primary', color: '#ffd900', edge: '#1bb3ff', bgClass: 'pcmt-bg-primary' },
+      { code: 'RAINBOW', name: 'Pride // Rainbow', color: '#ff9800', edge: '#740b87', bgClass: 'pcmt-bg-rainbow' },
+      { code: 'SHERBET', name: 'Pride // Sherbet', color: '#ffac63', edge: '#a71567', bgClass: 'pcmt-bg-sherbet' },
+      { code: 'SUNSET', name: 'Pride // Sunset', color: '#ef5aa7', edge: '#1045c2', bgClass: 'pcmt-bg-sunset' },
+      { code: 'TWILIGHT', name: 'Pride // Twilight', color: '#c47fc6', edge: '#abacac', bgClass: 'pcmt-bg-twilight' }
+    ].map(function (t) {
+      var on = eq === t.code;
+      return {
+        code: t.code, name: t.name, color: t.color, edge: t.edge, bgClass: t.bgClass, on: on,
+        frame: pcmtRgba(t.color, 0.85), frameSoft: pcmtRgba(t.color, 0.45), glow: pcmtRgba(t.color, 0.35),
+        ring: on ? '0 0 0 2px ' + t.color + ', 0 8px 20px rgba(0,0,0,.5)' : '0 6px 14px rgba(0,0,0,.45)',
+        equip: function () { self.equip(t.code); }
+      };
+    });
+    var ringOn = this.state.aura === 'ring';
+    var ringA = Object.assign({
+      on: ringOn,
+      label: 'Halo aura, ' + (ringOn ? 'on' : 'off') + '. Adds white light around the centre ring of your card backs.',
+      title: ringOn ? 'Halo is on. Tap to turn off' : 'Tap to turn on Halo',
+      ring: ringOn ? '0 0 0 2px #ffffff, 0 0 22px rgba(255,255,255,.3), 0 8px 20px rgba(0,0,0,.5)' : '0 6px 14px rgba(0,0,0,.45)',
+      toggle: function () { setAura('ring'); }
+    }, {});
+    var prideOn = this.state.aura === 'pride';
+    var prideA = Object.assign({
+      on: prideOn,
+      label: 'Pride Aura, ' + (prideOn ? 'on' : 'off') + '. Adds rainbow light around the edges of your card backs.',
+      title: prideOn ? 'Pride // Aura is on. Tap to turn off' : 'Tap to turn on Pride // Aura',
+      ring: prideOn ? '0 0 0 2px #ff4fa8, 0 0 22px rgba(176,92,255,.35), 0 8px 20px rgba(0,0,0,.5)' : '0 6px 14px rgba(0,0,0,.45)',
+      toggle: function () { setAura('pride'); }
+    }, this._prideTraces || (this._prideTraces = pcmtHaloTraces()));
+    return {
+      prideA: prideA,
+      ringA: ringA,
+      ring: this._ringTraces || (this._ringTraces = pcmtHaloTraces()),
+      pride: pride,
+      prideCount: pride.length,
+      ethan: ethan,
+      halo: Object.assign(halo, this._haloTraces || (this._haloTraces = pcmtHaloTraces())),
+      cur: cur,
+      unlockedCount: 2 + (unlocked ? 1 : 0) + (haloUnlocked ? 1 : 0),
+      aura: this._auraTraces || (this._auraTraces = pcmtAuraTraces()),
+      defaults: defaults,
+      defaultCount: defaults.length,
+      decks: decks,
+      deckCount: decks.length,
+      deckUnlocked: decks.filter(function (d) { return !d.locked; }).length,
+      goldOn: eq === 'GOLD',
+      goldRing: eq === 'GOLD' ? '0 0 0 2px #d4af37, 0 8px 20px rgba(0,0,0,.5)' : '0 6px 14px rgba(0,0,0,.45)',
+      equipGold: function () { self.equip('GOLD'); }
+    };
+  }
+}
+</script>
+</body>
+</html>
