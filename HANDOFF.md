@@ -8,7 +8,7 @@ Start here. It covers what exists, how changes are made and shipped, and what's 
 |---|---|
 | Live site | https://pcmt-fantasy.pages.dev (custom domain fantasy.pcmt.gg not connected yet) |
 | GitHub repo | `deadpancakelinus/pcmt-fantasy-decks` (Cloudflare Pages redeploys on every push to `main`) |
-| Designs | Five page boards in the design canvas; the current copy is in `tools/canvas/` |
+| Designs | Six page boards in the design canvas; the current copy is in `tools/canvas/` |
 | Supabase | https://wwrsavqipkxvdsxcemos.supabase.co, publishable key `sb_publishable_e8v-uyAo4fnvwJCHUVA5FQ_LXR6yYM7` (public, already in league.js) |
 | Results check | Scheduled job "PCMT.gg match check for PCMT Fantasy Decks": reads PCMT.gg every 6 h at :29 ET and updates `data.js` |
 
@@ -23,6 +23,7 @@ Start here. It covers what exists, how changes are made and shipped, and what's 
 | Leaderboard.dc.html | leaderboard.html | This gameweek / overall standings |
 | Rules.dc.html | guide.html | Guide + Patch Notes ("Version 1.0 BETA", "Welcome to the BETA") |
 | Login.dc.html | login.html | Discord log in |
+| MvpVs.dc.html | mvp-vs.html | **MVP VS** placeholder: "Coming soon" with the card loader (the game itself is on the `trumps` branch) |
 
 Branding: header and titles say **fantasy.pcmt.gg**. Colors black + `#a5dcdd`; fonts Cabin Sketch / Space Grotesk / JetBrains Mono.
 
@@ -38,7 +39,7 @@ Branding: header and titles say **fantasy.pcmt.gg**. Colors black + `#a5dcdd`; f
 1. Edit the board(s) in `tools/canvas/*.dc.html`.
 2. Build: `python3 -I tools/build.py tools/canvas assets <out>`
 3. Test: copy the repo `data.js` into `<out>`, serve it (`python3 -m http.server 8766 --directory <out>`, in the background) and run `NODE_PATH=$(npm root -g) node tools/smoke-test.js http://localhost:8766 <out>/shots`. It mocks Supabase and checks every page on desktop and phone. Look at the screenshots for visual changes.
-4. Copy `index.html customization.html leaderboard.html guide.html login.html players.js league.js dc-lite.js _headers` from `<out>` into the repo root (**not** `data.js`, **not** `assets/`). Copy changed boards into `tools/canvas/`.
+4. Copy `index.html customization.html leaderboard.html guide.html login.html mvp-vs.html players.js league.js dc-lite.js _headers` from `<out>` into the repo root (**not** `data.js`, **not** `assets/`). Copy changed boards into `tools/canvas/`.
 5. Update the design canvas with the changed boards so it stays in step with `tools/canvas/`.
 6. Commit, then `git fetch && git stash && git rebase origin/main && git stash pop && git push` (the scheduled check also pushes to `main`).
 

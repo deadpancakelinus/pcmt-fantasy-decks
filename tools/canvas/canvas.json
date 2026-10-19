@@ -45,6 +45,14 @@
       "w": 1440,
       "x": 3040,
       "y": 0
+    },
+    "MvpVs.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "title": "MVP VS",
+      "w": 1440,
+      "x": 7600,
+      "y": 0
     }
   },
   "createdOnFiles": {
@@ -58,7 +66,7 @@
   "notes": {
     "title": {
       "kind": "title1",
-      "maxW": 7520,
+      "maxW": 9040,
       "text": "PCMT Fantasy Decks \u2014 Plat Chat Members Tourney",
       "w": 240,
       "x": 0,
@@ -70,7 +78,8 @@
     "Customization.dc.html",
     "Leaderboard.dc.html",
     "Rules.dc.html",
-    "Login.dc.html"
+    "Login.dc.html",
+    "MvpVs.dc.html"
   ],
   "pages": [],
   "title": "PCMT Fantasy Decks"
