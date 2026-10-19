@@ -39,11 +39,3 @@ Open `data.js`:
 
 Card points are worked out automatically: kill +2, assist +1, death −1, first kill +1, series won +2,
 top ACS +3, top KAST +1 (ties all get it). They add up through the gameweek and reset at 5:00 AM Monday EDT.
-
-## Rebuilding from the canvas
-
-If the design changes in the canvas, export its `project/` folder and run:
-
-```
-python3 tools/build.py <canvas project folder> <assets folder> site
-```
