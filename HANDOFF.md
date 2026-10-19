@@ -66,4 +66,16 @@ Tables: `profiles`, `deck_history` (insert-only, server timestamps, 60/hour limi
 
 - Run `setup/fix-display-names.sql` in the Supabase SQL Editor if not done yet.
 - Connect fantasy.pcmt.gg: Cloudflare Pages → Custom domains, then add it to Supabase Redirect URLs.
-- **Next project: Top Trumps** (multiplayer card game using the player cards). Plan agreed so far: build it on a separate branch (e.g. `trumps`) so it gets its own Cloudflare preview link, protect preview deployments with Cloudflare Access (approved emails only), and lock its Supabase tables to approved testers. Merge into `main` only when it's ready to go public. Design questions still open: which stats are compared, cards per hand, match format.
+- **Top Trumps** (private beta, branch `trumps`, see section 9).
+
+## 9. Top Trumps (branch `trumps`, not merged, not pushed while the repo is public)
+
+- Files: `trumps.html`, `trumps.js` (engine, bot, online rooms, UI), `trumps-cards.js` (built), `trumps/build_cards.py`, `trumps/data/pcmt-stats.tsv`, `trumps/data/ratings.json`, `trumps/test.js`, `setup/trumps-setup.sql`. Nothing in the existing pages links to it.
+- Cards: every S3 NA and S2 EMEA player from pcmt.gg/stats (Show Subs on, Showmatches off, seasons not combined): 87 NA, 51 EMEA. A region toggle picks which set is dealt; a game never mixes them.
+- Stats compared (higher wins): Toxics rating, ACS, KAST (from pcmt.gg), Mechanics and Brains (placeholders: percentile mixes of HS%/KPR/FKPR/ADR and APR/KAST/DPR/FDPR within the region). Set real values in `trumps/data/ratings.json`, then `python3 -I trumps/build_cards.py`.
+- Refreshing stats: re-export the pcmt.gg/stats rows for S3 NA and S2 EMEA into `pcmt-stats.tsv` (same columns as the site, plus player link and logo path), then rebuild.
+- Rules: the whole region deck is dealt between two players (odd spare card starts in the pot). Higher stat takes both cards and picks next; ties go to the pot. Win by holding every card, or most cards after round 60 (nearly every game, per simulation).
+- Modes: vs bot (works offline), 1v1 online with a 5-letter room code (Discord sign-in, Supabase `trumps_rooms` polled every 1.5 s, writes only through `trumps_create` / `trumps_join` / `trumps_move`, testers listed in `trumps_testers`). Run `setup/trumps-setup.sql` once, then add testers with the commented lines at its end.
+- Known beta limits: the game state is trusted from the clients and contains both hands, so a tester with dev tools could peek. Fine for a tester-only beta, not for public launch.
+- Test: serve the repo root (`python3 -m http.server 8767 --directory .`) and run `NODE_PATH=$(npm root -g) node trumps/test.js http://localhost:8767 <shots>`.
+- Before going public: decide how to keep it private (the GitHub repo is public, so a pushed branch is visible), Cloudflare Access on previews, add `trumps.html` to Supabase Redirect URLs if they are not a wildcard, then link it from the site nav.

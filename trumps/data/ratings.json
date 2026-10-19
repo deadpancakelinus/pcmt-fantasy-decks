@@ -1,0 +1,3 @@
+{
+  "_how": "Set Mechanics and/or Brains by hand. Key is region:player (lowercase, as in the pcmt.gg player link). Example: \"na:claps\": {\"mechanics\": 95, \"brains\": 80}. Then run python3 -I trumps/build_cards.py"
+}

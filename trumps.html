@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Top Trumps · fantasy.pcmt.gg</title>
+<link rel="icon" href="assets/3bf9d529cabff94109b561693539029f.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cabin+Sketch:wght@400;700&family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: #000; --panel: #0b1011; --panel2: #101718; --line: #1d2a2c; --ink: #eaf4f4; --dim: #8a9a9b; --accent: #a5dcdd; --win: #55ff8f; --lose: #ff5a5a; --tie: #ffe94d; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); }
+  body { font: 400 15px/1.5 'Space Grotesk', system-ui, sans-serif; min-height: 100vh; }
+  button, input { font: inherit; color: inherit; }
+  .mono, .tt-kicker, .tt-nav a, .tt-btn, .tt-seat, .tt-counts span, .tt-stat-v, .tt-meta, .tt-turn, .tt-region button { font-family: 'JetBrains Mono', monospace; }
+  .tt-top { border-bottom: 1px solid var(--line); }
+  .tt-top-in { max-width: 1200px; margin: 0 auto; padding: 18px 16px; display: flex; align-items: center; gap: 28px; flex-wrap: wrap; }
+  .tt-brand { font: 700 30px/1 'Cabin Sketch', cursive; color: var(--accent); text-decoration: none; }
+  .tt-nav { display: flex; gap: 4px; flex-wrap: wrap; }
+  .tt-nav a { color: var(--ink); text-decoration: none; font-size: 13px; letter-spacing: .08em; padding: 9px 12px; border-radius: 6px; }
+  .tt-nav a:hover { background: var(--panel2); }
+  .tt-nav a[aria-current] { background: var(--accent); color: #000; font-weight: 600; }
+  .tt-beta { font: 600 10px/1 'JetBrains Mono', monospace; letter-spacing: .12em; color: var(--accent); border: 1px solid var(--accent); padding: 5px 7px; border-radius: 4px; margin-left: auto; }
+  main { max-width: 1200px; margin: 0 auto; padding: 36px 16px 72px; }
+  .tt-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-bottom: 28px; }
+  h1 { font: 700 clamp(40px, 7vw, 64px)/1 'Cabin Sketch', cursive; margin: 0; }
+  .tt-sub { color: var(--dim); margin: 10px 0 0; max-width: 560px; }
+  .tt-region { display: flex; align-items: center; gap: 10px; }
+  .tt-region > span { font: 600 11px/1 'JetBrains Mono', monospace; letter-spacing: .12em; color: var(--dim); }
+  .tt-region button { display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px 9px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); font-size: 13px; font-weight: 600; cursor: pointer; }
+  .tt-region button img { width: 22px; height: 22px; object-fit: contain; }
+  .tt-region button[aria-pressed="true"] { border-color: var(--accent); background: rgba(165, 220, 221, .12); box-shadow: inset 0 0 0 1px var(--accent); }
+  .tt-region button:disabled { cursor: not-allowed; opacity: .55; }
+  .tt-region button[aria-pressed="true"]:disabled { opacity: 1; }
+  .tt-panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 24px; }
+  .tt-panel h2 { font: 700 28px/1.1 'Cabin Sketch', cursive; margin: 6px 0 8px; }
+  .tt-panel p { color: var(--dim); margin: 0 0 18px; }
+  .tt-center { text-align: center; max-width: 560px; margin: 0 auto; }
+  .tt-kicker { font-size: 11px; letter-spacing: .14em; color: var(--accent); }
+  .tt-lobby { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+  .tt-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 20px; border-radius: 8px; border: 1px solid var(--accent); background: var(--accent); color: #000; font-size: 13px; font-weight: 600; letter-spacing: .04em; cursor: pointer; }
+  .tt-btn:hover { filter: brightness(1.08); }
+  .tt-btn:disabled { opacity: .5; cursor: wait; }
+  .tt-btn.ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+  .tt-btn.ghost:hover { border-color: var(--accent); }
+  .tt-btn.discord { background: #4e5ad6; border-color: #4e5ad6; color: #fff; }
+  .tt-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 22px; }
+  .tt-actions.left { justify-content: flex-start; margin-top: 0; }
+  .tt-join { margin-top: 18px; }
+  .tt-join label { display: block; font: 600 11px/1 'JetBrains Mono', monospace; letter-spacing: .12em; color: var(--dim); text-transform: uppercase; margin-bottom: 8px; }
+  .tt-join div { display: flex; gap: 8px; }
+  .tt-join input { flex: 1; min-width: 0; height: 44px; padding: 0 14px; border-radius: 8px; border: 1px solid var(--line); background: #000; font-family: 'JetBrains Mono', monospace; letter-spacing: .3em; text-transform: uppercase; }
+  .tt-join input:focus, .tt-btn:focus-visible, .tt-stat:focus-visible, .tt-region button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .tt-error { color: var(--lose); text-align: center; margin: 18px 0 0; }
+  .tt-dim { color: var(--dim); }
+  .tt-code { font: 600 48px/1.1 'JetBrains Mono', monospace; letter-spacing: .25em; color: var(--accent); margin: 10px 0 14px; }
+  .tt-big { font: 700 52px/1.1 'Cabin Sketch', cursive; margin: 8px 0 10px; }
+  .tt-preview { margin-top: 40px; }
+  .tt-preview-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; margin-top: 14px; }
+
+  .tt-counts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
+  .tt-counts div { background: var(--panel); padding: 12px 16px; min-width: 0; }
+  .tt-counts span { display: block; font-size: 11px; letter-spacing: .1em; color: var(--dim); text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tt-counts b { font: 700 30px/1.1 'Cabin Sketch', cursive; }
+  .tt-counts small { font-size: 15px; color: var(--dim); }
+  .tt-turn { text-align: center; color: var(--accent); font-size: 13px; margin: 0 0 16px; }
+  .tt-result { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 14px; border-radius: 10px; margin-bottom: 18px; border: 1px solid; text-align: center; }
+  .tt-result span { color: var(--dim); font-size: 13px; }
+  .tt-result strong { font-size: 18px; }
+  .tt-result.win { border-color: var(--win); background: rgba(85, 255, 143, .07); }
+  .tt-result.lose { border-color: var(--lose); background: rgba(255, 90, 90, .07); }
+  .tt-result.tie { border-color: var(--tie); background: rgba(255, 233, 77, .06); }
+  .tt-table { display: grid; grid-template-columns: repeat(2, minmax(0, 320px)); justify-content: center; gap: 20px; }
+  .tt-seat { font-size: 11px; letter-spacing: .12em; color: var(--dim); text-transform: uppercase; margin-bottom: 8px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .tt-card { position: relative; background: linear-gradient(180deg, var(--panel2), var(--panel)); border: 1px solid var(--line); border-radius: 14px; padding: 16px; min-height: 360px; display: flex; flex-direction: column; }
+  .tt-card.win { border-color: var(--win); }
+  .tt-card.lose { border-color: var(--lose); opacity: .85; }
+  .tt-card.tie { border-color: var(--tie); }
+  .tt-card-top { display: flex; align-items: center; gap: 12px; padding-bottom: 14px; border-bottom: 1px dashed var(--line); margin-bottom: 10px; min-width: 0; }
+  .tt-card-top > div { min-width: 0; }
+  .tt-card-top img, .tt-nologo { width: 52px; height: 52px; flex: 0 0 52px; object-fit: contain; border-radius: 8px; }
+  .tt-nologo { display: grid; place-items: center; border: 1px dashed var(--dim); font: 600 11px/1 'JetBrains Mono', monospace; color: var(--dim); }
+  .tt-name { font: 700 26px/1.1 'Cabin Sketch', cursive; overflow-wrap: anywhere; }
+  .tt-meta { font-size: 11px; color: var(--dim); margin-top: 3px; }
+  .tt-stats { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .tt-stat { display: flex; justify-content: space-between; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 8px 12px; border-radius: 8px; border: 1px solid transparent; background: rgba(255, 255, 255, .03); text-align: left; }
+  .tt-stat-l { font-size: 14px; }
+  .tt-stat-l i { font-style: normal; color: var(--dim); margin-left: 2px; }
+  .tt-stat-v { font-size: 17px; font-weight: 600; color: var(--accent); }
+  button.tt-stat { cursor: pointer; border-color: var(--line); }
+  button.tt-stat:hover { border-color: var(--accent); background: rgba(165, 220, 221, .1); }
+  .tt-stat.is-picked { border-color: var(--accent); background: rgba(165, 220, 221, .14); }
+  .tt-stat.is-picked.win { border-color: var(--win); background: rgba(85, 255, 143, .14); }
+  .tt-stat.is-picked.win .tt-stat-v { color: var(--win); }
+  .tt-stat.is-picked.lose { border-color: var(--lose); background: rgba(255, 90, 90, .12); }
+  .tt-stat.is-picked.lose .tt-stat-v { color: var(--lose); }
+  .tt-stat.is-picked.tie { border-color: var(--tie); }
+  .tt-hint { font: 600 11px/1 'JetBrains Mono', monospace; letter-spacing: .12em; color: var(--accent); text-align: center; margin-top: 12px; text-transform: uppercase; }
+  .tt-back { align-items: center; justify-content: center; background: repeating-linear-gradient(135deg, #0b1011 0 12px, #0e1516 12px 24px); border: 1px solid var(--accent); }
+  .tt-back-mark { font: 700 48px/1 'Cabin Sketch', cursive; color: var(--accent); }
+  .tt-back-sub { font: 600 11px/1 'JetBrains Mono', monospace; letter-spacing: .3em; color: var(--dim); margin-top: 10px; }
+
+  .tt-rules { margin-top: 48px; border-top: 1px solid var(--line); padding-top: 24px; color: var(--dim); }
+  .tt-rules h2 { font: 700 24px/1 'Cabin Sketch', cursive; color: var(--ink); margin: 0 0 12px; }
+  .tt-rules ul { margin: 0; padding-left: 18px; max-width: 760px; }
+  .tt-rules li { margin: 4px 0; }
+
+  @media (max-width: 640px) {
+    .tt-top-in { gap: 12px; }
+    .tt-brand { font-size: 24px; }
+    .tt-nav a { padding: 8px; font-size: 11px; }
+    main { padding-top: 24px; }
+    .tt-counts { grid-template-columns: repeat(2, 1fr); }
+    .tt-table { gap: 10px; }
+    .tt-card { padding: 10px; min-height: 300px; border-radius: 10px; }
+    .tt-card-top { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .tt-card-top img, .tt-nologo { width: 36px; height: 36px; flex-basis: 36px; }
+    .tt-name { font-size: 20px; }
+    .tt-stat { flex-direction: column; align-items: flex-start; gap: 0; padding: 6px 8px; }
+    .tt-stat-l { font-size: 12px; }
+    .tt-stat-v { font-size: 15px; }
+    .tt-back-mark { font-size: 32px; }
+    .tt-code { font-size: 36px; }
+  }
+</style>
+</head>
+<body>
+<header class="tt-top">
+  <div class="tt-top-in">
+    <a class="tt-brand" href="index.html">fantasy.pcmt.gg</a>
+    <nav class="tt-nav" aria-label="Site">
+      <a href="leaderboard.html">LEADERBOARD</a>
+      <a href="index.html">THE DECK</a>
+      <a href="customization.html">CUSTOMIZATION</a>
+      <a href="guide.html">GUIDE</a>
+      <a href="trumps.html" aria-current="page">TOP TRUMPS</a>
+    </nav>
+    <span class="tt-beta">PRIVATE BETA</span>
+  </div>
+</header>
+<main>
+  <div class="tt-head">
+    <div>
+      <h1>Top Trumps</h1>
+      <p class="tt-sub">Your top card against theirs. Pick the stat you think wins and take both cards. Hold every card, or the most cards after 60 rounds, to win.</p>
+    </div>
+    <div class="tt-region" role="group" aria-label="Which cards are dealt">
+      <span>CARDS</span>
+      <button type="button" data-region="na" aria-pressed="true"><img src="assets/c265e976f8968e60e4a2bdd32542b499.png" alt="">NA S3</button>
+      <button type="button" data-region="emea" aria-pressed="false"><img src="assets/3c7e7374dceead68d5c58818d0bcfe8a.png" alt="">EMEA S2</button>
+    </div>
+  </div>
+  <div id="tt-app" aria-live="polite"></div>
+  <section class="tt-rules">
+    <h2>How it works</h2>
+    <ul>
+      <li>Pick <b>NA</b> or <b>EMEA</b> before dealing. A game only ever uses one region's cards: every S3 NA player or every S2 EMEA player, subs included.</li>
+      <li>Each card has five stats: <b>Toxics rating</b>, <b>ACS</b> and <b>KAST</b> straight from the pcmt.gg stats page, plus <b>Mechanics</b> and <b>Brains</b>. The higher number always wins.</li>
+      <li>Whoever has the higher number takes both cards to the bottom of their pile and picks the next stat. A tie puts both cards in the pot, which goes to the next round's winner. With an odd number of players, the spare card starts in the pot.</li>
+      <li>You win by holding every card. If nobody has after round 60 (most games), whoever has more cards wins.</li>
+      <li>Mechanics and Brains marked <span class="mono">*</span> are placeholder numbers for now.</li>
+    </ul>
+  </section>
+</main>
+<script src="trumps-cards.js"></script>
+<script src="trumps.js"></script>
+</body>
+</html>
