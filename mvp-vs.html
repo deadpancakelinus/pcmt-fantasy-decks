@@ -131,29 +131,26 @@
   .tt-round { flex: none; height: 100%; box-sizing: border-box; display: flex; align-items: center; font: 700 28px/1 'Cabin Sketch', cursive; color: var(--ink); padding: 0 18px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
   .tt-round small { font-size: 15px; color: var(--dim); }
   .tt-foot-in { padding-block: 22px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
-  .tt-tabletop { position: relative; isolation: isolate; display: grid; grid-template-columns: minmax(96px, 140px) minmax(0, 300px) minmax(80px, 110px) minmax(0, 300px) minmax(96px, 140px);
-    grid-template-areas: "dm sm pot st dt"; justify-content: center; align-items: center; gap: 24px; padding: 40px 28px;
+  .tt-tabletop { position: relative; isolation: isolate; display: grid; grid-template-columns: minmax(96px, 140px) minmax(0, 300px) minmax(0, 300px) minmax(96px, 140px);
+    grid-template-areas: "dm sm st dt"; justify-content: center; align-items: center; gap: 24px; padding: 40px 28px;
     border-radius: 32px; overflow: hidden;
     background: radial-gradient(ellipse 70% 60% at 50% 45%, #10272a 0%, #0a1617 55%, #050909 100%);
     box-shadow: inset 0 0 0 12px #070c0d, inset 0 0 0 13px rgba(165, 220, 221, .18), inset 0 0 90px rgba(0, 0, 0, .75), 0 24px 60px rgba(0, 0, 0, .6); }
   .tt-tabletop::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: .35;
     background: repeating-radial-gradient(circle at 30% 20%, rgba(165, 220, 221, .05) 0 1px, transparent 1px 4px); }
   .tt-felt-mark { position: absolute; z-index: -1; left: 50%; top: 50%; width: min(46%, 420px); aspect-ratio: 1; object-fit: contain; transform: translate(-50%, -50%); opacity: .045; pointer-events: none; }
-  .tt-deck-me { grid-area: dm; } .tt-deck-them { grid-area: dt; } .tt-pot { grid-area: pot; } .tt-slot-me { grid-area: sm; } .tt-slot-them { grid-area: st; }
-  .tt-deck, .tt-pot { display: flex; flex-direction: column; align-items: center; gap: 12px; min-width: 0; }
+  .tt-deck-me { grid-area: dm; } .tt-deck-them { grid-area: dt; } .tt-slot-me { grid-area: sm; } .tt-slot-them { grid-area: st; }
+  .tt-deck { display: flex; flex-direction: column; align-items: center; gap: 12px; min-width: 0; }
   .tt-stack { position: relative; width: 100%; max-width: 120px; aspect-ratio: 5 / 7; }
-  .tt-stack.small { max-width: 76px; }
   .tt-stack.is-empty { border: 1.5px dashed rgba(165, 220, 221, .25); border-radius: 12px; }
   .tt-stack-card { position: absolute; inset: 0; transform: translate(calc(var(--k) * -2px), calc(var(--k) * -3px)); }
   .tt-stack-card .tt-card { width: 100%; height: 100%; aspect-ratio: auto; min-height: 0; box-shadow: 0 2px 6px rgba(0, 0, 0, .55); }
   .tt-stack-card .tt-back-emblem { width: 62%; }
-  .tt-stack.small .tt-gem, .tt-stack.small .tt-back-in2 { display: none; }
   .tt-deck-label { display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; max-width: 100%; }
   .tt-deck-label span { font: 600 11px/1.2 'JetBrains Mono', monospace; letter-spacing: .1em; color: var(--dim); text-transform: uppercase; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .tt-deck-label b { font: 700 32px/1 'Cabin Sketch', cursive; color: var(--ink); font-variant-numeric: tabular-nums; }
-  .tt-pot .tt-deck-label b { font-size: 24px; color: var(--dim); }
   .tt-slot { display: flex; flex-direction: column; min-width: 0; }
-  .tt-over { grid-column: 2 / 5; text-align: center; padding: 24px; }
+  .tt-over { grid-column: 2 / 4; text-align: center; padding: 24px; }
   .tt-over p { color: var(--dim); margin: 0; }
   .tt-flip { perspective: 1200px; will-change: transform; }
   .tt-flip-in { display: grid; transform-style: preserve-3d; transition: transform .5s cubic-bezier(.3, .7, .3, 1); }
@@ -165,9 +162,9 @@
   .tt-blank { visibility: hidden; }
   @media (prefers-reduced-motion: reduce) { .tt-flip-in { transition: none; } }
   @media (max-width: 900px) {
-    .tt-tabletop { grid-template-columns: repeat(6, minmax(0, 1fr)); grid-template-areas: "dm dm pot pot dt dt" "sm sm sm st st st"; gap: 16px 12px; padding: 24px 14px; border-radius: 22px; }
-    .tt-stack { max-width: 72px; } .tt-stack.small { max-width: 52px; }
-    .tt-deck-label b { font-size: 24px; } .tt-pot .tt-deck-label b { font-size: 20px; }
+    .tt-tabletop { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-areas: "dm dt" "sm st"; gap: 16px 12px; padding: 24px 14px; border-radius: 22px; }
+    .tt-stack { max-width: 72px; }
+    .tt-deck-label b { font-size: 24px; }
     .tt-over { grid-column: 1 / -1; grid-row: 2; padding: 8px; }
   }
   @media (max-width: 640px) {
@@ -244,7 +241,7 @@
     <ul>
       <li>Pick <b>NA</b> or <b>EMEA</b> before dealing. A game only ever uses one region's cards: every S3 NA player or every S2 EMEA player, subs included.</li>
       <li>Each card has five stats from the pcmt.gg stats page: <b>ACS</b>, <b>KAST</b>, <b>HS%</b>, <b>DPR</b> (deaths per round) and <b>Toxic rating</b>. The higher number wins, except DPR, where the lower number wins.</li>
-      <li>Whoever has the better number (higher, or lower for DPR) takes both cards to the bottom of their pile and picks the next stat. A tie puts both cards in the pot, which goes to the next round's winner. With an odd number of players, the spare card starts in the pot.</li>
+      <li>Whoever has the better number (higher, or lower for DPR) takes both cards to the bottom of their deck and picks the next stat. On a tie, each player puts their own card back at the bottom of their deck and the same player picks again. With an odd number of players, whoever picks second starts with one extra card.</li>
       <li>You win by holding every card. If nobody has after round 60 (most games), whoever has more cards wins.</li>
     </ul>
   </section>

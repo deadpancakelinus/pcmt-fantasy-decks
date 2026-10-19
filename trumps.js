@@ -55,9 +55,10 @@
   function newGame(region, seed) {
     var r = rng(seed), ids = CARDS[region].map(function (c) { return c.id; });
     for (var i = ids.length - 1; i > 0; i--) { var j = Math.floor(r() * (i + 1)), t = ids[i]; ids[i] = ids[j]; ids[j] = t; }
-    var even = ids.length - (ids.length % 2), hands = [[], []];
-    for (var k = 0; k < even; k++) hands[k % 2].push(ids[k]);
-    return { region: region, seed: seed, hands: hands, pot: ids.slice(even), turn: r() < 0.5 ? 0 : 1, round: 1, last: null, over: null };
+    // Every card is dealt. With an odd number of players, the player who picks second gets the extra card.
+    var first = r() < 0.5 ? 0 : 1, hands = [[], []];
+    for (var k = 0; k < ids.length; k++) hands[(first + 1 + k) % 2].push(ids[k]);
+    return { region: region, seed: seed, hands: hands, turn: first, round: 1, last: null, over: null };
   }
   function play(s, stat) {
     if (s.over) return s;
@@ -65,16 +66,15 @@
     var a = s.hands[0].shift(), b = s.hands[1].shift(), picker = s.turn;
     var va = BY_ID[a][stat], vb = BY_ID[b][stat];
     if (STAT_BY_KEY[stat].low) { va = -va; vb = -vb; } // DPR: fewer deaths wins
-    var w = va > vb ? 0 : vb > va ? 1 : -1, taken = 0;
+    var w = va > vb ? 0 : vb > va ? 1 : -1;
     if (w < 0) {
-      s.pot.push(a, b);
+      // Tie: each player puts their own card back at the bottom of their deck; the same player picks again.
+      s.hands[0].push(a); s.hands[1].push(b);
     } else {
-      taken = s.pot.length;
-      Array.prototype.push.apply(s.hands[w], (w === 0 ? [a, b] : [b, a]).concat(s.pot));
-      s.pot = [];
+      s.hands[w].push(w === 0 ? a : b, w === 0 ? b : a);
       s.turn = w;
     }
-    s.last = { round: s.round, picker: picker, stat: stat, cards: [a, b], winner: w, pot: taken };
+    s.last = { round: s.round, picker: picker, stat: stat, cards: [a, b], winner: w };
     s.round++;
     var n0 = s.hands[0].length, n1 = s.hands[1].length;
     if (!n0 || !n1) s.over = { winner: !n0 && !n1 ? -1 : n0 ? 0 : 1, reason: 'cards' };
@@ -191,16 +191,10 @@
       '<div class="tt-stack' + (n ? '' : ' is-empty') + '">' + layers + '</div>' +
       '<div class="tt-deck-label"><span>' + esc(ui.names[seat]) + '</span><b data-count="' + n + '">' + n + '</b></div></div>';
   }
-  function potHTML(n) {
-    var layers = '';
-    for (var i = Math.min(n, 3) - 1; i >= 0; i--) layers += '<div class="tt-stack-card" style="--k:' + i + '">' + backFor(0) + '</div>';
-    return '<div class="tt-pot" id="tt-pot"><div class="tt-stack small' + (n ? '' : ' is-empty') + '">' + layers + '</div>' +
-      '<div class="tt-deck-label"><span>Pot</span><b data-count="' + n + '">' + n + '</b></div></div>';
-  }
-  function tableHTML(s, deckMe, deckThem, pot, middle) {
+  function tableHTML(s, deckMe, deckThem, middle) {
     return '<div class="tt-tabletop">' +
       '<img class="tt-felt-mark" src="' + REGIONS[s.region].logo + '" alt="" aria-hidden="true">' +
-      deckHTML(ui.me, deckMe) + potHTML(pot) + deckHTML(1 - ui.me, deckThem) + middle + '</div>';
+      deckHTML(ui.me, deckMe) + deckHTML(1 - ui.me, deckThem) + middle + '</div>';
   }
   function slotHTML(who, label, inner) {
     return '<div class="tt-slot tt-slot-' + who + '" id="tt-slot-' + who + '"><div class="tt-seat">' + esc(label) + '</div>' + inner + '</div>';
@@ -229,14 +223,13 @@
       var mine = last.cards[ui.me], theirs = last.cards[them], st = STAT_BY_KEY[last.stat];
       var res = last.winner < 0 ? 'tie' : last.winner === ui.me ? 'win' : 'lose';
       var who = last.picker === ui.me ? 'You' : esc(ui.names[them]);
-      var msg = res === 'tie' ? 'Tie on ' + st.label + '. Both cards go to the pot.' :
-        res === 'win' ? 'You win the round' + (last.pot ? ' and the pot (+' + (last.pot + 1) + ' cards)' : ' (+1 card)') + '.' :
-        esc(ui.names[them]) + ' wins the round' + (last.pot ? ' and the pot' : '') + '.';
+      var msg = res === 'tie' ? 'Tie on ' + st.label + '. Both cards go back to their decks.' :
+        res === 'win' ? 'You win the round (+1 card).' : esc(ui.names[them]) + ' wins the round.';
       // Counts as they look before the cards are collected (the two played cards are still on the table).
-      var d = [s.hands[0].length, s.hands[1].length], pot = s.pot.length;
-      if (last.winner < 0) pot -= 2; else { d[last.winner] -= 2 + last.pot; pot = last.pot; }
+      var d = [s.hands[0].length, s.hands[1].length];
+      if (last.winner < 0) { d[0] -= 1; d[1] -= 1; } else d[last.winner] -= 2;
       html += '<div class="tt-status">' + round + '<div class="tt-result ' + res + '"><span>' + who + ' picked <b>' + st.label + '</b></span><strong>' + msg + '</strong></div></div>';
-      html += tableHTML(s, d[ui.me], d[them], pot,
+      html += tableHTML(s, d[ui.me], d[them],
         slotHTML('me', ui.names[ui.me], flipHTML(cardHTML(mine, { stat: last.stat, result: res === 'tie' ? 'tie' : res }), ui.me, false)) +
         slotHTML('them', ui.names[them], flipHTML(cardHTML(theirs, { stat: last.stat, result: res === 'tie' ? 'tie' : res === 'win' ? 'lose' : 'win' }), them, ui.revealed !== last.round)));
       html += '<div class="tt-actions"><button type="button" class="tt-btn" data-act="next"' + (ui.collecting ? ' disabled' : '') + '>' + (s.over ? 'See result' : 'Next round') + '</button></div>';
@@ -244,7 +237,7 @@
       phase = 'over';
       var w = s.over.winner, title = w < 0 ? 'Draw' : w === ui.me ? 'You win!' : esc(ui.names[them]) + ' wins';
       html += '<div class="tt-status">' + round + '<div class="tt-result ' + (w < 0 ? 'tie' : w === ui.me ? 'win' : 'lose') + '"><span>Game over</span><strong>' + title + '</strong></div></div>';
-      html += tableHTML(s, s.hands[ui.me].length, s.hands[them].length, s.pot.length,
+      html += tableHTML(s, s.hands[ui.me].length, s.hands[them].length,
         '<div class="tt-over"><div class="tt-kicker">GAME OVER</div><div class="tt-big">' + title + '</div><p>' +
         (s.over.reason === 'limit' ? 'Round ' + ROUND_LIMIT + ' reached, so the most cards wins: ' + s.hands[ui.me].length + ' to ' + s.hands[them].length + '.' : 'Every card ended up in one deck.') +
         '</p><div class="tt-actions">' + (ui.mode === 'bot' ? '<button type="button" class="tt-btn" data-act="again">Play again</button>' : '') +
@@ -254,7 +247,7 @@
       var myTurn = s.turn === ui.me;
       html += '<div class="tt-status">' + round + '<div class="tt-result neutral"><span>' + (myTurn ? 'Your pick' : esc(ui.names[them]) + '’s pick') + '</span><strong>' +
         (myTurn ? 'Choose the stat you think beats their card.' : esc(ui.names[them]) + ' is picking a stat…') + '</strong></div></div>';
-      html += tableHTML(s, s.hands[ui.me].length - 1, s.hands[them].length - 1, s.pot.length,
+      html += tableHTML(s, s.hands[ui.me].length - 1, s.hands[them].length - 1,
         slotHTML('me', ui.names[ui.me], flipHTML(cardHTML(s.hands[ui.me][0], { pick: myTurn && !ui.busy }), ui.me, ui.dealt !== s.round)) +
         slotHTML('them', ui.names[them], flipHTML('<div class="tt-card tt-blank"></div>', them, true)));
       html += '<div class="tt-actions"><button type="button" class="tt-btn ghost" data-act="leave">' + (ui.mode === 'online' ? 'Leave room' : 'Quit game') + '</button></div>';
@@ -307,14 +300,15 @@
     var s = ui.state, last = s.last;
     ui.collecting = true;
     var nb = document.querySelector('[data-act="next"]'); if (nb) nb.disabled = true;
-    var target = last.winner < 0 ? $('tt-pot') : $(last.winner === ui.me ? 'tt-deck-me' : 'tt-deck-them');
-    var dest = target && (topOf(target) || target);
+    // Winner takes both cards; on a tie each card goes back to its own deck.
+    var deckMe = topOf($('tt-deck-me')) || $('tt-deck-me'), deckThem = topOf($('tt-deck-them')) || $('tt-deck-them');
+    var destMe = last.winner < 0 ? deckMe : last.winner === ui.me ? deckMe : deckThem;
+    var destThem = last.winner < 0 ? deckThem : destMe;
     var tilt = last.winner === ui.me ? -14 : 14;
     // Turn the played cards face down as they travel, so they land on the deck as card backs.
     document.querySelectorAll('.tt-slot .tt-flip').forEach(function (f) { f.classList.add('is-down'); });
-    var moves = [flyTo(document.querySelector('#tt-slot-me .tt-flip'), dest, 620, 0, tilt),
-                 flyTo(document.querySelector('#tt-slot-them .tt-flip'), dest, 620, 90, tilt)];
-    if (last.winner >= 0 && last.pot) moves.push(flyTo(document.querySelector('#tt-pot .tt-stack'), dest, 520, 160, tilt));
+    var moves = [flyTo(document.querySelector('#tt-slot-me .tt-flip'), destMe, 620, 0, last.winner < 0 ? -14 : tilt),
+                 flyTo(document.querySelector('#tt-slot-them .tt-flip'), destThem, 620, 90, last.winner < 0 ? 14 : tilt)];
     Promise.all(moves).then(function () {
       ui.collecting = false;
       ui.seen = last.round;

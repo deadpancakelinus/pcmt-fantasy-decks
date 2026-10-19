@@ -23,12 +23,13 @@ const check = (ok, msg) => { if (!ok) { bad++; console.log('FAIL ' + msg); } };
         let games = 0, byCards = 0, byLimit = 0, draws = 0, errors = [];
         for (let seed = 1; seed <= 2000; seed++) {
           let s = T.newGame(region, seed);
-          if (s.hands[0].length !== s.hands[1].length) errors.push('uneven deal');
+          if (Math.abs(s.hands[0].length - s.hands[1].length) > 1 || s.hands[0].length + s.hands[1].length !== total) errors.push('bad deal');
+          if (total % 2 && s.hands[1 - s.turn].length !== s.hands[s.turn].length + 1) errors.push('extra card should go to whoever picks second');
           let guard = 0;
           while (!s.over && guard++ < 1000) {
             const stat = seed % 3 ? T.botPick(s, s.turn) : T.STATS[seed % 5].k;
             s = T.play(s, stat);
-            const ids = s.hands[0].concat(s.hands[1], s.pot);
+            const ids = s.hands[0].concat(s.hands[1]);
             if (ids.length !== total || new Set(ids).size !== total || ids.some(i => !all.has(i))) { errors.push('card count broke at seed ' + seed); break; }
           }
           if (!s.over) errors.push('never ended, seed ' + seed);
@@ -39,8 +40,11 @@ const check = (ok, msg) => { if (!ok) { bad++; console.log('FAIL ' + msg); } };
         const a = JSON.stringify(T.play(T.newGame(region, 42), 'acs')), c = JSON.stringify(T.play(T.newGame(region, 42), 'acs'));
         // DPR: the lower number must win; every other stat: the higher number.
         const cs = T.cards[region], sorted = cs.slice().sort((x, y) => x.dpr - y.dpr), lo = sorted[0], hi = sorted[sorted.length - 1];
-        const base = { region, seed: 1, hands: [[hi.id, lo.id], [lo.id, hi.id]], pot: [], turn: 0, round: 1, last: null, over: null };
-        const dprOk = T.play(base, 'dpr').last.winner === 1 && T.play(base, 'acs').last.winner === (hi.acs > lo.acs ? 0 : hi.acs < lo.acs ? 1 : -1);
+        const base = { region, seed: 1, hands: [[hi.id, lo.id], [lo.id, hi.id]], turn: 0, round: 1, last: null, over: null };
+        // Tie: both cards go back to their own decks and the same player picks again.
+        const tie = T.play({ region, seed: 1, hands: [[hi.id, lo.id], [hi.id, lo.id]], turn: 1, round: 1, last: null, over: null }, 'acs');
+        const tieOk = tie.last.winner === -1 && tie.turn === 1 && tie.hands[0].join() === [lo.id, hi.id].join() && tie.hands[1].join() === [lo.id, hi.id].join();
+        const dprOk = tieOk && T.play(base, 'dpr').last.winner === 1 && T.play(base, 'acs').last.winner === (hi.acs > lo.acs ? 0 : hi.acs < lo.acs ? 1 : -1);
         out[region] = { total, games, byCards, byLimit, draws, errors: errors.slice(0, 3), deterministic: a === c, dprOk };
       }
       return out;
@@ -49,7 +53,7 @@ const check = (ok, msg) => { if (!ok) { bad++; console.log('FAIL ' + msg); } };
       console.log(`engine ${region}: ${x.total} cards, ${x.games} games, ${x.byCards} won by taking every card, ${x.byLimit} by round limit, ${x.draws} draws`);
       check(x.games === 2000 && !x.errors.length, `engine ${region}: ${x.errors.join('; ')}`);
       check(x.deterministic, `engine ${region} not deterministic`);
-      check(x.dprOk, `engine ${region}: lower DPR should win`);
+      check(x.dprOk, `engine ${region}: lower DPR should win, and ties go back to their own decks`);
     }
     await pg.close();
   }
@@ -97,7 +101,8 @@ const check = (ok, msg) => { if (!ok) { bad++; console.log('FAIL ' + msg); } };
       await pg.click('[data-act="next"]');
     }
     const counts = await pg.evaluate(() => [...document.querySelectorAll('[data-count]')].map(e => +e.dataset.count).concat(document.querySelectorAll('.tt-slot .tt-flip').length));
-    check(counts.length === 4 && counts.reduce((a, b) => a + b, 0) === 51, 'decks + pot + table should total 51 EMEA cards, got ' + counts);
+    check(counts.length === 3 && counts.reduce((a, b) => a + b, 0) === 51, 'decks + table should total 51 EMEA cards, got ' + counts);
+    check(!(await pg.$('.tt-pot, #tt-pot')), 'there should be no pot on the table');
     const over = await pg.evaluate(() => document.documentElement.scrollWidth - innerWidth);
     check(over <= 0, `${w}px sideways overflow ${over}px`);
     const real = errs.filter(e => !/fonts\.g|Failed to load resource/.test(e));
