@@ -49,7 +49,7 @@ Branding: header and titles say **fantasy.pcmt.gg**. Colors black + `#a5dcdd`; f
 
 ## 5. Game rules (as built)
 
-- Deck: 11 players, roles filled, budget 95, max 2 per team, twin rule; one IGL scores ×1.5.
+- Deck: 11 players, roles filled, budget 100, max 2 per team, twin rule; one IGL scores ×1.5.
 - Scoring per series: kill +2, assist +1, death −1, first kill +1, series won +2, top ACS +3, top KAST +1 (ties all get it).
 - Gameweeks start Monday 09:00 UTC (5:00 AM EDT). Decks lock 12 h before the week's first series. 2 transfers per gameweek, counted against the last scored deck; an invalid deck falls back to the previous one.
 - Unlocks: team decks at 100 team points, Gold by active weeks, champion/missed win, Midlife Crisis at a 200-point week, Ethan aura for two consecutive weekly #1s, Champion's Aura holder from standings. Codes are redeemed server-side with `redeem_code` (PRIDE is seeded).

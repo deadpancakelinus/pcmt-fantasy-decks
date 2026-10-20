@@ -14,7 +14,7 @@ function siteRules(matches, results) {
   const ctx = { window: {} };
   vm.runInNewContext(PLAYERS_JS.replace(/var (PCMT_SITE_\w+)/g, 'window.$1'), ctx);
   ctx.window.PCMT_MATCHES = matches; ctx.window.PCMT_RESULTS = results;
-  vm.runInNewContext('var DAY = 86400000, BUDGET = 95, TEAM_LIMIT = 2, TRANSFERS = 2, LOCK_LEAD_H = 12, ROLES = ["duelist","controller","initiator","sentinel"],' +
+  vm.runInNewContext('var DAY = 86400000, BUDGET = 100, TEAM_LIMIT = 2, TRANSFERS = 2, LOCK_LEAD_H = 12, ROLES = ["duelist","controller","initiator","sentinel"],' +
     ' SCORING = { kill: 2, assist: 1, death: -1, firstKill: 1, seriesWin: 2, topAcs: 3, topKast: 1 };\n' + core +
     '\nthis.api = { buildWeeks: buildWeeks, scoreManager: scoreManager, weekCardVP: weekCardVP, validDeck: validDeck };', ctx);
   return ctx.api;
@@ -55,7 +55,7 @@ function scenario(seed) {
         if (!pool.length) { ok = false; break; }
         const p = pick(pool); slots[k] = p.id; used.add(p.id); byTeam[p.team] = (byTeam[p.team] || 0) + 1; cost += p.price;
       }
-      if (ok && cost <= 95) return slots;
+      if (ok && cost <= 100) return slots;
     }
     throw new Error('no deck');
   }

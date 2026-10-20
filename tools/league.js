@@ -7,7 +7,7 @@
   var SB_URL = 'https://wwrsavqipkxvdsxcemos.supabase.co';
   var SB_KEY = 'sb_publishable_e8v-uyAo4fnvwJCHUVA5FQ_LXR6yYM7';
   var TOKEN_KEY = 'pcmt-auth';
-  var BUDGET = 95, TEAM_LIMIT = 2, TRANSFERS = 2, LOCK_LEAD_H = 12;
+  var BUDGET = 100, TEAM_LIMIT = 2, TRANSFERS = 2, LOCK_LEAD_H = 12;
   var ROLES = ['duelist', 'controller', 'initiator', 'sentinel'];
   var SCORING = { kill: 2, assist: 1, death: -1, firstKill: 1, seriesWin: 2, topAcs: 3, topKast: 1 };
   var DAY = 86400000;

@@ -91,7 +91,7 @@ begin
     teams := teams || jsonb_build_object(p ->> 'team', coalesce((teams ->> (p ->> 'team'))::int, 0) + 1);
     if (teams ->> (p ->> 'team'))::int > 2 then return false; end if;
   end loop;
-  return cost <= 95.000000001;
+  return cost <= 100.000000001;
 end $$;
 
 create or replace function public.vp_transfers(p_prev jsonb, p_slots jsonb) returns int
