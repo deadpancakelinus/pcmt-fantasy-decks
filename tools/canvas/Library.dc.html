@@ -29,6 +29,15 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 .st-card{position:relative;box-sizing:border-box;width:300px;zoom:.75;aspect-ratio:5/7;background:#0b1011;border:1px solid #1e2b2d;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 10px 24px rgba(0,0,0,.55)}
 .st-art{position:absolute;inset:0;z-index:0;pointer-events:none}
 .st-sheen{position:absolute;inset:0;z-index:2;pointer-events:none;border-radius:inherit;background-size:260% 100%;background-repeat:no-repeat;animation:st-sheen 8s ease-in-out infinite}
+
+.lib-stack{display:flex;flex-wrap:wrap;row-gap:30px;padding:26px 163px 8px 4px}
+.lib-slot{position:relative;flex:none;width:225px;margin-right:-163px;transform:rotate(var(--r,0deg));transform-origin:50% 100%;transition:transform .22s ease,filter .22s ease;outline:none;cursor:pointer;filter:drop-shadow(-6px 0 10px rgba(0,0,0,.55))}
+.lib-slot:last-child{margin-right:0}
+.lib-slot:hover,.lib-slot:focus{z-index:200 !important;transform:translateY(-22px) rotate(0deg) scale(1.05);filter:drop-shadow(0 16px 22px rgba(0,0,0,.7))}
+.lib-slot:focus-visible .st-card{box-shadow:0 0 0 3px #a5dcdd}
+.lib-count{position:absolute;left:-6px;top:-10px;z-index:3;padding:3px 8px;border-radius:6px;background:#a5dcdd;color:#000;font:600 11px/1 'JetBrains Mono',monospace;box-shadow:0 2px 6px rgba(0,0,0,.5)}
+@media (max-width:520px){.lib-slot{margin-right:-170px}.lib-stack{flex-wrap:nowrap;overflow-x:auto;padding:46px 8px 14px 10px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}.lib-slot{scroll-snap-align:start}}  /* phones: one stack per row that you swipe sideways */
+@media (prefers-reduced-motion: reduce){.lib-slot{transition:none}}
 @keyframes st-sheen{0%{background-position:160% 0}55%,100%{background-position:-60% 0}}
 .st-stamp{display:inline-flex;align-items:center;gap:4px;padding:3px 7px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.14em;transform:rotate(-9deg);white-space:nowrap}
 .st-shine{background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:st-shine 6s ease-in-out infinite}
@@ -110,9 +119,17 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </div>
 </sc-if>
 
-<section aria-label="Your cards" style="display: grid; grid-template-columns: repeat(auto-fill, 225px); gap: 22px; justify-content: start">
-<sc-for list="{{cards}}" as="it" hint-placeholder-count="4">
-<article style="display: flex; flex-direction: column; gap: 10px; min-width: 0">
+<sc-for list="{{groups}}" as="g" hint-placeholder-count="2">
+<section aria-label="{{g.label}}" style="display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap">
+<h2 style="margin: 0; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 28px; line-height: 1.1">{{g.label}}</h2>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; letter-spacing: 0.1em; color: {{g.ink}}">{{g.rarity}}</span>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">{{g.countLabel}}</span>
+</div>
+<div class="lib-stack">
+<sc-for list="{{g.cards}}" as="it" hint-placeholder-count="4">
+<div class="lib-slot" tabindex="0" title="{{it.name}}" style="--r: {{it.tilt}}; z-index: {{it.z}}">
+<span class="lib-count" title="How many you own">×{{it.count}}</span>
 <div class="st-card" role="img" aria-label="{{it.cardLabel}}">
 <span class="st-wm" aria-hidden="true"><img src="{{it.regionLogo}}" alt=""></span>
 <sc-if value="{{it.hasArt}}" hint-placeholder-val="{{ false }}"><span class="st-art" aria-hidden="true"><img src="{{it.art}}" alt=""></span></sc-if>
@@ -143,13 +160,11 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </div>
 <span style="display: block; height: 5px; background: {{it.color}}; flex: none; position: relative; z-index: 1"></span>
 </div>
-<div style="display: flex; align-items: center; justify-content: space-between; gap: 10px">
-<span style="font-size: 15px; color: #c4d4d4; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{it.title}}</span>
-<span title="How many you own" style="flex: none; padding: 4px 10px; border-radius: 6px; background: #a5dcdd; color: #000; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600">×{{it.count}}</span>
 </div>
-</article>
 </sc-for>
+</div>
 </section>
+</sc-for>
 
 </div>
 </sc-if>
@@ -337,6 +352,7 @@ class Component extends DCLogic {
       var shiny = c.rarity !== 'common', col = tm.color || '#a5dcdd';
       return {
         id: k, count: String(mine[k]), rarity: c.rarity, region: c.region, sortName: String(p.name).toLowerCase(),
+        variantKey: c.variant ? 'v:' + c.variant : 'r:' + c.rarity, groupLabel: c.variant ? c.title : (c.rarity.charAt(0).toUpperCase() + c.rarity.slice(1)),
         title: c.variant ? c.title : (c.rarity.charAt(0).toUpperCase() + c.rarity.slice(1)),
         name: p.name, team: tm.code, teamName: tm.name, teamLogo: tm.logo || '', hasLogo: !!tm.logo, noLogo: !tm.logo, color: col,
         season: PCMT_SEASON_LABEL[c.region] || c.region, maps: st ? String(st.maps) : '—',
@@ -362,6 +378,19 @@ class Component extends DCLogic {
     });
     var show = s.show || 'ALL';
     var cards = all.filter(function (c) { return show === 'ALL' || (show === 'RARE' ? c.rarity !== 'common' : c.region === show); });
+    // One row per card variant (Teklologik variant, Common, ...), rarest first; cards in a row are stacked and fanned.
+    var groups = [], byKey = {};
+    cards.forEach(function (c) {
+      var key = c.variantKey;
+      if (!byKey[key]) { byKey[key] = { label: c.groupLabel, rarity: c.rarityTag, ink: c.shiny ? c.color : '#93a9aa', order: PCMT_RARITY_ORDER[c.rarity], cards: [] }; groups.push(byKey[key]); }
+      byKey[key].cards.push(c);
+    });
+    groups.sort(function (a, b) { return a.order - b.order || a.label.localeCompare(b.label); });
+    groups.forEach(function (g) {
+      var n = g.cards.length, owned = g.cards.reduce(function (t, c) { return t + (+c.count); }, 0);
+      g.countLabel = n + (n === 1 ? ' card' : ' cards') + (owned > n ? ' · ' + owned + ' with copies' : '');
+      g.cards = g.cards.map(function (c, i) { return Object.assign({}, c, { z: String(i + 1), tilt: (((i % 5) - 2) * 1.2).toFixed(1) + 'deg' }); });
+    });
     var count = function (f) { return all.filter(f).length; };
     var filters = [['ALL', 'All', count(function () { return true; })], ['NA', 'NA', count(function (c) { return c.region === 'NA'; })],
                    ['EMEA', 'EMEA', count(function (c) { return c.region === 'EMEA'; })], ['RARE', 'Rare and up', count(function (c) { return c.rarity !== 'common'; })]]
@@ -380,7 +409,7 @@ class Component extends DCLogic {
       trophy: PCMT_TROPHY_ICON,
       totals: [{ value: String(total), label: 'cards' }, { value: String(all.length), label: 'unique' }, { value: String(count(function (c) { return c.rarity !== 'common'; })), label: 'rare+' }],
       filters: filters,
-      cards: cards,
+      groups: groups,
       empty: !cards.length,
       emptyText: !signedIn ? 'Log in with Discord to see your cards.' : all.length ? 'No cards here yet.' : 'No cards yet. Open card packs in the Store and every card you pull shows up here.'
     };
