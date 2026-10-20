@@ -317,7 +317,7 @@
     if (ready) scored.forEach(function (x) { if (x.week.done) arriving += Math.max(0, weekCardVP(x.week, x.deck).total - (paidByWeek[x.week.key] || 0)); });
     return { signedIn: true, ready: ready, balance: String(balance), lastPay: String(lastPay), earned: String(earned), history: history, spent: spent, week: week, arriving: arriving };
   }
-  window.PCMT_PACKS = []; window.PCMT_MY_CARDS = {};
+  window.PCMT_PACKS = []; window.PCMT_MY_CARDS = {}; window.PCMT_CARD_CATALOG = [];
   window.PCMT_VP = { signedIn: false, ready: true, balance: '0', lastPay: '0', earned: '0', history: [], spent: [], week: { vp: '0', state: 'out', note: '' }, arriving: 0 };
 
   // Series key used by the multikills table: start|a|b, exactly as in data.js.
@@ -356,12 +356,14 @@
       // Card packs for sale (public) and the cards you own (empty until setup/cards-setup.sql has been run)
       var packs = api('/rest/v1/card_packs?select=id,name,region,cards,odds,price,active,open_to_all&active=is.true&order=id').catch(function () { return []; });
       var mine = me ? api('/rest/v1/user_cards?select=card_id,count&limit=5000').catch(function () { return []; }) : Promise.resolve([]);
-      return Promise.all([decks, profiles, unlocks, vp, multi, admin, packs, mine]);
+      var catalog = /library\.html$/.test(location.pathname) ? api('/rest/v1/cards?select=id,player,variant,rarity,region,title&limit=5000').catch(function () { return []; }) : Promise.resolve([]);
+      return Promise.all([decks, profiles, unlocks, vp, multi, admin, packs, mine, catalog]);
     }).then(function (res) {
       attachMulti(res[4] || []);
       window.PCMT_IS_ADMIN = !!(res[5] && res[5].length);
       window.PCMT_PACKS = res[6] || [];
       window.PCMT_MY_CARDS = {};
+      window.PCMT_CARD_CATALOG = res[8] || [];
       (res[7] || []).forEach(function (c) { window.PCMT_MY_CARDS[c.card_id] = c.count; });
       var decks = res[0] || [], profiles = res[1] || [], unlocks = res[2] || [];
       window.PCMT_SERVER_UNLOCKS = unlocks.map(function (u) { return u.unlock; });

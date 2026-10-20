@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>fantasy.pcmt.gg Library</title>
+<meta name="description" content="PCMT Fantasy Decks: build a deck of Plat Chat Members Tourney players and score points every match.">
+<link rel="icon" href="assets/3bf9d529cabff94109b561693539029f.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cabin+Sketch:wght@400;700&amp;family=JetBrains+Mono:wght@400;600&amp;family=Space+Grotesk:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#000}
+html{color-scheme:dark}
+*{scrollbar-color:#2c3d40 #050808}
+::-webkit-scrollbar{width:12px;height:12px}
+::-webkit-scrollbar-track{background:#050808}
+::-webkit-scrollbar-thumb{background:#2c3d40;border-radius:999px;border:3px solid #050808}
+::-webkit-scrollbar-thumb:hover{background:#3d5457}
+::-webkit-scrollbar-corner{background:#050808}
+a{color:#a5dcdd}a:hover{color:#d4f0f0}
+.pcmt-loader{--radius:78px;--speed:2.4s;position:relative;width:calc(var(--radius)*2 + 60px);height:calc(var(--radius)*2 + 60px)}
+.pcmt-loader span{position:absolute;left:50%;top:50%;width:34px;height:48px;margin:-24px 0 0 -17px;border-radius:5px;background:url("assets/38f3fa3227d68bf879b50c6927b7ab1f.png") center/90% no-repeat,#000;border:1.5px solid #a5dcdd;box-shadow:0 2px 6px rgba(0,0,0,.35);animation:pcmt-card-splay var(--speed) cubic-bezier(.65,0,.35,1) infinite;animation-delay:calc(var(--i)*0.035s)}
+@keyframes pcmt-card-splay{0%,8%{transform:rotate(0deg) translateY(0)}40%,58%{transform:rotate(calc(var(--i)*24deg)) translateY(calc(var(--radius)*-1))}92%,100%{transform:rotate(360deg) translateY(0)}}
+@media (prefers-reduced-motion: reduce){.pcmt-loader span{animation-duration:calc(var(--speed)*3)}}
+.pcmt-loading{transition:opacity .4s ease}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !important;box-shadow:0 0 0 3px rgba(165,220,221,.3)}
+.st-card{position:relative;box-sizing:border-box;width:100%;aspect-ratio:5/7;background:#0b1011;border:1px solid #1e2b2d;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 10px 24px rgba(0,0,0,.55)}
+.st-art{position:absolute;inset:0;z-index:0;pointer-events:none}
+.st-sheen{position:absolute;inset:0;z-index:2;pointer-events:none;border-radius:inherit;background-size:260% 100%;background-repeat:no-repeat;animation:st-sheen 8s ease-in-out infinite}
+@keyframes st-sheen{0%{background-position:160% 0}55%,100%{background-position:-60% 0}}
+.st-stamp{display:inline-flex;align-items:center;gap:4px;padding:3px 7px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.14em;transform:rotate(-9deg);white-space:nowrap}
+.st-shine{background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:st-shine 6s ease-in-out infinite}
+@keyframes st-shine{0%{background-position:160% 0}50%,100%{background-position:-60% 0}}
+@media (prefers-reduced-motion: reduce){.st-sheen,.st-shine{animation:none}}
+.st-art img{position:absolute;right:-6%;bottom:-2%;height:104%;width:auto;max-width:none;opacity:.2;-webkit-mask-image:linear-gradient(180deg,#000 55%,transparent 100%);mask-image:linear-gradient(180deg,#000 55%,transparent 100%)}
+.st-wm{position:absolute;inset:0;z-index:0;pointer-events:none;display:grid;place-items:center}
+.st-wm img{width:78%;max-width:230px;aspect-ratio:1;object-fit:contain;opacity:.06;transform:translateY(10px)}
+.st-body{box-sizing:border-box;position:relative;z-index:1;flex:1;padding:14px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.st-stat{box-sizing:border-box;display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:40px;padding:6px 12px;border-radius:8px;background:rgba(0,0,0,.5)}
+@media (max-width:520px){.st-card{aspect-ratio:auto;border-radius:10px}.st-body{padding:10px;gap:6px}.st-stat{min-height:34px;padding:5px 10px}}
+</style>
+</head>
+<body>
+<div id="dc-root"></div>
+<script type="application/json" id="dc-tree">[["div",{"data-pcmt-root":"Library","style":"position: relative; min-height: 100vh; background: #000; color: #eaf4f4; font-family: 'Space Grotesk', system-ui, sans-serif"},[["sc-if",{"value":"{{loaderOn}}","hint-placeholder-val":"{{ false }}"},[["div",{"class":"pcmt-loading","role":"status","aria-live":"polite","style":"position: absolute; inset: 0; z-index: 9999; background: #000; opacity: {{loaderOpacity}}; pointer-events: {{loaderPointer}}"},[["div",{"style":"position: sticky; top: 0; height: 100vh; max-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px"},[["div",{"class":"pcmt-loader","aria-hidden":"true"},[["span",{"style":"--i:0"},[]],["span",{"style":"--i:1"},[]],["span",{"style":"--i:2"},[]],["span",{"style":"--i:3"},[]],["span",{"style":"--i:4"},[]],["span",{"style":"--i:5"},[]],["span",{"style":"--i:6"},[]],["span",{"style":"--i:7"},[]],["span",{"style":"--i:8"},[]],["span",{"style":"--i:9"},[]],["span",{"style":"--i:10"},[]],["span",{"style":"--i:11"},[]],["span",{"style":"--i:12"},[]],["span",{"style":"--i:13"},[]],["span",{"style":"--i:14"},[]]]],["span",{"style":"font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.12em; color: #a5dcdd"},["{{loaderLabel}}"]]]]]]]],["header",{"style":"border-bottom: 1px solid #1e2b2d; background: #050808"},[["div",{"style":"max-width: 1280px; margin: 0 auto; padding: 14px 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 32px"},[["a",{"href":"index.html","style":"display: flex; align-items: baseline; gap: 10px; text-decoration: none"},[["span",{"style":"font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 32px; color: #a5dcdd; line-height: 1"},["fantasy.pcmt.gg"]]]],["nav",{"aria-label":"Main","style":"display: flex; flex-wrap: wrap; gap: 4px; flex: 1 1 auto"},[["a",{"href":"leaderboard.html","style":"padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4"},["Leaderboard"]],["a",{"href":"index.html","style":"padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4"},["The Deck"]],["a",{"href":"customization.html","style":"padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4"},["Customization"]],["a",{"href":"guide.html","style":"padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4"},["Guide"]],["a",{"href":"mvp-vs.html","style":"padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4"},["MVP VS"]],["a",{"href":"store.html","style":"padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4"},["Store"]],["a",{"href":"library.html","aria-current":"page","style":"padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #000; background: #a5dcdd; font-weight: 600"},["Library"]],["a",{"href":"transactions.html","style":"padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4"},["Transactions"]]]],["a",{"href":"login.html","style":"min-height: 44px; display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; border-radius: 8px; background: #4752C4; color: #fff; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; text-decoration: none"},[["svg",{"aria-hidden":"true","width":"16","height":"16","viewBox":"0 0 24 24","fill":"none","stroke":"currentColor","stroke-width":"2.2","stroke-linecap":"round","stroke-linejoin":"round"},[["path",{"d":"M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"},[]],["path",{"d":"M10 17l5-5-5-5"},[]],["path",{"d":"M15 12H3"},[]]]],"{{auth.label}}"]],["span",{"style":"order: -1; flex: 1 0 100%; margin-bottom: -4px; text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.08em; white-space: nowrap"},["NA S3 · EMEA S2"]]]]]],["main",{"style":"position: relative; max-width: 1280px; margin: 0 auto; padding: 36px 24px 64px"},[["sc-if",{"value":"{{locked}}","hint-placeholder-val":"{{ true }}"},[["div",{"role":"status","style":"position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; padding: 24px; text-align: center; background: rgba(0, 0, 0, 0.35)"},[["div",{"class":"pcmt-loader","aria-hidden":"true"},[["span",{"style":"--i:0"},[]],["span",{"style":"--i:1"},[]],["span",{"style":"--i:2"},[]],["span",{"style":"--i:3"},[]],["span",{"style":"--i:4"},[]],["span",{"style":"--i:5"},[]],["span",{"style":"--i:6"},[]],["span",{"style":"--i:7"},[]],["span",{"style":"--i:8"},[]],["span",{"style":"--i:9"},[]],["span",{"style":"--i:10"},[]],["span",{"style":"--i:11"},[]],["span",{"style":"--i:12"},[]],["span",{"style":"--i:13"},[]],["span",{"style":"--i:14"},[]]]],["p",{"style":"margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; letter-spacing: 0.18em; color: #a5dcdd"},["COMING SOON..."]]]]]],["div",{"aria-hidden":"{{lockHidden}}","style":"display: flex; flex-direction: column; gap: 28px; filter: {{lockBlur}}; pointer-events: {{lockPointer}}; user-select: {{lockPointer}}"},[["div",{"style":"display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px"},[["div",{"style":"display: flex; flex-direction: column; gap: 6px"},[["h1",{"style":"margin: 0; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 60px; line-height: 1"},["Library"]],["p",{"style":"margin: 8px 0 0; max-width: 640px; font-size: 18px; line-height: 1.55; color: #c4d4d4"},["Every card you've pulled from packs in the Store."]]]],["div",{"style":"display: flex; gap: 10px; flex-wrap: wrap"},[["sc-for",{"list":"{{totals}}","as":"tt","hint-placeholder-count":"3"},[["div",{"style":"display: flex; align-items: baseline; gap: 8px; padding: 12px 16px; border: 1px solid #1e2b2d; border-radius: 12px; background: #0b1011"},[["span",{"style":"font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 28px; line-height: 1; color: #a5dcdd"},["{{tt.value}}"]],["span",{"style":"font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.08em; text-transform: uppercase"},["{{tt.label}}"]]]]]]]]]],["div",{"role":"group","aria-label":"Show","style":"display: flex; flex-wrap: wrap; gap: 8px"},[["sc-for",{"list":"{{filters}}","as":"f","hint-placeholder-count":"3"},[["button",{"onClick":"{{f.pick}}","aria-pressed":"{{f.pressed}}","style":"min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid {{f.border}}; background: {{f.bg}}; color: {{f.ink}}; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; cursor: pointer"},["{{f.label}} ",["span",{"style":"opacity: 0.7"},["{{f.count}}"]]]]]]]],["sc-if",{"value":"{{empty}}","hint-placeholder-val":"{{ false }}"},[["div",{"style":"background: #0b1011; border: 1px solid #1e2b2d; border-radius: 12px; padding: 40px 24px; display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center"},[["p",{"style":"margin: 0; font-size: 17px; color: #c4d4d4"},["{{emptyText}}"]],["a",{"href":"store.html","style":"min-height: 44px; display: inline-flex; align-items: center; padding: 0 18px; border-radius: 8px; background: #a5dcdd; color: #000; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; text-decoration: none"},["Go to the Store"]]]]]],["section",{"aria-label":"Your cards","style":"display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 300px)); gap: 28px; justify-content: start"},[["sc-for",{"list":"{{cards}}","as":"it","hint-placeholder-count":"4"},[["article",{"style":"display: flex; flex-direction: column; gap: 10px; min-width: 0"},[["div",{"class":"st-card","role":"img","aria-label":"{{it.cardLabel}}"},[["span",{"class":"st-wm","aria-hidden":"true"},[["img",{"src":"{{it.regionLogo}}","alt":""},[]]]],["sc-if",{"value":"{{it.hasArt}}","hint-placeholder-val":"{{ false }}"},[["span",{"class":"st-art","aria-hidden":"true"},[["img",{"src":"{{it.art}}","alt":""},[]]]]]],["sc-if",{"value":"{{it.shiny}}","hint-placeholder-val":"{{ false }}"},[["span",{"class":"st-sheen","aria-hidden":"true","style":"background-image: {{it.sheen}}"},[]]]],["span",{"style":"display: block; height: 5px; background: {{it.color}}; flex: none; position: relative; z-index: 1"},[]],["div",{"class":"st-body"},[["div",{"style":"display: flex; justify-content: space-between; align-items: center; height: 30px; flex: none"},[["sc-if",{"value":"{{it.hasLogo}}","hint-placeholder-val":"{{ true }}"},[["img",{"src":"{{it.teamLogo}}","alt":"{{it.teamName}}","title":"{{it.teamName}}","style":"height: 30px; width: auto; max-width: 70px; object-fit: contain; display: block"},[]]]],["sc-if",{"value":"{{it.noLogo}}","hint-placeholder-val":"{{ false }}"},[["span",{"style":"font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 20px; line-height: 1; color: {{it.color}}"},["{{it.team}}"]]]],["span",{"title":"{{it.maps}} maps played in {{it.season}}","style":"font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 30px; line-height: 1; color: {{it.color}}; font-variant-numeric: tabular-nums; display: inline-flex; align-items: baseline; gap: 4px"},["{{it.maps}}",["small",{"style":"font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 9px; letter-spacing: 0.1em; opacity: 0.8"},["MAPS"]]]]]],["div",{"style":"display: flex; align-items: center; gap: 6px; height: 38px; flex: none; font-family: 'Cabin Sketch', cursive; font-weight: 700; line-height: 1.1; white-space: nowrap; overflow: hidden; font-size: {{it.nameSize}}px"},[["span",{"style":"overflow: hidden; min-width: 0"},["{{it.name}}"]],["sc-if",{"value":"{{it.champ}}","hint-placeholder-val":"{{ false }}"},[["img",{"src":"{{trophy}}","alt":"PCMT champion","title":"PCMT champion","style":"width: 19px; height: 19px; object-fit: contain; flex: none; filter: drop-shadow(0 0 4px rgba(245,215,110,.6))"},[]]]]]],["div",{"style":"font-size: 10px; line-height: 1.2; font-weight: 500; color: {{it.color}}; opacity: 0.85; flex: none; overflow: hidden; white-space: nowrap; text-overflow: ellipsis"},["{{it.teamName}} · {{it.season}}"]],["div",{"style":"display: flex; flex-direction: column; gap: 5px; flex: 1; justify-content: center"},[["sc-for",{"list":"{{it.stats}}","as":"st","hint-placeholder-count":"5"},[["div",{"class":"st-stat"},[["span",{"style":"font-size: 14px"},["{{st.label}}",["sc-if",{"value":"{{st.low}}","hint-placeholder-val":"{{ false }}"},[["i",{"style":"font-style: normal; color: #93a9aa; margin-left: 6px; font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase"},["lower wins"]]]]]],["span",{"style":"font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums"},["{{st.value}}"]]]]]]]],["div",{"style":"display: flex; align-items: center; justify-content: space-between; gap: 6px; height: 26px; flex: none"},[["img",{"src":"{{it.roleIcon}}","alt":"{{it.roleLabel}}","title":"{{it.roleLabel}}","style":"width: 24px; height: 24px; display: block"},[]],["sc-if",{"value":"{{it.shiny}}","hint-placeholder-val":"{{ false }}"},[["span",{"class":"st-stamp","title":"{{it.rarityLabel}} card","style":"border: 1.5px solid {{it.color}}; box-shadow: inset 0 0 0 2px #0b1011, inset 0 0 0 3px {{it.color}}, 0 0 12px {{it.glow}}; color: {{it.color}}"},[["svg",{"aria-hidden":"true","width":"10","height":"10","viewBox":"0 0 24 24","fill":"currentColor"},[["path",{"d":"M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 20.9l1.6-7L2 9.2l7.1-.6z"},[]]]],["span",{"class":"st-shine","style":"background-image: {{it.shine}}"},["{{it.rarityTag}}"]]]]]]]]]],["span",{"style":"display: block; height: 5px; background: {{it.color}}; flex: none; position: relative; z-index: 1"},[]]]],["div",{"style":"display: flex; align-items: center; justify-content: space-between; gap: 10px"},[["span",{"style":"font-size: 15px; color: #c4d4d4; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap"},["{{it.title}}"]],["span",{"title":"How many you own","style":"flex: none; padding: 4px 10px; border-radius: 6px; background: #a5dcdd; color: #000; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600"},["×{{it.count}}"]]]]]]]]]]]]]],["footer",{"style":"border-top: 1px solid #1e2b2d"},[["div",{"style":"max-width: 1280px; margin: 0 auto; padding: 22px 24px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa"},[["span",{},["fantasy.pcmt.gg · Plat Chat Members Tourney"]],["span",{},["Version 1.5 BETA"]],["a",{"href":"https://pcmt.gg","target":"_blank","rel":"noopener"},["Stats on PCMT.gg"]]]]]]]]]</script>
+<script type="application/json" id="dc-props">{}</script>
+<script type="text/plain" id="dc-logic">
+// ---- Library ----
+// The live site fills these from Supabase (see league.js): PCMT_MY_CARDS = { <card id>: count } and
+// PCMT_CARD_CATALOG = [{ id, player, variant, rarity, region, title }]. Stats come from the MVP VS cards
+// (trumps-cards.js, PCMT_TRUMPS_CARDS). The canvas shows the sample below.
+var PCMT_LIBRARY_SAMPLE = {
+  mine: { 'v:teklo-variant': 1, 'c:claps': 2, 'c:crocman': 1, 'c:haych': 3, 'c:becosh': 1 },
+  catalog: [
+    { id: 'v:teklo-variant', player: 'teklo', variant: 'teklo-variant', rarity: 'rare', region: 'NA', title: 'Teklologik variant' },
+    { id: 'c:claps', player: 'claps', variant: null, rarity: 'common', region: 'NA', title: 'claps' },
+    { id: 'c:crocman', player: 'crocman', variant: null, rarity: 'common', region: 'NA', title: 'mrcrocman' },
+    { id: 'c:haych', player: 'haych', variant: null, rarity: 'common', region: 'NA', title: 'haych' },
+    { id: 'c:becosh', player: 'becosh', variant: null, rarity: 'common', region: 'EMEA', title: 'becosh' }
+  ],
+  players: [
+    { id: 'teklo', name: 'teklo', team: 'DFM', role: 'duelist' }, { id: 'claps', name: 'claps', team: 'C9', role: 'controller' },
+    { id: 'crocman', name: 'mrcrocman', team: 'T1', role: 'duelist' }, { id: 'haych', name: 'haych', team: 'TL', role: 'sentinel' },
+    { id: 'becosh', name: 'becosh', team: 'SEAL', role: 'duelist' }
+  ],
+  stats: {
+    'NA|teklo': { maps: 21, acs: 177, kast: 62, hs: 23, dpr: 0.83, toxic: 0.8 }, 'NA|claps': { maps: 28, acs: 323, kast: 81, hs: 22, dpr: 0.78, toxic: 1.43 },
+    'NA|mrcrocman': { maps: 26, acs: 299, kast: 78, hs: 26, dpr: 0.69, toxic: 1.37 }, 'NA|haych': { maps: 25, acs: 245, kast: 76, hs: 24, dpr: 0.7, toxic: 1.2 },
+    'EMEA|becosh': { maps: 20, acs: 260, kast: 74, hs: 25, dpr: 0.72, toxic: 1.25 }
+  }
+};
+var PCMT_RARITY_ORDER = { legendary: 0, epic: 1, rare: 2, common: 3 };
+var PCMT_SEASON_LABEL = { NA: 'S3 NA', EMEA: 'S2 EMEA' };
+
+// ---- Shared with the Store board (keep in step) ----
+var PCMT_VARIANT_ART = { 'teklo-variant': 'assets/8b1855340f56f72ea07f5447ca167038.webp' };
+var PCMT_CHAMPS = ['longclaw', 'devil', 'platinum', 'igneous', 'james', 'stingray', 'faye', 'charlotte', 'mide', 'king', 'tonnoman']; // NA S1/S2 and EMEA S1 champions, treated the same
+var PCMT_DECK_TEAMS = [
+  { code: 'T1', name: 'Team 1', color: '#FF0000', logo: 'assets/ce2bf22e2df8751703c00f132b854650.png' },
+  { code: 'TL', name: 'Team Dyslexia', color: '#1c9ad8', logo: 'assets/18b0eb4cbe217fc77dda8f01e3ff4c16.png' },
+  { code: 'IHOP', name: 'I Hate Odin Party', color: '#3d95dc', logo: 'assets/209d81a7df0d79fc71d99063600358ef.png' },
+  { code: 'FSG', name: 'Furry Squirrels Gaming', color: '#e8603c', logo: 'assets/ad1fa170a11534a10c9a953f0a092175.png' },
+  { code: 'FNC', name: 'cow paulo FaN Club', color: '#ff8a1f', logo: 'assets/8a102a19e71060bb2dacb6d6b5263457.png' },
+  { code: 'SSG', name: 'Squirtle Squad Gaming', color: '#f2b01e', logo: 'assets/1e20352a30572a577222d14b6a2389ce.png' },
+  { code: 'RRQ', name: 'Rage Re-Queuers', color: '#f5d90a', logo: 'assets/2c8df8598d3c163942e4d347ee4d7e8e.png' },
+  { code: 'C9', name: 'Clown9', color: '#4dc3ef', logo: 'assets/46ec4a1f510710db9670e64c202b0cee.png' },
+  { code: 'SRB', name: 'Sunshine and Rainbows', color: '#58c47a', logo: 'assets/24ce287349ef3d8ae3c603e22142a375.png' },
+  { code: 'TS', name: 'Team Slugshow', color: '#9b6be8', logo: 'assets/56f2be02d04c1bb89902b3eb4f989ac4.png' },
+  { code: 'EPY', name: 'Team Entropy', color: '#e6e6e6', logo: 'assets/2b237feaf70d67ef58a84efbab9a3e51.png' },
+  { code: 'DFM', name: 'Dementia Found Me', color: '#5a78ff', logo: 'assets/a59455af931db22aaf5f61e2da9f3686.png' },
+  { code: 'BAKA', name: 'Beautiful and Kinda Adorable', color: '#b98ad9', logo: 'assets/09e5595acee6eb70652c84027ef2e6d6.png' },
+  { code: 'NAVI', name: 'No Actual Valorant Intelligence', color: '#FF6EB4', logo: 'assets/f6b846609af48437299bc42d13d5dad0.png' },
+  { code: '100T', name: "100 Tony's", color: '#45dfe8', logo: 'assets/2afecaefb84157c171a79e0bae8932b5.png' },
+  { code: 'SPG', name: 'Spank Ptheory Gaming', color: '#ff7f66', logo: 'assets/fb1551434b59a200d90d2e9ed6a51e8b.png' }
+];
+var PCMT_EMEA_DECK_TEAMS = [
+  { code: 'FaZe', name: 'Fabulous and Zesty', color: '#f28bd8', logo: 'assets/9da6e0491a922186cad6bc5daf699626.png' },
+  { code: 'ATLC', name: 'ATLNTIC Esports', color: '#e04848', logo: 'assets/086abe908c829ddcb51bee4b1db16b83.png' },
+  { code: 'SEAL', name: 'Stay Seally', color: '#8fd3e8', logo: 'assets/7f2055fcc7e78ae7d1510fe56608fd83.png' },
+  { code: 'HOT', name: 'Honestly Outrageous Temperatures', color: '#4f8ef7', logo: 'assets/e078dfeeea5c9d916197f71d8b7ea80a.jpg' },
+  { code: 'NIP', name: 'Name in Progress', color: '#c2478f', logo: 'assets/f953d56be563808b39dbb961891fae8e.png' },
+  { code: 'LARP', name: 'Larpiatán', color: '#6f8fe0', logo: 'assets/f06cf372e21c32dbf3754b8bd506e0b5.jpg' },
+  { code: 'XTC', name: 'Xually Terribly Cursed', color: '#f0913a', logo: 'assets/570eadcaf88a4d369017946bff2b0356.png' },
+  { code: 'SOG', name: 'The SOG', color: '#b8814a', logo: 'assets/85e0857300495ee3133b6acf79e286c0.png' },
+  { code: 'NOOT', name: 'Penguin Patrol', color: '#3fb6a8', logo: 'assets/195da1efa2549707b6737764479c066c.png' },
+  { code: 'NATS', name: 'Never Available To Scrim', color: '#ef8f8f', logo: 'assets/8cbc4258cff847c1db533f124fd9addf.jpg' }
+];
+var PCMT_REGION_LOGOS = { NA: 'assets/c265e976f8968e60e4a2bdd32542b499.png', EMEA: 'assets/3c7e7374dceead68d5c58818d0bcfe8a.png' };
+var PCMT_ALL_DECK_TEAMS = PCMT_DECK_TEAMS.concat(PCMT_EMEA_DECK_TEAMS);
+function pcmtRgba(hex, a) {
+  var h = hex.replace('#', '');
+  return 'rgba(' + parseInt(h.slice(0, 2), 16) + ',' + parseInt(h.slice(2, 4), 16) + ',' + parseInt(h.slice(4, 6), 16) + ',' + a + ')';
+}
+var PCMT_PACK_ROLE_ICONS = {
+  duelist: 'assets/3911a104cbddaf481d7a7bf070a2e696.png',
+  initiator: 'assets/8f7fb7ffa93c48ba09a00fcd223c7f7c.png',
+  sentinel: 'assets/006daf34642009c6f6749139f80a613e.png',
+  controller: 'assets/783fdcc50fe04d2622938ee185d4ed32.png'
+};
+var PCMT_TROPHY_ICON = 'assets/7dd283457b69773e4aa58012ed89ad9a.png';
+class Component extends DCLogic {
+  componentDidMount() {
+    var self = this, start = Date.now();
+    if (this._pageDidMount) this._pageDidMount();
+    this._navClick = function (e) {
+      if (e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+      if (!a || a.target === '_blank') return;
+      var root = a.closest('[data-pcmt-root]');
+      if (!root || root.getAttribute('data-pcmt-root') !== 'Library') return;
+      if (!/\.html(#|$|\?)/.test(a.getAttribute('href'))) return;
+      try { window.sessionStorage.setItem('pcmt-nav', String(Date.now())); } catch (err) {}
+    };
+    document.addEventListener('click', this._navClick, true);
+    function imagesReady() {
+      var imgs = Array.prototype.slice.call(document.images || []);
+      return Promise.all(imgs.map(function (im) {
+        return im.complete ? null : new Promise(function (res) { im.addEventListener('load', res, { once: true }); im.addEventListener('error', res, { once: true }); });
+      }));
+    }
+    var fonts = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+    var cap = new Promise(function (res) { self._loaderCap = setTimeout(res, 5000); });
+    Promise.race([Promise.all([fonts, imagesReady()]), cap]).then(function () {
+      self._loaderMin = setTimeout(function () { self.hideLoader(); }, Math.max(0, 1200 - (Date.now() - start)));
+    });
+  }
+
+  componentWillUnmount() {
+    clearTimeout(this._loaderCap); clearTimeout(this._loaderMin); clearTimeout(this._loaderFade); clearTimeout(this._loaderBuf); clearTimeout(this._loaderNav); clearTimeout(this._navHide);
+    if (this._navClick) document.removeEventListener('click', this._navClick, true);
+    if (this._pageWillUnmount) this._pageWillUnmount();
+  }
+
+  showLoader(label) {
+    clearTimeout(this._loaderFade);
+    this.setState({ loaderPhase: 'on', loaderLabel: label || 'Loading' });
+  }
+
+  hideLoader() {
+    var self = this;
+    if ((this.state && this.state.loaderPhase) === 'gone') return;
+    this.setState({ loaderPhase: 'fade' });
+    clearTimeout(this._loaderFade);
+    this._loaderFade = setTimeout(function () { self.setState({ loaderPhase: 'gone' }); }, 420);
+  }
+
+  bufferFor(label, ms, done) {
+    var self = this;
+    this.showLoader(label);
+    clearTimeout(this._loaderBuf);
+    this._loaderBuf = setTimeout(function () { if (done) done(); self.hideLoader(); }, ms);
+  }
+
+  renderVals() {
+    if (this._arrived === undefined) {
+      this._arrived = false;
+      try {
+        var t = Number(window.sessionStorage.getItem('pcmt-nav') || 0);
+        if (t && Date.now() - t < 4000) { this._arrived = true; window.sessionStorage.removeItem('pcmt-nav'); }
+      } catch (err) {}
+    }
+    var phase = (this.state && this.state.loaderPhase) || (this._arrived ? 'gone' : 'on');
+    return Object.assign(this._pageVals(), {
+      loaderOn: phase !== 'gone',
+      loaderOpacity: phase === 'on' ? 1 : 0,
+      loaderPointer: phase === 'on' ? 'auto' : 'none',
+      loaderLabel: ((this.state && this.state.loaderLabel) || 'Loading').toUpperCase()
+    });
+  }
+
+  _pageVals() {
+    var self = this, s = this.state || {};
+    var W = typeof window !== 'undefined' ? window : {};
+    // Coming soon for everyone except admins (the live site sets PCMT_IS_ADMIN).
+    var locked = !W.PCMT_IS_ADMIN;
+    var live = !!W.PCMT_LEAGUE, signedIn = live ? !!W.PCMT_LEAGUE.signedIn : true;
+    var mine = live ? (W.PCMT_MY_CARDS || {}) : PCMT_LIBRARY_SAMPLE.mine;
+    var catalog = live ? (W.PCMT_CARD_CATALOG || []) : PCMT_LIBRARY_SAMPLE.catalog;
+    var players = {};
+    (live ? (W.PCMT_SITE_PLAYERS || []) : PCMT_LIBRARY_SAMPLE.players).forEach(function (p) { players[p.id] = p; });
+    // MVP VS stats by region + name (same cards as the MVP VS game)
+    var stats = {};
+    if (live && W.PCMT_TRUMPS_CARDS) {
+      ['na', 'emea'].forEach(function (r) { (W.PCMT_TRUMPS_CARDS[r] || []).forEach(function (c) { stats[r.toUpperCase() + '|' + String(c.name).toLowerCase()] = c; }); });
+    } else if (!live) stats = PCMT_LIBRARY_SAMPLE.stats;
+    var abs = function (u) { return u; };
+    var byId = {};
+    catalog.forEach(function (c) { byId[c.id] = c; });
+    var all = Object.keys(mine).filter(function (k) { return mine[k] > 0 && byId[k]; }).map(function (k) {
+      var c = byId[k], p = players[c.player] || { id: c.player, name: c.player, team: '', role: 'duelist' };
+      var tm = PCMT_ALL_DECK_TEAMS.find(function (x) { return x.code === p.team; }) || { code: p.team, name: p.team, color: '#a5dcdd', logo: '' };
+      var role = String(p.role || 'duelist').split('/')[0]; if (role === 'yoru') role = 'duelist';
+      var st = stats[c.region + '|' + String(p.name).toLowerCase()] || null;
+      var fmt = function (v, f) { return st && v != null ? f(v) : '—'; };
+      var shiny = c.rarity !== 'common', col = tm.color || '#a5dcdd';
+      return {
+        id: k, count: String(mine[k]), rarity: c.rarity, region: c.region, sortName: String(p.name).toLowerCase(),
+        title: c.variant ? c.title : (c.rarity.charAt(0).toUpperCase() + c.rarity.slice(1)),
+        name: p.name, team: tm.code, teamName: tm.name, teamLogo: tm.logo || '', hasLogo: !!tm.logo, noLogo: !tm.logo, color: col,
+        season: PCMT_SEASON_LABEL[c.region] || c.region, maps: st ? String(st.maps) : '—',
+        regionLogo: PCMT_REGION_LOGOS[c.region] || PCMT_REGION_LOGOS.NA,
+        art: c.variant && PCMT_VARIANT_ART[c.variant] ? PCMT_VARIANT_ART[c.variant] : '', hasArt: !!(c.variant && PCMT_VARIANT_ART[c.variant]),
+        roleIcon: PCMT_PACK_ROLE_ICONS[role] || PCMT_PACK_ROLE_ICONS.duelist, roleLabel: role.charAt(0).toUpperCase() + role.slice(1),
+        champ: PCMT_CHAMPS.indexOf(p.id) >= 0,
+        nameSize: Math.max(18, Math.min(34, Math.floor(230 / Math.max(4, String(p.name).length * 0.62)))),
+        cardLabel: (c.variant ? c.title + ' card: ' : '') + p.name + ', ' + tm.name + ', ' + c.rarity + ', you own ' + mine[k],
+        shiny: shiny, rarityTag: c.rarity.toUpperCase(), rarityLabel: c.rarity.charAt(0).toUpperCase() + c.rarity.slice(1), glow: pcmtRgba(col, 0.45),
+        sheen: 'linear-gradient(115deg, transparent 42%, ' + pcmtRgba(col, 0.22) + ' 47%, rgba(255,255,255,0.2) 50%, ' + pcmtRgba(col, 0.22) + ' 53%, transparent 58%)',
+        shine: 'linear-gradient(100deg, ' + col + ' 0%, ' + col + ' 35%, #ffffff 50%, ' + col + ' 65%, ' + col + ' 100%)',
+        stats: [
+          { label: 'ACS', value: fmt(st && st.acs, String), low: false },
+          { label: 'KAST', value: fmt(st && st.kast, function (v) { return v + '%'; }), low: false },
+          { label: 'HS%', value: fmt(st && st.hs, function (v) { return v + '%'; }), low: false },
+          { label: 'DPR', value: fmt(st && st.dpr, function (v) { return (+v).toFixed(2); }), low: true },
+          { label: 'Toxic rating', value: fmt(st && st.toxic, function (v) { return (+v).toFixed(2); }), low: false }
+        ]
+      };
+    }).sort(function (a, b) {
+      return (PCMT_RARITY_ORDER[a.rarity] - PCMT_RARITY_ORDER[b.rarity]) || (a.region === b.region ? 0 : a.region === 'NA' ? -1 : 1) || a.sortName.localeCompare(b.sortName);
+    });
+    var show = s.show || 'ALL';
+    var cards = all.filter(function (c) { return show === 'ALL' || (show === 'RARE' ? c.rarity !== 'common' : c.region === show); });
+    var count = function (f) { return all.filter(f).length; };
+    var filters = [['ALL', 'All', count(function () { return true; })], ['NA', 'NA', count(function (c) { return c.region === 'NA'; })],
+                   ['EMEA', 'EMEA', count(function (c) { return c.region === 'EMEA'; })], ['RARE', 'Rare and up', count(function (c) { return c.rarity !== 'common'; })]]
+      .map(function (f) {
+        var on = show === f[0];
+        return { label: f[1], count: String(f[2]), pressed: on ? 'true' : 'false', bg: on ? '#a5dcdd' : 'transparent', ink: on ? '#000' : '#eaf4f4', border: on ? '#a5dcdd' : '#2c3d40',
+                 pick: function () { self.setState({ show: f[0] }); } };
+      });
+    var total = all.reduce(function (n, c) { return n + (+c.count); }, 0);
+    return {
+      locked: locked,
+      lockHidden: locked ? 'true' : 'false',
+      lockBlur: locked ? 'blur(8px)' : 'none',
+      lockPointer: locked ? 'none' : 'auto',
+      trophy: PCMT_TROPHY_ICON,
+      totals: [{ value: String(total), label: 'cards' }, { value: String(all.length), label: 'unique' }, { value: String(count(function (c) { return c.rarity !== 'common'; })), label: 'rare+' }],
+      filters: filters,
+      cards: cards,
+      empty: !cards.length,
+      emptyText: !signedIn ? 'Log in with Discord to see your cards.' : all.length ? 'No cards here yet.' : 'No cards yet. Open card packs in the Store and every card you pull shows up here.'
+    };
+  }
+}
+</script>
+<script src="data.js"></script>
+<script src="players.js"></script>
+<script src="league.js"></script>
+<script src="trumps-cards.js"></script>
+<script src="dc-lite.js"></script>
+</body>
+</html>

@@ -28,11 +28,11 @@ a{color:#a5dcdd}a:hover{color:#d4f0f0}
 input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !important;box-shadow:0 0 0 3px rgba(165,220,221,.3)}
 .st-card{position:relative;box-sizing:border-box;width:100%;aspect-ratio:5/7;background:#0b1011;border:1px solid #1e2b2d;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 10px 24px rgba(0,0,0,.55)}
 .st-art{position:absolute;inset:0;z-index:0;pointer-events:none}
-.st-sheen{position:absolute;inset:0;z-index:2;pointer-events:none;mix-blend-mode:screen;background-size:300% 100%;background-repeat:no-repeat;animation:st-sheen 3.6s ease-in-out infinite}
-@keyframes st-sheen{0%{background-position:100% 0}55%,100%{background-position:0 0}}
+.st-sheen{position:absolute;inset:0;z-index:2;pointer-events:none;border-radius:inherit;background-size:260% 100%;background-repeat:no-repeat;animation:st-sheen 8s ease-in-out infinite}
+@keyframes st-sheen{0%{background-position:160% 0}55%,100%{background-position:-60% 0}}
 .st-stamp{display:inline-flex;align-items:center;gap:4px;padding:3px 7px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.14em;transform:rotate(-9deg);white-space:nowrap}
-.st-shine{background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:st-shine 2.8s linear infinite}
-@keyframes st-shine{0%{background-position:100% 0}100%{background-position:-150% 0}}
+.st-shine{background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:st-shine 6s ease-in-out infinite}
+@keyframes st-shine{0%{background-position:160% 0}50%,100%{background-position:-60% 0}}
 @media (prefers-reduced-motion: reduce){.st-sheen,.st-shine{animation:none}}
 .st-art img{position:absolute;right:-6%;bottom:-2%;height:104%;width:auto;max-width:none;opacity:.2;-webkit-mask-image:linear-gradient(180deg,#000 55%,transparent 100%);mask-image:linear-gradient(180deg,#000 55%,transparent 100%)}
 .st-wm{position:absolute;inset:0;z-index:0;pointer-events:none;display:grid;place-items:center}
@@ -65,6 +65,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <a href="Rules.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Guide</a>
 <a href="MvpVs.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">MVP VS</a>
 <a href="Store.dc.html" aria-current="page" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #000; background: #a5dcdd; font-weight: 600">Store</a>
+<a href="Library.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Library</a>
 <a href="Transactions.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Transactions</a>
 </nav>
 <a href="Login.dc.html" style="min-height: 44px; display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; border-radius: 8px; background: #4752C4; color: #fff; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; text-decoration: none"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><path d="M10 17l5-5-5-5"></path><path d="M15 12H3"></path></svg>Log in with Discord</a>
@@ -333,10 +334,10 @@ var PCMT_PACK_CSS = [
   '.pk-art img{position:absolute;right:-6%;bottom:-2%;height:104%;width:auto;max-width:none;opacity:.24;-webkit-mask-image:linear-gradient(180deg,#000 55%,transparent 100%);mask-image:linear-gradient(180deg,#000 55%,transparent 100%)}',
   '.pk-rar{margin-left:auto;padding:4px 8px;border-radius:999px;border:1px solid currentColor;font:600 10px/1 "JetBrains Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:#93a9aa;background:rgba(0,0,0,.4)}',
   '.pk-rstamp{margin-left:8px;display:inline-flex;align-items:center;gap:4px;padding:3px 7px;border-radius:4px;font:700 10px/1 "JetBrains Mono",monospace;letter-spacing:.14em;transform:rotate(-9deg);white-space:nowrap}',
-  '.pk-rshine{background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:pk-rshine 2.8s linear infinite}',
-  '@keyframes pk-rshine{0%{background-position:100% 0}100%{background-position:-150% 0}}',
-  '.pk-rsheen{position:absolute;inset:0;z-index:4;pointer-events:none;mix-blend-mode:screen;background-size:300% 100%;background-repeat:no-repeat;animation:pk-rsheen 3.6s ease-in-out infinite}',
-  '@keyframes pk-rsheen{0%{background-position:100% 0}55%,100%{background-position:0 0}}',
+  '.pk-rshine{background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:pk-rshine 6s ease-in-out infinite}',
+  '@keyframes pk-rshine{0%{background-position:160% 0}50%,100%{background-position:-60% 0}}',
+  '.pk-rsheen{position:absolute;inset:0;z-index:4;pointer-events:none;border-radius:inherit;background-size:260% 100%;background-repeat:no-repeat;animation:pk-rsheen 8s ease-in-out infinite}',
+  '@keyframes pk-rsheen{0%{background-position:160% 0}55%,100%{background-position:-60% 0}}',
   '.pk-head .pk-badge{margin-left:10px}',
   '.pk-badge{margin-left:auto;padding:4px 8px;border-radius:6px;background:#a5dcdd;color:#000;font:600 11px/1 "JetBrains Mono",monospace;letter-spacing:.08em}',
   '@media (prefers-reduced-motion: reduce){.pk-rshine,.pk-rsheen,.pk-packin,.pk-foil::after,.pk-holo-disc{animation:none}}'
@@ -385,7 +386,7 @@ function pcmtPackFront(p, t, cfg) {
     '</div>' +
     '<div class="pk-tbar" style="background:' + e(t.color) + '"></div>' +
     '<div class="pk-holo"></div>' +
-    (shiny ? '<div class="pk-rsheen" style="background-image:linear-gradient(105deg,transparent 30%,' + e(pcmtRgba(col, .35)) + ' 44%,rgba(255,255,255,.28) 50%,' + e(pcmtRgba(col, .35)) + ' 56%,transparent 70%)"></div>' : '') +
+    (shiny ? '<div class="pk-rsheen" style="background-image:linear-gradient(115deg,transparent 42%,' + e(pcmtRgba(col, .22)) + ' 47%,rgba(255,255,255,.2) 50%,' + e(pcmtRgba(col, .22)) + ' 53%,transparent 58%)"></div>' : '') +
     '</div>';
 }
 
@@ -880,7 +881,7 @@ class Component extends DCLogic {
         rarityTag: it.rarity.toUpperCase(), rarityLabel: it.rarity.charAt(0).toUpperCase() + it.rarity.slice(1),
         // Rare and up: a sheen across the card and a shiny stamp, both in the card's own colour.
         shiny: it.rarity !== 'common', glow: pcmtRgba(it.color, 0.45),
-        sheen: 'linear-gradient(105deg, transparent 30%, ' + pcmtRgba(it.color, 0.35) + ' 44%, rgba(255,255,255,0.28) 50%, ' + pcmtRgba(it.color, 0.35) + ' 56%, transparent 70%)',
+        sheen: 'linear-gradient(115deg, transparent 42%, ' + pcmtRgba(it.color, 0.22) + ' 47%, rgba(255,255,255,0.2) 50%, ' + pcmtRgba(it.color, 0.22) + ' 53%, transparent 58%)',
         shine: 'linear-gradient(100deg, ' + it.color + ' 0%, ' + it.color + ' 35%, #ffffff 50%, ' + it.color + ' 65%, ' + it.color + ' 100%)',
         cardLabel: it.title + ' card: ' + it.name + ', ' + it.teamName,
         blurb: it.blurb + ' ' + it.rarity.charAt(0).toUpperCase() + it.rarity.slice(1) + ', found in the ' + it.pack + '.',

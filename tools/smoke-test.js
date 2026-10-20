@@ -7,7 +7,7 @@ const { chromium } = require('playwright');
 const fs = require('fs');
 const BASE = process.argv[2] || 'http://localhost:8766';
 const SHOTS = process.argv[3] || 'shots';
-const PAGES = ['index', 'customization', 'leaderboard', 'guide', 'login', 'mvp-vs', 'transactions', 'store', 'admin'];
+const PAGES = ['index', 'customization', 'leaderboard', 'guide', 'login', 'mvp-vs', 'transactions', 'store', 'library', 'admin'];
 (async () => {
   fs.mkdirSync(SHOTS, { recursive: true });
   const b = await chromium.launch();

@@ -15,6 +15,7 @@ PAGES = {  # board -> output file
     'Login.dc.html': 'login.html',
     'Transactions.dc.html': 'transactions.html',
     'Store.dc.html': 'store.html',
+    'Library.dc.html': 'library.html',
 }
 VOID = {'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source', 'track', 'wbr'}
 RAW = {'script', 'style'}
@@ -165,6 +166,8 @@ for board, outname in PAGES.items():
     logic = wire.logic(board, logic)
     assert '</script' not in logic.lower()
     data_tag = '<script src="data.js"></script>\n<script src="players.js"></script>\n<script src="league.js"></script>\n'
+    if board == 'Library.dc.html':  # the Library shows each card's MVP VS stats
+        data_tag += '<script src="trumps-cards.js"></script>\n'
     page = f'''<!doctype html>
 <html lang="en">
 <head>

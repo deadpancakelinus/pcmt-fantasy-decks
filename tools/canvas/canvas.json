@@ -71,6 +71,15 @@
       "w": 1440,
       "x": 10640,
       "y": 0
+    },
+    "Library.dc.html": {
+      "expand": "fill",
+      "h": 1300,
+      "is_interactive": true,
+      "title": "Library",
+      "w": 1440,
+      "x": 12160,
+      "y": 0
     }
   },
   "createdOnFiles": {
@@ -84,7 +93,7 @@
   "notes": {
     "title": {
       "kind": "title1",
-      "maxW": 12080,
+      "maxW": 13600,
       "text": "PCMT Fantasy Decks \u2014 Plat Chat Members Tourney",
       "w": 240,
       "x": 0,
@@ -99,7 +108,8 @@
     "Login.dc.html",
     "MvpVs.dc.html",
     "Transactions.dc.html",
-    "Store.dc.html"
+    "Store.dc.html",
+    "Library.dc.html"
   ],
   "pages": [],
   "title": "PCMT Fantasy Decks"
