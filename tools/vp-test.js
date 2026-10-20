@@ -15,7 +15,7 @@ function siteRules(matches, results) {
   vm.runInNewContext(PLAYERS_JS.replace(/var (PCMT_SITE_\w+)/g, 'window.$1'), ctx);
   ctx.window.PCMT_MATCHES = matches; ctx.window.PCMT_RESULTS = results;
   vm.runInNewContext('var DAY = 86400000, BUDGET = 100, TEAM_LIMIT = 2, TRANSFERS = 2, LOCK_LEAD_H = 12, ROLES = ["duelist","controller","initiator","sentinel"],' +
-    ' SCORING = { kill: 2, assist: 1, death: -1, firstKill: 1, seriesWin: 2, topAcs: 3, topKast: 1, fourK: 1, fiveK: 3 }, MULTI_FROM = Date.parse("2026-10-19T09:00:00Z");\n' + core +
+    ' SCORING = { kill: 2, assist: 1, firstKill: 1, seriesWin: 2, topAcs: 3, topKast: 1, fourK: 1, fiveK: 3 }, MULTI_FROM = Date.parse("2026-10-19T09:00:00Z");\n' + core +
     '\nthis.api = { buildWeeks: buildWeeks, scoreManager: scoreManager, weekCardVP: weekCardVP, validDeck: validDeck };', ctx);
   return ctx.api;
 }

@@ -507,7 +507,7 @@ var PCMT_LOCK_LEAD_H = 12;
 var PCMT_RESULTS = window.PCMT_RESULTS || [];
 // Scoring (same as the Guide).
 // fourK / fiveK: 4Ks and 5Ks in the series (r.multi = { <player id>: [4Ks, 5Ks] }, entered on the admin page), counted from the Oct 19 2026 gameweek on.
-var PCMT_SCORING = { kill: 2, assist: 1, death: -1, firstKill: 1, seriesWin: 2, topAcs: 3, topKast: 1, fourK: 1, fiveK: 3 };
+var PCMT_SCORING = { kill: 2, assist: 1, firstKill: 1, seriesWin: 2, topAcs: 3, topKast: 1, fourK: 1, fiveK: 3 };
 var PCMT_MULTI_FROM = Date.parse('2026-10-19T09:00:00Z');
 function pcmtSeriesPoints(r) {
   var out = {}, ids = Object.keys(r.stats || {}), S = PCMT_SCORING;
@@ -519,7 +519,7 @@ function pcmtSeriesPoints(r) {
   ids.forEach(function (k) {
     var st = r.stats[k], p = byId[k];
     if (!p) return; // not in the store
-    var pts = st[0] * S.kill + st[2] * S.assist + st[1] * S.death + st[3] * S.firstKill;
+    var pts = st[0] * S.kill + st[2] * S.assist + st[3] * S.firstKill; // deaths don't score
     if (p.team === r.winner) pts += S.seriesWin;
     if (ids.length && +st[4] === topAcs) pts += S.topAcs;   // ties: every tied player gets it
     if (ids.length && +st[5] === topKast) pts += S.topKast;

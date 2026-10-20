@@ -37,5 +37,5 @@ Open `data.js`:
   Keys are player ids from the store (lowercase names; Night is `night` for BAKA and `night-emea` for ATLC).
   Anyone not in the store goes in as `'~name'` so they still count for top ACS / top KAST.
 
-Card points are worked out automatically: kill +2, assist +1, death −1, first kill +1, series won +2,
-top ACS +3, top KAST +1 (ties all get it). They add up through the gameweek and reset at 5:00 AM Monday EDT.
+Card points are worked out automatically: kill +2, assist +1, first kill +1, series won +2,
+top ACS +3, top KAST +1 (ties all get it), 4K +1, 5K +3 (entered on admin.html). They add up through the gameweek and reset at 5:00 AM Monday EDT.

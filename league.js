@@ -9,7 +9,7 @@
   var TOKEN_KEY = 'pcmt-auth';
   var BUDGET = 100, TEAM_LIMIT = 2, TRANSFERS = 2, LOCK_LEAD_H = 12;
   var ROLES = ['duelist', 'controller', 'initiator', 'sentinel'];
-  var SCORING = { kill: 2, assist: 1, death: -1, firstKill: 1, seriesWin: 2, topAcs: 3, topKast: 1, fourK: 1, fiveK: 3 };
+  var SCORING = { kill: 2, assist: 1, firstKill: 1, seriesWin: 2, topAcs: 3, topKast: 1, fourK: 1, fiveK: 3 };
   // 4Ks and 5Ks (entered on admin.html) count from this gameweek on.
   var MULTI_FROM = Date.parse('2026-10-19T09:00:00Z');
   var DAY = 86400000;
@@ -48,7 +48,7 @@
     ids.forEach(function (k) {
       var st = r.stats[k], p = BY_ID[k];
       if (!p) return;
-      var pts = st[0] * SCORING.kill + st[2] * SCORING.assist + st[1] * SCORING.death + st[3] * SCORING.firstKill;
+      var pts = st[0] * SCORING.kill + st[2] * SCORING.assist + st[3] * SCORING.firstKill; // deaths don't score
       if (p.team === r.winner) pts += SCORING.seriesWin;
       if (+st[4] === topAcs) pts += SCORING.topAcs;
       if (+st[5] === topKast) pts += SCORING.topKast;

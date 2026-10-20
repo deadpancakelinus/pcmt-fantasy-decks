@@ -161,7 +161,7 @@ begin
       weekpts := jsonb_set(weekpts, array[rb], coalesce(weekpts -> rb, '{}'::jsonb), true);
       weekpts := jsonb_set(weekpts, array[rb, sp.k], to_jsonb(
           coalesce((weekpts -> rb ->> sp.k)::numeric, 0)
-          + public.vp_num(sp.v ->> 0) * 2 + public.vp_num(sp.v ->> 2) * 1 - public.vp_num(sp.v ->> 1) + public.vp_num(sp.v ->> 3) * 1
+          + public.vp_num(sp.v ->> 0) * 2 + public.vp_num(sp.v ->> 2) * 1 + public.vp_num(sp.v ->> 3) * 1   -- kills, assists, first kills (deaths don't score)
           + case when (players -> sp.k ->> 'team') = (r ->> 'winner') then 2 else 0 end
           + case when public.vp_num(sp.v ->> 4) = top_acs then 3 else 0 end
           + case when public.vp_num(sp.v ->> 5) = top_kast then 1 else 0 end
