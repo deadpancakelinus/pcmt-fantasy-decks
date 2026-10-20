@@ -30,7 +30,7 @@ check(+sql(`select count(*) from public.cards where active;`).trim() === 132, 'c
 check(sql(`select rarity from public.cards where id = 'v:teklo-variant';`).trim() === 'rare', 'Teklologik variant is Rare');
 check(fails(`set role anon; select public.buy_pack('na-pack');`), 'logged-out visitors cannot buy');
 check(fails(as(P1, `select public.buy_pack('na-pack');`), /aren't on sale yet/), 'before launch, a player who is not an admin cannot buy');
-check(fails(as(ADMIN, `select public.buy_pack('na-pack');`), /doesn't have a price/), 'a pack with no price cannot be bought');
+check(sql(`select string_agg(price::text, ',') from public.card_packs`).trim() === '0,0', 'new packs start at 0 VP'); sql(`update public.card_packs set price = null`); check(fails(as(ADMIN, `select public.buy_pack('na-pack');`), /doesn't have a price/), 'a pack with no price cannot be bought');
 check(fails(as(P1, `update public.card_packs set price = 0;`)) || sql(`select string_agg(coalesce(price::text,'null'), ',') from public.card_packs`).trim() === 'null,null', 'a player cannot set the price');
 sql(as(ADMIN, `update public.card_packs set price = 0;`));
 check(sql(`select string_agg(price::text, ',') from public.card_packs`).trim() === '0,0', 'an admin can set the price');

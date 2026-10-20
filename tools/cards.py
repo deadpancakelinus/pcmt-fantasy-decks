@@ -42,7 +42,7 @@ lit = lambda s: "'" + str(s).replace("'", "''") + "'"
 card_ids = ['c:' + p['id'] for p in players] + ['v:' + v[0] for v in VARIANTS]
 rows = ['(%s, %s, null, %s, %s, %s)' % (lit('c:' + p['id']), lit(p['id']), lit('common'), lit(p['name']), lit(region[p['id']])) for p in players]
 rows += ['(%s, %s, %s, %s, %s, %s)' % (lit('v:' + v[0]), lit(v[1]), lit(v[0]), lit(v[2]), lit(v[3]), lit(region[v[1]])) for v in VARIANTS]
-packs = ['(%s, %s, %s, %d, %s::jsonb)' % (lit(p[0]), lit(p[1]), lit(p[2]), p[3], lit(json.dumps(p[4]))) for p in PACKS]
+packs = ['(%s, %s, %s, %d, %s::jsonb, 0)' % (lit(p[0]), lit(p[1]), lit(p[2]), p[3], lit(json.dumps(p[4]))) for p in PACKS]
 
 base = open(os.path.join(here, 'cards-base.sql'), encoding='utf-8').read()
 catalog = """
@@ -52,8 +52,8 @@ insert into public.cards (id, player, variant, rarity, title, region) values
 on conflict (id) do update set player = excluded.player, variant = excluded.variant, rarity = excluded.rarity, title = excluded.title, region = excluded.region, active = true;
 update public.cards set active = false where id not in (%s);
 
--- Packs: the price starts empty (set it on admin.html). Odds and size come from tools/cards.py.
-insert into public.card_packs (id, name, region, cards, odds) values
+-- Packs: a new pack starts at 0 VP (change it on admin.html). Odds and size come from tools/cards.py.
+insert into public.card_packs (id, name, region, cards, odds, price) values
 %s
 on conflict (id) do update set name = excluded.name, region = excluded.region, cards = excluded.cards, odds = excluded.odds;
 -- Packs no longer listed in tools/cards.py stop being sold (they stay in the table for history).
