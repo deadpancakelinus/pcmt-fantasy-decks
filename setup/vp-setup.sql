@@ -11,17 +11,21 @@
 --     Nothing in the browser can add VP.
 
 -- ===================== 1) The VP ledger =====================
--- One line per VP change. Earned VP is positive; spending (card packs, bets) will be negative lines.
+-- One line per VP change. The Bank (a player's VP) is the sum of their lines.
+--   kind 'week': gameweek payout, positive, week = the gameweek's Monday.
+--   kind 'pack': VP spent on a card pack, negative, detail = {"pack": "<pack name>"}.
 create table if not exists public.vp_ledger (
   id bigserial primary key,
   user_id uuid not null references auth.users (id) on delete cascade,
-  kind text not null,                 -- 'week' = gameweek payout
+  kind text not null,                 -- 'week' = gameweek payout, 'pack' = card pack bought
   week date,                          -- the gameweek's Monday (for 'week' lines)
   amount integer not null,
   detail jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now()
 );
 create index if not exists vp_ledger_user on public.vp_ledger (user_id, created_at);
+alter table public.vp_ledger drop constraint if exists vp_ledger_kind_ok;
+alter table public.vp_ledger add constraint vp_ledger_kind_ok check ((kind = 'week' and amount > 0) or (kind = 'pack' and amount < 0));
 alter table public.vp_ledger enable row level security;
 drop policy if exists "read own vp" on public.vp_ledger;
 create policy "read own vp" on public.vp_ledger for select using (auth.uid() = user_id);

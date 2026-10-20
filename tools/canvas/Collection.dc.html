@@ -78,7 +78,6 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <div style="background: #0b1011; border: 1px solid #1e2b2d; border-radius: 12px; padding: 22px; display: flex; flex-direction: column; gap: 10px; min-width: 0">
 <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.08em; text-transform: uppercase">The Bank</span>
 <span style="display: flex; align-items: baseline; gap: 10px"><span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 56px; line-height: 1; color: #a5dcdd; font-variant-numeric: tabular-nums">{{vp.balance}}</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #a5dcdd">VP</span></span>
-<span style="font-size: 14px; color: #93a9aa; line-height: 1.5">Earned this season: {{vp.earned}} VP</span>
 <sc-if value="{{hasArriving}}" hint-placeholder-val="{{ false }}">
 <span role="status" style="font-size: 14px; color: #f5d76e; line-height: 1.5">+{{vp.arriving}} VP from last gameweek is on its way. It arrives within the hour.</span>
 </sc-if>
@@ -117,6 +116,33 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </div>
 </section>
 
+<section aria-labelledby="vp-spent-h" style="display: flex; flex-direction: column; gap: 16px">
+<h2 id="vp-spent-h" style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">Spending</h2>
+<div style="overflow-x: auto; border: 1px solid #1e2b2d; border-radius: 12px; background: #0b1011">
+<table style="width: 100%; border-collapse: collapse; font-size: 16px">
+<thead>
+<tr style="text-align: left; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.06em; text-transform: uppercase">
+<th scope="col" style="padding: 14px 16px; border-bottom: 1px solid #1e2b2d">Date</th>
+<th scope="col" style="padding: 14px 16px; border-bottom: 1px solid #1e2b2d">Pack</th>
+<th scope="col" style="padding: 14px 16px; border-bottom: 1px solid #1e2b2d; text-align: right">VP</th>
+</tr>
+</thead>
+<tbody>
+<sc-for list="{{vp.spent}}" as="x" hint-placeholder-count="2">
+<tr>
+<td style="padding: 14px 16px; border-bottom: 1px solid #1e2b2d">{{x.date}}</td>
+<td style="padding: 14px 16px; border-bottom: 1px solid #1e2b2d; color: #93a9aa">{{x.pack}}</td>
+<td style="padding: 14px 16px; border-bottom: 1px solid #1e2b2d; text-align: right; font-family: 'JetBrains Mono', monospace; font-weight: 600; color: #ff8a80">−{{x.vp}}</td>
+</tr>
+</sc-for>
+<sc-if value="{{noSpent}}" hint-placeholder-val="{{ false }}">
+<tr><td colspan="3" style="padding: 28px 16px; text-align: center; color: #93a9aa">{{spentEmpty}}</td></tr>
+</sc-if>
+</tbody>
+</table>
+</div>
+</section>
+
 </main>
 
 <footer style="border-top: 1px solid #1e2b2d">
@@ -138,6 +164,10 @@ var PCMT_VP_SAMPLE = {
     { label: 'Week of [date]', deck: '[Deck name]', vp: '[VP]' },
     { label: 'Week of [date]', deck: '[Deck name]', vp: '[VP]' },
     { label: 'Week of [date]', deck: '[Deck name]', vp: '[VP]' }
+  ],
+  spent: [
+    { date: '[date]', pack: '[Pack name]', vp: '[VP]' },
+    { date: '[date]', pack: '[Pack name]', vp: '[VP]' }
   ]
 };
 class Component extends DCLogic {
@@ -220,7 +250,9 @@ class Component extends DCLogic {
       hasArriving: v.arriving > 0,
       weekNote: weekNote,
       noHistory: !v.history.length,
-      emptyText: v.signedIn ? 'Your first VP arrives when a gameweek you played in ends.' : 'Log in to see your VP history.'
+      emptyText: v.signedIn ? 'Your first VP arrives when a gameweek you played in ends.' : 'Log in to see your VP history.',
+      noSpent: !(v.spent || []).length,
+      spentEmpty: v.signedIn ? 'No VP spent yet. Card packs you buy will show up here.' : 'Log in to see what you have spent.'
     };
   }
 }

@@ -255,7 +255,7 @@
   }
   function fmtDay(key) { return new Date(key + 'T12:00:00Z').toLocaleDateString('en-US', { timeZone: 'UTC', month: 'short', day: 'numeric' }); }
   function buildVP(lines, weeks, scored, curB) {
-    var ready = Array.isArray(lines), balance = 0, earned = 0, byWeek = {}, paidByWeek = {};
+    var ready = Array.isArray(lines), balance = 0, earned = 0, byWeek = {}, paidByWeek = {}, spent = [];
     (lines || []).forEach(function (l) {
       balance += l.amount;
       if (l.amount > 0) earned += l.amount;
@@ -265,6 +265,7 @@
         h.vp += l.amount;
         if (!h.deck && l.detail && l.detail.deck) h.deck = l.detail.deck;
       }
+      if (l.amount < 0) spent.push({ date: new Date(l.created_at).toLocaleDateString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric' }), pack: (l.detail && (l.detail.pack || l.detail.name)) || 'Card pack', vp: String(-l.amount) });
     });
     var history = Object.keys(byWeek).sort().reverse().map(function (k) {
       var h = byWeek[k];
@@ -280,9 +281,9 @@
     }
     var arriving = 0;
     if (ready) scored.forEach(function (x) { if (x.week.done) arriving += Math.max(0, weekCardVP(x.week, x.deck).total - (paidByWeek[x.week.key] || 0)); });
-    return { signedIn: true, ready: ready, balance: String(balance), earned: String(earned), history: history, week: week, arriving: arriving };
+    return { signedIn: true, ready: ready, balance: String(balance), earned: String(earned), history: history, spent: spent, week: week, arriving: arriving };
   }
-  window.PCMT_VP = { signedIn: false, ready: true, balance: '0', earned: '0', history: [], week: { vp: '0', state: 'out', note: '' }, arriving: 0 };
+  window.PCMT_VP = { signedIn: false, ready: true, balance: '0', earned: '0', history: [], spent: [], week: { vp: '0', state: 'out', note: '' }, arriving: 0 };
 
   // ---------- load everything, then let the page draw ----------
   function load() {

@@ -23,7 +23,7 @@ Start here. It covers what exists, how changes are made and shipped, and what's 
 | Leaderboard.dc.html | leaderboard.html | This gameweek / overall standings |
 | Rules.dc.html | guide.html | Guide + Patch Notes (site is "Version 1.5 BETA"; footers on every page show the version) |
 | Login.dc.html | login.html | Discord log in |
-| Collection.dc.html | collection.html | **Collection**: The Bank (VP balance), Paycheck (this gameweek so far), VP history (card packs and the album come later, see section 10) |
+| Collection.dc.html | collection.html | **Collection**: The Bank (all VP the player has), Paycheck (this gameweek so far), VP history (VP in), Spending (VP out: pack and amount) (card packs and the album come later, see section 10) |
 | (hand-written) | mvp-vs.html | **MVP VS** card game (see section 9). Its board MvpVs.dc.html is only the old "Coming soon" design and is not built. |
 
 Branding: header and titles say **fantasy.pcmt.gg**. Colors black + `#a5dcdd`; fonts Cabin Sketch / Space Grotesk / JetBrains Mono.
@@ -91,6 +91,7 @@ Tables: `profiles`, `deck_history` (insert-only, server timestamps, 60/hour limi
 - VP for a gameweek = the sum of the card numbers of the deck that counted that week (the same deck the leaderboard scores: locked deck, transfer and fallback rules). Each card counts at least 0, and there is no IGL bonus.
 - Paid when the gameweek ends (Monday 09:00 UTC), when the card numbers reset. If a late result raises a card, the difference is paid as a top-up. A payout is never taken back.
 - Server side: `setup/vp-setup.sql`. `vp_sync()` runs every hour (pg_cron, minute 7). It fetches the live `data.js` and `players.js`, recomputes every finished gameweek with `vp_compute` and writes only the missing amounts to `vp_ledger`. Players can only read their own rows and cannot run the payout. `vp_sync_log` keeps the last runs.
+- Ledger lines: `week` = payout (positive), `pack` = VP spent on a card pack (negative, `detail.pack` = pack name). A check constraint enforces this. The Bank is the sum of a player's lines, so buying a pack lowers it.
 - Site side: `league.js` reads `vp_ledger` and shows it on collection.html. Paycheck (this gameweek so far) is a preview from the same scoring (`weekCardVP`).
 - Test: start a throwaway Postgres, then run `node tools/vp-test.js "psql -h /tmp/pg -p 5499 -U postgres" <out>/players.js`. It checks the SQL against the site's own scoring in random seasons, plus top-ups, re-runs and permissions.
 - Next phases: card packs bought with VP, cards stored per player on the server, the album on the Collection page, then MVP VS hands from owned cards and VP bets (game run on the server).
