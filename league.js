@@ -145,7 +145,7 @@
   }
   function api(path, opts) {
     opts = opts || {};
-    return fetch(SB_URL + path, { method: opts.method || 'GET', headers: headers(opts.headers), body: opts.body ? JSON.stringify(opts.body) : undefined })
+    return fetch(SB_URL + path, { method: opts.method || 'GET', headers: headers(opts.headers), body: opts.body ? JSON.stringify(opts.body) : undefined, keepalive: !!opts.keepalive })
       .then(function (res) {
         return res.text().then(function (txt) {
           var data = null; try { data = txt ? JSON.parse(txt) : null; } catch (e) { data = txt; }
@@ -195,7 +195,7 @@
   }
 
   // ---------- the league API used by the pages ----------
-  var me = null, mySubs = [], myScored = [], lastSubmitted = null, submitting = false;
+  var me = null, mySubs = [], myScored = [], lastSubmitted = null, submitting = false, pendingDeck = null, pendingTimer = null, sendAgain = false;
   var L = window.PCMT_LEAGUE = {
     get signedIn() { return !!me; },
     signIn: function () {
@@ -226,16 +226,14 @@
       return text + ' Transfers this gameweek: ' + Math.min(L.transfersUsed(slots), 99) + '/' + TRANSFERS + '.';
     },
     // Called whenever The Deck saves; sends a locked-in deck to the league.
+    // Waits until edits (like typing the deck name) settle, then always sends the latest version.
     onDeck: function (s) {
-      if (!me || !s.saved || submitting) return;
-      var json = JSON.stringify({ slots: s.slots || {}, igl: s.igl || null, name: s.squadName || '' });
-      if (json === lastSubmitted) return;
-      if (!validDeck(s.slots)) return;
-      submitting = true;
-      api('/rest/v1/deck_history', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: { user_id: me.id, slots: s.slots, igl: s.igl || null, name: s.squadName || '' } })
-        .then(function () { lastSubmitted = json; toast('Deck entered in the league.'); })
-        .catch(function (e) { toast('Couldn\'t save your deck: ' + e.message); })
-        .then(function () { submitting = false; });
+      if (!me || !s.saved) return;
+      var d = { slots: s.slots || {}, igl: s.igl || null, name: s.squadName || '' };
+      if (JSON.stringify(d) === lastSubmitted && !submitting) { pendingDeck = null; clearTimeout(pendingTimer); return; }
+      pendingDeck = d;
+      clearTimeout(pendingTimer);
+      pendingTimer = setTimeout(function () { sendDeck(false); }, 700);
     },
     redeem: function (code) {
       if (!me) return Promise.reject(new Error('Log in with Discord to redeem codes.'));
@@ -247,6 +245,24 @@
     toast: toast
   };
   window.PCMT_SERVER_UNLOCKS = [];
+  function sendDeck(leaving) {
+    clearTimeout(pendingTimer);
+    var d = pendingDeck;
+    if (!d || !me) return;
+    if (submitting) { sendAgain = true; return; }
+    var json = JSON.stringify(d);
+    pendingDeck = null;
+    if (json === lastSubmitted || !validDeck(d.slots)) return;
+    var prev = lastSubmitted ? JSON.parse(lastSubmitted) : null;
+    var nameOnly = prev && JSON.stringify(prev.slots) === JSON.stringify(d.slots) && prev.igl === d.igl;
+    submitting = true;
+    api('/rest/v1/deck_history', { method: 'POST', keepalive: !!leaving, headers: { Prefer: 'return=minimal' }, body: { user_id: me.id, slots: d.slots, igl: d.igl, name: d.name } })
+      .then(function () { lastSubmitted = json; if (!leaving) toast(nameOnly ? 'Deck name saved.' : 'Deck entered in the league.'); })
+      .catch(function (e) { if (!pendingDeck) pendingDeck = d; toast('Couldn\'t save your deck: ' + e.message); })
+      .then(function () { submitting = false; if (sendAgain) { sendAgain = false; sendDeck(false); } });
+  }
+  window.addEventListener('pagehide', function () { sendDeck(true); });
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') sendDeck(true); });
 
   // ---------- VP for the Collection page ----------
   function fmtWhen(t) {
