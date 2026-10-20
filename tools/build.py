@@ -14,6 +14,7 @@ PAGES = {  # board -> output file
     'Rules.dc.html': 'guide.html',
     'Login.dc.html': 'login.html',
     'Transactions.dc.html': 'transactions.html',
+    'Store.dc.html': 'store.html',
 }
 VOID = {'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source', 'track', 'wbr'}
 RAW = {'script', 'style'}
