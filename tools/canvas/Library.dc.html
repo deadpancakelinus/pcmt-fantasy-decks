@@ -26,7 +26,7 @@ a{color:#a5dcdd}a:hover{color:#d4f0f0}
 @media (prefers-reduced-motion: reduce){.pcmt-loader span{animation-duration:calc(var(--speed)*3)}}
 .pcmt-loading{transition:opacity .4s ease}
 input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !important;box-shadow:0 0 0 3px rgba(165,220,221,.3)}
-.st-card{position:relative;box-sizing:border-box;width:100%;aspect-ratio:5/7;background:#0b1011;border:1px solid #1e2b2d;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 10px 24px rgba(0,0,0,.55)}
+.st-card{position:relative;box-sizing:border-box;width:300px;zoom:.75;aspect-ratio:5/7;background:#0b1011;border:1px solid #1e2b2d;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 10px 24px rgba(0,0,0,.55)}
 .st-art{position:absolute;inset:0;z-index:0;pointer-events:none}
 .st-sheen{position:absolute;inset:0;z-index:2;pointer-events:none;border-radius:inherit;background-size:260% 100%;background-repeat:no-repeat;animation:st-sheen 8s ease-in-out infinite}
 @keyframes st-sheen{0%{background-position:160% 0}55%,100%{background-position:-60% 0}}
@@ -39,7 +39,6 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 .st-wm img{width:78%;max-width:230px;aspect-ratio:1;object-fit:contain;opacity:.06;transform:translateY(10px)}
 .st-body{box-sizing:border-box;position:relative;z-index:1;flex:1;padding:14px;display:flex;flex-direction:column;gap:8px;min-width:0}
 .st-stat{box-sizing:border-box;display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:40px;padding:6px 12px;border-radius:8px;background:rgba(0,0,0,.5)}
-@media (max-width:520px){.st-card{aspect-ratio:auto;border-radius:10px}.st-body{padding:10px;gap:6px}.st-stat{min-height:34px;padding:5px 10px}}
 </style>
 </helmet>
 <div data-pcmt-root="Library" style="position: relative; min-height: 100vh; background: #000; color: #eaf4f4; font-family: 'Space Grotesk', system-ui, sans-serif">
@@ -111,7 +110,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </div>
 </sc-if>
 
-<section aria-label="Your cards" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 300px)); gap: 28px; justify-content: start">
+<section aria-label="Your cards" style="display: grid; grid-template-columns: repeat(auto-fill, 225px); gap: 22px; justify-content: start">
 <sc-for list="{{cards}}" as="it" hint-placeholder-count="4">
 <article style="display: flex; flex-direction: column; gap: 10px; min-width: 0">
 <div class="st-card" role="img" aria-label="{{it.cardLabel}}">
