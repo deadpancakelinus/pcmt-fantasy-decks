@@ -113,6 +113,8 @@ begin
     out := out || jsonb_build_array(jsonb_build_object('id', c.id, 'player', c.player, 'variant', c.variant, 'rarity', c.rarity,
                                                        'title', c.title, 'region', c.region, 'count', n, 'new', n = 1));
   end loop;
+  -- Shuffle the order so a rare can be anywhere in the pack (each card is drawn on its own, this just mixes the reveal order).
+  select coalesce(jsonb_agg(x order by random()), '[]'::jsonb) into out from jsonb_array_elements(out) x;
   insert into public.pack_openings (user_id, pack, price, cards) values (u, pk.id, pk.price, out);
   return jsonb_build_object('pack', pk.name, 'price', pk.price, 'balance', bal - pk.price, 'cards', out);
 end $$;

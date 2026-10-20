@@ -51,6 +51,9 @@ const owned = +sql(`select sum(count) from public.user_cards where user_id = '${
 check(owned === (N + 1) * 5, 'duplicates are kept as a count (' + owned + ' cards owned)');
 check(+sql(`select count from public.user_cards where user_id = '${ADMIN}' and card_id = 'v:teklo-variant';`).trim() > 100, 'the Teklologik variant gets pulled');
 check(+sql(`select count(*) from public.pack_openings where user_id = '${ADMIN}';`).trim() === N + 1, 'every opening is logged');
+const pos = sql(`select string_agg(p::text, ',') from public.pack_openings o, lateral jsonb_array_elements(o.cards) with ordinality c(x, p) where o.user_id = '${ADMIN}' and c.x ->> 'rarity' = 'rare';`).trim().split(',').map(Number);
+const at = [1, 2, 3, 4, 5].map(k => pos.filter(x => x === k).length / pos.length);
+check(at.every(f => f > 0.15 && f < 0.25), 'rares land anywhere in the pack: ' + at.map(f => (f * 100).toFixed(0) + '%').join(' / ') + ' at positions 1-5');
 const eu = sql(as(ADMIN, `select string_agg((c ->> 'rarity') || ':' || (c ->> 'region'), ',') from generate_series(1, 200) g, lateral jsonb_array_elements(public.buy_pack('emea-pack' || left(g::text, 0)) -> 'cards') c;`)).trim().split(',');
 check(eu.length === 1000 && eu.every(x => x === 'common:EMEA'), 'the EMEA pack only gives EMEA players (all Common until EMEA variants exist)');
 

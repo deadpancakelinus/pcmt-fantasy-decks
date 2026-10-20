@@ -160,7 +160,6 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </div>
 <div style="display: flex; flex-direction: column; gap: 4px">
 <h3 style="margin: 0; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 28px; line-height: 1.1">{{it.title}}</h3>
-<span style="color: #93a9aa; font-size: 14px; line-height: 1.5">{{it.blurb}}</span>
 <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: {{it.ownedInk}}">{{it.owned}}</span>
 </div>
 </article>
@@ -356,6 +355,8 @@ var PCMT_PACK_CSS = [
   '.pk-tap{position:absolute;left:0;right:0;bottom:28px;text-align:center;font:500 12px "IBM Plex Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:#c9d2dc;pointer-events:none;animation:pk-tap 1.8s ease-in-out infinite}',
   '@keyframes pk-tap{0%,100%{opacity:.45}50%{opacity:1}}',
   '.pk-root.pk-going .pk-tap{opacity:0;animation:none}',
+  '.pk-root.pk-going.pk-reveal .pk-tap{opacity:1;animation:pk-tap 1.8s ease-in-out infinite}',
+  '.pk-root.pk-reveal{cursor:pointer}',
   '.pk-rstamp{margin-left:8px;display:inline-flex;align-items:center;gap:4px;padding:3px 7px;border-radius:4px;font:700 10px/1 "JetBrains Mono",monospace;letter-spacing:.14em;transform:rotate(-9deg);white-space:nowrap}',
   '.pk-rshine{background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:pk-rshine 6s ease-in-out infinite}',
   '@keyframes pk-rshine{0%{background-position:160% 0}50%,100%{background-position:-60% 0}}',
@@ -708,6 +709,7 @@ function pcmtPackAnim(cfg, onClose) {
     if (state !== 'idle') return;
     state = 'opening';
     root.classList.add('pk-going');
+    if (cfg.oneByOne) at(1800, function () { pack.style.pointerEvents = 'none'; }); // the empty pack drops away; taps go to the cards
     pack.classList.add('pk-opened');
     if (!reduce) run(pack, [
       { transform: 'rotate(0)' }, { transform: 'rotate(-2deg) translateY(-3px)' }, { transform: 'rotate(2.5deg)' },
@@ -723,6 +725,7 @@ function pcmtPackAnim(cfg, onClose) {
     animateStrip(segs, T, 520);
     at(600, function () { burst(500, 210, 26, { angle: -Math.PI / 2, spread: 1.6, speed: 5, size: 5, kind: 'shard', w: 240 }); });
     var T0 = 1150, DUR = 2000;
+    if (cfg.oneByOne) { revealOneByOne(T0); return; }
     cards.forEach(function (c, i) {
       var k = i - MID;
       var ex = (Math.random() - .5) * 700 + k * 60, ey = -150 - Math.random() * 90, er = (Math.random() - .5) * 120, f = FAN[i];
@@ -757,6 +760,72 @@ function pcmtPackAnim(cfg, onClose) {
     else at(T0 + DUR + 150 + N * 160 + 1600, function () { var f = root.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 450, fill: 'forwards' }); f.onfinish = close; timers.push(setTimeout(close, 700)); });
   }
 
+  // ---- Store packs: the cards come out face down in a stack, then each tap shows the next one ----
+  var TF = function (x, y, r, sc) { return 'translate(' + x + 'px,' + y + 'px) rotate(' + r + 'deg) scale(' + sc + ')'; };
+  var cur = cards.map(function () { return TF(0, 0, 0, 1); }), next = 0, shown = -1, busy = false;
+  var tapEl = q('.pk-tap');
+  function moveTo(i, t, o) { run(cards[i], [{ transform: cur[i] }, { transform: t }], o); cur[i] = t; }
+  function setTap(t) { if (tapEl) tapEl.textContent = t; }
+  function revealOneByOne(T0) {
+    cards.forEach(function (c, i) {
+      var k = i - MID, rest = TF(i * 1.5, 46 - i * 3, (i % 2 ? 1 : -1) * i * .6, .9);
+      run(c, [
+        { transform: TF(0, 0, 0, 1), easing: 'cubic-bezier(.2,.7,.3,1)' },
+        { transform: TF(k * 8, -330 - i * 10, k * 2, 1), offset: .4, easing: 'cubic-bezier(.45,0,.2,1)' },
+        { transform: rest }
+      ], { duration: 1300, delay: T0 + i * 90 });
+      cur[i] = rest;
+    });
+    at(T0 + 640, function () {
+      run(flash, [{ opacity: 0, transform: 'scale(1)' }, { opacity: 1, transform: 'scale(70)', offset: .25 }, { opacity: 0, transform: 'scale(110)' }], { duration: 650, easing: 'ease-out' });
+      burst(500, 190, 60, { angle: -Math.PI / 2, spread: Math.PI * 2, speed: 8, size: 5, kind: 'spark' });
+    });
+    run(pack, [
+      { transform: 'translateY(0) rotate(0)', opacity: 1 },
+      { transform: 'translateY(-14px) rotate(-2deg)', opacity: 1, offset: .2 },
+      { transform: 'translateY(520px) rotate(14deg)', opacity: 0 }
+    ], { duration: 900, delay: T0 + 650, easing: 'cubic-bezier(.5,0,.8,.4)' });
+    at(T0 + 1300 + N * 90, function () { state = 'reveal'; root.classList.add('pk-reveal'); setTap('Tap to reveal · 1 of ' + N); });
+  }
+  function step() {
+    if (state !== 'reveal' || busy) return;
+    busy = true;
+    var wait = 0;
+    if (shown >= 0) {                                     // the card on show goes to the pile on the left
+      var pIdx = shown;
+      cards[pIdx].style.zIndex = String(10 + pIdx);
+      moveTo(pIdx, TF(-338 + pIdx * 10, 40 - pIdx * 6, -7 + pIdx * 3, .6), { duration: 520, easing: 'cubic-bezier(.3,.7,.3,1)' });
+      wait = 160;
+    }
+    if (next >= N) {                                      // all seen: spread them out
+      at(wait, function () {
+        cards.forEach(function (c, i) { var f = FAN[i]; c.style.zIndex = String(20 + i); moveTo(i, TF(f.x, f.y, f.r, .92), { duration: 760, delay: i * 70, easing: 'cubic-bezier(.2,.8,.2,1)' }); });
+      });
+      at(wait + 760 + N * 70, function () { state = 'done'; busy = false; root.classList.remove('pk-reveal'); root.classList.add('pk-done'); });
+      return;
+    }
+    var i = next++, c = cards[i], p = cfg.players[i] || {}, rare = p.rarity && p.rarity !== 'common', col = (p.team && p.team.color) || '#a5dcdd';
+    shown = i;
+    at(wait, function () {
+      c.style.zIndex = '60';
+      moveTo(i, TF(0, -12, 0, 1.12), { duration: 460, easing: 'cubic-bezier(.2,.8,.2,1)' });
+      if (rare) {                                         // a rare glows and shakes in its colour before it turns over
+        run(c, [{ filter: 'drop-shadow(0 0 0 ' + col + ')' }, { filter: 'drop-shadow(0 0 26px ' + col + ')', offset: .6 }, { filter: 'drop-shadow(0 0 14px ' + col + ')' }], { duration: 900, delay: 300 });
+        run(c.firstElementChild, [{ transform: 'rotate(0)' }, { transform: 'rotate(-3deg)' }, { transform: 'rotate(3deg)' }, { transform: 'rotate(-2deg)' }, { transform: 'rotate(2deg)' }, { transform: 'rotate(0)' }], { duration: 520, delay: 420 });
+      }
+      var flipAt = rare ? 980 : 420;
+      at(flipAt, function () {
+        run(c.firstElementChild, [{ transform: 'rotateY(0)' }, { transform: 'rotateY(180deg) translateZ(0)' }], { duration: 560, easing: 'cubic-bezier(.4,.1,.2,1)' });
+      });
+      at(flipAt + 300, function () {
+        c.classList.add('pk-shown');
+        burst(500, 360, rare ? 60 : 18, { angle: -Math.PI / 2, spread: Math.PI * 2, speed: rare ? 7 : 3.5, size: rare ? 5 : 4, kind: 'spark' });
+        if (rare) run(flash, [{ opacity: 0, transform: 'scale(1)', background: col }, { opacity: .7, transform: 'scale(60)', offset: .25 }, { opacity: 0, transform: 'scale(90)' }], { duration: 600, easing: 'ease-out' });
+      });
+      at(flipAt + 600, function () { busy = false; setTap(next < N ? 'Tap to reveal · ' + (next + 1) + ' of ' + N : 'Tap to see all ' + N); });
+    });
+  }
+
   var closed = false;
   function close() {
     if (closed) return; closed = true;
@@ -769,10 +838,11 @@ function pcmtPackAnim(cfg, onClose) {
   }
   function onKey(e) {
     if (e.key === 'Escape') { e.preventDefault(); close(); }
+    else if ((e.key === 'Enter' || e.key === ' ') && state === 'reveal') { e.preventDefault(); step(); }
     else if ((e.key === 'Enter' || e.key === ' ') && document.activeElement === pack) { e.preventDefault(); open(); }
   }
-  pack.addEventListener('click', function (e) { e.stopPropagation(); open(); });
-  root.addEventListener('click', function () { if (cfg.stay && state === 'done') close(); });
+  pack.addEventListener('click', function (e) { e.stopPropagation(); if (state === 'idle') open(); else if (state === 'reveal') step(); else if (cfg.stay && state === 'done') close(); });
+  root.addEventListener('click', function () { if (state === 'reveal') step(); else if (cfg.stay && state === 'done') close(); });
   closeBtn.addEventListener('click', function (e) { e.stopPropagation(); close(); });
   document.addEventListener('keydown', onKey, true);
   pack.focus({ preventScroll: true });
@@ -905,7 +975,7 @@ class Component extends DCLogic {
       self.setState({ buying: null, note: { id: pack.id, ok: true, text: 'Bought! ' + r.cards.length + ' cards added to your collection.' } });
       var abs = function (u) { try { return new URL(u, window.location.href).href; } catch (e) { return u; } };
       var back = Object.assign({}, PCMT_STORE_BACK, { logo: abs(PCMT_STORE_BACK.logo) });
-      self._anim = pcmtPackAnim({ deckName: pack.name, season: PCMT_SEASON[pack.region] || '', back: back, stay: true, tapToOpen: true, mvp: true,
+      self._anim = pcmtPackAnim({ deckName: pack.name, season: PCMT_SEASON[pack.region] || '', back: back, stay: true, tapToOpen: true, mvp: true, oneByOne: true,
         regionLogo: abs(PCMT_REGION_LOGOS[pack.region] || PCMT_REGION_LOGOS.NA), trophy: abs(PCMT_TROPHY_ICON),
         team: { code: '', name: '', color: '#a5dcdd', logo: '' }, players: pcmtStoreCards(r.cards) },
         function () { self._anim = null; self.setState({ opened: (self.state.opened || 0) + 1 }); });
