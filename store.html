@@ -196,6 +196,29 @@ var PCMT_PACK_CSS = [
   '.pk-art{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}',
   '.pk-art img{position:absolute;right:-6%;bottom:-2%;height:104%;width:auto;max-width:none;opacity:.24;-webkit-mask-image:linear-gradient(180deg,#000 55%,transparent 100%);mask-image:linear-gradient(180deg,#000 55%,transparent 100%)}',
   '.pk-rar{margin-left:auto;padding:4px 8px;border-radius:999px;border:1px solid currentColor;font:600 10px/1 "JetBrains Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:#93a9aa;background:rgba(0,0,0,.4)}',
+  '.pk-root.pk-mvp .pk-card{height:330px;top:207px}',
+  '.pk-front-m{display:block}',
+  '.pk-m{position:absolute;left:0;top:0;width:300px;height:420px;transform:scale(.7867);transform-origin:0 0;display:flex;flex-direction:column}',
+  '.pk-m-wm{position:absolute;inset:0;z-index:0;pointer-events:none;display:grid;place-items:center}',
+  '.pk-m-wm img{width:78%;max-width:230px;aspect-ratio:1;object-fit:contain;opacity:.12;transform:translateY(10px)}',
+  '.pk-m-edge{display:block;height:5px;flex:none;position:relative;z-index:1}',
+  '.pk-m-body{position:relative;z-index:1;flex:1;padding:14px;display:flex;flex-direction:column;gap:8px;min-width:0}',
+  '.pk-m-top{display:flex;align-items:center;height:30px;flex:none}',
+  '.pk-m-top .pk-badge{margin-left:10px}',
+  '.pk-m-maps{margin-left:auto;font:700 30px/1 "Cabin Sketch",cursive;font-variant-numeric:tabular-nums;display:inline-flex;align-items:baseline;gap:4px}',
+  '.pk-m-maps small{font:600 9px/1 "JetBrains Mono",monospace;letter-spacing:.1em;opacity:.8}',
+  '.pk-m-name{display:flex;align-items:center;gap:6px;height:38px;flex:none;font-family:"Cabin Sketch",cursive;font-weight:700;line-height:1.1;white-space:nowrap;overflow:hidden}',
+  '.pk-m-name span{overflow:hidden;min-width:0}.pk-m-name img{width:19px;height:19px;object-fit:contain;flex:none;filter:drop-shadow(0 0 4px rgba(245,215,110,.6))}',
+  '.pk-m-team{font-size:10px;line-height:1.2;font-weight:500;opacity:.85;flex:none;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}',
+  '.pk-m-stats{display:flex;flex-direction:column;gap:5px;flex:1;justify-content:center}',
+  '.pk-m-stat{display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:40px;padding:6px 12px;border-radius:8px;background:rgba(0,0,0,.45);font-size:14px;line-height:1.5}',
+  '.pk-m-stat i{font-style:normal;color:#93a9aa;margin-left:6px;font:600 9px/1 "JetBrains Mono",monospace;letter-spacing:.08em;text-transform:uppercase}',
+  '.pk-m-stat b{font-size:17px;font-weight:600;font-variant-numeric:tabular-nums}',
+  '.pk-m-foot{display:flex;align-items:center;gap:6px;height:26px;flex:none}',
+  '.pk-m-foot>img{width:24px;height:24px;display:block}',
+  '.pk-tap{position:absolute;left:0;right:0;bottom:28px;text-align:center;font:500 12px "IBM Plex Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:#c9d2dc;pointer-events:none;animation:pk-tap 1.8s ease-in-out infinite}',
+  '@keyframes pk-tap{0%,100%{opacity:.45}50%{opacity:1}}',
+  '.pk-root.pk-going .pk-tap{opacity:0;animation:none}',
   '.pk-rstamp{margin-left:8px;display:inline-flex;align-items:center;gap:4px;padding:3px 7px;border-radius:4px;font:700 10px/1 "JetBrains Mono",monospace;letter-spacing:.14em;transform:rotate(-9deg);white-space:nowrap}',
   '.pk-rshine{background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:pk-rshine 6s ease-in-out infinite}',
   '@keyframes pk-rshine{0%{background-position:160% 0}50%,100%{background-position:-60% 0}}',
@@ -226,6 +249,31 @@ function pcmtPackBack(b) {
 }
 
 // Card face: same look as a player card in The Deck.
+// MVP VS card face (store packs): same layout and stats as the MVP VS cards, drawn at 300 x 420 and scaled down.
+function pcmtPackMvpFace(p, t, rar, shiny, col, stamp) {
+  var e = pcmtPackEsc, m = p.mvp;
+  var head = t.logo ? '<img src="' + e(t.logo) + '" alt="' + e(t.name) + '" style="height:30px;width:auto;max-width:70px;object-fit:contain;display:block">'
+    : '<span style="font:700 20px/1 \'Cabin Sketch\',cursive;color:' + e(col) + '">' + e(t.code) + '</span>';
+  var size = Math.max(18, Math.min(34, Math.floor(230 / Math.max(4, p.name.length * 0.62))));
+  var rows = m.stats.map(function (st) {
+    return '<div class="pk-m-stat"><span>' + e(st.label) + (st.low ? '<i>lower wins</i>' : '') + '</span><b>' + e(st.value) + '</b></div>';
+  }).join('');
+  return '<div class="pk-m">' +
+    '<div class="pk-m-wm"><img src="' + e(p.regionLogo) + '" alt=""></div>' +
+    (p.art ? '<div class="pk-art"><img src="' + e(p.art) + '" alt=""></div>' : '') +
+    '<span class="pk-m-edge" style="background:' + e(col) + '"></span>' +
+    '<div class="pk-m-body">' +
+      '<div class="pk-m-top">' + head + (p.badge ? '<span class="pk-badge">' + e(p.badge) + '</span>' : '') +
+        '<span class="pk-m-maps" style="color:' + e(col) + '">' + e(m.maps) + '<small>MAPS</small></span></div>' +
+      '<div class="pk-m-name" style="font-size:' + size + 'px"><span>' + e(p.name) + '</span>' + (p.champ ? '<img src="' + e(p.trophy || '') + '" alt="PCMT champion">' : '') + '</div>' +
+      '<div class="pk-m-team" style="color:' + e(col) + '">' + e(t.name) + ' · ' + e(m.season) + '</div>' +
+      '<div class="pk-m-stats">' + rows + '</div>' +
+      '<div class="pk-m-foot"><img src="' + e(p.roleIcon) + '" alt="' + e(p.role) + '">' + stamp + '</div>' +
+    '</div>' +
+    '<span class="pk-m-edge" style="background:' + e(col) + '"></span>' +
+    '</div>';
+}
+
 function pcmtPackFront(p, t, cfg) {
   var e = pcmtPackEsc;
   var size = Math.max(18, Math.min(32, Math.floor(196 / Math.max(1, p.name.length * 0.56))));
@@ -237,7 +285,10 @@ function pcmtPackFront(p, t, cfg) {
   var stamp = shiny ? '<span class="pk-rstamp" style="border:1.5px solid ' + e(col) + ';box-shadow:inset 0 0 0 2px #0b1011,inset 0 0 0 3px ' + e(col) + ',0 0 12px ' + e(pcmtRgba(col, .45)) + ';color:' + e(col) + '">' +
     '<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 20.9l1.6-7L2 9.2l7.1-.6z"/></svg>' +
     '<span class="pk-rshine" style="background-image:linear-gradient(100deg,' + e(col) + ' 0%,' + e(col) + ' 35%,#fff 50%,' + e(col) + ' 65%,' + e(col) + ' 100%)">' + e(rar.toUpperCase()) + '</span></span>' : '';
-  return '<div class="pk-face pk-front' + (rar ? ' pk-r-' + e(rar) : '') + '"' + (shiny ? ' style="box-shadow:0 0 0 2px ' + e(col) + ',0 0 28px ' + e(pcmtRgba(col, .6)) + '"' : '') + '>' +
+  var glow = shiny ? ' style="box-shadow:0 0 0 2px ' + e(col) + ',0 0 28px ' + e(pcmtRgba(col, .6)) + '"' : '';
+  var sheen = shiny ? '<div class="pk-rsheen" style="background-image:linear-gradient(115deg,transparent 42%,' + e(pcmtRgba(col, .22)) + ' 47%,rgba(255,255,255,.2) 50%,' + e(pcmtRgba(col, .22)) + ' 53%,transparent 58%)"></div>' : '';
+  if (p.mvp) return '<div class="pk-face pk-front pk-front-m' + (rar ? ' pk-r-' + e(rar) : '') + '"' + glow + '>' + pcmtPackMvpFace(p, t, rar, shiny, col, stamp) + '<div class="pk-holo"></div>' + sheen + '</div>';
+  return '<div class="pk-face pk-front' + (rar ? ' pk-r-' + e(rar) : '') + '"' + glow + '>' +
     '<div class="pk-wm"><img src="' + e(p.regionLogo || cfg.regionLogo) + '" alt=""></div>' +
     (p.art ? '<div class="pk-art"><img src="' + e(p.art) + '" alt=""></div>' : '') +
     '<div class="pk-tbar" style="background:' + e(t.color) + '"></div>' +
@@ -262,11 +313,12 @@ function pcmtPackAnim(cfg, onClose) {
   }
   var W = 266, H = 360, TEAR = 40;
   var root = document.createElement('div');
-  root.className = 'pk-root';
+  root.className = 'pk-root' + (cfg.mvp ? ' pk-mvp' : '');
   root.setAttribute('role', 'dialog'); root.setAttribute('aria-modal', 'true'); root.setAttribute('aria-label', 'Opening your ' + cfg.deckName + ' pack');
   root.innerHTML =
     '<button type="button" class="pk-close" aria-label="Close">&times;</button>' +
     (cfg.stay ? '<div class="pk-hint" style="bottom:28px">Click anywhere or press Esc to close</div>' : '') +
+    (cfg.tapToOpen ? '<div class="pk-tap">Tap the pack to open it</div>' : '') +
     '<div class="pk-fit"><div class="pk-stage">' +
       '<div class="pk-flash"></div><div class="pk-cards"></div>' +
       '<div class="pk-pack" role="button" tabindex="0" aria-label="Open the card pack"><div class="pk-packin">' +
@@ -512,11 +564,13 @@ function pcmtPackAnim(cfg, onClose) {
     var a = el.animate(kf, Object.assign({ fill: 'forwards' }, o, { duration: reduce ? o.duration * .5 : o.duration, delay: reduce ? (o.delay || 0) * .5 : (o.delay || 0) }));
     anims.push(a); return a;
   };
-  var FAN = cards.map(function (_, i) { var k = i - MID; return { x: k * 130, y: -60 + Math.abs(k) * 20 + k * k * 4, r: k * 7 }; });
+  var SPREAD = cfg.mvp ? 192 : 130, TILT = cfg.mvp ? 4 : 7; // MVP VS faces spread wider so every card's stats can be read
+  var FAN = cards.map(function (_, i) { var k = i - MID; return { x: k * SPREAD, y: -60 + Math.abs(k) * 20 + k * k * 4, r: k * TILT }; });
 
   function open() {
     if (state !== 'idle') return;
     state = 'opening';
+    root.classList.add('pk-going');
     pack.classList.add('pk-opened');
     if (!reduce) run(pack, [
       { transform: 'rotate(0)' }, { transform: 'rotate(-2deg) translateY(-3px)' }, { transform: 'rotate(2.5deg)' },
@@ -585,10 +639,24 @@ function pcmtPackAnim(cfg, onClose) {
   closeBtn.addEventListener('click', function (e) { e.stopPropagation(); close(); });
   document.addEventListener('keydown', onKey, true);
   pack.focus({ preventScroll: true });
-  timers.push(setTimeout(open, reduce ? 300 : 650)); // the pack opens on its own; clicking it opens it sooner
+  if (!cfg.tapToOpen) timers.push(setTimeout(open, reduce ? 300 : 650)); // the unlock pack opens on its own; store packs wait for a tap
   return { close: close };
 }
 
+// MVP VS stats for a pulled card: from trumps-cards.js on the live site (same as the MVP VS game), else the samples.
+function pcmtMvpStats(region, name, pid) {
+  var W = typeof window !== 'undefined' ? window : {}, st = null, key = String(name).toLowerCase();
+  if (W.PCMT_TRUMPS_CARDS) (W.PCMT_TRUMPS_CARDS[region === 'EMEA' ? 'emea' : 'na'] || []).forEach(function (c) { if (String(c.name).toLowerCase() === key) st = c; });
+  if (!st) PCMT_STORE_ITEMS.forEach(function (it) { if (it.name === pid || it.name === key) st = it; });
+  var f = function (v, fn) { return st && v != null ? fn(v) : '—'; };
+  return { maps: st ? String(st.maps) : '—', season: region === 'EMEA' ? 'S2 EMEA' : 'S3 NA', stats: [
+    { label: 'ACS', value: f(st && st.acs, String) },
+    { label: 'KAST', value: f(st && st.kast, function (v) { return v + '%'; }) },
+    { label: 'HS%', value: f(st && st.hs, function (v) { return v + '%'; }) },
+    { label: 'DPR', value: f(st && st.dpr, function (v) { return (+v).toFixed(2); }), low: true },
+    { label: 'Toxic rating', value: f(st && st.toxic, function (v) { return (+v).toFixed(2); }) }
+  ] };
+}
 // Builds the opening's card list from what buy_pack returned.
 function pcmtStoreCards(pulled) {
   var abs = function (u) { try { return u ? new URL(u, window.location.href).href : ''; } catch (e) { return u; } };
@@ -604,6 +672,7 @@ function pcmtStoreCards(pulled) {
       price: pr % 1 === 0 ? String(pr) : pr.toFixed(1), champ: PCMT_CHAMPS.indexOf(p.id) >= 0,
       rarity: c.rarity, art: c.variant && PCMT_VARIANT_ART[c.variant] ? abs(PCMT_VARIANT_ART[c.variant]) : '',
       badge: c.new ? 'NEW' : '×' + c.count, regionLogo: abs(PCMT_REGION_LOGOS[c.region] || PCMT_REGION_LOGOS.NA),
+      trophy: abs(PCMT_TROPHY_ICON), mvp: pcmtMvpStats(c.region, p.name, c.player),
       team: { code: tm.code, name: tm.name, color: tm.color, logo: abs(tm.logo || ''), logoH: PCMT_PACK_LOGO_H[tm.code] || (PCMT_SMALL_LOGOS[tm.code] ? 26 : 30) }
     };
   });
@@ -699,7 +768,7 @@ class Component extends DCLogic {
       self.setState({ buying: null, note: { id: pack.id, ok: true, text: 'Bought! ' + r.cards.length + ' cards added to your collection.' } });
       var abs = function (u) { try { return new URL(u, window.location.href).href; } catch (e) { return u; } };
       var back = Object.assign({}, PCMT_STORE_BACK, { logo: abs(PCMT_STORE_BACK.logo) });
-      self._anim = pcmtPackAnim({ deckName: pack.name, season: PCMT_SEASON[pack.region] || '', back: back, stay: true,
+      self._anim = pcmtPackAnim({ deckName: pack.name, season: PCMT_SEASON[pack.region] || '', back: back, stay: true, tapToOpen: true, mvp: true,
         regionLogo: abs(PCMT_REGION_LOGOS[pack.region] || PCMT_REGION_LOGOS.NA), trophy: abs(PCMT_TROPHY_ICON),
         team: { code: '', name: '', color: '#a5dcdd', logo: '' }, players: pcmtStoreCards(r.cards) },
         function () { self._anim = null; self.setState({ opened: (self.state.opened || 0) + 1 }); });
@@ -774,6 +843,7 @@ class Component extends DCLogic {
 <script src="data.js"></script>
 <script src="players.js"></script>
 <script src="league.js"></script>
+<script src="trumps-cards.js"></script>
 <script src="dc-lite.js"></script>
 </body>
 </html>

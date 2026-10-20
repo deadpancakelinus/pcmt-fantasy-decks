@@ -166,7 +166,7 @@ for board, outname in PAGES.items():
     logic = wire.logic(board, logic)
     assert '</script' not in logic.lower()
     data_tag = '<script src="data.js"></script>\n<script src="players.js"></script>\n<script src="league.js"></script>\n'
-    if board == 'Library.dc.html':  # the Library shows each card's MVP VS stats
+    if board in ('Library.dc.html', 'Store.dc.html'):  # Library and Store show each card's MVP VS stats
         data_tag += '<script src="trumps-cards.js"></script>\n'
     page = f'''<!doctype html>
 <html lang="en">
