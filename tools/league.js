@@ -145,6 +145,15 @@
         });
       });
   }
+  // Discord display name first, then the username; skip names with no letters or numbers (like "...").
+  function pickName(md) {
+    var c = [md.custom_claims && md.custom_claims.global_name, md.full_name, md.name, md.user_name, md.preferred_username];
+    for (var i = 0; i < c.length; i++) {
+      var n = String(c[i] || '').replace(/#0$/, '').trim();
+      if (/[\p{L}\p{N}]/u.test(n)) return n.slice(0, 40);
+    }
+    return 'Manager';
+  }
   function takeRedirectTokens() {
     var h = location.hash || '';
     if (h.indexOf('access_token=') < 0) {
@@ -241,8 +250,7 @@
     }).then(function (user) {
       if (user && user.id) {
         var md = user.user_metadata || {};
-        var name = (md.custom_claims && md.custom_claims.global_name) || md.full_name || md.name || md.user_name || 'Manager';
-        name = String(name).replace(/#0$/, '').slice(0, 40);
+        var name = pickName(md);
         me = { id: user.id, name: name, avatar: md.avatar_url || '' };
         window.PCMT_AUTH = { signedIn: true, name: name, initial: name.charAt(0).toUpperCase(), label: name, href: 'login.html', avatar: me.avatar };
         api('/rest/v1/profiles', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: { id: me.id, name: name, avatar_url: me.avatar, updated_at: new Date().toISOString() } }).catch(function () {});
