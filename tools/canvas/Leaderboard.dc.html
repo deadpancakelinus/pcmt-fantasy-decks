@@ -259,9 +259,10 @@ class Component extends DCLogic {
     });
     function num(v) { return v === undefined || v === null ? '—' : String(v); }
     var q = String(this.state.search || '').trim().toLowerCase();
-    var rows = ranked.filter(function (x) {
+    var shown = ranked.filter(function (x) {
       return !q || String(x.m.manager || '').toLowerCase().indexOf(q) >= 0 || String(x.m.squad || '').toLowerCase().indexOf(q) >= 0;
-    }).map(function (x) {
+    });
+    var rows = shown.map(function (x) {
       var r = x.rank, top = r <= 3;
       return {
         rank: r, manager: x.m.manager, squad: x.m.squad, igl: x.m.igl, gw: num(x.m.gw), total: num(x.m.total),
@@ -275,7 +276,8 @@ class Component extends DCLogic {
         gwWeight: week ? 600 : 400, totalWeight: week ? 400 : 600
       };
     });
-    var mine = ranked.find(function (x) { return x.m.me; });
+    // Your own row is pinned at the bottom only when the table above isn't already showing it (e.g. a search hides it).
+    var mine = shown.some(function (x) { return x.m.me; }) ? null : ranked.find(function (x) { return x.m.me; });
     function pill(on) {
       return { border: on ? '#a5dcdd' : '#2c3d40', bg: on ? '#a5dcdd' : 'transparent', color: on ? '#000' : '#eaf4f4', weight: on ? 600 : 400 };
     }
