@@ -23,7 +23,7 @@ Start here. It covers what exists, how changes are made and shipped, and what's 
 | Leaderboard.dc.html | leaderboard.html | This gameweek / overall standings |
 | Rules.dc.html | guide.html | Guide + Patch Notes (site is "Version 1.5 BETA"; footers on every page show the version) |
 | Login.dc.html | login.html | Discord log in |
-| Collection.dc.html | collection.html | **Collection**: The Bank (all VP the player has), Paycheck (this gameweek so far), VP history (VP in), Spending (VP out: pack and amount) (card packs and the album come later, see section 10) |
+| Transactions.dc.html | transactions.html | **Transactions** (last in the menu): The Bank (all VP the player has), Last Paycheck (VP from the last finished gameweek), Paychecks (VP in), Spending (VP out: pack and amount). Shown blurred under "Coming Soon..." to everyone except admins. `collection.html` just redirects here. |
 | (hand-written) | admin.html | Hidden admin page (not in the nav): enter each player's 4Ks and 5Ks per series. Only accounts in `pcmt_admins` can save. |
 | (hand-written) | mvp-vs.html | **MVP VS** card game (see section 9). Its board MvpVs.dc.html is only the old "Coming soon" design and is not built. |
 
@@ -42,7 +42,7 @@ Branding: header and titles say **fantasy.pcmt.gg**. Colors black + `#a5dcdd`; f
 1. Edit the board(s) in `tools/canvas/*.dc.html`.
 2. Build: `python3 -I tools/build.py tools/canvas assets <out>`
 3. Test: copy the repo `data.js` into `<out>`, serve it (`python3 -m http.server 8766 --directory <out>`, in the background) and run `NODE_PATH=$(npm root -g) node tools/smoke-test.js http://localhost:8766 <out>/shots`. It mocks Supabase and checks every page on desktop and phone. Look at the screenshots for visual changes.
-4. Copy `index.html customization.html leaderboard.html guide.html login.html collection.html players.js league.js dc-lite.js _headers` from `<out>` into the repo root (**not** `data.js`, **not** `assets/`, **not** `mvp-vs.html` or `admin.html`, which are hand-written). Copy changed boards into `tools/canvas/`.
+4. Copy `index.html customization.html leaderboard.html guide.html login.html transactions.html players.js league.js dc-lite.js _headers` from `<out>` into the repo root (**not** `data.js`, **not** `assets/`, **not** `mvp-vs.html` or `admin.html`, which are hand-written). Copy changed boards into `tools/canvas/`.
 5. Update the design canvas with the changed boards so it stays in step with `tools/canvas/`.
 6. Commit, then `git fetch && git stash && git rebase origin/main && git stash pop && git push` (the scheduled check also pushes to `main`).
 
@@ -69,7 +69,7 @@ Tables: `profiles`, `deck_history` (insert-only, server timestamps, 60/hour limi
 
 ## 8. Open items
 
-- Run `setup/vp-setup.sql` in the Supabase SQL Editor to switch on VP (until then, the Collection page shows "VP isn't switched on yet").
+- Run `setup/vp-setup.sql` in the Supabase SQL Editor to switch on VP (until then, the Transactions page shows "VP isn't switched on yet" to admins).
 - Run `setup/fix-display-names.sql` in the Supabase SQL Editor if not done yet.
 - Connect fantasy.pcmt.gg: Cloudflare Pages → Custom domains, then add it to Supabase Redirect URLs.
 - Run `setup/trumps-setup.sql` in the Supabase SQL Editor to switch on MVP VS online rooms (until then, online shows "not switched on yet" and the bot game works).
@@ -88,12 +88,12 @@ Tables: `profiles`, `deck_history` (insert-only, server timestamps, 60/hour limi
 - Known limit: the game state is trusted from the two players' browsers and holds both hands, so a player with dev tools could peek at the other hand or fake a move. Moving the rules into a Supabase function would fix it if that ever matters.
 - Test: serve the repo root (`python3 -m http.server 8767 --directory .`) and run `NODE_PATH=$(npm root -g) node trumps/test.js http://localhost:8767 <shots>`. The site smoke test also opens mvp-vs.
 
-## 10. VP and the Collection page
+## 10. VP and the Transactions page
 
 - VP for a gameweek = the sum of the card numbers of the deck that counted that week (the same deck the leaderboard scores: locked deck, transfer and fallback rules). Each card counts at least 0, and there is no IGL bonus.
 - Paid when the gameweek ends (Monday 09:00 UTC), when the card numbers reset. If a late result raises a card, the difference is paid as a top-up. A payout is never taken back.
 - Server side: `setup/vp-setup.sql`. `vp_sync()` runs every hour (pg_cron, minute 7). It fetches the live `data.js` and `players.js`, recomputes every finished gameweek with `vp_compute` and writes only the missing amounts to `vp_ledger`. Players can only read their own rows and cannot run the payout. `vp_sync_log` keeps the last runs.
 - Ledger lines: `week` = payout (positive), `pack` = VP spent on a card pack (negative, `detail.pack` = pack name). A check constraint enforces this. The Bank is the sum of a player's lines, so buying a pack lowers it.
-- Site side: `league.js` reads `vp_ledger` and shows it on collection.html. Paycheck (this gameweek so far) is a preview from the same scoring (`weekCardVP`).
+- Site side: `league.js` reads `vp_ledger` and shows it on transactions.html. Last Paycheck is what the ledger paid for the last finished gameweek.
 - Test: start a throwaway Postgres, then run `node tools/vp-test.js "psql -h /tmp/pg -p 5499 -U postgres" <out>/players.js`. It checks the SQL against the site's own scoring in random seasons, plus top-ups, re-runs and permissions.
-- Next phases: card packs bought with VP, cards stored per player on the server, the album on the Collection page, then MVP VS hands from owned cards and VP bets (game run on the server).
+- Next phases: card packs bought with VP, cards stored per player on the server, a card album page, then MVP VS hands from owned cards and VP bets (game run on the server).

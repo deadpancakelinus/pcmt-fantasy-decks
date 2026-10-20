@@ -54,11 +54,11 @@
       "x": 7600,
       "y": 0
     },
-    "Collection.dc.html": {
+    "Transactions.dc.html": {
       "expand": "fill",
       "h": 1100,
       "is_interactive": true,
-      "title": "Collection",
+      "title": "Transactions",
       "w": 1440,
       "x": 9120,
       "y": 0
@@ -89,7 +89,7 @@
     "Rules.dc.html",
     "Login.dc.html",
     "MvpVs.dc.html",
-    "Collection.dc.html"
+    "Transactions.dc.html"
   ],
   "pages": [],
   "title": "PCMT Fantasy Decks"

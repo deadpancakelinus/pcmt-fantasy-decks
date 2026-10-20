@@ -301,11 +301,13 @@
         ? { vp: String(weekCardVP(mine.week, mine.deck).total), state: 'live', note: 'So far from the deck you locked in. Paid ' + fmtWhen(cw.e) + ', when your cards reset.' }
         : { vp: '0', state: 'nodeck', note: 'No deck counted this gameweek. Lock one in on The Deck before the next gameweek locks.' };
     }
+    var lastDone = weeks.filter(function (w) { return w.done; }).pop();
+    var lastPay = lastDone ? (paidByWeek[lastDone.key] || 0) : 0;
     var arriving = 0;
     if (ready) scored.forEach(function (x) { if (x.week.done) arriving += Math.max(0, weekCardVP(x.week, x.deck).total - (paidByWeek[x.week.key] || 0)); });
-    return { signedIn: true, ready: ready, balance: String(balance), earned: String(earned), history: history, spent: spent, week: week, arriving: arriving };
+    return { signedIn: true, ready: ready, balance: String(balance), lastPay: String(lastPay), earned: String(earned), history: history, spent: spent, week: week, arriving: arriving };
   }
-  window.PCMT_VP = { signedIn: false, ready: true, balance: '0', earned: '0', history: [], spent: [], week: { vp: '0', state: 'out', note: '' }, arriving: 0 };
+  window.PCMT_VP = { signedIn: false, ready: true, balance: '0', lastPay: '0', earned: '0', history: [], spent: [], week: { vp: '0', state: 'out', note: '' }, arriving: 0 };
 
   // Series key used by the multikills table: start|a|b, exactly as in data.js.
   function seriesKey(m) { return m.start + '|' + m.a + '|' + m.b; }
