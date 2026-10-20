@@ -61,6 +61,7 @@ def role_from_agents(maps):
 DECK_NAMES = {
     ('na', 'catsmeow'): 'thecatsmeow',
     ('na', 'latineao'): 'latin',
+    ('na', 'pants'): 'paul',
     ('emea', 'alex'): 'alexx',
 }
 
