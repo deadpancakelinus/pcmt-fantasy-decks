@@ -237,11 +237,6 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <div style="display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start">
 
 <section aria-labelledby="squad-h" style="flex: 999 1 600px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
-<sc-if value="{{dragging}}" hint-placeholder-val="{{ false }}">
-<div aria-hidden="true" style="position: fixed; left: {{dragX}}px; top: {{dragY}}px; transform: translate(-50%, -50%) rotate(-12deg); z-index: 1000; pointer-events: none; filter: drop-shadow(0 0 10px rgba(245,215,110,.7))">
-<svg width="40" height="40" viewBox="0 0 24 24" fill="#f5d76e" stroke="#f5d76e" stroke-width="1.6" stroke-linejoin="round"><path d="M3 18h18L19 7l-4.5 4L12 5l-2.5 6L5 7z"></path></svg>
-</div>
-</sc-if>
 <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap">
 <sc-if value="{{hasSquadName}}" hint-placeholder-val="{{ false }}">
 <h2 id="squad-h" style="margin: 0; font-family: 'Cabin Sketch', cursive; font-size: 30px; font-weight: 700; line-height: 1.1; color: #a5dcdd; word-break: break-word; min-width: 0">{{squadName}}</h2>
@@ -249,7 +244,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <sc-if value="{{noSquadName}}" hint-placeholder-val="{{ true }}">
 <h2 id="squad-h" style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">[ MY_DECK ]</h2>
 </sc-if>
-<button onClick="{{crownClick}}" onPointerDown="{{crownDown}}" onPointerMove="{{crownMove}}" onPointerUp="{{crownUp}}" onPointerCancel="{{crownCancel}}" aria-pressed="{{crownArmed}}" aria-label="IGL crown. Drag onto a player, or press then choose a player." title="Drag onto a player to make them your IGL" style="width: 44px; height: 44px; flex: none; display: grid; place-items: center; border-radius: 10px; border: 1px solid {{crownBorder}}; background: {{crownBg}}; color: #f5d76e; touch-action: none; cursor: grab">
+<button onClick="{{crownClick}}" aria-pressed="{{crownArmed}}" aria-label="{{crownLabel}}" title="{{crownLabel}}" style="width: 44px; height: 44px; flex: none; display: grid; place-items: center; border-radius: 10px; border: 1px solid {{crownBorder}}; background: {{crownBg}}; color: #f5d76e; touch-action: manipulation; cursor: pointer">
 <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="#f5d76e" stroke="#f5d76e" stroke-width="1.6" stroke-linejoin="round"><path d="M3 18h18L19 7l-4.5 4L12 5l-2.5 6L5 7z"></path></svg>
 </button>
 <sc-if value="{{crownArmed}}" hint-placeholder-val="{{ false }}">
@@ -1089,7 +1084,7 @@ class Component extends DCLogic {
     var mine = pcmtReadMyDeck();
     this.state = {
       slots: mine.slots,
-      igl: mine.igl, tab: 'all', squadName: mine.squadName, dragging: false, dragX: 0, dragY: 0, hoverId: null, crownArmed: false, iglFlip: null, filter: 'ALL', search: '', regions: pcmtReadRegions(), dealRegions: pcmtReadDealRegions(), saved: mine.saved, storeOpen: pcmtReadStoreOpen()
+      igl: mine.igl, tab: 'all', squadName: mine.squadName, crownArmed: false, iglFlip: null, filter: 'ALL', search: '', regions: pcmtReadRegions(), dealRegions: pcmtReadDealRegions(), saved: mine.saved, storeOpen: pcmtReadStoreOpen()
     };
   }
 
@@ -1192,15 +1187,6 @@ class Component extends DCLogic {
       self.setState({ iglFlip: id });
       self._iglFlip = setTimeout(function () { self.setState({ iglFlip: null }); }, 1400);
     }, 30);
-  }
-
-  playerAt(x, y) {
-    try {
-      var el = document.elementFromPoint(x, y);
-      var card = el && el.closest('[data-player]');
-      var id = card && card.getAttribute('data-player');
-      return id && this.state.slots && Object.keys(this.state.slots).some(function (k) { return this.state.slots[k] === id; }, this) ? id : null;
-    } catch (e) { return null; }
   }
 
   overStack(x, y) {
@@ -1652,7 +1638,6 @@ class Component extends DCLogic {
           p.id === mvpId ? '0 0 0 1px rgba(245,215,110,.9), 0 0 24px rgba(245,215,110,.45)' : null,
           p.id === topId ? '0 0 0 1px ' + PCMT_TEAMS[p.team] + ', 0 0 24px ' + PCMT_TEAMS[p.team] + '70' : null,
           PCMT_CHAMPS[p.id] && p.id !== mvpId ? '0 0 0 1px rgba(245,215,110,.55), 0 0 16px rgba(245,215,110,.16)' : null,
-          s.dragging && s.hoverId === p.id ? '0 0 0 3px #f5d76e, 0 0 28px rgba(245,215,110,.55)' : null,
           s.blessedId === p.id ? '0 0 0 1px rgba(255,255,255,.9), 0 0 22px rgba(255,255,255,.55)' : null
         ].filter(Boolean).join(', ') || 'none',
         priceLabel: pcmtNum(p.price),
@@ -1724,7 +1709,7 @@ class Component extends DCLogic {
     else if (s.saved) statusText = 'Deck locked in. Edits are open until ' + (wk.lockAt ? pcmtWhen(wk.lockAt) : 'the next match') + '.';
     else if (missing.length) statusText = 'No points until every role is filled. Still need: ' + missing.join(', ') + '.';
     else if (need > 0) statusText = 'Every role is filled. Pick ' + openWildAll + ' more wildcard' + (openWildAll === 1 ? '' : 's') + ' to complete your deck.';
-    else if (!iglPlayer) statusText = 'Drag the crown onto a player to pick your IGL.';
+    else if (!iglPlayer) statusText = 'Click the crown, then pick a card to make your IGL.';
     else statusText = 'Ready to lock in.';
 
     var teamOptions = [{ key: 'ALL', label: 'All teams' }].concat(PCMT_TEAM_LIST.map(function (t) {
@@ -1746,35 +1731,22 @@ class Component extends DCLogic {
       halo: this._haloTraces || (this._haloTraces = pcmtHaloTraces()),
       deckBackBg: (s.saved && s.auraKind === 'ethan') ? pcmtDeckTheme(s.deckCode).plainBg : pcmtDeckTheme(s.deckCode).bg,
       aura: this._auraTraces || (this._auraTraces = pcmtAuraTraces()),
-      dragging: !!s.dragging, dragX: s.dragX || 0, dragY: s.dragY || 0,
       crownArmed: !!s.crownArmed,
       crownBorder: s.crownArmed ? '#f5d76e' : 'rgba(245,215,110,.5)',
       crownBg: s.crownArmed ? 'rgba(245,215,110,.15)' : 'transparent',
-      crownDown: function (e) {
+      crownLabel: s.igl ? 'IGL crown. Double-click to take the IGL role off.' : 'IGL crown. Click, then pick the card you want as your IGL.',
+      // Click: no IGL yet -> pick a card (click again to cancel). IGL already set -> nothing.
+      // Double-click: take the IGL role off.
+      crownClick: function () {
         if (weekLocked) return;
-        try { e.currentTarget.setPointerCapture(e.pointerId); } catch (err) {}
-        self._crownStart = { x: e.clientX, y: e.clientY, moved: false };
-      },
-      crownMove: function (e) {
-        var st = self._crownStart;
-        if (!st) return;
-        if (!st.moved && Math.abs(e.clientX - st.x) + Math.abs(e.clientY - st.y) > 6) st.moved = true;
-        if (st.moved) self.setState({ dragging: true, crownArmed: false, dragX: e.clientX, dragY: e.clientY, hoverId: self.playerAt(e.clientX, e.clientY) });
-      },
-      crownUp: function (e) {
-        if (weekLocked) { self._crownStart = null; return; }
-        var st = self._crownStart; self._crownStart = null;
-        if (!st) return;
-        if (st.moved) {
-          var id = self.playerAt(e.clientX, e.clientY);
-          self.setState({ dragging: false, hoverId: null });
-          if (id) self.setIgl(id);
-        } else {
-          self.setState({ crownArmed: !self.state.crownArmed });
+        var now = Date.now(), dbl = !!self._crownLast && now - self._crownLast < 400;
+        self._crownLast = dbl ? 0 : now;
+        if (self.state.igl) {
+          if (dbl) { clearTimeout(self._iglFlip); self.setState({ igl: null, saved: false, crownArmed: false, iglFlip: null }); }
+          return;
         }
+        if (!dbl) self.setState({ crownArmed: !self.state.crownArmed });
       },
-      crownClick: function (e) { if (!weekLocked && e && e.detail === 0) self.setState({ crownArmed: !self.state.crownArmed }); },
-      crownCancel: function () { self._crownStart = null; self.setState({ dragging: false, hoverId: null }); },
       squadName: s.squadName || '',
       hasSquadName: !!(s.squadName || '').trim(),
       noSquadName: !(s.squadName || '').trim(),
