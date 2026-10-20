@@ -29,6 +29,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 .st-card{position:relative;box-sizing:border-box;width:300px;zoom:.75;aspect-ratio:5/7;background:#0b1011;border:1px solid #1e2b2d;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 10px 24px rgba(0,0,0,.55)}
 .st-art{position:absolute;inset:0;z-index:0;pointer-events:none}
 .st-art img.st-art-full{left:0;top:0;right:auto;bottom:auto;width:100%;height:100%;object-fit:cover;opacity:.32;-webkit-mask-image:radial-gradient(120% 90% at 55% 45%,#000 45%,transparent 100%);mask-image:radial-gradient(120% 90% at 55% 45%,#000 45%,transparent 100%)}
+.st-art img.st-art-center{left:50%;top:50%;right:auto;bottom:auto;height:86%;width:auto;transform:translate(-50%,-46%);opacity:.24;-webkit-mask-image:none;mask-image:none}
 .st-sheen{position:absolute;inset:0;z-index:2;pointer-events:none;border-radius:inherit;background-size:260% 100%;background-repeat:no-repeat;animation:st-sheen 8s ease-in-out infinite}
 @keyframes st-sheen{0%{background-position:160% 0}55%,100%{background-position:-60% 0}}
 .st-stamp{display:inline-flex;align-items:center;gap:4px;padding:3px 7px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.14em;transform:rotate(-9deg);white-space:nowrap}
@@ -197,6 +198,11 @@ var PCMT_SEASON = { NA: 'NA S3', EMEA: 'EMEA S2' };
 var PCMT_VARIANT_ART = { 'teklo-variant': '/_blob/8b1855340f56f72ea07f5447ca167038', 'straight-variant': '/_blob/21ae11daa07a46a08f5d3cf16fd0b2d9' };
 // Art that fills the whole card face (screenshots); the rest sit at the side like a cut-out.
 var PCMT_VARIANT_FULL = { 'straight-variant': true };
+// Champion cards: the trophy sits in the middle of the card, and the sheen is gold.
+var PCMT_VARIANT_ART_CHAMPS = { 'champ-longclaw': '/_blob/a8390c53c5aa10a347b6af0841aa6835', 'champ-devil': '/_blob/a8390c53c5aa10a347b6af0841aa6835', 'champ-platinum': '/_blob/a8390c53c5aa10a347b6af0841aa6835', 'champ-igneous': '/_blob/a8390c53c5aa10a347b6af0841aa6835', 'champ-james': '/_blob/a8390c53c5aa10a347b6af0841aa6835', 'champ-stingray': '/_blob/a8390c53c5aa10a347b6af0841aa6835', 'champ-faye': '/_blob/a8390c53c5aa10a347b6af0841aa6835', 'champ-charlotte': '/_blob/a8390c53c5aa10a347b6af0841aa6835', 'champ-mide': '/_blob/a8390c53c5aa10a347b6af0841aa6835', 'champ-king': '/_blob/a8390c53c5aa10a347b6af0841aa6835', 'champ-tonnoman': '/_blob/a8390c53c5aa10a347b6af0841aa6835' };
+Object.keys(PCMT_VARIANT_ART_CHAMPS).forEach(function (k) { PCMT_VARIANT_ART[k] = PCMT_VARIANT_ART_CHAMPS[k]; });
+var PCMT_VARIANT_CENTER = { 'champ-longclaw': true, 'champ-devil': true, 'champ-platinum': true, 'champ-igneous': true, 'champ-james': true, 'champ-stingray': true, 'champ-faye': true, 'champ-charlotte': true, 'champ-mide': true, 'champ-king': true, 'champ-tonnoman': true };
+var PCMT_VARIANT_SHEEN = { 'champ-longclaw': '#f5d76e', 'champ-devil': '#f5d76e', 'champ-platinum': '#f5d76e', 'champ-igneous': '#f5d76e', 'champ-james': '#f5d76e', 'champ-stingray': '#f5d76e', 'champ-faye': '#f5d76e', 'champ-charlotte': '#f5d76e', 'champ-mide': '#f5d76e', 'champ-king': '#f5d76e', 'champ-tonnoman': '#f5d76e' };
 var PCMT_RARITY_INK = { common: '#93a9aa', rare: '#7cc2ff', epic: '#c99bff', legendary: '#f5d76e' };
 // Variants shown on the page (stats match the player's MVP VS card in trumps-cards.js).
 var PCMT_STORE_ITEMS = [
@@ -209,7 +215,62 @@ var PCMT_STORE_ITEMS = [
     name: 'straight', team: 'TS', teamName: 'Team Slugshow', color: '#9b6be8', season: 'S3 NA', maps: 21, role: 'duelist',
     teamLogo: '/_blob/56f2be02d04c1bb89902b3eb4f989ac4', regionLogo: '/_blob/c265e976f8968e60e4a2bdd32542b499',
     roleIcon: '/_blob/3911a104cbddaf481d7a7bf070a2e696', art: '/_blob/21ae11daa07a46a08f5d3cf16fd0b2d9',
-    acs: 260, kast: 74, hs: 17, dpr: 0.74, toxic: 1.17 }
+    acs: 260, kast: 74, hs: 17, dpr: 0.74, toxic: 1.17 },
+  { id: 'champ-longclaw', card: 'v:champ-longclaw', rarity: 'rare', pack: 'NA Card Pack', title: 'longclaw Champion',
+    name: 'longclaw', team: 'DFM', teamName: 'Dementia Found Me', color: '#5a78ff', season: 'S3 NA', maps: 28, role: 'controller',
+    teamLogo: '/_blob/a59455af931db22aaf5f61e2da9f3686', regionLogo: '/_blob/c265e976f8968e60e4a2bdd32542b499',
+    roleIcon: '/_blob/783fdcc50fe04d2622938ee185d4ed32', art: '/_blob/a8390c53c5aa10a347b6af0841aa6835',
+    acs: 183, kast: 71, hs: 25, dpr: 0.71, toxic: 0.93 },
+  { id: 'champ-devil', card: 'v:champ-devil', rarity: 'rare', pack: 'NA Card Pack', title: 'devil Champion',
+    name: 'devil', team: 'BAKA', teamName: 'Beautiful and Kinda Adorable', color: '#b98ad9', season: 'S3 NA', maps: 12, role: 'duelist',
+    teamLogo: '/_blob/09e5595acee6eb70652c84027ef2e6d6', regionLogo: '/_blob/c265e976f8968e60e4a2bdd32542b499',
+    roleIcon: '/_blob/3911a104cbddaf481d7a7bf070a2e696', art: '/_blob/a8390c53c5aa10a347b6af0841aa6835',
+    acs: 129, kast: 60, hs: 20, dpr: 0.76, toxic: 0.64 },
+  { id: 'champ-platinum', card: 'v:champ-platinum', rarity: 'rare', pack: 'NA Card Pack', title: 'platinum Champion',
+    name: 'platinum', team: 'IHOP', teamName: 'I Hate Odin Party', color: '#3d95dc', season: 'S3 NA', maps: 9, role: 'initiator',
+    teamLogo: '/_blob/209d81a7df0d79fc71d99063600358ef', regionLogo: '/_blob/c265e976f8968e60e4a2bdd32542b499',
+    roleIcon: '/_blob/8f7fb7ffa93c48ba09a00fcd223c7f7c', art: '/_blob/a8390c53c5aa10a347b6af0841aa6835',
+    acs: 165, kast: 71, hs: 22, dpr: 0.68, toxic: 0.86 },
+  { id: 'champ-igneous', card: 'v:champ-igneous', rarity: 'rare', pack: 'NA Card Pack', title: 'igneous Champion',
+    name: 'igneous', team: 'C9', teamName: 'Clown9', color: '#4dc3ef', season: 'S3 NA', maps: 26, role: 'initiator',
+    teamLogo: '/_blob/46ec4a1f510710db9670e64c202b0cee', regionLogo: '/_blob/c265e976f8968e60e4a2bdd32542b499',
+    roleIcon: '/_blob/8f7fb7ffa93c48ba09a00fcd223c7f7c', art: '/_blob/a8390c53c5aa10a347b6af0841aa6835',
+    acs: 178, kast: 73, hs: 13, dpr: 0.67, toxic: 0.93 },
+  { id: 'champ-james', card: 'v:champ-james', rarity: 'rare', pack: 'NA Card Pack', title: 'james Champion',
+    name: 'james', team: 'FNC', teamName: 'cow paulo FaN Club', color: '#ff8a1f', season: 'S3 NA', maps: 21, role: 'duelist',
+    teamLogo: '/_blob/8a102a19e71060bb2dacb6d6b5263457', regionLogo: '/_blob/c265e976f8968e60e4a2bdd32542b499',
+    roleIcon: '/_blob/3911a104cbddaf481d7a7bf070a2e696', art: '/_blob/a8390c53c5aa10a347b6af0841aa6835',
+    acs: 283, kast: 72, hs: 45, dpr: 0.78, toxic: 1.24 },
+  { id: 'champ-stingray', card: 'v:champ-stingray', rarity: 'rare', pack: 'NA Card Pack', title: 'stingray Champion',
+    name: 'stingray', team: 'NAVI', teamName: 'No Actual Valorant Intelligence', color: '#FF6EB4', season: 'S3 NA', maps: 17, role: 'initiator',
+    teamLogo: '/_blob/f6b846609af48437299bc42d13d5dad0', regionLogo: '/_blob/c265e976f8968e60e4a2bdd32542b499',
+    roleIcon: '/_blob/8f7fb7ffa93c48ba09a00fcd223c7f7c', art: '/_blob/a8390c53c5aa10a347b6af0841aa6835',
+    acs: 280, kast: 79, hs: 23, dpr: 0.65, toxic: 1.33 },
+  { id: 'champ-faye', card: 'v:champ-faye', rarity: 'rare', pack: 'EMEA Card Pack', title: 'faye Champion',
+    name: 'faye', team: 'SOG', teamName: 'The SOG', color: '#b8814a', season: 'S2 EMEA', maps: 10, role: 'controller',
+    teamLogo: '/_blob/85e0857300495ee3133b6acf79e286c0', regionLogo: '/_blob/3c7e7374dceead68d5c58818d0bcfe8a',
+    roleIcon: '/_blob/783fdcc50fe04d2622938ee185d4ed32', art: '/_blob/a8390c53c5aa10a347b6af0841aa6835',
+    acs: 209, kast: 70, hs: 24, dpr: 0.65, toxic: 1.04 },
+  { id: 'champ-charlotte', card: 'v:champ-charlotte', rarity: 'rare', pack: 'EMEA Card Pack', title: 'Charlotte Champion',
+    name: 'Charlotte', team: 'SOG', teamName: 'The SOG', color: '#b8814a', season: 'S2 EMEA', maps: 7, role: 'sentinel',
+    teamLogo: '/_blob/85e0857300495ee3133b6acf79e286c0', regionLogo: '/_blob/3c7e7374dceead68d5c58818d0bcfe8a',
+    roleIcon: '/_blob/006daf34642009c6f6749139f80a613e', art: '/_blob/a8390c53c5aa10a347b6af0841aa6835',
+    acs: 129, kast: 68, hs: 18, dpr: 0.68, toxic: 0.7 },
+  { id: 'champ-mide', card: 'v:champ-mide', rarity: 'rare', pack: 'EMEA Card Pack', title: 'mide Champion',
+    name: 'mide', team: 'LARP', teamName: 'Larpiat\u00e1n', color: '#6f8fe0', season: 'S2 EMEA', maps: 12, role: 'controller',
+    teamLogo: '/_blob/f06cf372e21c32dbf3754b8bd506e0b5', regionLogo: '/_blob/3c7e7374dceead68d5c58818d0bcfe8a',
+    roleIcon: '/_blob/783fdcc50fe04d2622938ee185d4ed32', art: '/_blob/a8390c53c5aa10a347b6af0841aa6835',
+    acs: 234, kast: 72, hs: 20, dpr: 0.72, toxic: 1.11 },
+  { id: 'champ-king', card: 'v:champ-king', rarity: 'rare', pack: 'EMEA Card Pack', title: 'King Champion',
+    name: 'King', team: 'NOOT', teamName: 'Penguin Patrol', color: '#3fb6a8', season: 'S2 EMEA', maps: 13, role: 'duelist',
+    teamLogo: '/_blob/195da1efa2549707b6737764479c066c', regionLogo: '/_blob/3c7e7374dceead68d5c58818d0bcfe8a',
+    roleIcon: '/_blob/3911a104cbddaf481d7a7bf070a2e696', art: '/_blob/a8390c53c5aa10a347b6af0841aa6835',
+    acs: 242, kast: 77, hs: 22, dpr: 0.74, toxic: 1.12 },
+  { id: 'champ-tonnoman', card: 'v:champ-tonnoman', rarity: 'rare', pack: 'EMEA Card Pack', title: 'Tonnoman Champion',
+    name: 'Tonnoman', team: 'HOT', teamName: 'Honestly Outrageous Temperatures', color: '#4f8ef7', season: 'S2 EMEA', maps: 15, role: 'controller',
+    teamLogo: '/_blob/e078dfeeea5c9d916197f71d8b7ea80a', regionLogo: '/_blob/3c7e7374dceead68d5c58818d0bcfe8a',
+    roleIcon: '/_blob/783fdcc50fe04d2622938ee185d4ed32', art: '/_blob/a8390c53c5aa10a347b6af0841aa6835',
+    acs: 222, kast: 71, hs: 27, dpr: 0.74, toxic: 1.06 }
 ];
 // The default card back (the BLUE deck), used for pack cards.
 var PCMT_STORE_BACK = { color: '#a5dcdd', edge: '#1f3a3b', ringClass: '', bgClass: '', frame: 'rgba(165,220,221,0.75)', frameSoft: 'rgba(165,220,221,0.4)', glow: 'rgba(165,220,221,0.3)',
@@ -367,6 +428,7 @@ var PCMT_PACK_CSS = [
   '.pk-root.pk-going.pk-reveal .pk-tap{opacity:1;animation:pk-tap 1.8s ease-in-out infinite}',
   '.pk-root.pk-reveal{cursor:pointer}',
   '.pk-art img.pk-art-full{left:0;top:0;right:auto;bottom:auto;width:100%;height:100%;object-fit:cover;opacity:.32;-webkit-mask-image:radial-gradient(120% 90% at 55% 45%,#000 45%,transparent 100%);mask-image:radial-gradient(120% 90% at 55% 45%,#000 45%,transparent 100%)}',
+  '.pk-art img.pk-art-center{left:50%;top:50%;right:auto;bottom:auto;height:86%;width:auto;transform:translate(-50%,-46%);opacity:.24;-webkit-mask-image:none;mask-image:none}',
   '.pk-rstamp{margin-left:8px;display:inline-flex;align-items:center;gap:4px;padding:3px 7px;border-radius:4px;font:700 10px/1 "JetBrains Mono",monospace;letter-spacing:.14em;transform:rotate(-9deg);white-space:nowrap}',
   '.pk-rshine{background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:pk-rshine 6s ease-in-out infinite}',
   '@keyframes pk-rshine{0%{background-position:160% 0}50%,100%{background-position:-60% 0}}',
@@ -408,7 +470,7 @@ function pcmtPackMvpFace(p, t, rar, shiny, col, stamp) {
   }).join('');
   return '<div class="pk-m">' +
     '<div class="pk-m-wm"><img src="' + e(p.regionLogo) + '" alt=""></div>' +
-    (p.art ? '<div class="pk-art"><img' + (p.artFull ? ' class="pk-art-full"' : '') + ' src="' + e(p.art) + '" alt=""></div>' : '') +
+    (p.art ? '<div class="pk-art"><img' + (p.artFull ? ' class="pk-art-full"' : p.artCenter ? ' class="pk-art-center"' : '') + ' src="' + e(p.art) + '" alt=""></div>' : '') +
     '<span class="pk-m-edge" style="background:' + e(col) + '"></span>' +
     '<div class="pk-m-body">' +
       '<div class="pk-m-top">' + head + (p.badge ? '<span class="pk-badge">' + e(p.badge) + '</span>' : '') +
@@ -434,7 +496,7 @@ function pcmtPackFront(p, t, cfg) {
     '<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 20.9l1.6-7L2 9.2l7.1-.6z"/></svg>' +
     '<span class="pk-rshine" style="background-image:linear-gradient(100deg,' + e(col) + ' 0%,' + e(col) + ' 35%,#fff 50%,' + e(col) + ' 65%,' + e(col) + ' 100%)">' + e(rar.toUpperCase()) + '</span></span>' : '';
   var glow = shiny ? ' style="box-shadow:0 0 0 2px ' + e(col) + ',0 0 28px ' + e(pcmtRgba(col, .6)) + '"' : '';
-  var sheen = shiny ? '<div class="pk-rsheen" style="background-image:linear-gradient(115deg,transparent 42%,' + e(pcmtRgba(col, .22)) + ' 47%,rgba(255,255,255,.2) 50%,' + e(pcmtRgba(col, .22)) + ' 53%,transparent 58%)"></div>' : '';
+  var sheen = shiny ? '<div class="pk-rsheen" style="background-image:linear-gradient(115deg,transparent 42%,' + e(pcmtRgba(p.sheenColor || col, .3)) + ' 47%,rgba(255,255,255,.2) 50%,' + e(pcmtRgba(p.sheenColor || col, .3)) + ' 53%,transparent 58%)"></div>' : '';
   if (p.mvp) return '<div class="pk-face pk-front pk-front-m' + (rar ? ' pk-r-' + e(rar) : '') + '"' + glow + '>' + pcmtPackMvpFace(p, t, rar, shiny, col, stamp) + (shiny ? '<div class="pk-holo"></div>' : '') + sheen + '</div>';  // commons: no sheen
   return '<div class="pk-face pk-front' + (rar ? ' pk-r-' + e(rar) : '') + '"' + glow + '>' +
     '<div class="pk-wm"><img src="' + e(p.regionLogo || cfg.regionLogo) + '" alt=""></div>' +
@@ -888,7 +950,7 @@ function pcmtStoreCards(pulled) {
     return {
       name: p.name, role: role.charAt(0).toUpperCase() + role.slice(1), roleIcon: abs(PCMT_PACK_ROLE_ICONS[role] || PCMT_PACK_ROLE_ICONS.duelist),
       price: pr % 1 === 0 ? String(pr) : pr.toFixed(1), champ: PCMT_CHAMPS.indexOf(p.id) >= 0,
-      rarity: c.rarity, art: c.variant && PCMT_VARIANT_ART[c.variant] ? abs(PCMT_VARIANT_ART[c.variant]) : '', artFull: !!(c.variant && PCMT_VARIANT_FULL[c.variant]),
+      rarity: c.rarity, art: c.variant && PCMT_VARIANT_ART[c.variant] ? abs(PCMT_VARIANT_ART[c.variant]) : '', artFull: !!(c.variant && PCMT_VARIANT_FULL[c.variant]), artCenter: !!(c.variant && PCMT_VARIANT_CENTER[c.variant]), sheenColor: (c.variant && PCMT_VARIANT_SHEEN[c.variant]) || '',
       badge: c.new ? 'NEW' : '×' + c.count, regionLogo: abs(PCMT_REGION_LOGOS[c.region] || PCMT_REGION_LOGOS.NA),
       trophy: abs(PCMT_TROPHY_ICON), mvp: pcmtMvpStats(c.region, p.name, c.player),
       team: { code: tm.code, name: tm.name, color: tm.color, logo: abs(tm.logo || ''), logoH: PCMT_PACK_LOGO_H[tm.code] || (PCMT_SMALL_LOGOS[tm.code] ? 26 : 30) }
@@ -1029,10 +1091,10 @@ class Component extends DCLogic {
         nameSize: Math.max(18, Math.min(34, Math.floor(230 / Math.max(4, it.name.length * 0.62)))),
         roleLabel: it.role.charAt(0).toUpperCase() + it.role.slice(1),
         rarityTag: it.rarity.toUpperCase(), rarityLabel: it.rarity.charAt(0).toUpperCase() + it.rarity.slice(1),
-        artClass: PCMT_VARIANT_FULL[it.id] ? 'st-art-full' : '',
+        artClass: PCMT_VARIANT_FULL[it.id] ? 'st-art-full' : PCMT_VARIANT_CENTER[it.id] ? 'st-art-center' : '',
         // Rare and up: a sheen across the card and a shiny stamp, both in the card's own colour.
         shiny: it.rarity !== 'common', glow: pcmtRgba(it.color, 0.45),
-        sheen: 'linear-gradient(115deg, transparent 42%, ' + pcmtRgba(it.color, 0.22) + ' 47%, rgba(255,255,255,0.2) 50%, ' + pcmtRgba(it.color, 0.22) + ' 53%, transparent 58%)',
+        sheen: (function (sc) { return 'linear-gradient(115deg, transparent 42%, ' + pcmtRgba(sc, 0.3) + ' 47%, rgba(255,255,255,0.22) 50%, ' + pcmtRgba(sc, 0.3) + ' 53%, transparent 58%)'; })(PCMT_VARIANT_SHEEN[it.id] || it.color),
         shine: 'linear-gradient(100deg, ' + it.color + ' 0%, ' + it.color + ' 35%, #ffffff 50%, ' + it.color + ' 65%, ' + it.color + ' 100%)',
         cardLabel: it.title + ' card: ' + it.name + ', ' + it.teamName,
         blurb: it.blurb + ' ' + it.rarity.charAt(0).toUpperCase() + it.rarity.slice(1) + ', found in the ' + it.pack + '.',

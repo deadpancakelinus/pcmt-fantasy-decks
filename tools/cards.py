@@ -12,6 +12,18 @@ VARIANTS = [
     # id, player id, rarity (common / rare / epic / legendary), title
     ('teklo-variant', 'teklo', 'rare', 'The Role of Yoru'),
     ('straight-variant', 'straight', 'rare', 'Straight Ace'),
+    # PCMT champions: trophy art, gold sheen
+    ('champ-longclaw', 'longclaw', 'rare', 'longclaw Champion'),
+    ('champ-devil', 'devil', 'rare', 'devil Champion'),
+    ('champ-platinum', 'platinum', 'rare', 'platinum Champion'),
+    ('champ-igneous', 'igneous', 'rare', 'igneous Champion'),
+    ('champ-james', 'james', 'rare', 'james Champion'),
+    ('champ-stingray', 'stingray', 'rare', 'stingray Champion'),
+    ('champ-faye', 'faye', 'rare', 'faye Champion'),
+    ('champ-charlotte', 'charlotte', 'rare', 'Charlotte Champion'),
+    ('champ-mide', 'mide', 'rare', 'mide Champion'),
+    ('champ-king', 'king', 'rare', 'King Champion'),
+    ('champ-tonnoman', 'tonnoman', 'rare', 'Tonnoman Champion'),
 ]
 ODDS = {'common': 70, 'rare': 22, 'epic': 7, 'legendary': 1}
 PACKS = [

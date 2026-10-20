@@ -26,7 +26,7 @@ grant usage on all sequences in schema public to authenticated;`);
 const buy = (uid, pack = 'na-pack') => JSON.parse(sql(as(uid, `select public.buy_pack('${pack}');`)).trim());
 const bal = uid => +sql(`select coalesce(sum(amount),0) from public.vp_ledger where user_id = '${uid}';`).trim();
 
-check(+sql(`select count(*) from public.cards where active;`).trim() === 133, 'catalog has 131 commons + 2 variants');
+check(+sql(`select count(*) from public.cards where active;`).trim() === 144, 'catalog has 131 commons + 13 variants (2 + 11 champions)');
 check(sql(`select rarity from public.cards where id = 'v:teklo-variant';`).trim() === 'rare', 'The Role of Yoru is Rare');
 check(fails(`set role anon; select public.buy_pack('na-pack');`), 'logged-out visitors cannot buy');
 check(fails(as(P1, `select public.buy_pack('na-pack');`), /aren't on sale yet/), 'before launch, a player who is not an admin cannot buy');
@@ -49,13 +49,13 @@ check(Math.abs(share('common') - 0.70) < 0.025 && Math.abs(share('rare') - 0.30)
   `odds hold: common ${(share('common') * 100).toFixed(1)}%, rare ${(share('rare') * 100).toFixed(1)}% (22% + epic/legendary dropping down), epic 0, legendary 0`);
 const owned = +sql(`select sum(count) from public.user_cards where user_id = '${ADMIN}';`).trim();
 check(owned === (N + 1) * 5, 'duplicates are kept as a count (' + owned + ' cards owned)');
-check(+sql(`select count from public.user_cards where user_id = '${ADMIN}' and card_id = 'v:teklo-variant';`).trim() > 100, 'the The Role of Yoru gets pulled');
+check(+sql(`select count from public.user_cards where user_id = '${ADMIN}' and card_id = 'v:teklo-variant';`).trim() > 20, 'the The Role of Yoru gets pulled');
 check(+sql(`select count(*) from public.pack_openings where user_id = '${ADMIN}';`).trim() === N + 1, 'every opening is logged');
 const pos = sql(`select string_agg(p::text, ',') from public.pack_openings o, lateral jsonb_array_elements(o.cards) with ordinality c(x, p) where o.user_id = '${ADMIN}' and c.x ->> 'rarity' = 'rare';`).trim().split(',').map(Number);
 const at = [1, 2, 3, 4, 5].map(k => pos.filter(x => x === k).length / pos.length);
 check(at.every(f => f > 0.15 && f < 0.25), 'rares land anywhere in the pack: ' + at.map(f => (f * 100).toFixed(0) + '%').join(' / ') + ' at positions 1-5');
 const eu = sql(as(ADMIN, `select string_agg((c ->> 'rarity') || ':' || (c ->> 'region'), ',') from generate_series(1, 200) g, lateral jsonb_array_elements(public.buy_pack('emea-pack' || left(g::text, 0)) -> 'cards') c;`)).trim().split(',');
-check(eu.length === 1000 && eu.every(x => x === 'common:EMEA'), 'the EMEA pack only gives EMEA players (all Common until EMEA variants exist)');
+check(eu.length === 1000 && eu.every(x => x.endsWith(':EMEA')) && eu.some(x => x === 'rare:EMEA'), 'the EMEA pack only gives EMEA players, and its champions come out as Rares');
 
 // paying with VP
 sql(`update public.card_packs set price = 100, open_to_all = true; insert into public.vp_ledger (user_id, kind, week, amount) values ('${P1}', 'week', '2026-10-19', 250);`);
@@ -75,7 +75,7 @@ sql(`insert into public.vp_ledger (user_id, kind, week, amount) values ('${P2}',
   check(fails(as(P1, `insert into public.user_cards (user_id, card_id) values ('${P1}', 'v:teklo-variant');`)), 'players cannot give themselves cards');
   check(fails(as(P1, `insert into public.vp_ledger (user_id, kind, amount) values ('${P1}', 'week', 999);`)), 'players cannot give themselves VP');
   check(fails(as(P1, `update public.card_packs set price = 1;`)) || sql(`select string_agg(price::text, ',') from public.card_packs`).trim() === '100,100', 'players cannot change the price');
-  check(sql(`set role anon; select count(*) from public.card_packs;`).trim() === '2' && sql(`set role anon; select count(*) from public.cards;`).trim() === '133', 'anyone can see the packs and the catalog');
+  check(sql(`set role anon; select count(*) from public.card_packs;`).trim() === '2' && sql(`set role anon; select count(*) from public.cards;`).trim() === '144', 'anyone can see the packs and the catalog');
   sql('drop database cardtest;', 'postgres');
   console.log(bad ? bad + ' problem(s)' : 'All card pack checks passed');
   process.exit(bad ? 1 : 0);
