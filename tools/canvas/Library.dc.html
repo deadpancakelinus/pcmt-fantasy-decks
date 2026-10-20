@@ -321,7 +321,7 @@ class Component extends DCLogic {
     // MVP VS stats by region + name (same cards as the MVP VS game)
     var stats = {};
     if (live && W.PCMT_TRUMPS_CARDS) {
-      ['na', 'emea'].forEach(function (r) { (W.PCMT_TRUMPS_CARDS[r] || []).forEach(function (c) { stats[r.toUpperCase() + '|' + String(c.name).toLowerCase()] = c; }); });
+      ['na', 'emea'].forEach(function (r) { (W.PCMT_TRUMPS_CARDS[r] || []).forEach(function (c) { stats[r.toUpperCase() + '|' + String(c.name).toLowerCase()] = c; if (c.deck) stats['id|' + c.deck] = c; }); });
     } else if (!live) stats = PCMT_LIBRARY_SAMPLE.stats;
     var abs = function (u) { return u; };
     var byId = {};
@@ -330,7 +330,8 @@ class Component extends DCLogic {
       var c = byId[k], p = players[c.player] || { id: c.player, name: c.player, team: '', role: 'duelist' };
       var tm = PCMT_ALL_DECK_TEAMS.find(function (x) { return x.code === p.team; }) || { code: p.team, name: p.team, color: '#a5dcdd', logo: '' };
       var role = String(p.role || 'duelist').split('/')[0]; if (role === 'yoru') role = 'duelist';
-      var st = stats[c.region + '|' + String(p.name).toLowerCase()] || null;
+      // MVP VS stats: matched by the player's id (names can differ on PCMT.gg), then by name
+      var st = stats['id|' + c.player] || stats[c.region + '|' + String(p.name).toLowerCase()] || null;
       var fmt = function (v, f) { return st && v != null ? f(v) : '—'; };
       var shiny = c.rarity !== 'common', col = tm.color || '#a5dcdd';
       return {

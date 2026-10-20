@@ -57,6 +57,14 @@ def role_from_agents(maps):
     return AGENT_TO_ROLE[top_agent]
 
 
+# PCMT.gg names that differ from the player's name in The Deck: (region, PCMT.gg name lower case) -> Deck name.
+DECK_NAMES = {
+    ('na', 'catsmeow'): 'thecatsmeow',
+    ('na', 'latineao'): 'latin',
+    ('emea', 'alex'): 'alexx',
+}
+
+
 def deck_info():
     """Team names/colors and player roles from The Deck board, so MVP VS cards look like deck cards."""
     src = open(os.path.join(ROOT, 'tools', 'canvas', 'Main.dc.html'), encoding='utf-8').read()
@@ -73,7 +81,7 @@ def deck_info():
         pid, name, team, role = m.group(1), m.group(2).lower(), m.group(3), m.group(4).split('/')[0]
         role = 'duelist' if role == 'yoru' else role
         region = teams.get(team, {}).get('region', 'na')
-        roles.setdefault((region, name), []).append((team, role, pid in champs))
+        roles.setdefault((region, name), []).append((team, role, pid in champs, pid))
     return teams, roles
 
 
@@ -105,10 +113,11 @@ def main():
             seen.add(slug)
             key = region + ':' + slug
             team = '' if r['team'] == '(sub)' else r['team']
-            cands = roles.get((region, r['name'].lower()), [])
+            cands = roles.get((region, DECK_NAMES.get((region, r['name'].lower()), r['name'].lower())), [])
             pick = [c for c in cands if c[0] == team] or (cands if len(cands) == 1 else [])
             out[region].append({
                 'id': region + '-' + slug,
+                'deck': pick[0][3] if pick else '',   # the player's id in The Deck (players.js), if they're in it
                 'name': r['name'],
                 'team': team,
                 'teamName': teams[team]['name'] if team in teams else ('Sub' if not team else team),

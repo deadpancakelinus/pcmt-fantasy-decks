@@ -717,7 +717,8 @@ function pcmtPackAnim(cfg, onClose) {
 // MVP VS stats for a pulled card: from trumps-cards.js on the live site (same as the MVP VS game), else the samples.
 function pcmtMvpStats(region, name, pid) {
   var W = typeof window !== 'undefined' ? window : {}, st = null, key = String(name).toLowerCase();
-  if (W.PCMT_TRUMPS_CARDS) (W.PCMT_TRUMPS_CARDS[region === 'EMEA' ? 'emea' : 'na'] || []).forEach(function (c) { if (String(c.name).toLowerCase() === key) st = c; });
+  if (W.PCMT_TRUMPS_CARDS) (W.PCMT_TRUMPS_CARDS[region === 'EMEA' ? 'emea' : 'na'] || []).forEach(function (c) { if (c.deck === pid) st = c; });   // by id: names can differ on PCMT.gg
+  if (!st && W.PCMT_TRUMPS_CARDS) (W.PCMT_TRUMPS_CARDS[region === 'EMEA' ? 'emea' : 'na'] || []).forEach(function (c) { if (String(c.name).toLowerCase() === key) st = c; });
   if (!st) PCMT_STORE_ITEMS.forEach(function (it) { if (it.name === pid || it.name === key) st = it; });
   var f = function (v, fn) { return st && v != null ? fn(v) : '—'; };
   return { maps: st ? String(st.maps) : '—', season: region === 'EMEA' ? 'S2 EMEA' : 'S3 NA', stats: [
