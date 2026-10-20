@@ -1,4 +1,4 @@
--- PCMT Fantasy Decks: VP (weekly reward points).
+-- PCMT Fantasy Decks: VP (weekly reward points) and 4K/5K entry.
 -- Paste this whole file into Supabase → SQL Editor → New query → Run. Safe to run more than once.
 --
 -- How VP works:
@@ -30,6 +30,38 @@ alter table public.vp_ledger enable row level security;
 drop policy if exists "read own vp" on public.vp_ledger;
 create policy "read own vp" on public.vp_ledger for select using (auth.uid() = user_id);
 -- No insert/update/delete policies: only the payout job below can write VP.
+
+-- ===================== 4Ks and 5Ks =====================
+-- Admins can enter each player's 4Ks and 5Ks per series on admin.html. Everyone can read them (they're part of the scores).
+-- series = "<start>|<team a>|<team b>" exactly as in data.js, e.g. "2026-10-24T00:00:00Z|T1|NAVI".
+create table if not exists public.pcmt_admins (
+  user_id uuid primary key references auth.users (id) on delete cascade
+);
+alter table public.pcmt_admins enable row level security;
+drop policy if exists "see own admin row" on public.pcmt_admins;
+create policy "see own admin row" on public.pcmt_admins for select using (auth.uid() = user_id);
+-- To make someone an admin, run (their account id is shown on admin.html):
+--   insert into public.pcmt_admins (user_id) values ('<account id>') on conflict do nothing;
+
+create table if not exists public.multikills (
+  series text not null,
+  player text not null,
+  k4 integer not null default 0 check (k4 between 0 and 30),
+  k5 integer not null default 0 check (k5 between 0 and 30),
+  updated_at timestamptz not null default now(),
+  updated_by uuid default auth.uid(),
+  primary key (series, player)
+);
+alter table public.multikills enable row level security;
+drop policy if exists "anyone can read multikills" on public.multikills;
+create policy "anyone can read multikills" on public.multikills for select using (true);
+drop policy if exists "admins add multikills" on public.multikills;
+create policy "admins add multikills" on public.multikills for insert
+  with check (exists (select 1 from public.pcmt_admins a where a.user_id = auth.uid()));
+drop policy if exists "admins change multikills" on public.multikills;
+create policy "admins change multikills" on public.multikills for update
+  using (exists (select 1 from public.pcmt_admins a where a.user_id = auth.uid()))
+  with check (exists (select 1 from public.pcmt_admins a where a.user_id = auth.uid()));
 
 create table if not exists public.vp_sync_log (
   id bigserial primary key,
@@ -132,7 +164,9 @@ begin
           + public.vp_num(sp.v ->> 0) * 2 + public.vp_num(sp.v ->> 2) * 1 - public.vp_num(sp.v ->> 1) + public.vp_num(sp.v ->> 3) * 1
           + case when (players -> sp.k ->> 'team') = (r ->> 'winner') then 2 else 0 end
           + case when public.vp_num(sp.v ->> 4) = top_acs then 3 else 0 end
-          + case when public.vp_num(sp.v ->> 5) = top_kast then 1 else 0 end), true);
+          + case when public.vp_num(sp.v ->> 5) = top_kast then 1 else 0 end
+          + case when public.vp_ts(r ->> 'start') >= timestamptz '2026-10-19 09:00:00+00'      -- 4K +1, 5K +3 from this gameweek on
+                 then public.vp_num(r -> 'multi' -> sp.k ->> 0) * 1 + public.vp_num(r -> 'multi' -> sp.k ->> 1) * 3 else 0 end), true);
     end loop;
   end loop;
 
@@ -193,8 +227,14 @@ end $$;
 create or replace function public.vp_ingest(p_data_js text, p_players_js text, p_now timestamptz default now(), p_pay boolean default true)
 returns jsonb
 language plpgsql security definer set search_path = public as $$
+declare res jsonb; mk jsonb;
 begin
-  return public.vp_compute(public.vp_extract(p_data_js, 'PCMT_MATCHES'), public.vp_extract(p_data_js, 'PCMT_RESULTS'),
+  -- 4Ks and 5Ks from the admin page, attached to each result as "multi": {"<player id>": [4Ks, 5Ks]}
+  select coalesce(jsonb_object_agg(series, pl), '{}'::jsonb) into mk from (
+    select series, jsonb_object_agg(player, jsonb_build_array(k4, k5)) pl from public.multikills where k4 > 0 or k5 > 0 group by series) q;
+  select coalesce(jsonb_agg(x || jsonb_build_object('multi', coalesce(mk -> ((x ->> 'start') || '|' || (x ->> 'a') || '|' || (x ->> 'b')), '{}'::jsonb))), '[]'::jsonb)
+    into res from jsonb_array_elements(public.vp_extract(p_data_js, 'PCMT_RESULTS')) x;
+  return public.vp_compute(public.vp_extract(p_data_js, 'PCMT_MATCHES'), res,
                            public.vp_extract(p_players_js, 'PCMT_SITE_PLAYERS'), public.vp_extract(p_players_js, 'PCMT_SITE_TWIN'),
                            p_now, p_pay);
 end $$;

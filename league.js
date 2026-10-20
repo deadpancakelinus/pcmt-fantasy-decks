@@ -9,7 +9,9 @@
   var TOKEN_KEY = 'pcmt-auth';
   var BUDGET = 100, TEAM_LIMIT = 2, TRANSFERS = 2, LOCK_LEAD_H = 12;
   var ROLES = ['duelist', 'controller', 'initiator', 'sentinel'];
-  var SCORING = { kill: 2, assist: 1, death: -1, firstKill: 1, seriesWin: 2, topAcs: 3, topKast: 1 };
+  var SCORING = { kill: 2, assist: 1, death: -1, firstKill: 1, seriesWin: 2, topAcs: 3, topKast: 1, fourK: 1, fiveK: 3 };
+  // 4Ks and 5Ks (entered on admin.html) count from this gameweek on.
+  var MULTI_FROM = Date.parse('2026-10-19T09:00:00Z');
   var DAY = 86400000;
 
   // ---------- defaults so pages always have something to read ----------
@@ -40,6 +42,7 @@
 
   function seriesPoints(r) {
     var out = {}, ids = Object.keys(r.stats || {});
+    var mk = (Date.parse(r.start) >= MULTI_FROM && r.multi) || {};
     var topAcs = Math.max.apply(null, ids.map(function (k) { return +r.stats[k][4] || 0; }));
     var topKast = Math.max.apply(null, ids.map(function (k) { return +r.stats[k][5] || 0; }));
     ids.forEach(function (k) {
@@ -49,6 +52,7 @@
       if (p.team === r.winner) pts += SCORING.seriesWin;
       if (+st[4] === topAcs) pts += SCORING.topAcs;
       if (+st[5] === topKast) pts += SCORING.topKast;
+      if (mk[k]) pts += (+mk[k][0] || 0) * SCORING.fourK + (+mk[k][1] || 0) * SCORING.fiveK;
       out[k] = pts;
     });
     return out;
@@ -198,8 +202,10 @@
   var me = null, mySubs = [], myScored = [], lastSubmitted = null, submitting = false, pendingDeck = null, pendingTimer = null, sendAgain = false;
   var L = window.PCMT_LEAGUE = {
     get signedIn() { return !!me; },
-    signIn: function () {
-      var back = location.origin + location.pathname.replace(/[^/]*$/, '') + 'index.html';
+    get myId() { return me ? me.id : null; },
+    api: function (path, opts) { return refreshIfNeeded().then(function () { return api(path, opts); }); },
+    signIn: function (page) {
+      var back = location.origin + location.pathname.replace(/[^/]*$/, '') + (typeof page === 'string' ? page : 'index.html');
       location.href = SB_URL + '/auth/v1/authorize?provider=discord&redirect_to=' + encodeURIComponent(back);
     },
     signOut: function () {
@@ -301,6 +307,15 @@
   }
   window.PCMT_VP = { signedIn: false, ready: true, balance: '0', earned: '0', history: [], spent: [], week: { vp: '0', state: 'out', note: '' }, arriving: 0 };
 
+  // Series key used by the multikills table: start|a|b, exactly as in data.js.
+  function seriesKey(m) { return m.start + '|' + m.a + '|' + m.b; }
+  function attachMulti(rows) {
+    var by = {};
+    (rows || []).forEach(function (x) { if (x.k4 || x.k5) (by[x.series] = by[x.series] || {})[x.player] = [x.k4 || 0, x.k5 || 0]; });
+    (window.PCMT_RESULTS || []).forEach(function (r) { r.multi = by[seriesKey(r)] || {}; });
+  }
+  window.PCMT_SERIES_KEY = seriesKey;
+
   // ---------- load everything, then let the page draw ----------
   function load() {
     takeRedirectTokens();
@@ -321,9 +336,12 @@
       var profiles = api('/rest/v1/profiles?select=id,name').catch(function () { return []; });
       var unlocks = me ? api('/rest/v1/user_unlocks?select=unlock').catch(function () { return []; }) : Promise.resolve([]);
       // null = the VP table isn't set up yet (setup/vp-setup.sql not run)
+      // 4Ks and 5Ks per series (public; empty until setup/vp-setup.sql has been run)
+      var multi = api('/rest/v1/multikills?select=series,player,k4,k5&limit=20000').catch(function () { return []; });
       var vp = me ? api('/rest/v1/vp_ledger?select=kind,week,amount,detail,created_at&order=created_at.desc&limit=5000').catch(function () { return null; }) : Promise.resolve([]);
-      return Promise.all([decks, profiles, unlocks, vp]);
+      return Promise.all([decks, profiles, unlocks, vp, multi]);
     }).then(function (res) {
+      attachMulti(res[4] || []);
       var decks = res[0] || [], profiles = res[1] || [], unlocks = res[2] || [];
       window.PCMT_SERVER_UNLOCKS = unlocks.map(function (u) { return u.unlock; });
       var names = {};

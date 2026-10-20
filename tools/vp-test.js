@@ -15,7 +15,7 @@ function siteRules(matches, results) {
   vm.runInNewContext(PLAYERS_JS.replace(/var (PCMT_SITE_\w+)/g, 'window.$1'), ctx);
   ctx.window.PCMT_MATCHES = matches; ctx.window.PCMT_RESULTS = results;
   vm.runInNewContext('var DAY = 86400000, BUDGET = 100, TEAM_LIMIT = 2, TRANSFERS = 2, LOCK_LEAD_H = 12, ROLES = ["duelist","controller","initiator","sentinel"],' +
-    ' SCORING = { kill: 2, assist: 1, death: -1, firstKill: 1, seriesWin: 2, topAcs: 3, topKast: 1 };\n' + core +
+    ' SCORING = { kill: 2, assist: 1, death: -1, firstKill: 1, seriesWin: 2, topAcs: 3, topKast: 1, fourK: 1, fiveK: 3 }, MULTI_FROM = Date.parse("2026-10-19T09:00:00Z");\n' + core +
     '\nthis.api = { buildWeeks: buildWeeks, scoreManager: scoreManager, weekCardVP: weekCardVP, validDeck: validDeck };', ctx);
   return ctx.api;
 }
@@ -29,7 +29,8 @@ function scenario(seed) {
   const R = rng(seed), pick = a => a[Math.floor(R() * a.length)];
   const teams = [...new Set(P.map(p => p.team))];
   const base = Date.parse('2026-10-19T09:00:00Z'), H = 3600000, D = 24 * H;
-  const matches = [], results = [];
+  const matches = [], results = [], multi = [];
+  const addMulti = (r, ids) => ids.forEach(id => { if (R() < 0.35) multi.push({ series: r.start + '|' + r.a + '|' + r.b, player: id, k4: Math.floor(R() * 3), k5: R() < 0.25 ? 1 : 0 }); });
   for (let w = 0; w < 4; w++) for (let s = 0; s < 1 + Math.floor(R() * 3); s++) {
     const t = new Date(base + w * 7 * D + (3 + R() * 3.5) * D).toISOString().replace('.000', '');
     const a = pick(teams); let b = pick(teams); while (b === a) b = pick(teams);
@@ -42,7 +43,15 @@ function scenario(seed) {
       if (R() < 0.4) { const ids = Object.keys(stats); stats[ids[1]][4] = stats[ids[0]][4] = 400; } // tie for top ACS
       stats['~stranger'] = [5, 20, 1, 0, R() < 0.2 ? 999 : 120, 50];                              // not in the store
       results.push({ region: 'NA', start: t, a, b, winner: R() < 0.5 ? a : b, url: 'x', stats });
+      addMulti(results[results.length - 1], Object.keys(stats).concat(['nobody']));
     }
+  }
+  { // a series before 4Ks/5Ks started counting: its multikills must be ignored
+    const t = new Date(base - 2.5 * D).toISOString().replace('.000', ''), a = teams[0], b = teams[1], stats = {};
+    P.filter(p => p.team === a || p.team === b).forEach(p => { stats[p.id] = [20, 15, 5, 2, 200 + Math.floor(R() * 100), 70]; });
+    matches.push({ region: 'NA', start: t, a, b, bo: 3, hours: 3, url: 'x' });
+    results.push({ region: 'NA', start: t, a, b, winner: a, url: 'x', stats });
+    Object.keys(stats).forEach(id => multi.push({ series: t + '|' + a + '|' + b, player: id, k4: 5, k5: 5 }));
   }
   function randomDeck() {
     for (let tries = 0; tries < 400; tries++) {
@@ -92,11 +101,16 @@ function scenario(seed) {
       t += R() * 7 * D;
     }
   }
-  return { matches, results, users, decks };
+  return { matches, results, users, decks, multi };
 }
 
+function withMulti(sc) {
+  const by = {};
+  (sc.multi || []).forEach(x => { if (x.k4 || x.k5) (by[x.series] = by[x.series] || {})[x.player] = [x.k4, x.k5]; });
+  return sc.results.map(r => Object.assign({}, r, { multi: by[r.start + '|' + r.a + '|' + r.b] || {} }));
+}
 function expected(sc, now) {
-  const api = siteRules(sc.matches, sc.results), weeks = api.buildWeeks(now), out = {};
+  const api = siteRules(sc.matches, withMulti(sc)), weeks = api.buildWeeks(now), out = {};
   sc.users.forEach(u => {
     const subs = sc.decks.filter(d => d.user_id === u).map(d => ({ slots: d.slots, igl: d.igl, name: d.name, t: Date.parse(d.created_at) }));
     api.scoreManager(subs, weeks).forEach(x => { if (x.week.done) out[u + '|' + x.week.key] = api.weekCardVP(x.week, x.deck).total; });
@@ -128,7 +142,8 @@ sql('alter table public.deck_history disable trigger user;');
 let totalWeeks = 0, totalVp = 0;
 for (let seed = 1; seed <= 12; seed++) {
   const sc = scenario(seed);
-  sql('truncate public.vp_ledger, public.deck_history; delete from auth.users;');
+  sql('truncate public.vp_ledger, public.deck_history, public.multikills; delete from auth.users;');
+  if (sc.multi.length) sql('insert into public.multikills (series, player, k4, k5) values ' + sc.multi.map(m => `(${lit(m.series)}, ${lit(m.player)}, ${m.k4}, ${m.k5})`).join(',') + ';');
   sql('insert into auth.users (id) values ' + sc.users.map(u => '(' + lit(u) + ')').join(',') + ';');
   if (sc.decks.length) sql('insert into public.deck_history (user_id, name, slots, igl, created_at) values ' +
     sc.decks.map(d => `(${lit(d.user_id)}, ${lit(d.name)}, ${lit(JSON.stringify(d.slots))}::jsonb, ${lit(d.igl)}, ${lit(d.created_at)})`).join(',\n') + ';');
@@ -177,6 +192,26 @@ check(blocked, 'a player cannot add VP to the ledger');
 blocked = false;
 try { sql(`set role authenticated; set test.uid = ${lit(u1)}; select public.vp_ingest('', '');`); } catch (e) { blocked = true; }
 check(blocked, 'a player cannot run the payout');
+// 5b) 4K/5K entry: anyone reads, only admins write.
+sql(`insert into auth.users (id) values (${lit(u2)}) on conflict do nothing; insert into public.pcmt_admins (user_id) values (${lit(u2)}) on conflict do nothing;
+grant select, insert, update, delete on public.multikills to anon, authenticated; grant select on public.pcmt_admins to authenticated;`);
+blocked = false;
+try { sql(`set role authenticated; set test.uid = ${lit(u1)}; insert into public.multikills (series, player, k4) values ('x|A|B', 'claps', 2);`); } catch (e) { blocked = true; }
+check(blocked, 'a player who is not an admin cannot enter 4Ks/5Ks');
+blocked = false;
+try { sql(`set role anon; insert into public.multikills (series, player, k4) values ('x|A|B', 'claps', 2);`); } catch (e) { blocked = true; }
+check(blocked, 'a logged-out visitor cannot enter 4Ks/5Ks');
+sql(`set role authenticated; set test.uid = ${lit(u2)}; insert into public.multikills (series, player, k4, k5) values ('x|A|B', 'claps', 2, 1)
+  on conflict (series, player) do update set k4 = excluded.k4, k5 = excluded.k5;
+  insert into public.multikills (series, player, k4, k5) values ('x|A|B', 'claps', 3, 0) on conflict (series, player) do update set k4 = excluded.k4, k5 = excluded.k5;`);
+check(sql(`set role anon; select k4 || ',' || k5 from public.multikills where series = 'x|A|B' and player = 'claps';`).trim() === '3,0', 'an admin can enter and correct 4Ks/5Ks, and everyone can read them');
+check(sql(`set role authenticated; set test.uid = ${lit(u2)}; select count(*) from public.pcmt_admins;`).trim() === '1' && sql(`set role authenticated; set test.uid = ${lit(u1)}; select count(*) from public.pcmt_admins;`).trim() === '0', 'the page can tell who is an admin, and only for yourself');
+blocked = false;
+try { sql(`set role authenticated; set test.uid = ${lit(u1)}; insert into public.pcmt_admins (user_id) values (${lit(u1)});`); } catch (e) { blocked = true; }
+check(blocked, 'a player cannot make themselves an admin');
+blocked = false;
+try { sql(`set role authenticated; set test.uid = ${lit(u2)}; insert into public.multikills (series, player, k4) values ('y|A|B', 'claps', 99);`); } catch (e) { blocked = true; }
+check(blocked, 'silly numbers are refused');
 // 6) Reading the real site files.
 const realData = fs.readFileSync(__dirname + '/../data.js', 'utf8');
 const res = JSON.parse(sql(`select public.vp_ingest(${lit(realData)}, ${lit(PLAYERS_JS)}, now(), false);`));

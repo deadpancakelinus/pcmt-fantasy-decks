@@ -24,6 +24,7 @@ Start here. It covers what exists, how changes are made and shipped, and what's 
 | Rules.dc.html | guide.html | Guide + Patch Notes (site is "Version 1.5 BETA"; footers on every page show the version) |
 | Login.dc.html | login.html | Discord log in |
 | Collection.dc.html | collection.html | **Collection**: The Bank (all VP the player has), Paycheck (this gameweek so far), VP history (VP in), Spending (VP out: pack and amount) (card packs and the album come later, see section 10) |
+| (hand-written) | admin.html | Hidden admin page (not in the nav): enter each player's 4Ks and 5Ks per series. Only accounts in `pcmt_admins` can save. |
 | (hand-written) | mvp-vs.html | **MVP VS** card game (see section 9). Its board MvpVs.dc.html is only the old "Coming soon" design and is not built. |
 
 Branding: header and titles say **fantasy.pcmt.gg**. Colors black + `#a5dcdd`; fonts Cabin Sketch / Space Grotesk / JetBrains Mono.
@@ -41,7 +42,7 @@ Branding: header and titles say **fantasy.pcmt.gg**. Colors black + `#a5dcdd`; f
 1. Edit the board(s) in `tools/canvas/*.dc.html`.
 2. Build: `python3 -I tools/build.py tools/canvas assets <out>`
 3. Test: copy the repo `data.js` into `<out>`, serve it (`python3 -m http.server 8766 --directory <out>`, in the background) and run `NODE_PATH=$(npm root -g) node tools/smoke-test.js http://localhost:8766 <out>/shots`. It mocks Supabase and checks every page on desktop and phone. Look at the screenshots for visual changes.
-4. Copy `index.html customization.html leaderboard.html guide.html login.html collection.html players.js league.js dc-lite.js _headers` from `<out>` into the repo root (**not** `data.js`, **not** `assets/`, **not** `mvp-vs.html`, which is the hand-written game). Copy changed boards into `tools/canvas/`.
+4. Copy `index.html customization.html leaderboard.html guide.html login.html collection.html players.js league.js dc-lite.js _headers` from `<out>` into the repo root (**not** `data.js`, **not** `assets/`, **not** `mvp-vs.html` or `admin.html`, which are hand-written). Copy changed boards into `tools/canvas/`.
 5. Update the design canvas with the changed boards so it stays in step with `tools/canvas/`.
 6. Commit, then `git fetch && git stash && git rebase origin/main && git stash pop && git push` (the scheduled check also pushes to `main`).
 
@@ -50,13 +51,14 @@ Branding: header and titles say **fantasy.pcmt.gg**. Colors black + `#a5dcdd`; f
 ## 5. Game rules (as built)
 
 - Deck: 11 players, roles filled, budget 100, max 2 per team, twin rule; one IGL scores ×1.5.
-- Scoring per series: kill +2, assist +1, death −1, first kill +1, series won +2, top ACS +3, top KAST +1 (ties all get it).
+- Scoring per series: kill +2, assist +1, death −1, first kill +1, series won +2, top ACS +3, top KAST +1 (ties all get it), 4K +1, 5K (ace) +3 (an ace is a 5K only; counted from the Oct 19 2026 gameweek on).
+- 4Ks and 5Ks don't come from PCMT.gg (it doesn't have them). An admin enters them on admin.html into the `multikills` table, keyed by series `start|a|b` as in data.js. league.js attaches them to each result as `multi`, and the VP payout reads the same table.
 - Gameweeks start Monday 09:00 UTC (5:00 AM EDT). Decks lock 12 h before the week's first series. 2 transfers per gameweek, counted against the last scored deck; an invalid deck falls back to the previous one.
 - Unlocks: team decks at 100 team points, Gold by active weeks, champion/missed win, Midlife Crisis at a 200-point week, Ethan aura for two consecutive weekly #1s, Champion's Aura holder from standings. Codes are redeemed server-side with `redeem_code` (PRIDE is seeded).
 
 ## 6. Supabase
 
-Tables: `profiles`, `deck_history` (insert-only, server timestamps, 60/hour limit), `codes` (private), `user_unlocks`, `vp_ledger` (read own rows only; written only by the payout), `vp_sync_log` (private); RLS on all. Setup SQL is in `setup/`. Discord provider on; Site URL and Redirect URLs point at pcmt-fantasy.pages.dev.
+Tables: `profiles`, `deck_history` (insert-only, server timestamps, 60/hour limit), `codes` (private), `user_unlocks`, `vp_ledger` (read own rows only; written only by the payout), `vp_sync_log` (private), `multikills` (everyone reads, admins write), `pcmt_admins` (who can use admin.html; add someone with the SQL line admin.html shows them); RLS on all. Setup SQL is in `setup/`. Discord provider on; Site URL and Redirect URLs point at pcmt-fantasy.pages.dev.
 
 ## 7. Known limits
 
