@@ -63,7 +63,7 @@ Tables: `profiles`, `deck_history` (insert-only, server timestamps, 60/hour limi
 - Decks are publicly readable before the lock.
 - Favorites, equipped card back and opened packs are stored per device.
 - Supabase free projects pause after a week with no activity.
-- Estimated prices for sovaraa, k 9, luna, danaxa, sy, amara, adeline, kennys, lazy.
+- Estimated prices for sovaraa, k 9, luna, danaxa, sy.
 
 ## 8. Open items
 

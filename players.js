@@ -69,7 +69,7 @@ var PCMT_SITE_PLAYERS = [
   {"id": "kaydeg", "name": "kaydeg", "team": "NAVI", "role": "duelist", "price": 9.0},
   {"id": "linus", "name": "linus", "team": "NAVI", "role": "duelist", "price": 9.0},
   {"id": "cassie", "name": "cassie", "team": "NAVI", "role": "initiator", "price": 8.5},
-  {"id": "kennys", "name": "kennys", "team": "NAVI", "role": "controller", "price": 9.5},
+  {"id": "kennys", "name": "kennys", "team": "NAVI", "role": "controller", "price": 13.0},
   {"id": "lazy", "name": "lazy", "team": "NAVI", "role": "duelist", "price": 9.0},
   {"id": "abstracq", "name": "abstracq", "team": "100T", "role": "duelist", "price": 12.5},
   {"id": "psyclone", "name": "psyclone", "team": "100T", "role": "sentinel", "price": 10.5},
