@@ -756,14 +756,18 @@ class Component extends DCLogic {
     var opened = (this.state.opened || []).concat([code]);
     try { window.localStorage.setItem('pcmt-opened', JSON.stringify(opened)); } catch (e) {}
     this.setState({ opened: opened });
-    // Faces: 5 players from one random team deck the user has unlocked.
-    var unlocked = (this._teamsOpen || []).slice();
+    // Faces: a team deck's pack shows that team's own players.
+    // Any other deck (Gold, Pride, Retro...) shows 5 players from a random team deck the user has unlocked.
     var roster = {};
     PCMT_PACK_PLAYERS.forEach(function (r) { (roster[r[2]] = roster[r[2]] || []).push(r); });
-    var full = unlocked.filter(function (c) { return (roster[c] || []).length >= 5; });
-    var pool = full.length ? full : unlocked.filter(function (c) { return (roster[c] || []).length; });
-    if (!pool.length) pool = Object.keys(roster).filter(function (c) { return roster[c].length >= 5; }); // only if no team deck is unlocked yet
-    var tc = pool[Math.floor(Math.random() * pool.length)];
+    var tc = (roster[code] || []).length ? code : null;
+    if (!tc) {
+      var unlocked = (this._teamsOpen || []).slice();
+      var full = unlocked.filter(function (c) { return (roster[c] || []).length >= 5; });
+      var pool = full.length ? full : unlocked.filter(function (c) { return (roster[c] || []).length; });
+      if (!pool.length) pool = Object.keys(roster).filter(function (c) { return roster[c].length >= 5; }); // only if no team deck is unlocked yet
+      tc = pool[Math.floor(Math.random() * pool.length)];
+    }
     var tm = PCMT_ALL_DECK_TEAMS.find(function (x) { return x.code === tc; }) || { code: tc, name: tc, color: '#a5dcdd', logo: '' };
     var isEu = PCMT_EMEA_DECK_TEAMS.some(function (x) { return x.code === tc; });
     var picks = (roster[tc] || []).slice();
