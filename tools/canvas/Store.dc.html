@@ -30,7 +30,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 .st-art{position:absolute;inset:0;z-index:0;pointer-events:none}
 .st-art img.st-art-full{left:0;top:0;right:auto;bottom:auto;width:100%;height:100%;object-fit:cover;opacity:.32;-webkit-mask-image:radial-gradient(120% 90% at 55% 45%,#000 45%,transparent 100%);mask-image:radial-gradient(120% 90% at 55% 45%,#000 45%,transparent 100%)}
 .st-art img.st-art-center{left:50%;top:50%;right:auto;bottom:auto;height:86%;width:auto;transform:translate(-50%,-46%);opacity:.24;-webkit-mask-image:none;mask-image:none}
-.st-sheen{position:absolute;inset:0;z-index:2;pointer-events:none;border-radius:inherit;background-size:260% 100%;background-repeat:no-repeat;animation:st-sheen 8s ease-in-out infinite}
+.st-sheen{position:absolute;inset:0;z-index:2;pointer-events:none;border-radius:inherit;background-size:260% 100%;background-repeat:no-repeat;animation:st-sheen 5s ease-in-out infinite}
 @keyframes st-sheen{0%{background-position:160% 0}55%,100%{background-position:-60% 0}}
 .st-stamp{display:inline-flex;align-items:center;gap:4px;padding:3px 7px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.14em;transform:rotate(-9deg);white-space:nowrap}
 .st-shine{background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:st-shine 6s ease-in-out infinite}
@@ -432,7 +432,7 @@ var PCMT_PACK_CSS = [
   '.pk-rstamp{margin-left:8px;display:inline-flex;align-items:center;gap:4px;padding:3px 7px;border-radius:4px;font:700 10px/1 "JetBrains Mono",monospace;letter-spacing:.14em;transform:rotate(-9deg);white-space:nowrap}',
   '.pk-rshine{background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:pk-rshine 6s ease-in-out infinite}',
   '@keyframes pk-rshine{0%{background-position:160% 0}50%,100%{background-position:-60% 0}}',
-  '.pk-rsheen{position:absolute;inset:0;z-index:4;pointer-events:none;border-radius:inherit;background-size:260% 100%;background-repeat:no-repeat;animation:pk-rsheen 8s ease-in-out infinite}',
+  '.pk-rsheen{position:absolute;inset:0;z-index:4;pointer-events:none;border-radius:inherit;background-size:260% 100%;background-repeat:no-repeat;animation:pk-rsheen 5s ease-in-out infinite}',
   '@keyframes pk-rsheen{0%{background-position:160% 0}55%,100%{background-position:-60% 0}}',
   '.pk-head .pk-badge{margin-left:10px}',
   '.pk-badge{margin-left:auto;padding:4px 8px;border-radius:6px;background:#a5dcdd;color:#000;font:600 11px/1 "JetBrains Mono",monospace;letter-spacing:.08em}',
@@ -496,8 +496,8 @@ function pcmtPackFront(p, t, cfg) {
     '<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 20.9l1.6-7L2 9.2l7.1-.6z"/></svg>' +
     '<span class="pk-rshine" style="background-image:linear-gradient(100deg,' + e(col) + ' 0%,' + e(col) + ' 35%,#fff 50%,' + e(col) + ' 65%,' + e(col) + ' 100%)">' + e(rar.toUpperCase()) + '</span></span>' : '';
   var glow = shiny ? ' style="box-shadow:0 0 0 2px ' + e(col) + ',0 0 28px ' + e(pcmtRgba(col, .6)) + '"' : '';
-  var sheen = shiny ? '<div class="pk-rsheen" style="background-image:linear-gradient(115deg,transparent 42%,' + e(pcmtRgba(p.sheenColor || col, .3)) + ' 47%,rgba(255,255,255,.2) 50%,' + e(pcmtRgba(p.sheenColor || col, .3)) + ' 53%,transparent 58%)"></div>' : '';
-  if (p.mvp) return '<div class="pk-face pk-front pk-front-m' + (rar ? ' pk-r-' + e(rar) : '') + '"' + glow + '>' + pcmtPackMvpFace(p, t, rar, shiny, col, stamp) + (shiny ? '<div class="pk-holo"></div>' : '') + sheen + '</div>';  // commons: no sheen
+  var sheen = shiny ? '<div class="pk-rsheen" style="background-image:linear-gradient(115deg,transparent 42%,' + e(pcmtRgba(p.sheenColor || col, .2)) + ' 50%,transparent 58%)"></div>' : '';
+  if (p.mvp) return '<div class="pk-face pk-front pk-front-m' + (rar ? ' pk-r-' + e(rar) : '') + '"' + glow + '>' + pcmtPackMvpFace(p, t, rar, shiny, col, stamp) + sheen + '</div>';  // no rainbow holo on any card; rares keep their own light
   return '<div class="pk-face pk-front' + (rar ? ' pk-r-' + e(rar) : '') + '"' + glow + '>' +
     '<div class="pk-wm"><img src="' + e(p.regionLogo || cfg.regionLogo) + '" alt=""></div>' +
     (p.art ? '<div class="pk-art"><img src="' + e(p.art) + '" alt=""></div>' : '') +
@@ -1094,7 +1094,7 @@ class Component extends DCLogic {
         artClass: PCMT_VARIANT_FULL[it.id] ? 'st-art-full' : PCMT_VARIANT_CENTER[it.id] ? 'st-art-center' : '',
         // Rare and up: a sheen across the card and a shiny stamp, both in the card's own colour.
         shiny: it.rarity !== 'common', glow: pcmtRgba(it.color, 0.45),
-        sheen: (function (sc) { return 'linear-gradient(115deg, transparent 42%, ' + pcmtRgba(sc, 0.3) + ' 47%, rgba(255,255,255,0.22) 50%, ' + pcmtRgba(sc, 0.3) + ' 53%, transparent 58%)'; })(PCMT_VARIANT_SHEEN[it.id] || it.color),
+        sheen: (function (sc) { return 'linear-gradient(115deg, transparent 42%, ' + pcmtRgba(sc, 0.2) + ' 50%, transparent 58%)'; })(PCMT_VARIANT_SHEEN[it.id] || it.color),
         shine: 'linear-gradient(100deg, ' + it.color + ' 0%, ' + it.color + ' 35%, #ffffff 50%, ' + it.color + ' 65%, ' + it.color + ' 100%)',
         cardLabel: it.title + ' card: ' + it.name + ', ' + it.teamName,
         blurb: it.blurb + ' ' + it.rarity.charAt(0).toUpperCase() + it.rarity.slice(1) + ', found in the ' + it.pack + '.',
