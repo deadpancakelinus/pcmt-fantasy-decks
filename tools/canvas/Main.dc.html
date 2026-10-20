@@ -25,6 +25,7 @@ button{cursor:pointer}
 button:disabled{cursor:not-allowed}
 .pcmt-store-tab{flex:0 0 64px}
 .pcmt-store-v{writing-mode:vertical-rl;transform:rotate(180deg)}
+@media (max-width: 760px){.pcmt-store-btn{width:72px !important}.pcmt-store-price{min-width:36px !important;font-size:14px !important}.pcmt-store-logo{width:36px !important}.pcmt-store-logo img{max-width:36px !important;max-height:30px !important}.pcmt-store-row{gap:8px !important;padding-left:14px !important;padding-right:14px !important}}
 @media (max-width: 760px){.pcmt-store-tab{flex:1 1 100%}.pcmt-store-v{writing-mode:horizontal-tb;transform:none}}
 .pcmt-sq{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px 10px}
 .pcmt-g1{grid-column:span 1}.pcmt-g2{grid-column:span 2}.pcmt-g3{grid-column:span 3}
@@ -522,7 +523,7 @@ AUTHENTIC
 </section>
 </sc-if>
 <sc-if value="{{storeOpen}}" hint-placeholder-val="{{ true }}">
-<section aria-labelledby="market-h" style="flex: 1 1 400px; min-width: 0; background: #0b1011; border: 1px solid #1e2b2d; border-radius: 12px; overflow: hidden">
+<section aria-labelledby="market-h" style="flex: 1 1 480px; min-width: 0; background: #0b1011; border: 1px solid #1e2b2d; border-radius: 12px; overflow: hidden">
 <div style="padding: 18px 18px 14px; display: flex; flex-direction: column; gap: 14px; border-bottom: 1px solid #1e2b2d">
 <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px">
 <h2 id="market-h" style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">STORE // {{tabCode}}</h2>
@@ -553,8 +554,8 @@ AUTHENTIC
 <p style="margin: 0; padding: 24px 18px; color: #93a9aa; font-size: 14px">{{noResultsText}}</p>
 </sc-if>
 <sc-for list="{{pool}}" as="p" hint-placeholder-count="8">
-<div style="display: flex; align-items: center; gap: 12px; padding: 10px 18px; border-bottom: 1px solid #1e2b2d; background: {{p.rowBg}}">
-<span title="{{p.teamName}}" style="width: 48px; height: 40px; flex: none; display: grid; place-items: center">
+<div class="pcmt-store-row" style="display: flex; align-items: center; gap: 12px; padding: 10px 18px; border-bottom: 1px solid #1e2b2d; background: {{p.rowBg}}">
+<span class="pcmt-store-logo" title="{{p.teamName}}" style="width: 48px; height: 40px; flex: none; display: grid; place-items: center">
 <sc-if value="{{p.hasLogo}}" hint-placeholder-val="{{ true }}">
 <img src="{{p.logo}}" alt="{{p.teamName}}" style="max-width: 44px; max-height: 36px; width: auto; height: auto; object-fit: contain; display: block">
 </sc-if>
@@ -563,8 +564,8 @@ AUTHENTIC
 </sc-if>
 </span>
 <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
-<span style="display: flex; align-items: center; gap: 6px; min-width: 0">
-<span style="font-weight: 600; font-size: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{p.name}}</span>
+<span style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; min-width: 0">
+<span class="pcmt-store-name" style="font-weight: 600; font-size: 16px; overflow-wrap: anywhere">{{p.name}}</span>
 <sc-if value="{{p.champ}}" hint-placeholder-val="{{ false }}">
 <img src="/_blob/7dd283457b69773e4aa58012ed89ad9a" alt="PCMT champion" title="PCMT champion" style="width: 15px; height: 15px; object-fit: contain; display: block; flex: none">
 </sc-if>
@@ -572,15 +573,15 @@ AUTHENTIC
 <sc-for list="{{p.regionIcons}}" as="ri" hint-placeholder-count="1"><img src="{{ri.src}}" alt="{{ri.label}}" title="{{ri.label}}" style="width: 20px; height: 20px; object-fit: contain; display: block; flex: none; margin-left: 8px"></sc-for>
 </span>
 </div>
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; min-width: 56px; text-align: right">{{p.priceLabel}}</span>
+<span class="pcmt-store-price" style="font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; min-width: 56px; text-align: right">{{p.priceLabel}}</span>
 <sc-if value="{{p.isPicked}}" hint-placeholder-val="{{ false }}">
-<button onClick="{{p.toggle}}" aria-label="Remove {{p.name}}" style="width: 96px; min-height: 44px; border-radius: 8px; border: 1px solid #a5dcdd; background: #13292b; color: #a5dcdd; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600">In deck</button>
+<button onClick="{{p.toggle}}" aria-label="Remove {{p.name}}" class="pcmt-store-btn" style="width: 96px; min-height: 44px; border-radius: 8px; border: 1px solid #a5dcdd; background: #13292b; color: #a5dcdd; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600">In deck</button>
 </sc-if>
 <sc-if value="{{p.canAdd}}" hint-placeholder-val="{{ true }}">
-<button onClick="{{p.toggle}}" aria-label="Buy {{p.name}}" style="width: 96px; min-height: 44px; border-radius: 8px; border: none; background: #a5dcdd; color: #000; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600">+ Buy</button>
+<button onClick="{{p.toggle}}" aria-label="Buy {{p.name}}" class="pcmt-store-btn" style="width: 96px; min-height: 44px; border-radius: 8px; border: none; background: #a5dcdd; color: #000; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600">+ Buy</button>
 </sc-if>
 <sc-if value="{{p.blocked}}" hint-placeholder-val="{{ false }}">
-<button disabled="{{ true }}" style="width: 96px; min-height: 44px; border-radius: 8px; border: 1px solid #2c3d40; background: transparent; color: #93a9aa; font-family: 'JetBrains Mono', monospace; font-size: 11px">{{p.reason}}</button>
+<button disabled="{{ true }}" class="pcmt-store-btn" style="width: 96px; min-height: 44px; border-radius: 8px; border: 1px solid #2c3d40; background: transparent; color: #93a9aa; font-family: 'JetBrains Mono', monospace; font-size: 11px">{{p.reason}}</button>
 </sc-if>
 </div>
 </sc-for>
