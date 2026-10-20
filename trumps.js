@@ -52,11 +52,12 @@
       return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
     };
   }
-  function newGame(region, seed) {
+  // firstSeat: 0 or 1 to choose who picks first (vs the bot the player always does); leave it out for a coin flip.
+  function newGame(region, seed, firstSeat) {
     var r = rng(seed), ids = CARDS[region].map(function (c) { return c.id; });
     for (var i = ids.length - 1; i > 0; i--) { var j = Math.floor(r() * (i + 1)), t = ids[i]; ids[i] = ids[j]; ids[j] = t; }
     // Every card is dealt. With an odd number of players, the player who picks second gets the extra card.
-    var first = r() < 0.5 ? 0 : 1, hands = [[], []];
+    var flip = r() < 0.5 ? 0 : 1, first = firstSeat === 0 || firstSeat === 1 ? firstSeat : flip, hands = [[], []];
     for (var k = 0; k < ids.length; k++) hands[(first + 1 + k) % 2].push(ids[k]);
     return { region: region, seed: seed, hands: hands, turn: first, round: 1, last: null, over: null };
   }
@@ -383,7 +384,7 @@
     if (a === 'bot' || a === 'again') {
       var region = a === 'again' ? ui.state.region : ui.region;
       ui.mode = 'bot'; ui.me = 0; ui.names = ['You', 'Bot']; ui.seen = 0; ui.error = ''; ui.dealt = 0; ui.revealed = 0; ui.collecting = false;
-      ui.state = newGame(region, (Math.random() * 4294967296) >>> 0); render();
+      ui.state = newGame(region, (Math.random() * 4294967296) >>> 0, 0); render(); // you always pick first against the bot
     } else if (a === 'next') {
       if (!ui.collecting) collect();
     } else if (a === 'leave') {

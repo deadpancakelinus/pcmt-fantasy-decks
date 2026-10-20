@@ -36,6 +36,10 @@ const check = (ok, msg) => { if (!ok) { bad++; console.log('FAIL ' + msg); } };
           else { games++; if (s.over.winner < 0) draws++; else if (s.over.reason === 'cards') byCards++; else byLimit++; }
           if (errors.length) break;
         }
+        // Against the bot the player (seat 0) always picks first; with an odd deck the bot gets the extra card.
+        let firstOk = true;
+        for (let seed = 1; seed <= 200; seed++) { const g = T.newGame(region, seed, 0); if (g.turn !== 0 || g.hands[1].length - g.hands[0].length !== total % 2) firstOk = false; }
+        out[region + 'First'] = firstOk;
         // Same seed must give the same game (both online players run the engine).
         const a = JSON.stringify(T.play(T.newGame(region, 42), 'acs')), c = JSON.stringify(T.play(T.newGame(region, 42), 'acs'));
         // DPR: the lower number must win; every other stat: the higher number.
@@ -49,11 +53,12 @@ const check = (ok, msg) => { if (!ok) { bad++; console.log('FAIL ' + msg); } };
       }
       return out;
     });
-    for (const [region, x] of Object.entries(r)) {
+    for (const [region, x] of Object.entries(r).filter(([k]) => !k.endsWith('First'))) {
       console.log(`engine ${region}: ${x.total} cards, ${x.games} games, ${x.byCards} won by taking every card, ${x.byLimit} by round limit, ${x.draws} draws`);
       check(x.games === 2000 && !x.errors.length, `engine ${region}: ${x.errors.join('; ')}`);
       check(x.deterministic, `engine ${region} not deterministic`);
       check(x.dprOk, `engine ${region}: lower DPR should win, and ties go back to their own decks`);
+      check(r[region + 'First'], `engine ${region}: player should always pick first against the bot`);
     }
     await pg.close();
   }
@@ -80,6 +85,8 @@ const check = (ok, msg) => { if (!ok) { bad++; console.log('FAIL ' + msg); } };
     await pg.click('[data-region="emea"]');
     check((await pg.textContent('[data-act="bot"]')).includes('EMEA'), 'region toggle did not switch the deal button');
     await pg.click('[data-act="bot"]');
+    await pg.waitForSelector('.tt-status .tt-result', { timeout: 5000 });
+    check(/Your pick/.test(await pg.textContent('.tt-status .tt-result')) && /Round 1\b/.test(await pg.textContent('.tt-round')), `${w}px: round 1 against the bot should be the player's pick`);
     check(await pg.isDisabled('[data-region="na"]'), 'region toggle should lock during a game');
     const names = new Set();
     for (let i = 0; i < 6; i++) {
