@@ -356,7 +356,8 @@
       // Card packs for sale (public) and the cards you own (empty until setup/cards-setup.sql has been run)
       var packs = api('/rest/v1/card_packs?select=id,name,region,cards,odds,price,active,open_to_all&active=is.true&order=id').catch(function () { return []; });
       var mine = me ? api('/rest/v1/user_cards?select=card_id,count&limit=5000').catch(function () { return []; }) : Promise.resolve([]);
-      var catalog = /library\.html$/.test(location.pathname) ? api('/rest/v1/cards?select=id,player,variant,rarity,region,title&limit=5000').catch(function () { return []; }) : Promise.resolve([]);
+      var onLibrary = /"data-pcmt-root":"Library"/.test((document.getElementById('dc-tree') || {}).textContent || ''); // not the address: the site serves /library as well as /library.html
+      var catalog = onLibrary ? api('/rest/v1/cards?select=id,player,variant,rarity,region,title&limit=5000').catch(function () { return []; }) : Promise.resolve([]);
       return Promise.all([decks, profiles, unlocks, vp, multi, admin, packs, mine, catalog]);
     }).then(function (res) {
       attachMulti(res[4] || []);
