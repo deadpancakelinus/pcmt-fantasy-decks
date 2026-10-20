@@ -23,9 +23,9 @@ Start here. It covers what exists, how changes are made and shipped, and what's 
 | Leaderboard.dc.html | leaderboard.html | This gameweek / overall standings |
 | Rules.dc.html | guide.html | Guide + Patch Notes (site is "Version 1.5 BETA"; footers on every page show the version) |
 | Login.dc.html | login.html | Discord log in |
-| Transactions.dc.html | transactions.html | **Transactions** (last in the menu): The Bank (all VP the player has), Last Paycheck (VP from the last finished gameweek), Paychecks (VP in), Spending (VP out: pack and amount). Shown blurred under "Coming Soon..." to everyone except admins. `collection.html` just redirects here. |
-| Store.dc.html | store.html | **Store**: The Bank, NA and EMEA card packs (buy with VP, then the pack opening plays with the cards you pulled), and the variants found in packs (Teklologik variant: Rare, NA). Blurred under "Coming Soon..." to everyone except admins. |
-| Library.dc.html | library.html | **Library** (right after Store): every card the player owns from packs, MVP VS-size with their MVP VS stats (from trumps-cards.js), rarest first, with ×count and All / NA / EMEA / Rare filters. Blurred under "Coming Soon..." to everyone except admins. |
+| Transactions.dc.html | transactions.html | **Transactions** (last in the menu): The Bank (all VP the player has), Last Paycheck (VP from the last finished gameweek), Paychecks (VP in), Spending (VP out: pack and amount). Everyone except admins sees an empty page with only the card animation and "Coming Soon..." (nothing of the page is drawn). `collection.html` just redirects here. |
+| Store.dc.html | store.html | **Store**: The Bank, NA and EMEA card packs (buy with VP, then the pack opening plays with the cards you pulled), and the variants found in packs (Teklologik variant: Rare, NA). Everyone except admins sees an empty page with only the card animation and "Coming Soon..." (nothing of the page is drawn). |
+| Library.dc.html | library.html | **Library** (right after Store): every card the player owns from packs, MVP VS-size with their MVP VS stats (from trumps-cards.js), rarest first, with ×count and All / NA / EMEA / Rare filters. Everyone except admins sees an empty page with only the card animation and "Coming Soon..." (nothing of the page is drawn). |
 | (hand-written) | admin.html | Hidden admin page (not in the nav): enter each player's 4Ks and 5Ks per series. Only accounts in `pcmt_admins` can save. |
 | (hand-written) | mvp-vs.html | **MVP VS** card game (see section 9). Its board MvpVs.dc.html is only the old "Coming soon" design and is not built. |
 
@@ -67,7 +67,7 @@ Tables: `profiles`, `deck_history` (insert-only, server timestamps, 60/hour limi
 - Decks are publicly readable before the lock.
 - Favorites, equipped card back and opened packs are stored per device.
 - Supabase free projects pause after a week with no activity.
-- Estimated prices for sovaraa, k 9, luna, danaxa, sy.
+- Estimated prices for sovaraa, k9, luna, danaxa, sy.
 
 ## 8. Open items
 
@@ -110,6 +110,7 @@ Tables: `profiles`, `deck_history` (insert-only, server timestamps, 60/hour limi
 - Prices and "Open to everyone" are set on admin.html. Until a pack is open to everyone, only admins can buy it (a price of 0 is free, for testing).
 - The Store board carries a copy of the Customization board's pack opening (`pcmtPackAnim`), changed for store packs: a team per card, rarity glow and tag, variant art, NEW / ×n badges, and it stays open until closed. The pack images on the Store are that same pack, drawn once (assets `1ebfc850…` NA, `87166e6b…` EMEA).
 - To add a variant: add it to `VARIANTS` in tools/cards.py, its art to `PCMT_VARIANT_ART` (and `PCMT_STORE_ITEMS` to show it) in the Store board, rebuild, run the SQL.
+- Player names match PCMT.gg everywhere (The Deck, packs, MVP VS); `DECK_NAMES` in trumps/build_cards.py is for any future PCMT.gg name that differs.
 - Store pack opening: the pack waits for a tap and rips; the 5 cards come out face down in a stack and each tap reveals the next one, big in the middle (a Rare glows and shakes in its colour first); the last tap spreads all 5 out. Cards are MVP VS cards (same layout and stats, from trumps-cards.js, scaled to fit) with the opening's holo sheen. buy_pack shuffles the order, so a rare can be anywhere.
 - Rare and up: a slow light sweep across the card (like the champion cards on The Deck) and a shiny stamp with the rarity, both in the card's team colour.
 - Test: `node tools/cards-test.js "psql -h /tmp/pg -p 5499 -U postgres"` (odds, region, VP, duplicates, at-once purchases, permissions).

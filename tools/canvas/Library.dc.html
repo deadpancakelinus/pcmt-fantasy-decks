@@ -75,11 +75,12 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 
 <main style="position: relative; max-width: 1280px; margin: 0 auto; padding: 36px 24px 64px">
 <sc-if value="{{locked}}" hint-placeholder-val="{{ true }}">
-<div role="status" style="position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; padding: 24px; text-align: center; background: rgba(0, 0, 0, 0.35)">
+<div role="status" style="position: relative; min-height: 62vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; padding: 24px; text-align: center; ">
 <div class="pcmt-loader" aria-hidden="true"><span style="--i:0"></span><span style="--i:1"></span><span style="--i:2"></span><span style="--i:3"></span><span style="--i:4"></span><span style="--i:5"></span><span style="--i:6"></span><span style="--i:7"></span><span style="--i:8"></span><span style="--i:9"></span><span style="--i:10"></span><span style="--i:11"></span><span style="--i:12"></span><span style="--i:13"></span><span style="--i:14"></span></div>
 <p style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; letter-spacing: 0.18em; color: #a5dcdd">COMING SOON...</p>
 </div>
 </sc-if>
+<sc-if value="{{unlocked}}" hint-placeholder-val="{{ false }}">
 <div aria-hidden="{{lockHidden}}" style="display: flex; flex-direction: column; gap: 28px; filter: {{lockBlur}}; pointer-events: {{lockPointer}}; user-select: {{lockPointer}}">
 
 <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
@@ -152,6 +153,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </section>
 
 </div>
+</sc-if>
 </main>
 
 <footer style="border-top: 1px solid #1e2b2d">
@@ -180,8 +182,8 @@ var PCMT_LIBRARY_SAMPLE = {
   ],
   players: [
     { id: 'teklo', name: 'teklo', team: 'DFM', role: 'duelist' }, { id: 'claps', name: 'claps', team: 'C9', role: 'controller' },
-    { id: 'crocman', name: 'mrcrocman', team: 'T1', role: 'duelist' }, { id: 'haych', name: 'haych', team: 'TL', role: 'sentinel' },
-    { id: 'becosh', name: 'becosh', team: 'SEAL', role: 'duelist' }
+    { id: 'crocman', name: 'MrCrocMan', team: 'T1', role: 'duelist' }, { id: 'haych', name: 'haych', team: 'TL', role: 'sentinel' },
+    { id: 'becosh', name: 'Becosh', team: 'SEAL', role: 'duelist' }
   ],
   stats: {
     'NA|teklo': { maps: 21, acs: 177, kast: 62, hs: 23, dpr: 0.83, toxic: 0.8 }, 'NA|claps': { maps: 28, acs: 323, kast: 81, hs: 22, dpr: 0.78, toxic: 1.43 },
@@ -372,6 +374,7 @@ class Component extends DCLogic {
     var total = all.reduce(function (n, c) { return n + (+c.count); }, 0);
     return {
       locked: locked,
+      unlocked: !locked,  // players see nothing of the page until it's opened
       lockHidden: locked ? 'true' : 'false',
       lockBlur: locked ? 'blur(8px)' : 'none',
       lockPointer: locked ? 'none' : 'auto',

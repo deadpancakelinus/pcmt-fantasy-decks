@@ -59,10 +59,6 @@ def role_from_agents(maps):
 
 # PCMT.gg names that differ from the player's name in The Deck: (region, PCMT.gg name lower case) -> Deck name.
 DECK_NAMES = {
-    ('na', 'catsmeow'): 'thecatsmeow',
-    ('na', 'latineao'): 'latin',
-    ('na', 'pants'): 'paul',
-    ('emea', 'alex'): 'alexx',
 }
 
 
