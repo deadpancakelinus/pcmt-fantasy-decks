@@ -103,13 +103,13 @@ Tables: `profiles`, `deck_history` (insert-only, server timestamps, 60/hour limi
 
 ## 11. Cards and card packs
 
-- Catalog: every store player is a Common card (`c:<player id>`); variants are `v:<variant id>` with a rarity (The Role of Yoru and Straight variant = Rare). Each card has a region (from its team).
+- Catalog: every store player is a Common card (`c:<player id>`); variants are `v:<variant id>` with a rarity (The Role of Yoru and Straight Ace = Rare). Each card has a region (from its team).
 - Packs: NA Card Pack and EMEA Card Pack, 5 cards each, drawn only from that region. Odds per card: Common 70, Rare 22, Epic 7, Legendary 1. If a tier has no cards yet, the card drops to the next tier down.
 - `tools/cards.py` holds the variants, packs and odds and writes `setup/cards-setup.sql` (run `python3 -I tools/cards.py <out>/players.js`). Re-run it and the SQL when players or variants change; removed cards are switched off, never deleted.
 - Buying is only the `buy_pack(pack)` function on the server: it checks the price, the buyer's VP (one purchase at a time per player), writes the `pack` line in `vp_ledger`, draws the cards, adds them to `user_cards` (duplicates are counted) and logs `pack_openings`. The browser only shows the result.
 - Prices and "Open to everyone" are set on admin.html. Until a pack is open to everyone, only admins can buy it (a price of 0 is free, for testing).
 - The Store board carries a copy of the Customization board's pack opening (`pcmtPackAnim`), changed for store packs: a team per card, rarity glow and tag, variant art, NEW / ×n badges, and it stays open until closed. The pack images on the Store are that same pack, drawn once (assets `1ebfc850…` NA, `87166e6b…` EMEA).
-- Variant art comes two ways: a cut-out picture that sits at the side of the card (The Role of Yoru), or a screenshot that fills the whole card face (Straight variant, listed in `PCMT_VARIANT_FULL`). Screenshots are cropped to 5:7 first.
+- Variant art comes two ways: a cut-out picture that sits at the side of the card (The Role of Yoru), or a screenshot that fills the whole card face (Straight Ace, listed in `PCMT_VARIANT_FULL`). Screenshots are cropped to 5:7 first.
 - To add a variant: add it to `VARIANTS` in tools/cards.py, its art to `PCMT_VARIANT_ART` (and `PCMT_STORE_ITEMS` to show it) in the Store board, rebuild, run the SQL.
 - Player names match PCMT.gg everywhere (The Deck, packs, MVP VS); `DECK_NAMES` in trumps/build_cards.py is for any future PCMT.gg name that differs.
 - Store pack opening: the pack waits for a tap and rips; the 5 cards come out face down in a stack and each tap reveals the next one, big in the middle (a Rare glows and shakes in its colour first); the last tap spreads all 5 out. Cards are MVP VS cards (same layout and stats, from trumps-cards.js, scaled to fit) with the opening's holo sheen. buy_pack shuffles the order, so a rare can be anywhere.

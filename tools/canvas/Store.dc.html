@@ -205,7 +205,7 @@ var PCMT_STORE_ITEMS = [
     teamLogo: '/_blob/a59455af931db22aaf5f61e2da9f3686', regionLogo: '/_blob/c265e976f8968e60e4a2bdd32542b499',
     roleIcon: '/_blob/3911a104cbddaf481d7a7bf070a2e696', art: '/_blob/8b1855340f56f72ea07f5447ca167038',
     acs: 177, kast: 62, hs: 23, dpr: 0.83, toxic: 0.8 },
-  { id: 'straight-variant', card: 'v:straight-variant', rarity: 'rare', pack: 'NA Card Pack', title: 'Straight variant',
+  { id: 'straight-variant', card: 'v:straight-variant', rarity: 'rare', pack: 'NA Card Pack', title: 'Straight Ace',
     name: 'straight', team: 'TS', teamName: 'Team Slugshow', color: '#9b6be8', season: 'S3 NA', maps: 21, role: 'duelist',
     teamLogo: '/_blob/56f2be02d04c1bb89902b3eb4f989ac4', regionLogo: '/_blob/c265e976f8968e60e4a2bdd32542b499',
     roleIcon: '/_blob/3911a104cbddaf481d7a7bf070a2e696', art: '/_blob/21ae11daa07a46a08f5d3cf16fd0b2d9',
@@ -435,7 +435,7 @@ function pcmtPackFront(p, t, cfg) {
     '<span class="pk-rshine" style="background-image:linear-gradient(100deg,' + e(col) + ' 0%,' + e(col) + ' 35%,#fff 50%,' + e(col) + ' 65%,' + e(col) + ' 100%)">' + e(rar.toUpperCase()) + '</span></span>' : '';
   var glow = shiny ? ' style="box-shadow:0 0 0 2px ' + e(col) + ',0 0 28px ' + e(pcmtRgba(col, .6)) + '"' : '';
   var sheen = shiny ? '<div class="pk-rsheen" style="background-image:linear-gradient(115deg,transparent 42%,' + e(pcmtRgba(col, .22)) + ' 47%,rgba(255,255,255,.2) 50%,' + e(pcmtRgba(col, .22)) + ' 53%,transparent 58%)"></div>' : '';
-  if (p.mvp) return '<div class="pk-face pk-front pk-front-m' + (rar ? ' pk-r-' + e(rar) : '') + '"' + glow + '>' + pcmtPackMvpFace(p, t, rar, shiny, col, stamp) + '<div class="pk-holo"></div>' + sheen + '</div>';
+  if (p.mvp) return '<div class="pk-face pk-front pk-front-m' + (rar ? ' pk-r-' + e(rar) : '') + '"' + glow + '>' + pcmtPackMvpFace(p, t, rar, shiny, col, stamp) + (shiny ? '<div class="pk-holo"></div>' : '') + sheen + '</div>';  // commons: no sheen
   return '<div class="pk-face pk-front' + (rar ? ' pk-r-' + e(rar) : '') + '"' + glow + '>' +
     '<div class="pk-wm"><img src="' + e(p.regionLogo || cfg.regionLogo) + '" alt=""></div>' +
     (p.art ? '<div class="pk-art"><img src="' + e(p.art) + '" alt=""></div>' : '') +
