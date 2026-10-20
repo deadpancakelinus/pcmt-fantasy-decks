@@ -10,7 +10,7 @@ import json, os, sys
 
 VARIANTS = [
     # id, player id, rarity (common / rare / epic / legendary), title
-    ('teklo-variant', 'teklo', 'rare', 'Teklologik variant'),
+    ('teklo-variant', 'teklo', 'rare', 'The Role of Yoru'),
 ]
 ODDS = {'common': 70, 'rare': 22, 'epic': 7, 'legendary': 1}
 PACKS = [

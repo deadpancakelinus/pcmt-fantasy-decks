@@ -26,8 +26,8 @@ grant usage on all sequences in schema public to authenticated;`);
 const buy = (uid, pack = 'na-pack') => JSON.parse(sql(as(uid, `select public.buy_pack('${pack}');`)).trim());
 const bal = uid => +sql(`select coalesce(sum(amount),0) from public.vp_ledger where user_id = '${uid}';`).trim();
 
-check(+sql(`select count(*) from public.cards where active;`).trim() === 132, 'catalog has 131 commons + the Teklologik variant');
-check(sql(`select rarity from public.cards where id = 'v:teklo-variant';`).trim() === 'rare', 'Teklologik variant is Rare');
+check(+sql(`select count(*) from public.cards where active;`).trim() === 132, 'catalog has 131 commons + the The Role of Yoru');
+check(sql(`select rarity from public.cards where id = 'v:teklo-variant';`).trim() === 'rare', 'The Role of Yoru is Rare');
 check(fails(`set role anon; select public.buy_pack('na-pack');`), 'logged-out visitors cannot buy');
 check(fails(as(P1, `select public.buy_pack('na-pack');`), /aren't on sale yet/), 'before launch, a player who is not an admin cannot buy');
 check(sql(`select string_agg(price::text, ',') from public.card_packs`).trim() === '0,0', 'new packs start at 0 VP'); sql(`update public.card_packs set price = null`); check(fails(as(ADMIN, `select public.buy_pack('na-pack');`), /doesn't have a price/), 'a pack with no price cannot be bought');
@@ -49,7 +49,7 @@ check(Math.abs(share('common') - 0.70) < 0.025 && Math.abs(share('rare') - 0.30)
   `odds hold: common ${(share('common') * 100).toFixed(1)}%, rare ${(share('rare') * 100).toFixed(1)}% (22% + epic/legendary dropping down), epic 0, legendary 0`);
 const owned = +sql(`select sum(count) from public.user_cards where user_id = '${ADMIN}';`).trim();
 check(owned === (N + 1) * 5, 'duplicates are kept as a count (' + owned + ' cards owned)');
-check(+sql(`select count from public.user_cards where user_id = '${ADMIN}' and card_id = 'v:teklo-variant';`).trim() > 100, 'the Teklologik variant gets pulled');
+check(+sql(`select count from public.user_cards where user_id = '${ADMIN}' and card_id = 'v:teklo-variant';`).trim() > 100, 'the The Role of Yoru gets pulled');
 check(+sql(`select count(*) from public.pack_openings where user_id = '${ADMIN}';`).trim() === N + 1, 'every opening is logged');
 const pos = sql(`select string_agg(p::text, ',') from public.pack_openings o, lateral jsonb_array_elements(o.cards) with ordinality c(x, p) where o.user_id = '${ADMIN}' and c.x ->> 'rarity' = 'rare';`).trim().split(',').map(Number);
 const at = [1, 2, 3, 4, 5].map(k => pos.filter(x => x === k).length / pos.length);

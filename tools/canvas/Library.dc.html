@@ -122,8 +122,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <sc-for list="{{groups}}" as="g" hint-placeholder-count="2">
 <section aria-label="{{g.label}}" style="display: flex; flex-direction: column; gap: 6px">
 <div style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap">
-<h2 style="margin: 0; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 28px; line-height: 1.1">{{g.label}}</h2>
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; letter-spacing: 0.1em; color: {{g.ink}}">{{g.rarity}}</span>
+<h2 style="margin: 0; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 28px; line-height: 1.1; color: {{g.ink}}">{{g.label}}</h2>
 <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">{{g.countLabel}}</span>
 </div>
 <div class="lib-stack">
@@ -188,7 +187,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 var PCMT_LIBRARY_SAMPLE = {
   mine: { 'v:teklo-variant': 1, 'c:claps': 2, 'c:crocman': 1, 'c:haych': 3, 'c:becosh': 1 },
   catalog: [
-    { id: 'v:teklo-variant', player: 'teklo', variant: 'teklo-variant', rarity: 'rare', region: 'NA', title: 'Teklologik variant' },
+    { id: 'v:teklo-variant', player: 'teklo', variant: 'teklo-variant', rarity: 'rare', region: 'NA', title: 'The Role of Yoru' },
     { id: 'c:claps', player: 'claps', variant: null, rarity: 'common', region: 'NA', title: 'claps' },
     { id: 'c:crocman', player: 'crocman', variant: null, rarity: 'common', region: 'NA', title: 'mrcrocman' },
     { id: 'c:haych', player: 'haych', variant: null, rarity: 'common', region: 'NA', title: 'haych' },
@@ -206,6 +205,7 @@ var PCMT_LIBRARY_SAMPLE = {
   }
 };
 var PCMT_RARITY_ORDER = { legendary: 0, epic: 1, rare: 2, common: 3 };
+var PCMT_RARITY_INK = { legendary: '#f5d76e', epic: '#c99bff', rare: '#7cc2ff', common: '#eaf4f4' };
 var PCMT_SEASON_LABEL = { NA: 'S3 NA', EMEA: 'S2 EMEA' };
 
 // ---- Shared with the Store board (keep in step) ----
@@ -352,7 +352,7 @@ class Component extends DCLogic {
       var shiny = c.rarity !== 'common', col = tm.color || '#a5dcdd';
       return {
         id: k, count: String(mine[k]), rarity: c.rarity, region: c.region, sortName: String(p.name).toLowerCase(),
-        variantKey: c.variant ? 'v:' + c.variant : 'r:' + c.rarity, groupLabel: c.variant ? c.title : (c.rarity.charAt(0).toUpperCase() + c.rarity.slice(1)),
+        variantKey: 'r:' + c.rarity, groupLabel: c.rarity.charAt(0).toUpperCase() + c.rarity.slice(1),
         title: c.variant ? c.title : (c.rarity.charAt(0).toUpperCase() + c.rarity.slice(1)),
         name: p.name, team: tm.code, teamName: tm.name, teamLogo: tm.logo || '', hasLogo: !!tm.logo, noLogo: !tm.logo, color: col,
         season: PCMT_SEASON_LABEL[c.region] || c.region, maps: st ? String(st.maps) : '—',
@@ -378,11 +378,11 @@ class Component extends DCLogic {
     });
     var show = s.show || 'ALL';
     var cards = all.filter(function (c) { return show === 'ALL' || (show === 'RARE' ? c.rarity !== 'common' : c.region === show); });
-    // One row per card variant (Teklologik variant, Common, ...), rarest first; cards in a row are stacked and fanned.
+    // One row per rarity (Rare, Common, ...), rarest first; cards in a row are stacked and fanned.
     var groups = [], byKey = {};
     cards.forEach(function (c) {
       var key = c.variantKey;
-      if (!byKey[key]) { byKey[key] = { label: c.groupLabel, rarity: c.rarityTag, ink: c.shiny ? c.color : '#93a9aa', order: PCMT_RARITY_ORDER[c.rarity], cards: [] }; groups.push(byKey[key]); }
+      if (!byKey[key]) { byKey[key] = { label: c.groupLabel, rarity: c.rarityTag, ink: PCMT_RARITY_INK[c.rarity] || '#eaf4f4', order: PCMT_RARITY_ORDER[c.rarity], cards: [] }; groups.push(byKey[key]); }
       byKey[key].cards.push(c);
     });
     groups.sort(function (a, b) { return a.order - b.order || a.label.localeCompare(b.label); });

@@ -24,8 +24,8 @@ Start here. It covers what exists, how changes are made and shipped, and what's 
 | Rules.dc.html | guide.html | Guide + Patch Notes (site is "Version 1.5 BETA"; footers on every page show the version) |
 | Login.dc.html | login.html | Discord log in |
 | Transactions.dc.html | transactions.html | **Transactions** (last in the menu): The Bank (all VP the player has), Last Paycheck (VP from the last finished gameweek), Paychecks (VP in), Spending (VP out: pack and amount). Everyone except admins sees an empty page with only the card animation and "Coming Soon..." (nothing of the page is drawn). `collection.html` just redirects here. |
-| Store.dc.html | store.html | **Store**: The Bank, NA and EMEA card packs (buy with VP, then the pack opening plays with the cards you pulled), and the variants found in packs (Teklologik variant: Rare, NA). Everyone except admins sees an empty page with only the card animation and "Coming Soon..." (nothing of the page is drawn). |
-| Library.dc.html | library.html | **Library** (right after Store): every card the player owns from packs, MVP VS-size with their MVP VS stats (from trumps-cards.js), one row per card variant (Teklologik variant, Common, ...), rarest first; each row is a fanned stack with faces showing, and hovering or tapping a card lifts it out (phones: one stack per row you swipe sideways); ×count on each card; All / NA / EMEA / Rare filters. Everyone except admins sees an empty page with only the card animation and "Coming Soon..." (nothing of the page is drawn). |
+| Store.dc.html | store.html | **Store**: The Bank, NA and EMEA card packs (buy with VP, then the pack opening plays with the cards you pulled), and the variants found in packs (The Role of Yoru: Rare, NA). Everyone except admins sees an empty page with only the card animation and "Coming Soon..." (nothing of the page is drawn). |
+| Library.dc.html | library.html | **Library** (right after Store): every card the player owns from packs, MVP VS-size with their MVP VS stats (from trumps-cards.js), one row per rarity (Rare, Common, ...), rarest first; each row is a fanned stack with faces showing, and hovering or tapping a card lifts it out (phones: one stack per row you swipe sideways); ×count on each card; All / NA / EMEA / Rare filters. Everyone except admins sees an empty page with only the card animation and "Coming Soon..." (nothing of the page is drawn). |
 | (hand-written) | admin.html | Hidden admin page (not in the nav): enter each player's 4Ks and 5Ks per series. Only accounts in `pcmt_admins` can save. |
 | (hand-written) | mvp-vs.html | **MVP VS** card game (see section 9). Its board MvpVs.dc.html is only the old "Coming soon" design and is not built. |
 
@@ -103,7 +103,7 @@ Tables: `profiles`, `deck_history` (insert-only, server timestamps, 60/hour limi
 
 ## 11. Cards and card packs
 
-- Catalog: every store player is a Common card (`c:<player id>`); variants are `v:<variant id>` with a rarity (Teklologik variant = Rare). Each card has a region (from its team).
+- Catalog: every store player is a Common card (`c:<player id>`); variants are `v:<variant id>` with a rarity (The Role of Yoru = Rare). Each card has a region (from its team).
 - Packs: NA Card Pack and EMEA Card Pack, 5 cards each, drawn only from that region. Odds per card: Common 70, Rare 22, Epic 7, Legendary 1. If a tier has no cards yet, the card drops to the next tier down.
 - `tools/cards.py` holds the variants, packs and odds and writes `setup/cards-setup.sql` (run `python3 -I tools/cards.py <out>/players.js`). Re-run it and the SQL when players or variants change; removed cards are switched off, never deleted.
 - Buying is only the `buy_pack(pack)` function on the server: it checks the price, the buyer's VP (one purchase at a time per player), writes the `pack` line in `vp_ledger`, draws the cards, adds them to `user_cards` (duplicates are counted) and logs `pack_openings`. The browser only shows the result.
