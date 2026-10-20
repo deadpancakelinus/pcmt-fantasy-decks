@@ -28,6 +28,7 @@ a{color:#a5dcdd}a:hover{color:#d4f0f0}
 input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !important;box-shadow:0 0 0 3px rgba(165,220,221,.3)}
 .st-card{position:relative;box-sizing:border-box;width:300px;zoom:.75;aspect-ratio:5/7;background:#0b1011;border:1px solid #1e2b2d;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 10px 24px rgba(0,0,0,.55)}
 .st-art{position:absolute;inset:0;z-index:0;pointer-events:none}
+.st-art img.st-art-full{left:0;top:0;right:auto;bottom:auto;width:100%;height:100%;object-fit:cover;opacity:.32;-webkit-mask-image:radial-gradient(120% 90% at 55% 45%,#000 45%,transparent 100%);mask-image:radial-gradient(120% 90% at 55% 45%,#000 45%,transparent 100%)}
 .st-sheen{position:absolute;inset:0;z-index:2;pointer-events:none;border-radius:inherit;background-size:260% 100%;background-repeat:no-repeat;animation:st-sheen 8s ease-in-out infinite}
 @keyframes st-sheen{0%{background-position:160% 0}55%,100%{background-position:-60% 0}}
 .st-stamp{display:inline-flex;align-items:center;gap:4px;padding:3px 7px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.14em;transform:rotate(-9deg);white-space:nowrap}
@@ -131,7 +132,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <article style="display: flex; flex-direction: column; gap: 14px; min-width: 0">
 <div class="st-card" role="img" aria-label="{{it.cardLabel}}">
 <span class="st-wm" aria-hidden="true"><img src="{{it.regionLogo}}" alt=""></span>
-<span class="st-art" aria-hidden="true"><img src="{{it.art}}" alt=""></span>
+<span class="st-art" aria-hidden="true"><img class="{{it.artClass}}" src="{{it.art}}" alt=""></span>
 <sc-if value="{{it.shiny}}" hint-placeholder-val="{{ true }}"><span class="st-sheen" aria-hidden="true" style="background-image: {{it.sheen}}"></span></sc-if>
 <span style="display: block; height: 5px; background: {{it.color}}; flex: none; position: relative; z-index: 1"></span>
 <div class="st-body">
@@ -193,7 +194,9 @@ var PCMT_PACK_SAMPLE = [
 var PCMT_PACK_ART = { NA: '/_blob/1ebfc850b10de6e909e96751b32a0977', EMEA: '/_blob/87166e6bb2de15f385a04e2962058989' };
 var PCMT_SEASON = { NA: 'NA S3', EMEA: 'EMEA S2' };
 // Variant art by variant id (cards table: 'v:<id>').
-var PCMT_VARIANT_ART = { 'teklo-variant': '/_blob/8b1855340f56f72ea07f5447ca167038' };
+var PCMT_VARIANT_ART = { 'teklo-variant': '/_blob/8b1855340f56f72ea07f5447ca167038', 'straight-variant': '/_blob/21ae11daa07a46a08f5d3cf16fd0b2d9' };
+// Art that fills the whole card face (screenshots); the rest sit at the side like a cut-out.
+var PCMT_VARIANT_FULL = { 'straight-variant': true };
 var PCMT_RARITY_INK = { common: '#93a9aa', rare: '#7cc2ff', epic: '#c99bff', legendary: '#f5d76e' };
 // Variants shown on the page (stats match the player's MVP VS card in trumps-cards.js).
 var PCMT_STORE_ITEMS = [
@@ -201,7 +204,12 @@ var PCMT_STORE_ITEMS = [
     name: 'teklo', team: 'DFM', teamName: 'Dementia Found Me', color: '#5a78ff', season: 'S3 NA', maps: 21, role: 'duelist',
     teamLogo: '/_blob/a59455af931db22aaf5f61e2da9f3686', regionLogo: '/_blob/c265e976f8968e60e4a2bdd32542b499',
     roleIcon: '/_blob/3911a104cbddaf481d7a7bf070a2e696', art: '/_blob/8b1855340f56f72ea07f5447ca167038',
-    acs: 177, kast: 62, hs: 23, dpr: 0.83, toxic: 0.8 }
+    acs: 177, kast: 62, hs: 23, dpr: 0.83, toxic: 0.8 },
+  { id: 'straight-variant', card: 'v:straight-variant', rarity: 'rare', pack: 'NA Card Pack', title: 'Straight variant',
+    name: 'straight', team: 'TS', teamName: 'Team Slugshow', color: '#9b6be8', season: 'S3 NA', maps: 21, role: 'duelist',
+    teamLogo: '/_blob/56f2be02d04c1bb89902b3eb4f989ac4', regionLogo: '/_blob/c265e976f8968e60e4a2bdd32542b499',
+    roleIcon: '/_blob/3911a104cbddaf481d7a7bf070a2e696', art: '/_blob/21ae11daa07a46a08f5d3cf16fd0b2d9',
+    acs: 260, kast: 74, hs: 17, dpr: 0.74, toxic: 1.17 }
 ];
 // The default card back (the BLUE deck), used for pack cards.
 var PCMT_STORE_BACK = { color: '#a5dcdd', edge: '#1f3a3b', ringClass: '', bgClass: '', frame: 'rgba(165,220,221,0.75)', frameSoft: 'rgba(165,220,221,0.4)', glow: 'rgba(165,220,221,0.3)',
@@ -358,6 +366,7 @@ var PCMT_PACK_CSS = [
   '.pk-root.pk-going .pk-tap{opacity:0;animation:none}',
   '.pk-root.pk-going.pk-reveal .pk-tap{opacity:1;animation:pk-tap 1.8s ease-in-out infinite}',
   '.pk-root.pk-reveal{cursor:pointer}',
+  '.pk-art img.pk-art-full{left:0;top:0;right:auto;bottom:auto;width:100%;height:100%;object-fit:cover;opacity:.32;-webkit-mask-image:radial-gradient(120% 90% at 55% 45%,#000 45%,transparent 100%);mask-image:radial-gradient(120% 90% at 55% 45%,#000 45%,transparent 100%)}',
   '.pk-rstamp{margin-left:8px;display:inline-flex;align-items:center;gap:4px;padding:3px 7px;border-radius:4px;font:700 10px/1 "JetBrains Mono",monospace;letter-spacing:.14em;transform:rotate(-9deg);white-space:nowrap}',
   '.pk-rshine{background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:pk-rshine 6s ease-in-out infinite}',
   '@keyframes pk-rshine{0%{background-position:160% 0}50%,100%{background-position:-60% 0}}',
@@ -399,7 +408,7 @@ function pcmtPackMvpFace(p, t, rar, shiny, col, stamp) {
   }).join('');
   return '<div class="pk-m">' +
     '<div class="pk-m-wm"><img src="' + e(p.regionLogo) + '" alt=""></div>' +
-    (p.art ? '<div class="pk-art"><img src="' + e(p.art) + '" alt=""></div>' : '') +
+    (p.art ? '<div class="pk-art"><img' + (p.artFull ? ' class="pk-art-full"' : '') + ' src="' + e(p.art) + '" alt=""></div>' : '') +
     '<span class="pk-m-edge" style="background:' + e(col) + '"></span>' +
     '<div class="pk-m-body">' +
       '<div class="pk-m-top">' + head + (p.badge ? '<span class="pk-badge">' + e(p.badge) + '</span>' : '') +
@@ -879,7 +888,7 @@ function pcmtStoreCards(pulled) {
     return {
       name: p.name, role: role.charAt(0).toUpperCase() + role.slice(1), roleIcon: abs(PCMT_PACK_ROLE_ICONS[role] || PCMT_PACK_ROLE_ICONS.duelist),
       price: pr % 1 === 0 ? String(pr) : pr.toFixed(1), champ: PCMT_CHAMPS.indexOf(p.id) >= 0,
-      rarity: c.rarity, art: c.variant && PCMT_VARIANT_ART[c.variant] ? abs(PCMT_VARIANT_ART[c.variant]) : '',
+      rarity: c.rarity, art: c.variant && PCMT_VARIANT_ART[c.variant] ? abs(PCMT_VARIANT_ART[c.variant]) : '', artFull: !!(c.variant && PCMT_VARIANT_FULL[c.variant]),
       badge: c.new ? 'NEW' : '×' + c.count, regionLogo: abs(PCMT_REGION_LOGOS[c.region] || PCMT_REGION_LOGOS.NA),
       trophy: abs(PCMT_TROPHY_ICON), mvp: pcmtMvpStats(c.region, p.name, c.player),
       team: { code: tm.code, name: tm.name, color: tm.color, logo: abs(tm.logo || ''), logoH: PCMT_PACK_LOGO_H[tm.code] || (PCMT_SMALL_LOGOS[tm.code] ? 26 : 30) }
@@ -1020,6 +1029,7 @@ class Component extends DCLogic {
         nameSize: Math.max(18, Math.min(34, Math.floor(230 / Math.max(4, it.name.length * 0.62)))),
         roleLabel: it.role.charAt(0).toUpperCase() + it.role.slice(1),
         rarityTag: it.rarity.toUpperCase(), rarityLabel: it.rarity.charAt(0).toUpperCase() + it.rarity.slice(1),
+        artClass: PCMT_VARIANT_FULL[it.id] ? 'st-art-full' : '',
         // Rare and up: a sheen across the card and a shiny stamp, both in the card's own colour.
         shiny: it.rarity !== 'common', glow: pcmtRgba(it.color, 0.45),
         sheen: 'linear-gradient(115deg, transparent 42%, ' + pcmtRgba(it.color, 0.22) + ' 47%, rgba(255,255,255,0.2) 50%, ' + pcmtRgba(it.color, 0.22) + ' 53%, transparent 58%)',
