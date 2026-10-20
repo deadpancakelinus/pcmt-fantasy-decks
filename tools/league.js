@@ -125,6 +125,15 @@
     return out;
   }
 
+  // VP for one gameweek: each card's number on The Deck (that player's points), no IGL bonus,
+  // and a card below zero counts as 0. Supabase pays the same amount when the gameweek ends (setup/vp-setup.sql).
+  function weekCardVP(week, deck) {
+    var pts = {}, cards = {}, total = 0;
+    week.results.forEach(function (r) { var sp = seriesPoints(r); Object.keys(sp).forEach(function (k) { pts[k] = (pts[k] || 0) + sp[k]; }); });
+    deckIds(deck.slots).forEach(function (id) { var v = Math.max(0, pts[id] || 0); cards[id] = v; total += v; });
+    return { total: total, cards: cards };
+  }
+
   // ---------- Supabase over plain fetch ----------
   var session = null;
   function readSession() { try { return JSON.parse(localStorage.getItem(TOKEN_KEY) || 'null'); } catch (e) { return null; } }
@@ -239,6 +248,42 @@
   };
   window.PCMT_SERVER_UNLOCKS = [];
 
+  // ---------- VP for the Collection page ----------
+  function fmtWhen(t) {
+    try { return new Date(t).toLocaleString('en-US', { timeZone: 'America/New_York', weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' }); }
+    catch (e) { return new Date(t).toUTCString(); }
+  }
+  function fmtDay(key) { return new Date(key + 'T12:00:00Z').toLocaleDateString('en-US', { timeZone: 'UTC', month: 'short', day: 'numeric' }); }
+  function buildVP(lines, weeks, scored, curB) {
+    var ready = Array.isArray(lines), balance = 0, earned = 0, byWeek = {}, paidByWeek = {};
+    (lines || []).forEach(function (l) {
+      balance += l.amount;
+      if (l.amount > 0) earned += l.amount;
+      if (l.kind === 'week' && l.week) {
+        paidByWeek[l.week] = (paidByWeek[l.week] || 0) + l.amount;
+        var h = byWeek[l.week] || (byWeek[l.week] = { week: l.week, vp: 0, deck: '' });
+        h.vp += l.amount;
+        if (!h.deck && l.detail && l.detail.deck) h.deck = l.detail.deck;
+      }
+    });
+    var history = Object.keys(byWeek).sort().reverse().map(function (k) {
+      var h = byWeek[k];
+      return { label: 'Week of ' + fmtDay(k), deck: h.deck || '—', vp: String(h.vp) };
+    });
+    var cw = weeks.filter(function (w) { return w.b === curB; })[0], week = { vp: '0', state: 'nomatch', note: 'No matches are scheduled this gameweek yet.' };
+    if (cw && !cw.locked) week = { vp: '0', state: 'open', note: 'Your deck locks ' + fmtWhen(cw.lockAt) + '. VP starts counting from then.' };
+    else if (cw) {
+      var mine = scored.filter(function (x) { return x.week.b === cw.b; })[0];
+      week = mine
+        ? { vp: String(weekCardVP(mine.week, mine.deck).total), state: 'live', note: 'So far from the deck you locked in. Paid ' + fmtWhen(cw.e) + ', when your cards reset.' }
+        : { vp: '0', state: 'nodeck', note: 'No deck counted this gameweek. Lock one in on The Deck before the next gameweek locks.' };
+    }
+    var arriving = 0;
+    if (ready) scored.forEach(function (x) { if (x.week.done) arriving += Math.max(0, weekCardVP(x.week, x.deck).total - (paidByWeek[x.week.key] || 0)); });
+    return { signedIn: true, ready: ready, balance: String(balance), earned: String(earned), history: history, week: week, arriving: arriving };
+  }
+  window.PCMT_VP = { signedIn: false, ready: true, balance: '0', earned: '0', history: [], week: { vp: '0', state: 'out', note: '' }, arriving: 0 };
+
   // ---------- load everything, then let the page draw ----------
   function load() {
     takeRedirectTokens();
@@ -258,7 +303,9 @@
       var decks = api('/rest/v1/deck_history?select=user_id,name,slots,igl,created_at&order=created_at.asc&limit=20000').catch(function () { return []; });
       var profiles = api('/rest/v1/profiles?select=id,name').catch(function () { return []; });
       var unlocks = me ? api('/rest/v1/user_unlocks?select=unlock').catch(function () { return []; }) : Promise.resolve([]);
-      return Promise.all([decks, profiles, unlocks]);
+      // null = the VP table isn't set up yet (setup/vp-setup.sql not run)
+      var vp = me ? api('/rest/v1/vp_ledger?select=kind,week,amount,detail,created_at&order=created_at.desc&limit=5000').catch(function () { return null; }) : Promise.resolve([]);
+      return Promise.all([decks, profiles, unlocks, vp]);
     }).then(function (res) {
       var decks = res[0] || [], profiles = res[1] || [], unlocks = res[2] || [];
       window.PCMT_SERVER_UNLOCKS = unlocks.map(function (u) { return u.unlock; });
@@ -309,6 +356,7 @@
           if (x.missedWin) missed = true;
         });
         window.PCMT_ME_STATS = { teamPoints: teamPts, activeWeeks: active, bestWeek: best, championWin: champ, missedWin: missed, id: me.id };
+        window.PCMT_VP = buildVP(res[3], weeks, myScored, curB);
         var last = mySubs[mySubs.length - 1];
         if (last) { window.PCMT_MY_REMOTE_DECK = { slots: last.slots, igl: last.igl, name: last.name, uid: me.id }; lastSubmitted = JSON.stringify({ slots: last.slots || {}, igl: last.igl || null, name: last.name || '' }); }
       }

@@ -1,0 +1,225 @@
+-- PCMT Fantasy Decks: VP (weekly reward points).
+-- Paste this whole file into Supabase → SQL Editor → New query → Run. Safe to run more than once.
+--
+-- How VP works:
+--   * Each gameweek, every card in the deck that counted for you (the deck locked in before the gameweek
+--     locked, with the same transfer rules as the leaderboard) earns its card number: that player's points
+--     for the gameweek. No IGL bonus. A card below zero counts as 0, so VP never goes down from scoring.
+--   * VP is paid when the gameweek ends (Monday 5:00 AM EDT, when the card numbers go back to zero).
+--   * A result that arrives after the payout tops the payout up. A payout is never taken back.
+--   * Supabase checks the live site's data.js and players.js every hour and pays whatever is due.
+--     Nothing in the browser can add VP.
+
+-- ===================== 1) The VP ledger =====================
+-- One line per VP change. Earned VP is positive; spending (card packs, bets) will be negative lines.
+create table if not exists public.vp_ledger (
+  id bigserial primary key,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  kind text not null,                 -- 'week' = gameweek payout
+  week date,                          -- the gameweek's Monday (for 'week' lines)
+  amount integer not null,
+  detail jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
+);
+create index if not exists vp_ledger_user on public.vp_ledger (user_id, created_at);
+alter table public.vp_ledger enable row level security;
+drop policy if exists "read own vp" on public.vp_ledger;
+create policy "read own vp" on public.vp_ledger for select using (auth.uid() = user_id);
+-- No insert/update/delete policies: only the payout job below can write VP.
+
+create table if not exists public.vp_sync_log (
+  id bigserial primary key,
+  ran_at timestamptz not null default now(),
+  ok boolean not null,
+  message text not null
+);
+alter table public.vp_sync_log enable row level security; -- private
+
+-- ===================== 2) Rules, copied from the site's league.js =====================
+create or replace function public.vp_ts(t text) returns timestamptz
+language plpgsql immutable as $$
+begin
+  return t::timestamptz;
+exception when others then
+  return null;
+end $$;
+
+create or replace function public.vp_num(t text) returns numeric
+language plpgsql immutable as $$
+begin
+  return coalesce(t::numeric, 0);
+exception when others then
+  return 0;
+end $$;
+
+-- Gameweeks start Monday 09:00 UTC (5:00 AM EDT), same as weekStart() on the site.
+create or replace function public.vp_week_start(t timestamptz) returns timestamptz
+language plpgsql immutable as $$
+declare local_ts timestamp; d date; b timestamptz;
+begin
+  local_ts := (t at time zone 'UTC') - interval '4 hours';
+  d := local_ts::date - (extract(isodow from local_ts)::int - 1);
+  b := (d + time '09:00') at time zone 'UTC';
+  if b > t then b := b - interval '7 days'; end if;
+  return b;
+end $$;
+
+create or replace function public.vp_role(r text) returns text
+language sql immutable as $$
+  select case when split_part(coalesce(r, ''), '/', 1) = 'yoru' then 'duelist' else split_part(coalesce(r, ''), '/', 1) end;
+$$;
+
+-- A deck counts only if it follows every rule (same as validDeck() on the site).
+create or replace function public.vp_valid_deck(p_slots jsonb, p_players jsonb, p_twin jsonb) returns boolean
+language plpgsql immutable as $$
+declare k text; id text; p jsonb; seen jsonb := '{}'::jsonb; teams jsonb := '{}'::jsonb; cost numeric := 0; m text[]; n int;
+begin
+  if p_slots is null or jsonb_typeof(p_slots) <> 'object' then return false; end if;
+  select count(*) into n from jsonb_object_keys(p_slots);
+  if n <> 11 then return false; end if;
+  for k, id in select key, value #>> '{}' from jsonb_each(p_slots) loop
+    p := p_players -> id;
+    if p is null or seen ? id or (p_twin ? id and seen ? (p_twin ->> id)) then return false; end if;
+    seen := seen || jsonb_build_object(id, true);
+    m := regexp_match(k, '^(duelist|controller|initiator|sentinel)-(1|2)$');
+    if m is not null then
+      if public.vp_role(p ->> 'role') <> m[1] then return false; end if;
+    elsif k !~ '^wild-(1|2|3)$' then
+      return false;
+    end if;
+    cost := cost + (p ->> 'price')::numeric;
+    teams := teams || jsonb_build_object(p ->> 'team', coalesce((teams ->> (p ->> 'team'))::int, 0) + 1);
+    if (teams ->> (p ->> 'team'))::int > 2 then return false; end if;
+  end loop;
+  return cost <= 95.000000001;
+end $$;
+
+create or replace function public.vp_transfers(p_prev jsonb, p_slots jsonb) returns int
+language sql immutable as $$
+  select count(*)::int from jsonb_each_text(p_slots) s
+  where p_prev is not null and not exists (select 1 from jsonb_each_text(p_prev) q where q.value = s.value);
+$$;
+
+-- Works out every manager's VP for each finished gameweek and pays anything still owed.
+-- p_pay = false only reports (used for checking); it never writes.
+create or replace function public.vp_compute(p_matches jsonb, p_results jsonb, p_players jsonb, p_twin jsonb,
+                                             p_now timestamptz default now(), p_pay boolean default true)
+returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare
+  players jsonb; weekpts jsonb := '{}'::jsonb; r jsonb; rb text; sp record; top_acs numeric; top_kast numeric;
+  w record; u uuid; d record; use_slots jsonb; use_name text; prev jsonb; owed int; paid int; cards jsonb;
+  out jsonb := '[]'::jsonb; paid_lines int := 0; paid_total int := 0;
+begin
+  perform pg_advisory_xact_lock(hashtext('pcmt-vp'));
+  select coalesce(jsonb_object_agg(p ->> 'id', p), '{}'::jsonb) into players from jsonb_array_elements(coalesce(p_players, '[]')) p;
+  p_twin := coalesce(p_twin, '{}'::jsonb);
+
+  -- Card numbers: each player's points per gameweek (same as seriesPoints() on the site).
+  for r in select x from jsonb_array_elements(coalesce(p_results, '[]')) x loop
+    if public.vp_ts(r ->> 'start') is null then continue; end if;
+    rb := to_char(public.vp_week_start(public.vp_ts(r ->> 'start')) at time zone 'UTC', 'YYYY-MM-DD');
+    select max(public.vp_num(v ->> 4)), max(public.vp_num(v ->> 5)) into top_acs, top_kast
+      from jsonb_each(coalesce(r -> 'stats', '{}')) s(k, v);
+    for sp in select s.k, s.v from jsonb_each(coalesce(r -> 'stats', '{}')) s(k, v) where players ? s.k loop
+      weekpts := jsonb_set(weekpts, array[rb], coalesce(weekpts -> rb, '{}'::jsonb), true);
+      weekpts := jsonb_set(weekpts, array[rb, sp.k], to_jsonb(
+          coalesce((weekpts -> rb ->> sp.k)::numeric, 0)
+          + public.vp_num(sp.v ->> 0) * 2 + public.vp_num(sp.v ->> 2) * 1 - public.vp_num(sp.v ->> 1) + public.vp_num(sp.v ->> 3) * 1
+          + case when (players -> sp.k ->> 'team') = (r ->> 'winner') then 2 else 0 end
+          + case when public.vp_num(sp.v ->> 4) = top_acs then 3 else 0 end
+          + case when public.vp_num(sp.v ->> 5) = top_kast then 1 else 0 end), true);
+    end loop;
+  end loop;
+
+  create temp table if not exists vp_weeks (b timestamptz primary key, first_t timestamptz) on commit drop;
+  truncate vp_weeks;
+  insert into vp_weeks (b, first_t)
+    select public.vp_week_start(t), min(t) from (
+      select public.vp_ts(x ->> 'start') t from jsonb_array_elements(coalesce(p_matches, '[]') || coalesce(p_results, '[]')) x
+    ) q where t is not null group by 1;
+
+  for u in select distinct user_id from public.deck_history loop
+    prev := null; use_name := null;
+    for w in select b, first_t - interval '12 hours' as lock_at, b + interval '7 days' as e from vp_weeks order by b loop
+      if p_now < w.lock_at then continue; end if;              -- gameweek not locked yet
+      use_slots := null;
+      for d in select slots, name from public.deck_history where user_id = u and created_at < w.lock_at order by created_at desc, id desc loop
+        if public.vp_valid_deck(d.slots, players, p_twin) and (prev is null or public.vp_transfers(prev, d.slots) <= 2) then
+          use_slots := d.slots; use_name := d.name; exit;
+        end if;
+      end loop;
+      if use_slots is null then
+        if prev is null then continue; end if;
+        use_slots := prev;                                     -- no allowed new deck: the last one counts again
+      end if;
+      prev := use_slots;
+      if p_now < w.e then continue; end if;                    -- paid when the gameweek ends
+      rb := to_char(w.b at time zone 'UTC', 'YYYY-MM-DD');
+      select coalesce(jsonb_object_agg(v, greatest(0, coalesce((weekpts -> rb ->> v)::numeric, 0))), '{}'::jsonb),
+             coalesce(sum(greatest(0, coalesce((weekpts -> rb ->> v)::numeric, 0))), 0)::int
+        into cards, owed from jsonb_each_text(use_slots) s(k, v);
+      select coalesce(sum(amount), 0)::int into paid from public.vp_ledger where user_id = u and kind = 'week' and week = rb::date;
+      out := out || jsonb_build_array(jsonb_build_object('user', u, 'week', rb, 'owed', owed, 'paid_before', paid));
+      if p_pay and owed > paid then
+        insert into public.vp_ledger (user_id, kind, week, amount, detail)
+          values (u, 'week', rb::date, owed - paid, jsonb_build_object('deck', coalesce(use_name, ''), 'cards', cards, 'topup', paid > 0));
+        paid_lines := paid_lines + 1; paid_total := paid_total + (owed - paid);
+      end if;
+    end loop;
+  end loop;
+  return jsonb_build_object('payouts', paid_lines, 'vp', paid_total, 'weeks', out);
+end $$;
+
+-- Reads the two arrays straight out of the site's data.js / players.js text.
+create or replace function public.vp_extract(p_js text, p_name text) returns jsonb
+language plpgsql immutable as $$
+declare s int; e int; head text := 'var ' || p_name || ' = '; closer text;
+begin
+  s := strpos(p_js, head);
+  if s = 0 then raise exception '% not found', p_name; end if;
+  s := s + length(head);
+  closer := case substr(p_js, s, 1) when '[' then '];' when '{' then '};' else null end;
+  if closer is null then raise exception '% is not an array or object', p_name; end if;
+  e := strpos(substr(p_js, s), closer);
+  if e = 0 then raise exception '% has no end', p_name; end if;
+  return substr(p_js, s, e)::jsonb;
+end $$;
+
+create or replace function public.vp_ingest(p_data_js text, p_players_js text, p_now timestamptz default now(), p_pay boolean default true)
+returns jsonb
+language plpgsql security definer set search_path = public as $$
+begin
+  return public.vp_compute(public.vp_extract(p_data_js, 'PCMT_MATCHES'), public.vp_extract(p_data_js, 'PCMT_RESULTS'),
+                           public.vp_extract(p_players_js, 'PCMT_SITE_PLAYERS'), public.vp_extract(p_players_js, 'PCMT_SITE_TWIN'),
+                           p_now, p_pay);
+end $$;
+
+-- The hourly job: fetch the live files and pay whatever is due.
+create or replace function public.vp_sync() returns text
+language plpgsql security definer set search_path = public, extensions as $$
+declare st_d int; st_p int; data_js text; players_js text; res jsonb; msg text; bust text := extract(epoch from now())::bigint::text;
+begin
+  select status, content into st_d, data_js from extensions.http_get('https://pcmt-fantasy.pages.dev/data.js?v=' || bust);
+  select status, content into st_p, players_js from extensions.http_get('https://pcmt-fantasy.pages.dev/players.js?v=' || bust);
+  if st_d <> 200 or st_p <> 200 then raise exception 'site files not reachable (data.js %, players.js %)', st_d, st_p; end if;
+  res := public.vp_ingest(data_js, players_js, now(), true);
+  msg := format('ok: %s payout(s), %s VP', res ->> 'payouts', res ->> 'vp');
+  insert into public.vp_sync_log (ok, message) values (true, msg);
+  delete from public.vp_sync_log where ran_at < now() - interval '30 days';
+  return msg;
+exception when others then
+  insert into public.vp_sync_log (ok, message) values (false, sqlerrm);
+  return 'failed: ' || sqlerrm;
+end $$;
+
+revoke all on function public.vp_compute(jsonb, jsonb, jsonb, jsonb, timestamptz, boolean) from public, anon, authenticated;
+revoke all on function public.vp_ingest(text, text, timestamptz, boolean) from public, anon, authenticated;
+revoke all on function public.vp_sync() from public, anon, authenticated;
+
+-- [supabase-only] ===================== 3) Hourly payout job =====================
+create extension if not exists http with schema extensions;
+create extension if not exists pg_cron;
+select cron.schedule('pcmt-vp-payout', '7 * * * *', 'select public.vp_sync()');
+-- Run once now to check it works. It should say "ok: 0 payout(s), 0 VP" until the first gameweek ends.
+select public.vp_sync();

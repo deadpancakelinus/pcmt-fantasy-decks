@@ -1,5 +1,6 @@
 """Site-only changes that connect the canvas pages to the league (accounts, saved decks, scoring).
 The canvas itself stays a design file; these edits are applied while building the website."""
+import json
 import re
 
 
@@ -100,11 +101,22 @@ function pcmtSaveMyDeck(s) {
 
 
 def players_js(main_logic):
-    """players.js: the player list for scoring on every page."""
+    """players.js: the player list for scoring on every page.
+
+    Written as JSON inside the JavaScript, so the server (Supabase) can read the same list when it pays out VP.
+    """
     s = main_logic.index('var PCMT_PLAYERS = [')
     e = main_logic.index('];', s) + 2
+    block = main_logic[s:e]
+    rows = re.findall(r"\{ id: '([^']*)', name: '([^']*)', team: '([^']*)', role: '([^']*)', price: ([0-9.]+) \}", block)
+    assert len(rows) == block.count('{ id:'), 'players.js: an entry in PCMT_PLAYERS is not in the expected shape'
+    players = [{'id': i, 'name': n, 'team': t, 'role': r, 'price': float(pr)} for i, n, t, r, pr in rows]
     tw = re.search(r'var PCMT_TWIN = (\{[^}]*\});', main_logic).group(1)
     ch = re.search(r'var PCMT_CHAMPS = (\{[^}]*\});', main_logic).group(1)
-    return ('// Player list used for scoring (generated from The Deck).\n' +
-            main_logic[s:e].replace('var PCMT_PLAYERS', 'var PCMT_SITE_PLAYERS', 1) + '\n' +
-            'var PCMT_SITE_TWIN = ' + tw + ';\nvar PCMT_SITE_CHAMPS = ' + ch + ';\n')
+    twin = dict(re.findall(r"'([^']+)':\s*'([^']+)'", tw))
+    champs = {k: True for k in re.findall(r"'?([A-Za-z0-9_-]+)'?\s*:\s*true", ch)}
+    rows_js = ',\n'.join('  ' + json.dumps(p, ensure_ascii=False) for p in players)
+    return ('// Player list used for scoring (generated from The Deck). Kept as JSON so the server can read it too.\n'
+            'var PCMT_SITE_PLAYERS = [\n' + rows_js + '\n];\n'
+            'var PCMT_SITE_TWIN = ' + json.dumps(twin) + ';\n'
+            'var PCMT_SITE_CHAMPS = ' + json.dumps(champs) + ';\n')

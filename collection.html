@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>fantasy.pcmt.gg Collection</title>
+<meta name="description" content="PCMT Fantasy Decks: build a deck of Plat Chat Members Tourney players and score points every match.">
+<link rel="icon" href="assets/3bf9d529cabff94109b561693539029f.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cabin+Sketch:wght@400;700&amp;family=JetBrains+Mono:wght@400;600&amp;family=Space+Grotesk:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#000}
+html{color-scheme:dark}
+*{scrollbar-color:#2c3d40 #050808}
+::-webkit-scrollbar{width:12px;height:12px}
+::-webkit-scrollbar-track{background:#050808}
+::-webkit-scrollbar-thumb{background:#2c3d40;border-radius:999px;border:3px solid #050808}
+::-webkit-scrollbar-thumb:hover{background:#3d5457}
+::-webkit-scrollbar-corner{background:#050808}
+a{color:#a5dcdd}a:hover{color:#d4f0f0}
+.pcmt-loader{--radius:78px;--speed:2.4s;position:relative;width:calc(var(--radius)*2 + 60px);height:calc(var(--radius)*2 + 60px)}
+.pcmt-loader span{position:absolute;left:50%;top:50%;width:34px;height:48px;margin:-24px 0 0 -17px;border-radius:5px;background:url("assets/38f3fa3227d68bf879b50c6927b7ab1f.png") center/90% no-repeat,#000;border:1.5px solid #a5dcdd;box-shadow:0 2px 6px rgba(0,0,0,.35);animation:pcmt-card-splay var(--speed) cubic-bezier(.65,0,.35,1) infinite;animation-delay:calc(var(--i)*0.035s)}
+@keyframes pcmt-card-splay{0%,8%{transform:rotate(0deg) translateY(0)}40%,58%{transform:rotate(calc(var(--i)*24deg)) translateY(calc(var(--radius)*-1))}92%,100%{transform:rotate(360deg) translateY(0)}}
+@media (prefers-reduced-motion: reduce){.pcmt-loader span{animation-duration:calc(var(--speed)*3)}}
+.pcmt-loading{transition:opacity .4s ease}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !important;box-shadow:0 0 0 3px rgba(165,220,221,.3)}
+</style>
+</head>
+<body>
+<div id="dc-root"></div>
+<script type="application/json" id="dc-tree">[["div",{"data-pcmt-root":"Collection","style":"position: relative; min-height: 100vh; background: #000; color: #eaf4f4; font-family: 'Space Grotesk', system-ui, sans-serif"},[["sc-if",{"value":"{{loaderOn}}","hint-placeholder-val":"{{ false }}"},[["div",{"class":"pcmt-loading","role":"status","aria-live":"polite","style":"position: absolute; inset: 0; z-index: 9999; background: #000; opacity: {{loaderOpacity}}; pointer-events: {{loaderPointer}}"},[["div",{"style":"position: sticky; top: 0; height: 100vh; max-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px"},[["div",{"class":"pcmt-loader","aria-hidden":"true"},[["span",{"style":"--i:0"},[]],["span",{"style":"--i:1"},[]],["span",{"style":"--i:2"},[]],["span",{"style":"--i:3"},[]],["span",{"style":"--i:4"},[]],["span",{"style":"--i:5"},[]],["span",{"style":"--i:6"},[]],["span",{"style":"--i:7"},[]],["span",{"style":"--i:8"},[]],["span",{"style":"--i:9"},[]],["span",{"style":"--i:10"},[]],["span",{"style":"--i:11"},[]],["span",{"style":"--i:12"},[]],["span",{"style":"--i:13"},[]],["span",{"style":"--i:14"},[]]]],["span",{"style":"font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.12em; color: #a5dcdd"},["{{loaderLabel}}"]]]]]]]],["header",{"style":"border-bottom: 1px solid #1e2b2d; background: #050808"},[["div",{"style":"max-width: 1280px; margin: 0 auto; padding: 14px 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 32px"},[["a",{"href":"index.html","style":"display: flex; align-items: baseline; gap: 10px; text-decoration: none"},[["span",{"style":"font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 32px; color: #a5dcdd; line-height: 1"},["fantasy.pcmt.gg"]]]],["nav",{"aria-label":"Main","style":"display: flex; flex-wrap: wrap; gap: 4px; flex: 1 1 auto"},[["a",{"href":"leaderboard.html","style":"padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4"},["Leaderboard"]],["a",{"href":"index.html","style":"padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4"},["The Deck"]],["a",{"href":"collection.html","aria-current":"page","style":"padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #000; background: #a5dcdd; font-weight: 600"},["Collection"]],["a",{"href":"customization.html","style":"padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4"},["Customization"]],["a",{"href":"guide.html","style":"padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4"},["Guide"]],["a",{"href":"mvp-vs.html","style":"padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4"},["MVP VS"]]]],["a",{"href":"login.html","style":"min-height: 44px; display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; border-radius: 8px; background: #4752C4; color: #fff; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; text-decoration: none"},[["svg",{"aria-hidden":"true","width":"16","height":"16","viewBox":"0 0 24 24","fill":"none","stroke":"currentColor","stroke-width":"2.2","stroke-linecap":"round","stroke-linejoin":"round"},[["path",{"d":"M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"},[]],["path",{"d":"M10 17l5-5-5-5"},[]],["path",{"d":"M15 12H3"},[]]]],"{{auth.label}}"]],["span",{"style":"order: -1; flex: 1 0 100%; margin-bottom: -4px; text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.08em; white-space: nowrap"},["NA S3 · EMEA S2"]]]]]],["main",{"style":"max-width: 1280px; margin: 0 auto; padding: 36px 24px 64px; display: flex; flex-direction: column; gap: 28px"},[["div",{"style":"display: flex; flex-direction: column; gap: 6px"},[["h1",{"style":"margin: 0; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 60px; line-height: 1"},["Collection"]],["p",{"style":"margin: 8px 0 0; max-width: 640px; font-size: 18px; line-height: 1.55; color: #c4d4d4"},["Your VP lives here. Card packs and your card album are coming next."]]]],["sc-if",{"value":"{{signedOut}}","hint-placeholder-val":"{{ false }}"},[["div",{"style":"background: #0b1011; border: 1px solid #2c3d40; border-radius: 12px; padding: 18px 22px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px"},[["span",{"style":"color: #c4d4d4; line-height: 1.5"},["Log in with Discord to earn VP. It's saved to your account, so it follows you to any device."]],["a",{"href":"login.html","style":"min-height: 44px; display: inline-flex; align-items: center; padding: 0 18px; border-radius: 8px; background: #4752C4; color: #fff; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; text-decoration: none"},["Log in"]]]]]],["sc-if",{"value":"{{notReady}}","hint-placeholder-val":"{{ false }}"},[["div",{"role":"status","style":"background: #0b1011; border: 1px solid #2c3d40; border-radius: 12px; padding: 18px 22px; color: #c4d4d4; line-height: 1.5"},["VP isn't switched on yet. Your balance appears here as soon as it is."]]]],["section",{"aria-label":"Your VP","style":"display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 16px"},[["div",{"style":"background: #0b1011; border: 1px solid #1e2b2d; border-radius: 12px; padding: 22px; display: flex; flex-direction: column; gap: 10px; min-width: 0"},[["span",{"style":"font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.08em; text-transform: uppercase"},["VP balance"]],["span",{"style":"display: flex; align-items: baseline; gap: 10px"},[["span",{"style":"font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 56px; line-height: 1; color: #a5dcdd; font-variant-numeric: tabular-nums"},["{{vp.balance}}"]],["span",{"style":"font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #a5dcdd"},["VP"]]]],["span",{"style":"font-size: 14px; color: #93a9aa; line-height: 1.5"},["Earned this season: {{vp.earned}} VP"]],["sc-if",{"value":"{{hasArriving}}","hint-placeholder-val":"{{ false }}"},[["span",{"role":"status","style":"font-size: 14px; color: #f5d76e; line-height: 1.5"},["+{{vp.arriving}} VP from last gameweek is on its way. It arrives within the hour."]]]]]],["div",{"style":"background: #0b1011; border: 1px solid #1e2b2d; border-radius: 12px; padding: 22px; display: flex; flex-direction: column; gap: 10px; min-width: 0"},[["span",{"style":"font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.08em; text-transform: uppercase"},["This gameweek so far"]],["span",{"style":"display: flex; align-items: baseline; gap: 10px"},[["span",{"style":"font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 56px; line-height: 1; color: #a5dcdd; font-variant-numeric: tabular-nums; color: #eaf4f4"},["{{vp.week.vp}}"]],["span",{"style":"font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #93a9aa"},["VP"]]]],["span",{"style":"font-size: 14px; color: #93a9aa; line-height: 1.5"},["{{weekNote}}"]]]],["div",{"style":"background: #0b1011; border: 1px solid #1e2b2d; border-radius: 12px; padding: 22px; display: flex; flex-direction: column; gap: 10px; min-width: 0"},[["span",{"style":"font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.08em; text-transform: uppercase"},["How VP works"]],["ul",{"style":"margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; color: #c4d4d4; font-size: 14px; line-height: 1.5"},[["li",{},["Each card in your locked-in deck earns its number from The Deck: that player's points this gameweek."]],["li",{},["VP is paid when the gameweek ends, Monday 5:00 AM EDT, as the cards reset to zero."]],["li",{},["A card below zero counts as 0, so VP never goes down from scoring."]],["li",{},["Soon you'll spend VP on card packs and on MVP VS bets."]]]]]]]],["section",{"aria-labelledby":"vp-history-h","style":"display: flex; flex-direction: column; gap: 16px"},[["h2",{"id":"vp-history-h","style":"margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em"},["VP history"]],["div",{"style":"overflow-x: auto; border: 1px solid #1e2b2d; border-radius: 12px; background: #0b1011"},[["table",{"style":"width: 100%; border-collapse: collapse; font-size: 16px"},[["thead",{},[["tr",{"style":"text-align: left; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.06em; text-transform: uppercase"},[["th",{"scope":"col","style":"padding: 14px 16px; border-bottom: 1px solid #1e2b2d"},["Gameweek"]],["th",{"scope":"col","style":"padding: 14px 16px; border-bottom: 1px solid #1e2b2d"},["Deck"]],["th",{"scope":"col","style":"padding: 14px 16px; border-bottom: 1px solid #1e2b2d; text-align: right"},["VP"]]]]]],["tbody",{},[["sc-for",{"list":"{{vp.history}}","as":"h","hint-placeholder-count":"3"},[["tr",{},[["td",{"style":"padding: 14px 16px; border-bottom: 1px solid #1e2b2d"},["{{h.label}}"]],["td",{"style":"padding: 14px 16px; border-bottom: 1px solid #1e2b2d; color: #93a9aa"},["{{h.deck}}"]],["td",{"style":"padding: 14px 16px; border-bottom: 1px solid #1e2b2d; text-align: right; font-family: 'JetBrains Mono', monospace; font-weight: 600; color: #a5dcdd"},["+{{h.vp}}"]]]]]],["sc-if",{"value":"{{noHistory}}","hint-placeholder-val":"{{ false }}"},[["tr",{},[["td",{"colspan":"3","style":"padding: 28px 16px; text-align: center; color: #93a9aa"},["{{emptyText}}"]]]]]]]]]]]]]]]],["footer",{"style":"border-top: 1px solid #1e2b2d"},[["div",{"style":"max-width: 1280px; margin: 0 auto; padding: 22px 24px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa"},[["span",{},["fantasy.pcmt.gg · Plat Chat Members Tourney"]],["span",{},["Version 1.5 BETA"]],["a",{"href":"https://pcmt.gg","target":"_blank","rel":"noopener"},["Stats on PCMT.gg"]]]]]]]]]</script>
+<script type="application/json" id="dc-props">{}</script>
+<script type="text/plain" id="dc-logic">
+// The live site fills window.PCMT_VP from Supabase (see league.js). The canvas shows this sample.
+var PCMT_VP_SAMPLE = {
+  signedIn: true, ready: true, balance: '[VP]', earned: '[VP]', arriving: 0,
+  week: { vp: '[VP]', state: 'live', note: 'So far from the deck you locked in. Paid [Mon, 5:00 AM EDT], when your cards reset.' },
+  history: [
+    { label: 'Week of [date]', deck: '[Deck name]', vp: '[VP]' },
+    { label: 'Week of [date]', deck: '[Deck name]', vp: '[VP]' },
+    { label: 'Week of [date]', deck: '[Deck name]', vp: '[VP]' }
+  ]
+};
+class Component extends DCLogic {
+  componentDidMount() {
+    var self = this, start = Date.now();
+    if (this._pageDidMount) this._pageDidMount();
+    this._navClick = function (e) {
+      if (e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+      if (!a || a.target === '_blank') return;
+      var root = a.closest('[data-pcmt-root]');
+      if (!root || root.getAttribute('data-pcmt-root') !== 'Collection') return;
+      if (!/\.html(#|$|\?)/.test(a.getAttribute('href'))) return;
+      try { window.sessionStorage.setItem('pcmt-nav', String(Date.now())); } catch (err) {}
+    };
+    document.addEventListener('click', this._navClick, true);
+    function imagesReady() {
+      var imgs = Array.prototype.slice.call(document.images || []);
+      return Promise.all(imgs.map(function (im) {
+        return im.complete ? null : new Promise(function (res) { im.addEventListener('load', res, { once: true }); im.addEventListener('error', res, { once: true }); });
+      }));
+    }
+    var fonts = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+    var cap = new Promise(function (res) { self._loaderCap = setTimeout(res, 5000); });
+    Promise.race([Promise.all([fonts, imagesReady()]), cap]).then(function () {
+      self._loaderMin = setTimeout(function () { self.hideLoader(); }, Math.max(0, 1200 - (Date.now() - start)));
+    });
+  }
+
+  componentWillUnmount() {
+    clearTimeout(this._loaderCap); clearTimeout(this._loaderMin); clearTimeout(this._loaderFade); clearTimeout(this._loaderBuf); clearTimeout(this._loaderNav); clearTimeout(this._navHide);
+    if (this._navClick) document.removeEventListener('click', this._navClick, true);
+    if (this._pageWillUnmount) this._pageWillUnmount();
+  }
+
+  showLoader(label) {
+    clearTimeout(this._loaderFade);
+    this.setState({ loaderPhase: 'on', loaderLabel: label || 'Loading' });
+  }
+
+  hideLoader() {
+    var self = this;
+    if ((this.state && this.state.loaderPhase) === 'gone') return;
+    this.setState({ loaderPhase: 'fade' });
+    clearTimeout(this._loaderFade);
+    this._loaderFade = setTimeout(function () { self.setState({ loaderPhase: 'gone' }); }, 420);
+  }
+
+  bufferFor(label, ms, done) {
+    var self = this;
+    this.showLoader(label);
+    clearTimeout(this._loaderBuf);
+    this._loaderBuf = setTimeout(function () { if (done) done(); self.hideLoader(); }, ms);
+  }
+
+  renderVals() {
+    if (this._arrived === undefined) {
+      this._arrived = false;
+      try {
+        var t = Number(window.sessionStorage.getItem('pcmt-nav') || 0);
+        if (t && Date.now() - t < 4000) { this._arrived = true; window.sessionStorage.removeItem('pcmt-nav'); }
+      } catch (err) {}
+    }
+    var phase = (this.state && this.state.loaderPhase) || (this._arrived ? 'gone' : 'on');
+    return Object.assign(this._pageVals(), {
+      loaderOn: phase !== 'gone',
+      loaderOpacity: phase === 'on' ? 1 : 0,
+      loaderPointer: phase === 'on' ? 'auto' : 'none',
+      loaderLabel: ((this.state && this.state.loaderLabel) || 'Loading').toUpperCase()
+    });
+  }
+
+  _pageVals() {
+    var v = (typeof window !== 'undefined' && window.PCMT_VP) || PCMT_VP_SAMPLE;
+    var weekNote = !v.signedIn ? 'Log in and lock in a deck to start earning.' : v.week.note;
+    return {
+      vp: v,
+      signedOut: !v.signedIn,
+      notReady: v.signedIn && !v.ready,
+      hasArriving: v.arriving > 0,
+      weekNote: weekNote,
+      noHistory: !v.history.length,
+      emptyText: v.signedIn ? 'Your first VP arrives when a gameweek you played in ends.' : 'Log in to see your VP history.'
+    };
+  }
+}
+</script>
+<script src="data.js"></script>
+<script src="players.js"></script>
+<script src="league.js"></script>
+<script src="dc-lite.js"></script>
+</body>
+</html>
