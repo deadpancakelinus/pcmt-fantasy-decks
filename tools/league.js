@@ -339,9 +339,11 @@
       // 4Ks and 5Ks per series (public; empty until setup/vp-setup.sql has been run)
       var multi = api('/rest/v1/multikills?select=series,player,k4,k5&limit=20000').catch(function () { return []; });
       var vp = me ? api('/rest/v1/vp_ledger?select=kind,week,amount,detail,created_at&order=created_at.desc&limit=5000').catch(function () { return null; }) : Promise.resolve([]);
-      return Promise.all([decks, profiles, unlocks, vp, multi]);
+      var admin = me ? api('/rest/v1/pcmt_admins?select=user_id&user_id=eq.' + me.id).catch(function () { return []; }) : Promise.resolve([]);
+      return Promise.all([decks, profiles, unlocks, vp, multi, admin]);
     }).then(function (res) {
       attachMulti(res[4] || []);
+      window.PCMT_IS_ADMIN = !!(res[5] && res[5].length);
       var decks = res[0] || [], profiles = res[1] || [], unlocks = res[2] || [];
       window.PCMT_SERVER_UNLOCKS = unlocks.map(function (u) { return u.unlock; });
       var names = {};
