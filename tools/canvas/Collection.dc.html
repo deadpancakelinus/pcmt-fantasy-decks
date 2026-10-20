@@ -76,7 +76,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 
 <section aria-label="Your VP" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 16px">
 <div style="background: #0b1011; border: 1px solid #1e2b2d; border-radius: 12px; padding: 22px; display: flex; flex-direction: column; gap: 10px; min-width: 0">
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.08em; text-transform: uppercase">VP balance</span>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.08em; text-transform: uppercase">The Bank</span>
 <span style="display: flex; align-items: baseline; gap: 10px"><span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 56px; line-height: 1; color: #a5dcdd; font-variant-numeric: tabular-nums">{{vp.balance}}</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #a5dcdd">VP</span></span>
 <span style="font-size: 14px; color: #93a9aa; line-height: 1.5">Earned this season: {{vp.earned}} VP</span>
 <sc-if value="{{hasArriving}}" hint-placeholder-val="{{ false }}">
@@ -84,7 +84,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </sc-if>
 </div>
 <div style="background: #0b1011; border: 1px solid #1e2b2d; border-radius: 12px; padding: 22px; display: flex; flex-direction: column; gap: 10px; min-width: 0">
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.08em; text-transform: uppercase">This gameweek so far</span>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.08em; text-transform: uppercase">Paycheck</span>
 <span style="display: flex; align-items: baseline; gap: 10px"><span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 56px; line-height: 1; color: #a5dcdd; font-variant-numeric: tabular-nums; color: #eaf4f4">{{vp.week.vp}}</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #93a9aa">VP</span></span>
 <span style="font-size: 14px; color: #93a9aa; line-height: 1.5">{{weekNote}}</span>
 </div>
