@@ -74,7 +74,7 @@
 <main>
   <div>
     <h1>Admin</h1>
-    <p class="sub">Enter each player's 4Ks and 5Ks for a series. 4K = +1, 5K (ace) = +3, and an ace counts as a 5K only. The new points show on the site the next time a page loads, and VP pays out with them.</p>
+    <p class="sub">Enter each player's 4Ks and 5Ks for a series, and set card pack prices below. 4K = +1, 5K (ace) = +3, and an ace counts as a 5K only. The new points show on the site the next time a page loads, and VP pays out with them.</p>
   </div>
 
   <section class="panel" id="st-loading" role="status"><p class="msg">Loading…</p></section>
@@ -104,6 +104,13 @@
     <button class="btn" id="save" type="button">Save 4Ks and 5Ks</button>
     <p class="msg" id="msg" role="status" aria-live="polite"></p>
   </div>
+
+  <section class="panel" id="packs-admin" hidden aria-labelledby="packs-h">
+    <span class="kicker" id="packs-h">Card packs</span>
+    <p class="note">Set each pack's price in VP. While "Open to everyone" is off, only admins can buy, so you can test (a price of 0 is free). Odds and pack contents come from <span class="mono">tools/cards.py</span>.</p>
+    <table><thead><tr><th>Pack</th><th class="n">Price (VP)</th><th class="n" style="width:120px">Open to everyone</th></tr></thead><tbody id="packs-rows"></tbody></table>
+    <div class="bar"><button class="btn" id="packs-save" type="button">Save packs</button><p class="msg" id="packs-msg" role="status" aria-live="polite"></p></div>
+  </section>
 </main>
 
 <footer><div><span>fantasy.pcmt.gg · Plat Chat Members Tourney</span><span>Admin</span></div></footer>
@@ -199,6 +206,35 @@
   });
   window.addEventListener('beforeunload', function (e) { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
   $('login').addEventListener('click', function () { L.signIn('admin.html'); });
+
+  // ---- card packs: price and who can buy ----
+  function packsSay(t, cls) { $('packs-msg').textContent = t; $('packs-msg').className = 'msg' + (cls ? ' ' + cls : ''); }
+  function showPacks() {
+    var packs = (window.PCMT_PACKS || []).slice().sort(function (a, b) { return (a.region === 'NA' ? 0 : 1) - (b.region === 'NA' ? 0 : 1); });
+    if (!packs.length) { $('packs-admin').hidden = false; $('packs-rows').innerHTML = '<tr><td colspan="3">No packs yet. Run <span class="mono">setup/cards-setup.sql</span> in Supabase.</td></tr>'; $('packs-save').hidden = true; return; }
+    $('packs-rows').innerHTML = packs.map(function (p) {
+      return '<tr data-pack="' + esc(p.id) + '"><td class="name">' + esc(p.name) + '<small>' + esc(p.region) + ' players · ' + esc(p.cards) + ' cards</small></td>' +
+        '<td class="n"><input type="number" inputmode="numeric" min="0" step="1" value="' + (p.price == null ? '' : p.price) + '" placeholder="—" aria-label="' + esc(p.name) + ' price in VP" style="width:90px"></td>' +
+        '<td class="n"><input type="checkbox"' + (p.open_to_all ? ' checked' : '') + ' aria-label="' + esc(p.name) + ' open to everyone" style="width:22px;height:22px;accent-color:#a5dcdd"></td></tr>';
+    }).join('');
+    $('packs-admin').hidden = false;
+  }
+  $('packs-save').addEventListener('click', function () {
+    var rows = Array.prototype.slice.call(document.querySelectorAll('#packs-rows tr[data-pack]'));
+    var bad = rows.filter(function (tr) { var v = tr.querySelector('input[type=number]').value.trim(); return v !== '' && !(/^\d+$/.test(v)); });
+    if (bad.length) return packsSay('Prices must be whole numbers of VP (or empty for no price).', 'err');
+    $('packs-save').disabled = true; packsSay('Saving…');
+    Promise.all(rows.map(function (tr) {
+      var v = tr.querySelector('input[type=number]').value.trim(), id = tr.getAttribute('data-pack');
+      var body = { price: v === '' ? null : +v, open_to_all: tr.querySelector('input[type=checkbox]').checked };
+      return L.api('/rest/v1/card_packs?id=eq.' + encodeURIComponent(id), { method: 'PATCH', headers: { Prefer: 'return=representation' }, body: body })
+        .then(function (r) { if (!r || !r.length) throw new Error('not saved (is this account an admin?)'); return r[0]; });
+    })).then(function (saved) {
+      saved.forEach(function (row) { (window.PCMT_PACKS || []).forEach(function (p) { if (p.id === row.id) { p.price = row.price; p.open_to_all = row.open_to_all; } }); });
+      packsSay('Saved. The Store shows the new prices on its next load.', 'ok');
+    }).catch(function (e) { packsSay('Couldn\'t save: ' + e.message, 'err'); })
+      .then(function () { $('packs-save').disabled = false; });
+  });
   $('copy-sql').addEventListener('click', function () {
     var t = $('admin-sql').textContent, b = this;
     (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { b.textContent = 'Copied'; }, function () { b.textContent = 'Select the text and copy it'; });
@@ -211,6 +247,7 @@
     return L.api('/rest/v1/pcmt_admins?select=user_id&user_id=eq.' + id).then(function (r) {
       if (!r || !r.length) return show('st-noadmin');
       show('st-admin');
+      showPacks();
       var list = seriesList(), sel = $('series');
       if (!list.length) { sel.innerHTML = '<option>No series yet</option>'; sel.disabled = true; $('series-note').textContent = 'Series from the Oct 19 gameweek on show up here once they start.'; return; }
       sel.innerHTML = list.map(function (x, i) { return '<option value="' + i + '">' + esc(when(x.m.start) + ' · ' + x.m.a + ' vs ' + x.m.b + ' (' + x.m.region + (x.m.bo ? ', BO' + x.m.bo : '') + ')' + (x.result ? '' : ' · waiting for result')) + '</option>'; }).join('');

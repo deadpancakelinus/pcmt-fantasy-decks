@@ -24,7 +24,7 @@ Start here. It covers what exists, how changes are made and shipped, and what's 
 | Rules.dc.html | guide.html | Guide + Patch Notes (site is "Version 1.5 BETA"; footers on every page show the version) |
 | Login.dc.html | login.html | Discord log in |
 | Transactions.dc.html | transactions.html | **Transactions** (last in the menu): The Bank (all VP the player has), Last Paycheck (VP from the last finished gameweek), Paychecks (VP in), Spending (VP out: pack and amount). Shown blurred under "Coming Soon..." to everyone except admins. `collection.html` just redirects here. |
-| Store.dc.html | store.html | **Store**: card variants for sale (first: the Teklologik variant, an MVP VS-size card with the same stats and faint art behind the face). Blurred under "Coming Soon..." to everyone except admins; buying isn't built yet. Items are `PCMT_STORE_ITEMS` in the board. |
+| Store.dc.html | store.html | **Store**: The Bank, NA and EMEA card packs (buy with VP, then the pack opening plays with the cards you pulled), and the variants found in packs (Teklologik variant: Rare, NA). Blurred under "Coming Soon..." to everyone except admins. |
 | (hand-written) | admin.html | Hidden admin page (not in the nav): enter each player's 4Ks and 5Ks per series. Only accounts in `pcmt_admins` can save. |
 | (hand-written) | mvp-vs.html | **MVP VS** card game (see section 9). Its board MvpVs.dc.html is only the old "Coming soon" design and is not built. |
 
@@ -70,6 +70,7 @@ Tables: `profiles`, `deck_history` (insert-only, server timestamps, 60/hour limi
 
 ## 8. Open items
 
+- Run `setup/cards-setup.sql` in the Supabase SQL Editor (after vp-setup.sql) to switch on card packs; then set prices on admin.html.
 - Run `setup/vp-setup.sql` in the Supabase SQL Editor to switch on VP (until then, the Transactions page shows "VP isn't switched on yet" to admins).
 - Run `setup/fix-display-names.sql` in the Supabase SQL Editor if not done yet.
 - Connect fantasy.pcmt.gg: Cloudflare Pages → Custom domains, then add it to Supabase Redirect URLs.
@@ -98,3 +99,14 @@ Tables: `profiles`, `deck_history` (insert-only, server timestamps, 60/hour limi
 - Site side: `league.js` reads `vp_ledger` and shows it on transactions.html. Last Paycheck is what the ledger paid for the last finished gameweek.
 - Test: start a throwaway Postgres, then run `node tools/vp-test.js "psql -h /tmp/pg -p 5499 -U postgres" <out>/players.js`. It checks the SQL against the site's own scoring in random seasons, plus top-ups, re-runs and permissions.
 - Next phases: card packs bought with VP, cards stored per player on the server, a card album page, then MVP VS hands from owned cards and VP bets (game run on the server).
+
+## 11. Cards and card packs
+
+- Catalog: every store player is a Common card (`c:<player id>`); variants are `v:<variant id>` with a rarity (Teklologik variant = Rare). Each card has a region (from its team).
+- Packs: NA Card Pack and EMEA Card Pack, 5 cards each, drawn only from that region. Odds per card: Common 70, Rare 22, Epic 7, Legendary 1. If a tier has no cards yet, the card drops to the next tier down.
+- `tools/cards.py` holds the variants, packs and odds and writes `setup/cards-setup.sql` (run `python3 -I tools/cards.py <out>/players.js`). Re-run it and the SQL when players or variants change; removed cards are switched off, never deleted.
+- Buying is only the `buy_pack(pack)` function on the server: it checks the price, the buyer's VP (one purchase at a time per player), writes the `pack` line in `vp_ledger`, draws the cards, adds them to `user_cards` (duplicates are counted) and logs `pack_openings`. The browser only shows the result.
+- Prices and "Open to everyone" are set on admin.html. Until a pack is open to everyone, only admins can buy it (a price of 0 is free, for testing).
+- The Store board carries a copy of the Customization board's pack opening (`pcmtPackAnim`), changed for store packs: a team per card, rarity glow and tag, variant art, NEW / ×n badges, and it stays open until closed. The pack images on the Store are that same pack, drawn once (assets `1ebfc850…` NA, `87166e6b…` EMEA).
+- To add a variant: add it to `VARIANTS` in tools/cards.py, its art to `PCMT_VARIANT_ART` (and `PCMT_STORE_ITEMS` to show it) in the Store board, rebuild, run the SQL.
+- Test: `node tools/cards-test.js "psql -h /tmp/pg -p 5499 -U postgres"` (odds, region, VP, duplicates, at-once purchases, permissions).

@@ -75,12 +75,51 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </sc-if>
 <div aria-hidden="{{lockHidden}}" style="display: flex; flex-direction: column; gap: 28px; filter: {{lockBlur}}; pointer-events: {{lockPointer}}; user-select: {{lockPointer}}">
 
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
 <div style="display: flex; flex-direction: column; gap: 6px">
 <h1 style="margin: 0; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 60px; line-height: 1">Store</h1>
-<p style="margin: 8px 0 0; max-width: 640px; font-size: 18px; line-height: 1.55; color: #c4d4d4">Spend your VP on card variants. They show up in your hand in MVP VS.</p>
+<p style="margin: 8px 0 0; max-width: 640px; font-size: 18px; line-height: 1.55; color: #c4d4d4">Spend your VP on card packs. Every pack has 5 cards from its region, and some cards are rare variants.</p>
+</div>
+<div style="display: flex; align-items: baseline; gap: 10px; padding: 12px 18px; border: 1px solid #1e2b2d; border-radius: 12px; background: #0b1011">
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.08em; text-transform: uppercase">The Bank</span>
+<span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 32px; line-height: 1; color: #a5dcdd">{{bank}}</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; color: #a5dcdd">VP</span>
+</div>
 </div>
 
-<section aria-label="For sale" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 300px)); gap: 28px; justify-content: start">
+<section aria-labelledby="packs-h" style="display: flex; flex-direction: column; gap: 16px">
+<h2 id="packs-h" style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">Card packs</h2>
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 20px">
+<sc-for list="{{packs}}" as="pk" hint-placeholder-count="2">
+<article style="background: #0b1011; border: 1px solid #1e2b2d; border-radius: 12px; padding: 22px; display: flex; gap: 20px; align-items: center; flex-wrap: wrap">
+<img src="{{pk.art}}" alt="{{pk.name}}" style="width: 133px; height: 180px; object-fit: contain; display: block; flex: none; filter: drop-shadow(0 14px 18px rgba(0,0,0,.6))">
+<div style="flex: 1 1 180px; min-width: 0; display: flex; flex-direction: column; gap: 10px">
+<h3 style="margin: 0; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 30px; line-height: 1.05">{{pk.name}}</h3>
+<span style="color: #c4d4d4; font-size: 15px; line-height: 1.45">{{pk.desc}}</span>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; line-height: 1.6">{{pk.odds}}</span>
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 4px">
+<span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 30px; line-height: 1; color: #a5dcdd">{{pk.priceLabel}} <small style="font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600">VP</small></span>
+<sc-if value="{{pk.confirming}}" hint-placeholder-val="{{ false }}">
+<span style="display: inline-flex; gap: 8px; flex-wrap: wrap">
+<button onClick="{{pk.confirm}}" style="min-height: 44px; padding: 0 16px; border-radius: 8px; border: 1px solid #a5dcdd; background: #a5dcdd; color: #000; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; cursor: pointer">Spend {{pk.price}} VP</button>
+<button onClick="{{cancelBuy}}" style="min-height: 44px; padding: 0 14px; border-radius: 8px; border: 1px solid #2c3d40; background: transparent; color: #eaf4f4; font-family: 'JetBrains Mono', monospace; font-size: 13px; cursor: pointer">Cancel</button>
+</span>
+</sc-if>
+<sc-if value="{{pk.notConfirming}}" hint-placeholder-val="{{ true }}">
+<button onClick="{{pk.buy}}" disabled="{{pk.disabled}}" style="min-height: 44px; padding: 0 18px; border-radius: 8px; border: 1px solid {{pk.btnBorder}}; background: {{pk.btnBg}}; color: {{pk.btnInk}}; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; cursor: {{pk.cursor}}">{{pk.buyLabel}}</button>
+</sc-if>
+</div>
+<sc-if value="{{pk.hasNote}}" hint-placeholder-val="{{ false }}">
+<span role="status" style="font-size: 14px; line-height: 1.45; color: {{pk.noteInk}}">{{pk.note}}</span>
+</sc-if>
+</div>
+</article>
+</sc-for>
+</div>
+</section>
+
+<section aria-labelledby="variants-h" style="display: flex; flex-direction: column; gap: 16px">
+<h2 id="variants-h" style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">Variants in packs</h2>
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 300px)); gap: 28px; justify-content: start">
 <sc-for list="{{items}}" as="it" hint-placeholder-count="1">
 <article style="display: flex; flex-direction: column; gap: 14px; min-width: 0">
 <div class="st-card" role="img" aria-label="{{it.cardLabel}}">
@@ -101,21 +140,19 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </div>
 <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; height: 26px; flex: none">
 <img src="{{it.roleIcon}}" alt="{{it.roleLabel}}" title="{{it.roleLabel}}" style="width: 24px; height: 24px; display: block">
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.12em; color: {{it.color}}">{{it.variantTag}}</span>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.12em; color: {{it.rarityInk}}">{{it.rarityTag}}</span>
 </div>
 </div>
 <span style="display: block; height: 5px; background: {{it.color}}; flex: none; position: relative; z-index: 1"></span>
 </div>
 <div style="display: flex; flex-direction: column; gap: 4px">
-<h2 style="margin: 0; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 28px; line-height: 1.1">{{it.title}}</h2>
+<h3 style="margin: 0; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 28px; line-height: 1.1">{{it.title}}</h3>
 <span style="color: #93a9aa; font-size: 14px; line-height: 1.5">{{it.blurb}}</span>
-</div>
-<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
-<span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 30px; line-height: 1; color: #a5dcdd">{{it.price}} <small style="font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600">VP</small></span>
-<button disabled style="min-height: 44px; padding: 0 18px; border-radius: 8px; border: 1px solid #2c3d40; background: transparent; color: #93a9aa; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; cursor: not-allowed">Coming soon</button>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: {{it.ownedInk}}">{{it.owned}}</span>
 </div>
 </article>
 </sc-for>
+</div>
 </section>
 
 </div>
@@ -131,15 +168,573 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
-// What's for sale. Stats match the player's MVP VS card (trumps-cards.js).
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1500}}'>
+// ---- Store ----
+// Packs come from Supabase (card_packs, see setup/cards-setup.sql); the canvas shows these samples.
+// Buying runs on the server (buy_pack): it takes the VP and draws the cards; the opening below only shows them.
+var PCMT_PACK_SAMPLE = [
+  { id: 'na-pack', name: 'NA Card Pack', region: 'NA', cards: 5, price: null, open_to_all: false, odds: { common: 70, rare: 22, epic: 7, legendary: 1 } },
+  { id: 'emea-pack', name: 'EMEA Card Pack', region: 'EMEA', cards: 5, price: null, open_to_all: false, odds: { common: 70, rare: 22, epic: 7, legendary: 1 } }
+];
+// Pack art: the same foil pack as the opening animation, drawn once into an image per region.
+var PCMT_PACK_ART = { NA: '/_blob/1ebfc850b10de6e909e96751b32a0977', EMEA: '/_blob/87166e6bb2de15f385a04e2962058989' };
+var PCMT_SEASON = { NA: 'NA S3', EMEA: 'EMEA S2' };
+// Variant art by variant id (cards table: 'v:<id>').
+var PCMT_VARIANT_ART = { 'teklo-variant': '/_blob/8b1855340f56f72ea07f5447ca167038' };
+var PCMT_RARITY_INK = { common: '#93a9aa', rare: '#7cc2ff', epic: '#c99bff', legendary: '#f5d76e' };
+// Variants shown on the page (stats match the player's MVP VS card in trumps-cards.js).
 var PCMT_STORE_ITEMS = [
-  { id: 'teklo-variant', title: 'Teklologik variant', blurb: 'teklo\'s MVP VS card with special art behind the card face.', price: '—',
+  { id: 'teklo-variant', card: 'v:teklo-variant', rarity: 'rare', pack: 'NA Card Pack', title: 'Teklologik variant', blurb: 'teklo\'s MVP VS card with special art behind the card face.',
     name: 'teklo', team: 'DFM', teamName: 'Dementia Found Me', color: '#5a78ff', season: 'S3 NA', maps: 21, role: 'duelist',
     teamLogo: '/_blob/a59455af931db22aaf5f61e2da9f3686', regionLogo: '/_blob/c265e976f8968e60e4a2bdd32542b499',
     roleIcon: '/_blob/3911a104cbddaf481d7a7bf070a2e696', art: '/_blob/8b1855340f56f72ea07f5447ca167038',
     acs: 177, kast: 62, hs: 23, dpr: 0.83, toxic: 0.8 }
 ];
+// The default card back (the BLUE deck), used for pack cards.
+var PCMT_STORE_BACK = { color: '#a5dcdd', edge: '#1f3a3b', ringClass: '', bgClass: '', frame: 'rgba(165,220,221,0.75)', frameSoft: 'rgba(165,220,221,0.4)', glow: 'rgba(165,220,221,0.3)',
+  code: 'BLUE', noLogo: false, logo: '/_blob/3bf9d529cabff94109b561693539029f', imgSize: '100%', imgRadius: '50%',
+  bg: 'radial-gradient(circle at 50% 50%, #0b1011 0 28%, rgba(11,16,17,0) 50%), repeating-linear-gradient(45deg, rgba(165,220,221,0.22) 0 1px, transparent 1px 11px), repeating-linear-gradient(-45deg, rgba(165,220,221,0.22) 0 1px, transparent 1px 11px), radial-gradient(circle at 50% 50%, #12191a 0%, #080b0c 100%)' };
+
+// ---- Shared with the Customization board (keep in step): teams, champions, and the card pack opening ----
+var PCMT_CHAMPS = ['longclaw', 'devil', 'platinum', 'igneous', 'james', 'stingray', 'faye', 'charlotte', 'mide', 'king', 'tonnoman']; // NA S1/S2 and EMEA S1 champions, treated the same
+var PCMT_DECK_TEAMS = [
+  { code: 'T1', name: 'Team 1', color: '#FF0000', logo: '/_blob/ce2bf22e2df8751703c00f132b854650' },
+  { code: 'TL', name: 'Team Dyslexia', color: '#1c9ad8', logo: '/_blob/18b0eb4cbe217fc77dda8f01e3ff4c16' },
+  { code: 'IHOP', name: 'I Hate Odin Party', color: '#3d95dc', logo: '/_blob/209d81a7df0d79fc71d99063600358ef' },
+  { code: 'FSG', name: 'Furry Squirrels Gaming', color: '#e8603c', logo: '/_blob/ad1fa170a11534a10c9a953f0a092175' },
+  { code: 'FNC', name: 'cow paulo FaN Club', color: '#ff8a1f', logo: '/_blob/8a102a19e71060bb2dacb6d6b5263457' },
+  { code: 'SSG', name: 'Squirtle Squad Gaming', color: '#f2b01e', logo: '/_blob/1e20352a30572a577222d14b6a2389ce' },
+  { code: 'RRQ', name: 'Rage Re-Queuers', color: '#f5d90a', logo: '/_blob/2c8df8598d3c163942e4d347ee4d7e8e' },
+  { code: 'C9', name: 'Clown9', color: '#4dc3ef', logo: '/_blob/46ec4a1f510710db9670e64c202b0cee' },
+  { code: 'SRB', name: 'Sunshine and Rainbows', color: '#58c47a', logo: '/_blob/24ce287349ef3d8ae3c603e22142a375' },
+  { code: 'TS', name: 'Team Slugshow', color: '#9b6be8', logo: '/_blob/56f2be02d04c1bb89902b3eb4f989ac4' },
+  { code: 'EPY', name: 'Team Entropy', color: '#e6e6e6', logo: '/_blob/2b237feaf70d67ef58a84efbab9a3e51' },
+  { code: 'DFM', name: 'Dementia Found Me', color: '#5a78ff', logo: '/_blob/a59455af931db22aaf5f61e2da9f3686' },
+  { code: 'BAKA', name: 'Beautiful and Kinda Adorable', color: '#b98ad9', logo: '/_blob/09e5595acee6eb70652c84027ef2e6d6' },
+  { code: 'NAVI', name: 'No Actual Valorant Intelligence', color: '#FF6EB4', logo: '/_blob/f6b846609af48437299bc42d13d5dad0' },
+  { code: '100T', name: "100 Tony's", color: '#45dfe8', logo: '/_blob/2afecaefb84157c171a79e0bae8932b5' },
+  { code: 'SPG', name: 'Spank Ptheory Gaming', color: '#ff7f66', logo: '/_blob/fb1551434b59a200d90d2e9ed6a51e8b' }
+];
+// EMEA Season 2 team decks: same unlock rule as NA. logo: null shows the tricode until a logo is added.
+var PCMT_EMEA_DECK_TEAMS = [
+  { code: 'FaZe', name: 'Fabulous and Zesty', color: '#f28bd8', logo: '/_blob/9da6e0491a922186cad6bc5daf699626' },
+  { code: 'ATLC', name: 'ATLNTIC Esports', color: '#e04848', logo: '/_blob/086abe908c829ddcb51bee4b1db16b83' },
+  { code: 'SEAL', name: 'Stay Seally', color: '#8fd3e8', logo: '/_blob/7f2055fcc7e78ae7d1510fe56608fd83' },
+  { code: 'HOT', name: 'Honestly Outrageous Temperatures', color: '#4f8ef7', logo: '/_blob/e078dfeeea5c9d916197f71d8b7ea80a' },
+  { code: 'NIP', name: 'Name in Progress', color: '#c2478f', logo: '/_blob/f953d56be563808b39dbb961891fae8e' },
+  { code: 'LARP', name: 'Larpiatán', color: '#6f8fe0', logo: '/_blob/f06cf372e21c32dbf3754b8bd506e0b5' },
+  { code: 'XTC', name: 'Xually Terribly Cursed', color: '#f0913a', logo: '/_blob/570eadcaf88a4d369017946bff2b0356' },
+  { code: 'SOG', name: 'The SOG', color: '#b8814a', logo: '/_blob/85e0857300495ee3133b6acf79e286c0' },
+  { code: 'NOOT', name: 'Penguin Patrol', color: '#3fb6a8', logo: '/_blob/195da1efa2549707b6737764479c066c' },
+  { code: 'NATS', name: 'Never Available To Scrim', color: '#ef8f8f', logo: '/_blob/8cbc4258cff847c1db533f124fd9addf' }
+];
+var PCMT_SMALL_LOGOS = { HOT: 1, LARP: 1, NATS: 1 }; // photo logos: shown smaller so they sit inside the ring
+var PCMT_REGION_LOGOS = { NA: '/_blob/c265e976f8968e60e4a2bdd32542b499', EMEA: '/_blob/3c7e7374dceead68d5c58818d0bcfe8a' };
+var PCMT_ALL_DECK_TEAMS = PCMT_DECK_TEAMS.concat(PCMT_EMEA_DECK_TEAMS);
+function pcmtRgba(hex, a) {
+  var h = hex.replace('#', '');
+  return 'rgba(' + parseInt(h.slice(0, 2), 16) + ',' + parseInt(h.slice(2, 4), 16) + ',' + parseInt(h.slice(4, 6), 16) + ',' + a + ')';
+}
+var PCMT_PACK_PLAYERS = [["crocman","mrcrocman","T1","duelist",13.5],["pi","pi","T1","initiator",9.5],["ceiliuir","ceiliuir","T1","sentinel",7.5],["roro","roro","T1","controller",6],["radical","radical","T1","duelist",6],["haych","haych","TL","sentinel",11.5],["caleb","caleb","TL","controller",7.5],["ender","ender","TL","initiator",8],["tans","tans","TL","controller",7],["slow","slow","TL","duelist",6],["eve","eve","IHOP","duelist",8],["pavel","pavel","IHOP","duelist",8.5],["platinum","platinum","IHOP","initiator",6.5],["ethan","ethan","IHOP","controller",10.5],["maple","maple","IHOP","sentinel",5],["nolan","nolan","FSG","sentinel",9.5],["skye","skye","FSG","duelist",7.5],["rudra","rudra","FSG","controller",7],["corina","corina","FSG","duelist",7],["amara","amara","FSG","initiator",7],["james","james","FNC","duelist",11],["niboos","niboos","FNC","duelist",7],["li","li","FNC","sentinel",7],["xixi","xixi","FNC","initiator",4],["adeline","adeline","FNC","controller",5.5],["colt","colt","SSG","duelist",11.5],["darshan","darshan","SSG","initiator",10],["aleks","aleks","SSG","controller",10.5],["nameless","nameless","SSG","initiator",6.5],["cardamom","cardamom","SSG","controller",4.5],["angus","angus","RRQ","duelist",11],["snowfall","snowfall","RRQ","controller",8],["platy","platy","RRQ","sentinel",7],["twon","twon","RRQ","sentinel",6],["tery","tery","RRQ","controller",5],["claps","claps","C9","controller",15],["art","art","C9","sentinel",8.5],["igneous","igneous","C9","initiator",7],["makya","makya","C9","controller",8],["caesparz","caesparz","C9","initiator",5.5],["izz","izz","SRB","duelist",13.5],["jaypee","jaypee","SRB","duelist",9],["timothy","timothy","SRB","initiator",6],["nova","nova","SRB","initiator",6.5],["androobee","androobee","SRB","duelist",6.5],["straight","straight","TS","duelist",10],["avi","avi","TS","duelist",12.5],["dino","dino","TS","controller",6.5],["lore","lore","TS","initiator",5.5],["paul","paul","TS","initiator",5],["solar","solar","EPY","controller",9],["blitz","blitz","EPY","duelist",9.5],["apple","apple","EPY","sentinel",10.5],["robohobo","robohobo","EPY","duelist",7],["latin","latin","EPY","initiator",4],["nik","nik","DFM","controller",8],["masao","masao","DFM","initiator",8],["longclaw","longclaw","DFM","controller",7],["teklo","teklo","DFM","duelist",5.5],["hascan","hascan","DFM","controller",6.5],["lucas","lucas","BAKA","duelist",12],["night","night","BAKA","controller",8.5],["asher","asher","BAKA","controller",7],["devil","devil","BAKA","duelist",5],["tenyaku","tenyaku","BAKA","sentinel",6.5],["stingray","stingray","NAVI","initiator",12.5],["kaydeg","kaydeg","NAVI","duelist",7.5],["linus","linus","NAVI","controller",7],["cassie","cassie","NAVI","initiator",7],["kennys","kennys","NAVI","controller",9.5],["lazy","lazy","NAVI","sentinel",6.5],["abstracq","abstracq","100T","duelist",10.5],["psyclone","psyclone","100T","initiator",9.5],["shadow","shadow","100T","controller",7.5],["xyn","xyn","100T","initiator",7],["thecatsmeow","thecatsmeow","100T","initiator",5.5],["thighs","thighs","SPG","initiator",10],["cooleo","cooleo","SPG","sentinel",12.5],["derpina","derpina","SPG","duelist",8],["phuzzy","phuzzy","SPG","sentinel",9.5],["dunkn","dunkn","SPG","controller",7.5],["heef","heef","FaZe","controller",11.5],["dragonflyod","dragonflyod","FaZe","duelist",5.5],["kramvi","kramvi","FaZe","initiator",8],["thorny","thorny","FaZe","sentinel",5.5],["nana","nana","FaZe","controller",9.5],["night-emea","night","ATLC","controller",10.5],["optimus","optimus","ATLC","initiator",6.5],["sky","sky","ATLC","controller",5.5],["bonkashi","bonkashi","ATLC","duelist",8.5],["ria","ria","ATLC","duelist",6],["becosh","becosh","SEAL","initiator",11.5],["hmmmdead","hmmmdead","SEAL","sentinel",7],["dovie","dovie","SEAL","duelist",7],["eva","eva","SEAL","controller",6.5],["otaka","otaka","SEAL","duelist",5],["shipty","shipty","HOT","initiator",12],["tonnoman","tonnoman","HOT","controller",8.5],["sovaraa","sovaraa","HOT","sentinel",7],["hioz","hioz","HOT","controller",7],["duck","duck","HOT","duelist",7],["kai","kai","NIP","duelist",12.5],["pandyro","pandyro","NIP","controller",10],["sb","sb","NIP","sentinel",7.5],["goofy","goofy","NIP","initiator",6.5],["jinno","jinno","NIP","controller",5.5],["mide","mide","LARP","controller",9.5],["oddlqt","oddlqt","LARP","sentinel",8.5],["kaiser","kaiser","LARP","duelist",7],["ellie","ellie","LARP","duelist",6],["synth","synth","LARP","controller",5.5],["sinderinho","sinderinho","XTC","duelist",9],["alexx","alexx","XTC","sentinel",10],["zidin","zidin","XTC","controller",8.5],["yessi","yessi","XTC","duelist",6],["riyako","riyako","XTC","controller",6.5],["k9","k 9","SOG","duelist",7],["luna","luna","SOG","duelist",7],["faye","faye","SOG","controller",8.5],["magmoz","magmoz","SOG","initiator",7],["charlotte","charlotte","SOG","sentinel",5],["jamit","jamit","NOOT","sentinel",12.5],["king","king","NOOT","duelist",9.5],["taylorgzz","taylorgzz","NOOT","duelist",8.5],["haike","haike","NOOT","controller",8],["pengu","pengu","NOOT","controller",5],["asra","asra","NATS","duelist",10.5],["reoken","reoken","NATS","controller",7],["spolen","spolen","NATS","sentinel",6],["danaxa","danaxa","NATS","initiator",7],["sy","sy","NATS","duelist",7]];
+var PCMT_PACK_ROLE_ICONS = {
+  duelist: '/_blob/3911a104cbddaf481d7a7bf070a2e696',
+  initiator: '/_blob/8f7fb7ffa93c48ba09a00fcd223c7f7c',
+  sentinel: '/_blob/006daf34642009c6f6749139f80a613e',
+  controller: '/_blob/783fdcc50fe04d2622938ee185d4ed32'
+};
+var PCMT_PACK_LOGO_H = { T1: 20, IHOP: 20, RRQ: 26, SSG: 26 };
+var PCMT_TROPHY_ICON = '/_blob/7dd283457b69773e4aa58012ed89ad9a';
+// ---- Card pack opening (plays once per newly unlocked deck) ----
+// Adapted from Foil_Pack_Opening.html. Card backs use the equipped deck; faces are 5 players from one unlocked team.
+// No auras on this animation.
+var PCMT_PACK_LOGO = '/_blob/acb13c6f52e3c94c8f21fd534f14a12b';
+var PCMT_PACK_CSS = [
+  '.pk-root{position:fixed;inset:0;z-index:2147483000;overflow:hidden;color:#e6e9ee;font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;background:radial-gradient(120% 80% at 50% 40%,rgba(23,26,33,.95),rgba(6,8,10,.97) 70%);animation:pk-in .3s ease-out both}',
+  '@keyframes pk-in{from{opacity:0}to{opacity:1}}',
+  '.pk-root *{box-sizing:content-box}',
+  '.pk-fit{position:absolute;left:50%;transform:translateX(-50%);width:min(1000px,calc(100% - 32px))}',
+  '.pk-stage{position:absolute;left:0;top:0;width:1000px;height:640px;transform-origin:0 0;overflow:visible}',
+  '.pk-fx{position:absolute;left:-300px;top:-300px;width:1600px;height:1240px;pointer-events:none;z-index:50}',
+  '.pk-flash{position:absolute;left:500px;top:300px;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:radial-gradient(circle,#fff 0%,rgba(220,235,255,.6) 30%,transparent 70%);opacity:0;z-index:40;pointer-events:none}',
+  '.pk-close{position:absolute;top:14px;right:14px;z-index:60;width:44px;height:44px;border-radius:50%;border:1px solid #2a2f39;background:rgba(0,0,0,.55);color:#e6e9ee;font:400 24px/1 system-ui,sans-serif;cursor:pointer;display:grid;place-items:center;padding:0;box-sizing:border-box}',
+  '.pk-close:focus-visible{outline:2px solid #e6e9ee;outline-offset:2px}',
+  '.pk-hint{position:absolute;left:0;right:0;text-align:center;font:500 12px "IBM Plex Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:#8a919c;opacity:0;transition:opacity .4s;pointer-events:none}',
+  '.pk-root.pk-done .pk-hint{opacity:1}',
+  '.pk-pack{position:absolute;width:266px;height:360px;left:367px;top:170px;z-index:10;cursor:pointer;outline:none;will-change:transform,opacity;filter:drop-shadow(0 22px 26px rgba(0,0,0,.6)) drop-shadow(0 2px 3px rgba(0,0,0,.5))}',
+  '.pk-pack:focus-visible{filter:drop-shadow(0 0 2px #c9d2dc) drop-shadow(0 18px 24px rgba(0,0,0,.55))}',
+  '.pk-foil{position:absolute;inset:0;background:#b9bec5 center/100% 100% no-repeat}',
+  '.pk-foil::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:3;background:linear-gradient(104deg,transparent 32%,rgba(255,255,255,.55) 46%,rgba(200,225,255,.3) 51%,transparent 64%) 0 0/320% 100%;mix-blend-mode:soft-light;animation:pk-sheen 4.4s ease-in-out infinite}',
+  '@keyframes pk-sheen{0%{background-position:115% 0}55%,100%{background-position:-15% 0}}',
+  '.pk-packin{position:absolute;inset:0;animation:pk-float 4.8s ease-in-out infinite}',
+  '.pk-pack.pk-opened .pk-packin{animation:none}',
+  '@keyframes pk-float{0%,100%{transform:translateY(0) rotate(-.6deg)}50%{transform:translateY(-6px) rotate(.6deg)}}',
+  '.pk-strip,.pk-body{position:absolute;inset:0}',
+  '.pk-print{position:absolute;z-index:2}',
+  '.pk-logo{position:absolute;z-index:2;left:50%;top:92px;width:156px;height:156px;margin-left:-78px;border-radius:50%;background:url(' + PCMT_PACK_LOGO + ') center/100% 100% no-repeat;box-shadow:0 0 0 3px rgba(40,44,50,.55),0 0 0 5px rgba(255,255,255,.35),inset 0 0 18px rgba(255,255,255,.08)}',
+  '.pk-logo::after{content:"";position:absolute;inset:0;border-radius:50%;background:radial-gradient(120% 70% at 30% 10%,rgba(255,255,255,.22),transparent 45%)}',
+  '.pk-tagline{left:0;right:0;top:262px;text-align:center;font:700 13px "Chakra Petch","Arial Narrow",system-ui,sans-serif;letter-spacing:.32em;text-transform:uppercase;color:#1d2025;text-shadow:0 1px 0 rgba(255,255,255,.35)}',
+  '.pk-notch{left:14px;top:30px;font:500 9px "IBM Plex Mono",monospace;letter-spacing:.22em;color:#23272d;text-transform:uppercase}',
+  '.pk-notch::before{content:"";position:absolute;left:-9px;top:1px;border:4px solid transparent;border-left-color:#3a3f47}',
+  '.pk-bar{left:22px;right:96px;bottom:34px;display:flex;justify-content:space-between;font:500 9px "IBM Plex Mono",monospace;letter-spacing:.2em;color:#23272d;text-transform:uppercase}',
+  '.pk-stamp{position:absolute;z-index:2;right:12px;bottom:25px;width:64px;height:64px;transform:rotate(-14deg);filter:drop-shadow(0 1px 1px rgba(0,0,0,.45))}',
+  '.pk-holo-disc{position:absolute;inset:0;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.85),transparent 38%),conic-gradient(from 20deg,#ff9fd6,#ffe08a,#9dffc8,#8fd8ff,#c5a3ff,#ff9fd6);animation:pk-holo-hue 3.6s linear infinite}',
+  '.pk-holo-disc::after{content:"";position:absolute;inset:0;background:repeating-radial-gradient(circle at 50% 50%,rgba(255,255,255,.28) 0 1px,transparent 1px 3px);mix-blend-mode:overlay}',
+  '@keyframes pk-holo-hue{to{filter:hue-rotate(360deg)}}',
+  '.pk-stamp svg{position:absolute;inset:0;overflow:visible}',
+  '.pk-edge{position:absolute;inset:0;z-index:4;pointer-events:none;opacity:0;overflow:visible}',
+  '.pk-pack.pk-torn .pk-edge{opacity:1}',
+  '.pk-strip{visibility:hidden;perspective:900px;perspective-origin:50% 20px;z-index:5}',
+  '.pk-seg{position:absolute;top:0;height:56px;transform-style:preserve-3d;will-change:transform}',
+  '.pk-sface{position:absolute;inset:0;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden}',
+  '.pk-sface-b{transform:rotateY(180deg)}',
+  '.pk-flip{position:absolute;inset:0;transform:scaleX(-1);overflow:hidden}',
+  '.pk-slice{position:absolute;top:0;width:266px;height:360px;background-size:266px 360px}',
+  '.pk-slice-b{background:repeating-linear-gradient(90deg,rgba(255,255,255,.06) 0 1px,transparent 1px 3px),linear-gradient(180deg,#bfc4ca,#9ba1a9 55%,#80868e)}',
+  '.pk-slice .pk-edge{opacity:1}',
+  '.pk-pack.pk-torn .pk-strip{visibility:visible}',
+  // cards (236 x 300)
+  '.pk-card{position:absolute;width:236px;height:300px;left:382px;top:222px;perspective:1200px;will-change:transform}',
+  '.pk-card-in{position:absolute;inset:0;transform-style:preserve-3d;will-change:transform}',
+  '.pk-face{position:absolute;inset:0;border-radius:12px;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden;box-shadow:0 10px 22px rgba(0,0,0,.45);box-sizing:border-box}',
+  '.pk-back{display:grid;place-items:center}',
+  '.pk-back *{box-sizing:border-box}',
+  '.pk-front{transform:rotateY(180deg);background:#0b1011;border:1px solid #1e2b2d;display:flex;flex-direction:column;font-family:"Space Grotesk",system-ui,sans-serif;color:#eaf4f4}',
+  '.pk-front *{box-sizing:border-box}',
+  '.pk-tbar{height:5px;flex:none;position:relative;z-index:1}',
+  '.pk-wm{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}',
+  '.pk-wm img{width:78%;max-width:170px;aspect-ratio:1;object-fit:contain;opacity:.12;transform:translateY(10px)}',
+  '.pk-holo{position:absolute;inset:0;mix-blend-mode:color-dodge;opacity:0;pointer-events:none;z-index:3;background:linear-gradient(115deg,transparent 30%,rgba(255,120,200,.5) 42%,rgba(120,220,255,.55) 50%,rgba(255,240,140,.5) 58%,transparent 70%) 0 0/260% 100%}',
+  '.pk-card.pk-shown .pk-holo{opacity:.3;animation:pk-holo 2.6s ease-in-out infinite}',
+  '@keyframes pk-holo{0%{background-position:110% 0}100%{background-position:-10% 0}}',
+  '.pk-in{position:relative;z-index:1;flex:1;padding:14px;display:flex;flex-direction:column;gap:8px;min-height:0}',
+  '.pk-head{height:30px;display:flex;align-items:center}',
+  '.pk-head img{width:auto;max-width:70px;object-fit:contain;display:block}',
+  '.pk-tri{font:700 20px/1 "Cabin Sketch",cursive}',
+  '.pk-name{font-family:"Cabin Sketch",cursive;font-weight:700;line-height:1.1;white-space:nowrap;overflow:hidden;display:flex;align-items:center;gap:6px;margin-top:auto}',
+  '.pk-name img{width:19px;height:19px;object-fit:contain;flex:none;filter:drop-shadow(0 0 4px rgba(245,215,110,.6))}',
+  '.pk-team{font-size:14px;line-height:1.2;font-weight:500;opacity:.85;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}',
+  '.pk-foot{display:flex;align-items:center;height:30px;margin-top:6px}',
+  '.pk-foot img{width:24px;height:24px;display:block}',
+  '.pk-price{margin-left:auto;font:700 44px/1 "Cabin Sketch",cursive;color:#eaf4f4;opacity:.36;text-shadow:0 1px 3px rgba(0,0,0,.75);letter-spacing:-.02em}',
+  // store packs: rarity glow, rarity tag, variant art, NEW / x-count badge
+  '.pk-art{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}',
+  '.pk-art img{position:absolute;right:-6%;bottom:-2%;height:104%;width:auto;max-width:none;opacity:.24;-webkit-mask-image:linear-gradient(180deg,#000 55%,transparent 100%);mask-image:linear-gradient(180deg,#000 55%,transparent 100%)}',
+  '.pk-rar{margin-left:auto;padding:4px 8px;border-radius:999px;border:1px solid currentColor;font:600 10px/1 "JetBrains Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:#93a9aa;background:rgba(0,0,0,.4)}',
+  '.pk-r-rare{box-shadow:0 0 0 2px #5ab0ff,0 0 26px rgba(90,176,255,.55)}.pk-r-rare .pk-rar{color:#7cc2ff}',
+  '.pk-r-epic{box-shadow:0 0 0 2px #b46cff,0 0 30px rgba(180,108,255,.6)}.pk-r-epic .pk-rar{color:#c99bff}',
+  '.pk-r-legendary{box-shadow:0 0 0 2px #f5d76e,0 0 36px rgba(245,215,110,.7)}.pk-r-legendary .pk-rar{color:#f5d76e}',
+  '.pk-badge{margin-left:auto;padding:4px 8px;border-radius:6px;background:#a5dcdd;color:#000;font:600 11px/1 "JetBrains Mono",monospace;letter-spacing:.08em}',
+  '@media (prefers-reduced-motion: reduce){.pk-packin,.pk-foil::after,.pk-holo-disc{animation:none}}'
+].join('\n');
+
+function pcmtPackEsc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+
+// Card back: the user's equipped deck (no aura).
+function pcmtPackBack(b) {
+  var e = pcmtPackEsc;
+  var dia = function (pos) { return '<div style="position:absolute;' + pos + ';width:9px;height:9px;transform:rotate(45deg);background:' + e(b.color) + '"></div>'; };
+  var cor = function (pos) { return '<div style="position:absolute;' + pos + ';width:7px;height:7px;transform:rotate(45deg);border:1px solid ' + e(b.frame) + '"></div>'; };
+  var inner = b.noLogo
+    ? '<span style="font:700 34px/1 \'Cabin Sketch\',cursive;color:' + e(b.color) + '">' + e(b.code) + '</span>'
+    : '<img src="' + e(b.logo) + '" alt="" style="width:' + e(b.imgSize) + ';height:' + e(b.imgSize) + ';object-fit:contain;display:block;border-radius:' + e(b.imgRadius) + '">';
+  return '<div class="pk-face pk-back ' + e(b.bgClass || '') + '" style="background:' + e(b.bg) + ';border:1px solid ' + e(b.edge) + '">' +
+    '<div style="position:absolute;inset:7px;border:1px solid ' + e(b.frame) + ';border-radius:8px"></div>' +
+    '<div style="position:absolute;inset:11px;border:1px solid ' + e(b.frameSoft) + ';border-radius:6px"></div>' +
+    dia('top:3px;left:50%;margin-left:-4.5px') + dia('bottom:3px;left:50%;margin-left:-4.5px') + dia('left:3px;top:50%;margin-top:-4.5px') + dia('right:3px;top:50%;margin-top:-4.5px') +
+    cor('top:15px;left:15px') + cor('top:15px;right:15px') + cor('bottom:15px;left:15px') + cor('bottom:15px;right:15px') +
+    '<div class="' + e(b.ringClass || '') + '" style="position:relative;width:70%;max-width:150px;aspect-ratio:1;border-radius:50%;border:1.5px solid ' + e(b.color) + ';display:grid;place-items:center;background:#080b0c;padding:5px;box-shadow:0 0 0 4px rgba(8,11,12,.9),0 0 0 5px ' + e(b.frameSoft) + ',0 0 18px ' + e(b.glow) + '">' + inner + '</div>' +
+    '</div>';
+}
+
+// Card face: same look as a player card in The Deck.
+function pcmtPackFront(p, t, cfg) {
+  var e = pcmtPackEsc;
+  var size = Math.max(18, Math.min(32, Math.floor(196 / Math.max(1, p.name.length * 0.56))));
+  var head = t.logo
+    ? '<img src="' + e(t.logo) + '" alt="' + e(t.name) + '" style="height:' + (t.logoH || 30) + 'px">'
+    : '<span class="pk-tri" style="color:' + e(t.color) + '">' + e(t.code) + '</span>';
+  var rar = p.rarity || '';
+  return '<div class="pk-face pk-front' + (rar ? ' pk-r-' + e(rar) : '') + '">' +
+    '<div class="pk-wm"><img src="' + e(p.regionLogo || cfg.regionLogo) + '" alt=""></div>' +
+    (p.art ? '<div class="pk-art"><img src="' + e(p.art) + '" alt=""></div>' : '') +
+    '<div class="pk-tbar" style="background:' + e(t.color) + '"></div>' +
+    '<div class="pk-in">' +
+      '<div class="pk-head">' + head + (rar && rar !== 'common' ? '<span class="pk-rar">' + e(rar) + '</span>' : '') + '</div>' +
+      '<div class="pk-name" style="font-size:' + size + 'px"><span style="overflow:hidden">' + e(p.name) + '</span>' + (p.champ ? '<img src="' + e(cfg.trophy) + '" alt="PCMT champion">' : '') + '</div>' +
+      '<div class="pk-team" style="color:' + e(t.color) + '">' + e(t.name) + '</div>' +
+      '<div class="pk-foot"><img src="' + e(p.roleIcon) + '" alt="' + e(p.role) + '">' + (p.badge ? '<span class="pk-badge">' + e(p.badge) + '</span>' : '<span class="pk-price">' + e(p.price) + '</span>') + '</div>' +
+    '</div>' +
+    '<div class="pk-tbar" style="background:' + e(t.color) + '"></div>' +
+    '<div class="pk-holo"></div>' +
+    '</div>';
+}
+
+function pcmtPackAnim(cfg, onClose) {
+  if (!document.getElementById('pk-style')) {
+    var st = document.createElement('style'); st.id = 'pk-style'; st.textContent = PCMT_PACK_CSS; document.head.appendChild(st);
+    var fl = document.createElement('link'); fl.rel = 'stylesheet';
+    fl.href = 'https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=IBM+Plex+Mono:wght@400;500&display=swap';
+    document.head.appendChild(fl);
+  }
+  var W = 266, H = 360, TEAR = 40;
+  var root = document.createElement('div');
+  root.className = 'pk-root';
+  root.setAttribute('role', 'dialog'); root.setAttribute('aria-modal', 'true'); root.setAttribute('aria-label', 'Opening your ' + cfg.deckName + ' pack');
+  root.innerHTML =
+    '<button type="button" class="pk-close" aria-label="Close">&times;</button>' +
+    (cfg.stay ? '<div class="pk-hint" style="bottom:28px">Click anywhere or press Esc to close</div>' : '') +
+    '<div class="pk-fit"><div class="pk-stage">' +
+      '<div class="pk-flash"></div><div class="pk-cards"></div>' +
+      '<div class="pk-pack" role="button" tabindex="0" aria-label="Open the card pack"><div class="pk-packin">' +
+        '<div class="pk-body pk-foil">' +
+          '<div class="pk-print pk-notch">Tear here</div>' +
+          '<div class="pk-logo" role="img" aria-label="Members Tournament logo"></div>' +
+          '<div class="pk-print pk-tagline">Card Pack</div>' +
+          '<div class="pk-stamp" aria-label="Authentic seal"><div class="pk-holo-disc"></div>' +
+            '<svg viewBox="0 0 64 64" width="64" height="64" aria-hidden="true"><defs><path id="pk-ring" d="M32 32 m-22 0 a22 22 0 1 1 44 0 a22 22 0 1 1 -44 0"/></defs>' +
+            '<circle cx="32" cy="32" r="27.5" fill="none" stroke="rgba(30,34,40,.55)" stroke-width=".8"/><circle cx="32" cy="32" r="16.5" fill="none" stroke="rgba(30,34,40,.55)" stroke-width=".8"/>' +
+            '<text font-family="IBM Plex Mono, ui-monospace, monospace" font-size="5.7" font-weight="700" letter-spacing="1.15" fill="#1f2328"><textPath href="#pk-ring">AUTHENTIC · OFFICIAL · MEMBERS ·</textPath></text>' +
+            '<path d="M24.5 32.5 l5 5 l10 -11" fill="none" stroke="#1f2328" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>' +
+          '<div class="pk-print pk-bar"><span>' + pcmtPackEsc(cfg.season) + '</span><span>' + cfg.players.length + ' cards</span></div>' +
+          '<svg class="pk-edge pk-edgeB" viewBox="0 0 266 360" width="266" height="360"></svg>' +
+        '</div><div class="pk-strip"></div>' +
+      '</div></div>' +
+      '<canvas class="pk-fx" width="1600" height="1240"></canvas>' +
+    '</div></div>';
+  document.body.appendChild(root);
+  var q = function (s) { return root.querySelector(s); };
+  var stage = q('.pk-stage'), fit = q('.pk-fit'), pack = q('.pk-pack'), strip = q('.pk-strip'), body = q('.pk-body'),
+      cardsEl = q('.pk-cards'), flash = q('.pk-flash'), closeBtn = q('.pk-close');
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var prevFocus = document.activeElement;
+
+  function scale() {
+    var s = Math.min(1, fit.clientWidth / 1000), vh = root.clientHeight, h = 640 * s;
+    stage.style.transform = 'scale(' + s + ')';
+    fit.style.height = h + 'px';
+    var want = (cfg.anchorY == null ? vh / 2 : cfg.anchorY) - h / 2;
+    var top = Math.max(16, Math.min(want, vh - h - 40));
+    fit.style.top = top + 'px';
+  }
+  window.addEventListener('resize', scale); scale();
+
+  var seed = 7;
+  var rnd = function () { return (seed = (seed * 16807) % 2147483647) / 2147483647; };
+  var serr = function (y0, dir) { var a = []; for (var x = 0, i = 0; x <= W; x += 3, i++) a.push([x, y0 + (i % 2 ? 3 : 0) * dir]); a[a.length - 1][0] = W; return a; };
+  var topEdge = serr(0, 1), botEdge = serr(H, -1).reverse();
+  var P = function (a) { return a.map(function (v) { return v[0].toFixed(1) + 'px ' + v[1].toFixed(1) + 'px'; }).join(','); };
+  body.style.clipPath = 'polygon(' + P(topEdge) + ', ' + P(botEdge) + ')';
+
+  function makeTear() {
+    var slope = (Math.random() - .5) * 16, rough = 1.5 + Math.random() * 5;
+    var stepMin = 2 + Math.random() * 3, stepVar = 2 + Math.random() * 6;
+    var wave = Math.random() * 4, waveF = 1 + Math.random() * 3, ph = Math.random() * 6;
+    var pts = [], jit = 0;
+    for (var x = 0; x < W; x += stepMin + Math.random() * stepVar) {
+      jit += (Math.random() - .5) * rough; jit *= .7;
+      var base = TEAR - 2 + slope * (x / W - .5) + wave * Math.sin(ph + x / W * Math.PI * waveF);
+      pts.push([x, Math.min(48, Math.max(26, base + jit))]);
+    }
+    pts[0][0] = 0; pts.push([W, Math.min(48, Math.max(26, TEAR - 2 + slope * .5 + (Math.random() - .5) * 3))]);
+    var line = pts.map(function (v) { return v[0].toFixed(1) + ',' + v[1].toFixed(1); }).join(' ');
+    var lip = function (dy) {
+      return '<polyline points="' + line + '" transform="translate(0 ' + dy + ')" fill="none" stroke="#fbfdff" stroke-width="2.2" stroke-linejoin="round" opacity=".95"/>' +
+        '<polyline points="' + line + '" transform="translate(0 ' + (dy * 2.4) + ')" fill="none" stroke="#5c626b" stroke-width="1.2" stroke-linejoin="round" opacity=".55"/>';
+    };
+    return { strip: 'polygon(' + P(topEdge) + ', ' + P(pts.slice().reverse()) + ')', body: 'polygon(' + P(pts) + ', ' + P(botEdge) + ')', lipB: lip(1), lipS: lip(-1) };
+  }
+
+  var TEARS = [
+    { anchorRight: true, fold: 160, lift: 22, twist: 14, peel: 620, castDur: 560, cast: { x: 380, y: -330, z: 60, rz: -70, rx: 40, ry: 30 } },
+    { anchorRight: false, fold: 160, lift: 22, twist: -14, peel: 620, castDur: 560, cast: { x: -380, y: -330, z: 60, rz: 70, rx: 40, ry: -30 } },
+    { anchorRight: true, fold: 95, lift: 38, twist: 30, peel: 460, castDur: 620, cast: { x: 70, y: -440, z: 120, rz: -220, rx: 80, ry: 40 } },
+    { anchorRight: true, fold: 170, lift: 8, twist: 10, peel: 700, castDur: 680, cast: { x: 300, y: 330, z: 40, rz: 80, rx: -50, ry: 20 } },
+    { anchorRight: false, fold: 175, lift: 4, twist: -6, peel: 380, castDur: 500, cast: { x: 580, y: -70, z: 30, rz: -25, rx: 20, ry: -60 } }
+  ];
+
+  var N_SEG = 12, SW = W / N_SEG, foilURL = '';
+  function buildStrip(tear, T) {
+    strip.innerHTML = '';
+    var notch = '<div class="pk-print pk-notch">Tear here</div>';
+    var parent = strip, segs = [];
+    for (var i = 0; i < N_SEG; i++) {
+      var idx = T.anchorRight ? N_SEG - 1 - i : i;
+      var seg = document.createElement('div'); seg.className = 'pk-seg';
+      seg.style.width = (SW + .8) + 'px';
+      seg.style.left = i === 0 ? (idx * SW) + 'px' : (T.anchorRight ? -SW : SW) + 'px';
+      seg.style.transformOrigin = (T.anchorRight ? SW : 0) + 'px 40px';
+      var off = -idx * SW;
+      seg.innerHTML =
+        '<div class="pk-sface"><div class="pk-slice" style="left:' + off + 'px;background-image:' + foilURL + ';clip-path:' + tear.strip + '">' + notch + '<svg class="pk-edge" viewBox="0 0 266 360" width="266" height="360">' + tear.lipS + '</svg></div></div>' +
+        '<div class="pk-sface pk-sface-b"><div class="pk-flip"><div class="pk-slice pk-slice-b" style="left:' + off + 'px;clip-path:' + tear.strip + '"><svg class="pk-edge" viewBox="0 0 266 360" width="266" height="360">' + tear.lipS + '</svg></div></div></div>';
+      parent.appendChild(seg); parent = seg; segs.push(seg);
+    }
+    return segs;
+  }
+
+  var peelRaf = 0;
+  function animateStrip(segs, T, startDelay) {
+    var s = T.anchorRight ? 1 : -1;
+    var res = segs.map(function () { return .03 + Math.random() * .04; });
+    var crumple = segs.map(function () { return { y: (Math.random() - .5) * 50, z: (Math.random() - .5) * 30, x: (Math.random() - .5) * 40 }; });
+    var ease = function (t) { return t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; };
+    var easeOut = function (t) { return 1 - Math.pow(1 - t, 2); };
+    var clamp = function (v) { return Math.max(0, Math.min(1, v)); };
+    var K = reduce ? .5 : 1;
+    var t0 = performance.now() + startDelay * K;
+    function frame(now) {
+      var t = now - t0;
+      if (t < 0) { peelRaf = requestAnimationFrame(frame); return; }
+      var p = ease(clamp(t / (T.peel * K)));
+      var c = clamp((t - T.peel * K) / (T.castDur * K)), ce = easeOut(c);
+      var front = p * N_SEG, cum = 0;
+      segs.forEach(function (seg, i) {
+        var g = clamp(front - (N_SEG - i - 1)), r = clamp(front - (N_SEG - i));
+        var a = g * (1 - r * (1 - res[i]));
+        var jy = s * T.fold * a * (i === 0 ? .35 : 1) + crumple[i].y * ce;
+        var jz = s * T.lift * a + crumple[i].z * ce;
+        var jx = T.twist * a + crumple[i].x * ce;
+        cum += jy;
+        var tf = 'rotateY(' + jy.toFixed(2) + 'deg) rotateZ(' + jz.toFixed(2) + 'deg) rotateX(' + jx.toFixed(2) + 'deg)';
+        if (i === 0) {
+          var C = T.cast, lift = -6 * p;
+          tf = 'translate3d(' + (C.x * ce).toFixed(1) + 'px,' + (C.y * ce + lift).toFixed(1) + 'px,' + (C.z * ce).toFixed(1) + 'px) rotateZ(' + (C.rz * ce).toFixed(1) + 'deg) rotateX(' + (C.rx * ce).toFixed(1) + 'deg) rotateY(' + (C.ry * ce).toFixed(1) + 'deg) ' + tf;
+        }
+        seg.style.transform = tf;
+        var light = .62 + .5 * Math.abs(Math.cos(cum * Math.PI / 180)) - .12 * Math.abs(Math.sin(jz * Math.PI / 90));
+        seg.children[0].style.filter = seg.children[1].style.filter = 'brightness(' + light.toFixed(3) + ')';
+      });
+      strip.style.opacity = c > .7 ? (1 - (c - .7) / .3).toFixed(3) : '1';
+      if (c < 1) peelRaf = requestAnimationFrame(frame);
+    }
+    peelRaf = requestAnimationFrame(frame);
+  }
+
+  // crinkled foil texture
+  function hash(x, y) {
+    var h = Math.imul(x, 374761393) + Math.imul(y, 668265263) | 0;
+    h = Math.imul(h ^ (h >>> 13), 1274126177);
+    return ((h ^ (h >>> 16)) >>> 0) / 4294967295;
+  }
+  function vnoise(x, y) {
+    var xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
+    var u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+    var a = hash(xi, yi), b = hash(xi + 1, yi), c = hash(xi, yi + 1), d = hash(xi + 1, yi + 1);
+    return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+  }
+  (function makeFoil() {
+    if (window.__pcmtPackFoil) { foilURL = window.__pcmtPackFoil; body.style.backgroundImage = foilURL; return; }
+    var S = 2, w = W * S, h = H * S;
+    var hf = new Float32Array(w * h), creases = [];
+    for (var i = 0; i < 46; i++) {
+      var ang = Math.PI / 2 + (rnd() - .5) * (rnd() < .75 ? .9 : 2.6);
+      creases.push({ x: rnd() * W, y: 20 + rnd() * (H - 40), cx: Math.cos(ang), cy: Math.sin(ang), len: 25 + rnd() * 110, w: .8 + rnd() * 2.6, a: (rnd() < .5 ? -1 : 1) * (.015 + rnd() * .05), step: rnd() < .45 });
+    }
+    var y, x;
+    for (y = 0; y < h; y++) for (x = 0; x < w; x++) {
+      var X = x / S, Y = y / S;
+      var v = .75 * vnoise(X / 60 + 1.3, Y / 100) + .12 * vnoise(X / 18 + 4.4, Y / 30) + .004 * vnoise(X * 1.5, Y * 1.5);
+      for (var k = 0; k < creases.length; k++) {
+        var cr = creases[k], rx = X - cr.x, ry = Y - cr.y;
+        var uu = rx * cr.cx + ry * cr.cy, dd = -rx * cr.cy + ry * cr.cx, au = Math.abs(uu);
+        if (au > cr.len || Math.abs(dd) > cr.w * 6) continue;
+        var along = 1 - Math.pow(au / cr.len, 2);
+        v += cr.step ? cr.a * along * Math.tanh(dd / cr.w) : cr.a * along * Math.max(0, 1 - Math.abs(dd) / cr.w);
+      }
+      var yy = y / S, sealT = Math.min(1, Math.max(0, Math.min(yy, H - yy) - 18) / 10), crimp = .35 * Math.sin(X * Math.PI * 2 / 3.2);
+      hf[y * w + x] = v * (.15 + .85 * sealT) + crimp * (1 - sealT);
+    }
+    var cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+    var c = cv.getContext('2d'), img = c.createImageData(w, h), d = img.data;
+    var L = [-.45, -.62, .64], ln = Math.hypot(L[0], L[1], L[2]); L = L.map(function (qq) { return qq / ln; });
+    var Hh = [L[0], L[1], L[2] + 1]; ln = Math.hypot(Hh[0], Hh[1], Hh[2]); Hh = Hh.map(function (qq) { return qq / ln; });
+    var KK = 9;
+    for (y = 0; y < h; y++) for (x = 0; x < w; x++) {
+      var ii = y * w + x;
+      var dx = (hf[ii + (x < w - 1 ? 1 : 0)] - hf[ii - (x > 0 ? 1 : 0)]) * KK;
+      var dy = (hf[ii + (y < h - 1 ? w : 0)] - hf[ii - (y > 0 ? w : 0)]) * KK;
+      var inv = 1 / Math.hypot(dx, dy, 1), nx = -dx * inv, ny = -dy * inv, nz = inv;
+      var diff = Math.max(0, nx * L[0] + ny * L[1] + nz * L[2]);
+      var spec = Math.pow(Math.max(0, nx * Hh[0] + ny * Hh[1] + nz * Hh[2]), 38);
+      var XX = x / w, YY = y / h;
+      var env = Math.pow(.5 + .5 * Math.sin((XX + YY * .5) * 7.5 + nx * 5 + ny * 3), 1.7);
+      var side = Math.pow(Math.sin(Math.PI * Math.min(1, Math.max(0, XX))), .45);
+      var fold = (XX < .025 || XX > .975) ? .78 : 1;
+      var lum = (28 + 78 * diff + 125 * env + 210 * spec) * (.55 + .45 * side) * fold;
+      var y2 = y / S, sd = Math.min(Math.abs(y2 - 20), Math.abs(y2 - (H - 20)));
+      if (sd < 2.5) lum *= .82 + .07 * sd;
+      d[ii * 4] = Math.min(255, lum * .97 + 2); d[ii * 4 + 1] = Math.min(255, lum * .995 + 3); d[ii * 4 + 2] = Math.min(255, lum * 1.035 + 7); d[ii * 4 + 3] = 255;
+    }
+    c.putImageData(img, 0, 0);
+    foilURL = window.__pcmtPackFoil = 'url(' + cv.toDataURL('image/jpeg', .9) + ')';
+    body.style.backgroundImage = foilURL;
+  })();
+
+  (function () {
+    var n = 28, ptsS = [];
+    for (var i = 0; i < n * 2; i++) { var a = i / (n * 2) * Math.PI * 2, r = i % 2 ? 50 : 46.5; ptsS.push((50 + Math.cos(a) * r).toFixed(2) + '% ' + (50 + Math.sin(a) * r).toFixed(2) + '%'); }
+    q('.pk-holo-disc').style.clipPath = 'polygon(' + ptsS.join(',') + ')';
+  })();
+
+  // cards
+  var N = cfg.players.length, MID = (N - 1) / 2;
+  var backHtml = pcmtPackBack(cfg.back);
+  var cards = cfg.players.map(function (p, i) {
+    var el = document.createElement('div');
+    el.className = 'pk-card';
+    el.style.zIndex = String(N - i);
+    el.innerHTML = '<div class="pk-card-in">' + backHtml + pcmtPackFront(p, p.team || cfg.team, cfg) + '</div>';
+    cardsEl.appendChild(el);
+    return el;
+  });
+
+  // particles
+  var cv = q('.pk-fx'), ctx = cv.getContext('2d'), parts = [], raf = 0;
+  function burst(x, y, n, opt) {
+    for (var i = 0; i < n; i++) {
+      var a = opt.angle + (Math.random() - .5) * opt.spread, v = opt.speed * (.4 + Math.random() * .8);
+      parts.push({ x: x + (Math.random() - .5) * (opt.w || 0), y: y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, r: Math.random() * Math.PI, vr: (Math.random() - .5) * .4,
+        s: opt.size * (.5 + Math.random()), life: 1, decay: .008 + Math.random() * .012, kind: opt.kind, hue: Math.random() });
+    }
+    if (!raf) raf = requestAnimationFrame(tick);
+  }
+  function tick() {
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, 1600, 1240); ctx.setTransform(1, 0, 0, 1, 300, 300);
+    parts = parts.filter(function (qq) { return qq.life > 0; });
+    parts.forEach(function (qq) {
+      qq.x += qq.vx; qq.y += qq.vy; qq.vy += qq.kind === 'shard' ? .22 : .04; qq.vx *= .985; qq.r += qq.vr; qq.life -= qq.decay;
+      ctx.save(); ctx.translate(qq.x, qq.y); ctx.rotate(qq.r); ctx.globalAlpha = Math.max(0, qq.life);
+      if (qq.kind === 'shard') {
+        var g = 170 + Math.floor(Math.abs(Math.sin(qq.r * 3)) * 85);
+        ctx.fillStyle = 'rgb(' + g + ',' + Math.min(255, g + 3) + ',' + Math.min(255, g + 8) + ')';
+        ctx.beginPath(); ctx.moveTo(-qq.s, -qq.s * .3); ctx.lineTo(qq.s * .8, -qq.s * .6); ctx.lineTo(qq.s * .4, qq.s * .7); ctx.closePath(); ctx.fill();
+      } else {
+        var col = qq.hue < .33 ? '255,240,180' : qq.hue < .66 ? '200,235,255' : '255,255,255';
+        ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = 'rgba(' + col + ',1)';
+        ctx.beginPath();
+        for (var k = 0; k < 4; k++) { var a = k * Math.PI / 2; ctx.lineTo(Math.cos(a) * qq.s, Math.sin(a) * qq.s); ctx.lineTo(Math.cos(a + Math.PI / 4) * qq.s * .3, Math.sin(a + Math.PI / 4) * qq.s * .3); }
+        ctx.closePath(); ctx.fill();
+      }
+      ctx.restore();
+    });
+    raf = parts.length ? requestAnimationFrame(tick) : 0;
+    if (!raf) { ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, 1600, 1240); }
+  }
+
+  // timeline
+  var anims = [], timers = [], state = 'idle';
+  var at = function (ms, fn) { timers.push(setTimeout(fn, reduce ? ms * .5 : ms)); };
+  var run = function (el, kf, o) {
+    var a = el.animate(kf, Object.assign({ fill: 'forwards' }, o, { duration: reduce ? o.duration * .5 : o.duration, delay: reduce ? (o.delay || 0) * .5 : (o.delay || 0) }));
+    anims.push(a); return a;
+  };
+  var FAN = cards.map(function (_, i) { var k = i - MID; return { x: k * 130, y: -60 + Math.abs(k) * 20 + k * k * 4, r: k * 7 }; });
+
+  function open() {
+    if (state !== 'idle') return;
+    state = 'opening';
+    pack.classList.add('pk-opened');
+    if (!reduce) run(pack, [
+      { transform: 'rotate(0)' }, { transform: 'rotate(-2deg) translateY(-3px)' }, { transform: 'rotate(2.5deg)' },
+      { transform: 'rotate(-3deg) translateY(-4px)' }, { transform: 'rotate(2deg)' }, { transform: 'rotate(0)' }
+    ], { duration: 520, easing: 'ease-in-out' });
+    var T = TEARS[Math.floor(Math.random() * TEARS.length)], tear = makeTear();
+    at(520, function () {
+      body.style.clipPath = tear.body;
+      q('.pk-edgeB').innerHTML = tear.lipB;
+      pack.classList.add('pk-torn');
+    });
+    var segs = buildStrip(tear, T);
+    animateStrip(segs, T, 520);
+    at(600, function () { burst(500, 210, 26, { angle: -Math.PI / 2, spread: 1.6, speed: 5, size: 5, kind: 'shard', w: 240 }); });
+    var T0 = 1150, DUR = 2000;
+    cards.forEach(function (c, i) {
+      var k = i - MID;
+      var ex = (Math.random() - .5) * 700 + k * 60, ey = -150 - Math.random() * 90, er = (Math.random() - .5) * 120, f = FAN[i];
+      run(c, [
+        { transform: 'translate(0,0) rotate(0) scale(1)', offset: 0, easing: 'cubic-bezier(.2,.7,.3,1)' },
+        { transform: 'translate(' + (k * 6) + 'px,-' + (350 + i * 10) + 'px) rotate(' + (k * 2) + 'deg) scale(1)', offset: .2, easing: 'cubic-bezier(.15,.85,.25,1)' },
+        { transform: 'translate(' + ex + 'px,' + ey + 'px) rotate(' + er + 'deg) scale(1.08)', offset: .5, easing: 'cubic-bezier(.45,0,.2,1)' },
+        { transform: 'translate(' + f.x + 'px,' + f.y + 'px) rotate(' + f.r + 'deg) scale(.92)', offset: 1 }
+      ], { duration: DUR, delay: T0 + i * 70 });
+      at(T0 + i * 70 + DUR * .2, function () { c.style.zIndex = String(20 + i); });
+      run(c.firstElementChild, [{ transform: 'rotateY(0)' }, { transform: 'rotateY(180deg) translateZ(0)' }],
+        { duration: 560, delay: T0 + DUR + 150 + i * 160, easing: 'cubic-bezier(.4,.1,.2,1)' });
+      at(T0 + DUR + 150 + i * 160 + 300, function () {
+        c.classList.add('pk-shown');
+        burst(500 + f.x, 372 + f.y, 16, { angle: -Math.PI / 2, spread: Math.PI * 2, speed: 3.5, size: 4, kind: 'spark' });
+      });
+    });
+    at(T0 + DUR * .32, function () {
+      run(flash, [{ opacity: 0, transform: 'scale(1)' }, { opacity: 1, transform: 'scale(70)', offset: .25 }, { opacity: 0, transform: 'scale(110)' }], { duration: 650, easing: 'ease-out' });
+      burst(500, 190, 60, { angle: -Math.PI / 2, spread: Math.PI * 2, speed: 8, size: 5, kind: 'spark' });
+      burst(500, 210, 20, { angle: -Math.PI / 2, spread: 2.4, speed: 6, size: 4, kind: 'shard', w: 220 });
+    });
+    run(pack, [
+      { transform: 'translateY(0) rotate(0)', opacity: 1 },
+      { transform: 'translateY(-14px) rotate(-2deg)', opacity: 1, offset: .2 },
+      { transform: 'translateY(520px) rotate(14deg)', opacity: 0 }
+    ], { duration: 900, delay: T0 + 650, easing: 'cubic-bezier(.5,0,.8,.4)' });
+    // when it's done, fade away and put the page back to normal
+    at(T0 + DUR + 150 + N * 160 + 400, function () { state = 'done'; });
+    // Store packs stay open so the cards can be looked at; the unlock pack fades away by itself.
+    if (cfg.stay) at(T0 + DUR + 150 + N * 160 + 400, function () { root.classList.add('pk-done'); });
+    else at(T0 + DUR + 150 + N * 160 + 1600, function () { var f = root.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 450, fill: 'forwards' }); f.onfinish = close; timers.push(setTimeout(close, 700)); });
+  }
+
+  var closed = false;
+  function close() {
+    if (closed) return; closed = true;
+    timers.forEach(clearTimeout); anims.forEach(function (a) { try { a.cancel(); } catch (e) {} });
+    cancelAnimationFrame(peelRaf); cancelAnimationFrame(raf);
+    window.removeEventListener('resize', scale); document.removeEventListener('keydown', onKey, true);
+    if (root.parentNode) root.parentNode.removeChild(root);
+    try { if (prevFocus && prevFocus.focus) prevFocus.focus(); } catch (e) {}
+    if (onClose) onClose();
+  }
+  function onKey(e) {
+    if (e.key === 'Escape') { e.preventDefault(); close(); }
+    else if ((e.key === 'Enter' || e.key === ' ') && document.activeElement === pack) { e.preventDefault(); open(); }
+  }
+  pack.addEventListener('click', function (e) { e.stopPropagation(); open(); });
+  root.addEventListener('click', function () { if (cfg.stay && state === 'done') close(); });
+  closeBtn.addEventListener('click', function (e) { e.stopPropagation(); close(); });
+  document.addEventListener('keydown', onKey, true);
+  pack.focus({ preventScroll: true });
+  timers.push(setTimeout(open, reduce ? 300 : 650)); // the pack opens on its own; clicking it opens it sooner
+  return { close: close };
+}
+
+// Builds the opening's card list from what buy_pack returned.
+function pcmtStoreCards(pulled) {
+  var abs = function (u) { try { return u ? new URL(u, window.location.href).href : ''; } catch (e) { return u; } };
+  var site = (typeof window !== 'undefined' && window.PCMT_SITE_PLAYERS) || null, byId = {};
+  if (site) site.forEach(function (p) { byId[p.id] = { id: p.id, name: p.name, team: p.team, role: String(p.role).split('/')[0], price: p.price }; });
+  else PCMT_PACK_PLAYERS.forEach(function (r) { byId[r[0]] = { id: r[0], name: r[1], team: r[2], role: r[3], price: r[4] }; });
+  return pulled.map(function (c) {
+    var p = byId[c.player] || { id: c.player, name: c.player, team: '', role: 'duelist', price: 0 };
+    var tm = PCMT_ALL_DECK_TEAMS.find(function (x) { return x.code === p.team; }) || { code: p.team, name: p.team, color: '#a5dcdd', logo: '' };
+    var role = p.role === 'yoru' ? 'duelist' : p.role, pr = Math.round(p.price * 10) / 10;
+    return {
+      name: p.name, role: role.charAt(0).toUpperCase() + role.slice(1), roleIcon: abs(PCMT_PACK_ROLE_ICONS[role] || PCMT_PACK_ROLE_ICONS.duelist),
+      price: pr % 1 === 0 ? String(pr) : pr.toFixed(1), champ: PCMT_CHAMPS.indexOf(p.id) >= 0,
+      rarity: c.rarity, art: c.variant && PCMT_VARIANT_ART[c.variant] ? abs(PCMT_VARIANT_ART[c.variant]) : '',
+      badge: c.new ? 'NEW' : '×' + c.count, regionLogo: abs(PCMT_REGION_LOGOS[c.region] || PCMT_REGION_LOGOS.NA),
+      team: { code: tm.code, name: tm.name, color: tm.color, logo: abs(tm.logo || ''), logoH: PCMT_PACK_LOGO_H[tm.code] || (PCMT_SMALL_LOGOS[tm.code] ? 26 : 30) }
+    };
+  });
+}
+// Canvas only: a pretend pull so the opening can be previewed without the server.
+function pcmtSamplePull(pack) {
+  var pool = PCMT_PACK_PLAYERS.filter(function (r) { var eu = PCMT_EMEA_DECK_TEAMS.some(function (t) { return t.code === r[2]; }); return pack.region === 'EMEA' ? eu : !eu; });
+  var out = [];
+  for (var i = 0; i < (pack.cards || 5); i++) {
+    if (pack.region === 'NA' && Math.random() < 0.3) out.push({ id: 'v:teklo-variant', player: 'teklo', variant: 'teklo-variant', rarity: 'rare', region: 'NA', count: 1, new: true });
+    else { var r = pool[Math.floor(Math.random() * pool.length)]; out.push({ id: 'c:' + r[0], player: r[0], variant: null, rarity: 'common', region: pack.region, count: 1 + Math.floor(Math.random() * 2), new: Math.random() < 0.5 }); }
+  }
+  return out;
+}
+if (typeof window !== 'undefined') window.__pcmtPackAnim = pcmtPackAnim;
 class Component extends DCLogic {
   componentDidMount() {
     var self = this, start = Date.now();
@@ -210,15 +805,62 @@ class Component extends DCLogic {
     });
   }
 
+  buyPack(pack) {
+    var self = this;
+    if (this.state && this.state.buying) return;
+    this.setState({ buying: pack.id, confirming: null, note: null });
+    var L = typeof window !== 'undefined' ? window.PCMT_LEAGUE : null;
+    var go = L ? L.buyPack(pack.id) : Promise.resolve({ cards: pcmtSamplePull(pack), balance: null });
+    go.then(function (r) {
+      self.setState({ buying: null, note: { id: pack.id, ok: true, text: 'Bought! ' + r.cards.length + ' cards added to your collection.' } });
+      var abs = function (u) { try { return new URL(u, window.location.href).href; } catch (e) { return u; } };
+      var back = Object.assign({}, PCMT_STORE_BACK, { logo: abs(PCMT_STORE_BACK.logo) });
+      self._anim = pcmtPackAnim({ deckName: pack.name, season: PCMT_SEASON[pack.region] || '', back: back, stay: true,
+        regionLogo: abs(PCMT_REGION_LOGOS[pack.region] || PCMT_REGION_LOGOS.NA), trophy: abs(PCMT_TROPHY_ICON),
+        team: { code: '', name: '', color: '#a5dcdd', logo: '' }, players: pcmtStoreCards(r.cards) },
+        function () { self._anim = null; self.setState({ opened: (self.state.opened || 0) + 1 }); });
+    }).catch(function (e) {
+      self.setState({ buying: null, note: { id: pack.id, ok: false, text: e && e.message ? e.message : 'Couldn\'t buy the pack.' } });
+    });
+  }
+
   _pageVals() {
+    var self = this, s = this.state || {};
+    var W = typeof window !== 'undefined' ? window : {};
     // Coming soon for everyone except admins (the live site sets PCMT_IS_ADMIN).
-    var locked = !(typeof window !== 'undefined' && window.PCMT_IS_ADMIN);
+    var locked = !W.PCMT_IS_ADMIN;
+    var live = !!W.PCMT_LEAGUE, signedIn = live ? !!W.PCMT_LEAGUE.signedIn : true;
+    var bankNum = live ? (+((W.PCMT_VP && W.PCMT_VP.balance) || 0) || 0) : 0;
+    var mine = W.PCMT_MY_CARDS || {};
+    var src = (live ? (W.PCMT_PACKS || []) : PCMT_PACK_SAMPLE).slice().sort(function (a, b) { return (a.region === 'NA' ? 0 : 1) - (b.region === 'NA' ? 0 : 1) || String(a.name).localeCompare(b.name); });
+    var packs = src.map(function (p) {
+      var o = p.odds || {}, priced = p.price != null, canBuy = !live || W.PCMT_IS_ADMIN || p.open_to_all;
+      var short = live && priced && bankNum < p.price;
+      var disabled = !signedIn || !canBuy || !priced || short || !!s.buying;
+      var label = !signedIn ? 'Log in to buy' : !canBuy ? 'Coming soon' : !priced ? 'Price coming soon' : s.buying === p.id ? 'Opening…' : short ? 'Not enough VP' : 'Buy pack';
+      if (!live && !priced) { disabled = !!s.buying; label = s.buying === p.id ? 'Opening…' : 'Preview opening'; }
+      var note = s.note && s.note.id === p.id ? s.note : null;
+      return {
+        id: p.id, name: p.name, art: PCMT_PACK_ART[p.region] || PCMT_PACK_ART.NA,
+        desc: (p.cards || 5) + ' cards, all ' + p.region + ' players (' + (PCMT_SEASON[p.region] || p.region) + ').',
+        odds: 'Each card: Common ' + (o.common || 0) + '% · Rare ' + (o.rare || 0) + '% · Epic ' + (o.epic || 0) + '% · Legendary ' + (o.legendary || 0) + '%',
+        price: priced ? String(p.price) : '', priceLabel: priced ? String(p.price) : '—',
+        disabled: disabled, btnBg: disabled ? 'transparent' : '#a5dcdd', btnInk: disabled ? '#93a9aa' : '#000', btnBorder: disabled ? '#2c3d40' : '#a5dcdd', cursor: disabled ? 'not-allowed' : 'pointer',
+        buyLabel: label, confirming: s.confirming === p.id, notConfirming: s.confirming !== p.id,
+        buy: function () { if (disabled) return; if (!live) self.buyPack(p); else self.setState({ confirming: p.id, note: null }); },
+        confirm: function () { self.buyPack(p); },
+        hasNote: !!note, note: note ? note.text : '', noteInk: note && note.ok ? '#8be4b7' : '#ff8a80'
+      };
+    });
     var items = PCMT_STORE_ITEMS.map(function (it) {
+      var n = mine[it.card] || 0;
       return Object.assign({}, it, {
         nameSize: Math.max(18, Math.min(34, Math.floor(230 / Math.max(4, it.name.length * 0.62)))),
         roleLabel: it.role.charAt(0).toUpperCase() + it.role.slice(1),
-        variantTag: 'VARIANT',
+        rarityTag: it.rarity.toUpperCase(), rarityInk: PCMT_RARITY_INK[it.rarity] || '#93a9aa',
         cardLabel: it.title + ' card: ' + it.name + ', ' + it.teamName,
+        blurb: it.blurb + ' ' + it.rarity.charAt(0).toUpperCase() + it.rarity.slice(1) + ', found in the ' + it.pack + '.',
+        owned: n ? 'You own ×' + n : (live && signedIn ? 'Not in your collection yet' : ''), ownedInk: n ? '#8be4b7' : '#93a9aa',
         stats: [
           { label: 'ACS', value: String(it.acs), low: false },
           { label: 'KAST', value: it.kast + '%', low: false },
@@ -233,6 +875,9 @@ class Component extends DCLogic {
       lockHidden: locked ? 'true' : 'false',
       lockBlur: locked ? 'blur(8px)' : 'none',
       lockPointer: locked ? 'none' : 'auto',
+      bank: live ? String(bankNum) : '[VP]',
+      packs: packs,
+      cancelBuy: function () { self.setState({ confirming: null }); },
       items: items
     };
   }
