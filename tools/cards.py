@@ -24,6 +24,18 @@ VARIANTS = [
     ('champ-mide', 'mide', 'rare', 'mide Champion'),
     ('champ-king', 'king', 'rare', 'King Champion'),
     ('champ-tonnoman', 'tonnoman', 'rare', 'Tonnoman Champion'),
+    # Stat Leaders: the season leader in each MVP VS stat per region (10+ maps, ties all get one); crown art, site-colour sheen
+    ('lead-acs-claps', 'claps', 'rare', 'claps ACS Leader'),
+    ('lead-kast-claps', 'claps', 'rare', 'claps KAST Leader'),
+    ('lead-kast-thighs', 'thighs', 'rare', 'thighs KAST Leader'),
+    ('lead-hs-james', 'james', 'rare', 'james HS% Leader'),
+    ('lead-dpr-dunkn', 'dunkn', 'rare', 'dunkn DPR Leader'),
+    ('lead-toxic-claps', 'claps', 'rare', 'claps Toxic Leader'),
+    ('lead-acs-shipty', 'shipty', 'rare', 'shipty ACS Leader'),
+    ('lead-kast-nana', 'nana', 'rare', 'nana KAST Leader'),
+    ('lead-hs-asra', 'asra', 'rare', 'asra HS% Leader'),
+    ('lead-dpr-kai', 'kai', 'rare', 'Kai DPR Leader'),
+    ('lead-toxic-shipty', 'shipty', 'rare', 'shipty Toxic Leader'),
 ]
 ODDS = {'common': 70, 'rare': 22, 'epic': 7, 'legendary': 1}
 PACKS = [

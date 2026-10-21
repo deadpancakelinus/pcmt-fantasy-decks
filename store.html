@@ -65,6 +65,9 @@ var PCMT_VARIANT_ART_CHAMPS = { 'champ-longclaw': 'assets/a8390c53c5aa10a347b6af
 Object.keys(PCMT_VARIANT_ART_CHAMPS).forEach(function (k) { PCMT_VARIANT_ART[k] = PCMT_VARIANT_ART_CHAMPS[k]; });
 var PCMT_VARIANT_CENTER = { 'champ-longclaw': true, 'champ-devil': true, 'champ-platinum': true, 'champ-igneous': true, 'champ-james': true, 'champ-stingray': true, 'champ-faye': true, 'champ-charlotte': true, 'champ-mide': true, 'champ-king': true, 'champ-tonnoman': true };
 var PCMT_VARIANT_SHEEN = { 'champ-longclaw': '#f5d76e', 'champ-devil': '#f5d76e', 'champ-platinum': '#f5d76e', 'champ-igneous': '#f5d76e', 'champ-james': '#f5d76e', 'champ-stingray': '#f5d76e', 'champ-faye': '#f5d76e', 'champ-charlotte': '#f5d76e', 'champ-mide': '#f5d76e', 'champ-king': '#f5d76e', 'champ-tonnoman': '#f5d76e' };
+// Stat Leader cards: a crown over the stat in the middle of the card, and the sheen is the site colour.
+var PCMT_VARIANT_ART_LEADERS = { 'lead-acs-claps': 'assets/27aaac718f1711155a715311cd320e06.png', 'lead-kast-claps': 'assets/0ec9cd7a5ffc798c80833e380a2f3e0b.png', 'lead-kast-thighs': 'assets/0ec9cd7a5ffc798c80833e380a2f3e0b.png', 'lead-hs-james': 'assets/a6b4cb1d87d917338a9f1c77dbf63756.png', 'lead-dpr-dunkn': 'assets/7f0d28be4e5eaa5571ec8afc31a44318.png', 'lead-toxic-claps': 'assets/43936668ae609dcd5ed6b5aca2a6b4c9.png', 'lead-acs-shipty': 'assets/27aaac718f1711155a715311cd320e06.png', 'lead-kast-nana': 'assets/0ec9cd7a5ffc798c80833e380a2f3e0b.png', 'lead-hs-asra': 'assets/a6b4cb1d87d917338a9f1c77dbf63756.png', 'lead-dpr-kai': 'assets/7f0d28be4e5eaa5571ec8afc31a44318.png', 'lead-toxic-shipty': 'assets/43936668ae609dcd5ed6b5aca2a6b4c9.png' };
+Object.keys(PCMT_VARIANT_ART_LEADERS).forEach(function (k) { PCMT_VARIANT_ART[k] = PCMT_VARIANT_ART_LEADERS[k]; PCMT_VARIANT_CENTER[k] = true; PCMT_VARIANT_SHEEN[k] = '#a5dcdd'; });
 var PCMT_RARITY_INK = { common: '#93a9aa', rare: '#7cc2ff', epic: '#c99bff', legendary: '#f5d76e' };
 // Variants shown on the page (stats match the player's MVP VS card in trumps-cards.js).
 var PCMT_STORE_ITEMS = [
@@ -132,7 +135,62 @@ var PCMT_STORE_ITEMS = [
     name: 'Tonnoman', team: 'HOT', teamName: 'Honestly Outrageous Temperatures', color: '#4f8ef7', season: 'S2 EMEA', maps: 15, role: 'controller',
     teamLogo: 'assets/e078dfeeea5c9d916197f71d8b7ea80a.jpg', regionLogo: 'assets/3c7e7374dceead68d5c58818d0bcfe8a.png',
     roleIcon: 'assets/783fdcc50fe04d2622938ee185d4ed32.png', art: 'assets/a8390c53c5aa10a347b6af0841aa6835.png',
-    acs: 222, kast: 71, hs: 27, dpr: 0.74, toxic: 1.06 }
+    acs: 222, kast: 71, hs: 27, dpr: 0.74, toxic: 1.06 },
+  { id: 'lead-acs-claps', card: 'v:lead-acs-claps', rarity: 'rare', pack: 'NA Card Pack', title: 'claps ACS Leader',
+    name: 'claps', team: 'C9', teamName: 'Clown9', color: '#4dc3ef', season: 'S3 NA', maps: 28, role: 'controller',
+    teamLogo: 'assets/46ec4a1f510710db9670e64c202b0cee.png', regionLogo: 'assets/c265e976f8968e60e4a2bdd32542b499.png',
+    roleIcon: 'assets/783fdcc50fe04d2622938ee185d4ed32.png', art: 'assets/27aaac718f1711155a715311cd320e06.png',
+    acs: 323, kast: 81, hs: 22, dpr: 0.78, toxic: 1.43 },
+  { id: 'lead-kast-claps', card: 'v:lead-kast-claps', rarity: 'rare', pack: 'NA Card Pack', title: 'claps KAST Leader',
+    name: 'claps', team: 'C9', teamName: 'Clown9', color: '#4dc3ef', season: 'S3 NA', maps: 28, role: 'controller',
+    teamLogo: 'assets/46ec4a1f510710db9670e64c202b0cee.png', regionLogo: 'assets/c265e976f8968e60e4a2bdd32542b499.png',
+    roleIcon: 'assets/783fdcc50fe04d2622938ee185d4ed32.png', art: 'assets/0ec9cd7a5ffc798c80833e380a2f3e0b.png',
+    acs: 323, kast: 81, hs: 22, dpr: 0.78, toxic: 1.43 },
+  { id: 'lead-kast-thighs', card: 'v:lead-kast-thighs', rarity: 'rare', pack: 'NA Card Pack', title: 'thighs KAST Leader',
+    name: 'thighs', team: 'SPG', teamName: 'Spank Ptheory Gaming', color: '#ff7f66', season: 'S3 NA', maps: 23, role: 'initiator',
+    teamLogo: 'assets/fb1551434b59a200d90d2e9ed6a51e8b.png', regionLogo: 'assets/c265e976f8968e60e4a2bdd32542b499.png',
+    roleIcon: 'assets/8f7fb7ffa93c48ba09a00fcd223c7f7c.png', art: 'assets/0ec9cd7a5ffc798c80833e380a2f3e0b.png',
+    acs: 221, kast: 81, hs: 28, dpr: 0.64, toxic: 1.17 },
+  { id: 'lead-hs-james', card: 'v:lead-hs-james', rarity: 'rare', pack: 'NA Card Pack', title: 'james HS% Leader',
+    name: 'james', team: 'FNC', teamName: 'cow paulo FaN Club', color: '#ff8a1f', season: 'S3 NA', maps: 21, role: 'duelist',
+    teamLogo: 'assets/8a102a19e71060bb2dacb6d6b5263457.png', regionLogo: 'assets/c265e976f8968e60e4a2bdd32542b499.png',
+    roleIcon: 'assets/3911a104cbddaf481d7a7bf070a2e696.png', art: 'assets/a6b4cb1d87d917338a9f1c77dbf63756.png',
+    acs: 283, kast: 72, hs: 45, dpr: 0.78, toxic: 1.24 },
+  { id: 'lead-dpr-dunkn', card: 'v:lead-dpr-dunkn', rarity: 'rare', pack: 'NA Card Pack', title: 'dunkn DPR Leader',
+    name: 'dunkn', team: 'SPG', teamName: 'Spank Ptheory Gaming', color: '#ff7f66', season: 'S3 NA', maps: 23, role: 'controller',
+    teamLogo: 'assets/fb1551434b59a200d90d2e9ed6a51e8b.png', regionLogo: 'assets/c265e976f8968e60e4a2bdd32542b499.png',
+    roleIcon: 'assets/783fdcc50fe04d2622938ee185d4ed32.png', art: 'assets/7f0d28be4e5eaa5571ec8afc31a44318.png',
+    acs: 170, kast: 78, hs: 16, dpr: 0.6, toxic: 0.99 },
+  { id: 'lead-toxic-claps', card: 'v:lead-toxic-claps', rarity: 'rare', pack: 'NA Card Pack', title: 'claps Toxic Leader',
+    name: 'claps', team: 'C9', teamName: 'Clown9', color: '#4dc3ef', season: 'S3 NA', maps: 28, role: 'controller',
+    teamLogo: 'assets/46ec4a1f510710db9670e64c202b0cee.png', regionLogo: 'assets/c265e976f8968e60e4a2bdd32542b499.png',
+    roleIcon: 'assets/783fdcc50fe04d2622938ee185d4ed32.png', art: 'assets/43936668ae609dcd5ed6b5aca2a6b4c9.png',
+    acs: 323, kast: 81, hs: 22, dpr: 0.78, toxic: 1.43 },
+  { id: 'lead-acs-shipty', card: 'v:lead-acs-shipty', rarity: 'rare', pack: 'EMEA Card Pack', title: 'shipty ACS Leader',
+    name: 'shipty', team: 'HOT', teamName: 'Honestly Outrageous Temperatures', color: '#4f8ef7', season: 'S2 EMEA', maps: 14, role: 'initiator',
+    teamLogo: 'assets/e078dfeeea5c9d916197f71d8b7ea80a.jpg', regionLogo: 'assets/3c7e7374dceead68d5c58818d0bcfe8a.png',
+    roleIcon: 'assets/8f7fb7ffa93c48ba09a00fcd223c7f7c.png', art: 'assets/27aaac718f1711155a715311cd320e06.png',
+    acs: 286, kast: 75, hs: 30, dpr: 0.7, toxic: 1.33 },
+  { id: 'lead-kast-nana', card: 'v:lead-kast-nana', rarity: 'rare', pack: 'EMEA Card Pack', title: 'nana KAST Leader',
+    name: 'nana', team: 'FaZe', teamName: 'Fabulous and Zesty', color: '#f28bd8', season: 'S2 EMEA', maps: 16, role: 'controller',
+    teamLogo: 'assets/9da6e0491a922186cad6bc5daf699626.png', regionLogo: 'assets/3c7e7374dceead68d5c58818d0bcfe8a.png',
+    roleIcon: 'assets/783fdcc50fe04d2622938ee185d4ed32.png', art: 'assets/0ec9cd7a5ffc798c80833e380a2f3e0b.png',
+    acs: 219, kast: 80, hs: 26, dpr: 0.7, toxic: 1.11 },
+  { id: 'lead-hs-asra', card: 'v:lead-hs-asra', rarity: 'rare', pack: 'EMEA Card Pack', title: 'asra HS% Leader',
+    name: 'asra', team: 'NATS', teamName: 'Never Available To Scrim', color: '#ef8f8f', season: 'S2 EMEA', maps: 10, role: 'duelist',
+    teamLogo: 'assets/8cbc4258cff847c1db533f124fd9addf.jpg', regionLogo: 'assets/3c7e7374dceead68d5c58818d0bcfe8a.png',
+    roleIcon: 'assets/3911a104cbddaf481d7a7bf070a2e696.png', art: 'assets/a6b4cb1d87d917338a9f1c77dbf63756.png',
+    acs: 282, kast: 73, hs: 34, dpr: 0.76, toxic: 1.23 },
+  { id: 'lead-dpr-kai', card: 'v:lead-dpr-kai', rarity: 'rare', pack: 'EMEA Card Pack', title: 'Kai DPR Leader',
+    name: 'Kai', team: 'NIP', teamName: 'Name in Progress', color: '#c2478f', season: 'S2 EMEA', maps: 10, role: 'duelist',
+    teamLogo: 'assets/f953d56be563808b39dbb961891fae8e.png', regionLogo: 'assets/3c7e7374dceead68d5c58818d0bcfe8a.png',
+    roleIcon: 'assets/3911a104cbddaf481d7a7bf070a2e696.png', art: 'assets/7f0d28be4e5eaa5571ec8afc31a44318.png',
+    acs: 274, kast: 76, hs: 29, dpr: 0.62, toxic: 1.32 },
+  { id: 'lead-toxic-shipty', card: 'v:lead-toxic-shipty', rarity: 'rare', pack: 'EMEA Card Pack', title: 'shipty Toxic Leader',
+    name: 'shipty', team: 'HOT', teamName: 'Honestly Outrageous Temperatures', color: '#4f8ef7', season: 'S2 EMEA', maps: 14, role: 'initiator',
+    teamLogo: 'assets/e078dfeeea5c9d916197f71d8b7ea80a.jpg', regionLogo: 'assets/3c7e7374dceead68d5c58818d0bcfe8a.png',
+    roleIcon: 'assets/8f7fb7ffa93c48ba09a00fcd223c7f7c.png', art: 'assets/43936668ae609dcd5ed6b5aca2a6b4c9.png',
+    acs: 286, kast: 75, hs: 30, dpr: 0.7, toxic: 1.33 }
 ];
 // The default card back (the BLUE deck), used for pack cards.
 var PCMT_STORE_BACK = { color: '#a5dcdd', edge: '#1f3a3b', ringClass: '', bgClass: '', frame: 'rgba(165,220,221,0.75)', frameSoft: 'rgba(165,220,221,0.4)', glow: 'rgba(165,220,221,0.3)',
