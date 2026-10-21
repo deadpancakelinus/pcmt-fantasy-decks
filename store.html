@@ -51,11 +51,26 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 // Buying runs on the server (buy_pack): it takes the VP and draws the cards; the opening below only shows them.
 var PCMT_PACK_SAMPLE = [
   { id: 'na-pack', name: 'NA Card Pack', region: 'NA', cards: 5, price: null, open_to_all: false, odds: { common: 70, rare: 22, epic: 7, legendary: 1 } },
-  { id: 'emea-pack', name: 'EMEA Card Pack', region: 'EMEA', cards: 5, price: null, open_to_all: false, odds: { common: 70, rare: 22, epic: 7, legendary: 1 } }
+  { id: 'emea-pack', name: 'EMEA Card Pack', region: 'EMEA', cards: 5, price: null, open_to_all: false, odds: { common: 70, rare: 22, epic: 7, legendary: 1 } },
+  { id: 'nas1-pack', name: 'NA S1 Throwback Pack', region: 'NA', season: 'S1 NA', cards: 5, price: null, open_to_all: false, odds: { common: 70, rare: 22, epic: 7, legendary: 1 } },
+  { id: 'nas2-pack', name: 'NA S2 Throwback Pack', region: 'NA', season: 'S2 NA', cards: 5, price: null, open_to_all: false, odds: { common: 70, rare: 22, epic: 7, legendary: 1 } },
+  { id: 'emeas1-pack', name: 'EMEA S1 Throwback Pack', region: 'EMEA', season: 'S1 EMEA', cards: 5, price: null, open_to_all: false, odds: { common: 70, rare: 22, epic: 7, legendary: 1 } }
 ];
 // Pack art: the same foil pack as the opening animation, drawn once into an image per region.
 var PCMT_PACK_ART = { NA: 'assets/1ebfc850b10de6e909e96751b32a0977.webp', EMEA: 'assets/87166e6bb2de15f385a04e2962058989.webp' };
 var PCMT_SEASON = { NA: 'NA S3', EMEA: 'EMEA S2' };
+// Past seasons (throwback packs): the MVP VS deck in trumps-cards.js that holds each season's cards.
+var PCMT_PAST_SEASONS = { 'S1 NA': 'nas1', 'S2 NA': 'nas2', 'S1 EMEA': 'emeas1' };
+// A past-season card ("o:nas1-igneous", or a "champ-…" Rare): its player, team and stats from that season's MVP VS card.
+function pcmtPastCard(c) {
+  var key = c && c.season && PCMT_PAST_SEASONS[c.season], W = typeof window !== 'undefined' ? window : {}, st = null;
+  if (!key) return null;
+  ((W.PCMT_TRUMPS_CARDS || {})[key] || []).forEach(function (x) { if (x.id === c.player) st = x; });
+  if (st && c.variant && c.variant.indexOf('champ-') === 0 && !PCMT_VARIANT_ART[c.variant]) {   // past champions: the same trophy card
+    PCMT_VARIANT_ART[c.variant] = PCMT_VARIANT_ART_CHAMPS['champ-longclaw']; PCMT_VARIANT_CENTER[c.variant] = true; PCMT_VARIANT_SHEEN[c.variant] = '#f5d76e';
+  }
+  return st ? { st: st, team: { code: st.team || 'SUB', name: st.teamName, color: st.color, logo: st.logo ? 'assets/' + st.logo : '' } } : { st: null, team: { code: '', name: c.season, color: '#a5dcdd', logo: '' } };
+}
 // Variant art by variant id (cards table: 'v:<id>').
 var PCMT_VARIANT_ART = { 'teklo-variant': 'assets/8b1855340f56f72ea07f5447ca167038.webp', 'straight-variant': 'assets/21ae11daa07a46a08f5d3cf16fd0b2d9.webp', 'claps-variant': 'assets/bb4db91bdcfb1958431ff90d376d30cb.webp', 'lore-variant': 'assets/6d7189fcc9c2218d0aa67f7572a102e3.webp' };
 // Art that fills the whole card face (screenshots); the rest sit at the side like a cut-out.
@@ -350,7 +365,7 @@ function pcmtPackMvpFace(p, t, rar, shiny, col, stamp) {
       '<div class="pk-m-name" style="font-size:' + size + 'px"><span>' + e(p.name) + '</span>' + (p.champ ? '<img src="' + e(p.trophy || '') + '" alt="PCMT champion">' : '') + '</div>' +
       '<div class="pk-m-team" style="color:' + e(col) + '">' + e(t.name) + ' · ' + e(m.season) + '</div>' +
       '<div class="pk-m-stats">' + rows + '</div>' +
-      '<div class="pk-m-foot"><img src="' + e(p.roleIcon) + '" alt="' + e(p.role) + '">' + stamp + '</div>' +
+      '<div class="pk-m-foot">' + (p.roleIcon ? '<img src="' + e(p.roleIcon) + '" alt="' + e(p.role) + '">' : '<span></span>') + stamp + '</div>' +
     '</div>' +
     '<span class="pk-m-edge" style="background:' + e(col) + '"></span>' +
     '</div>';
@@ -816,6 +831,25 @@ function pcmtStoreCards(pulled) {
   if (site) site.forEach(function (p) { byId[p.id] = { id: p.id, name: p.name, team: p.team, role: String(p.role).split('/')[0], price: p.price }; });
   else PCMT_PACK_PLAYERS.forEach(function (r) { byId[r[0]] = { id: r[0], name: r[1], team: r[2], role: r[3], price: r[4] }; });
   return pulled.map(function (c) {
+    var past = pcmtPastCard(c);
+    if (past) {   // a throwback card: that season's player, team and stats
+      var ps = past.st || {}, prole = ps.role || '', ptm = past.team, f = function (v, fn) { return ps.acs != null && v != null ? fn(v) : '—'; };
+      return {
+        name: ps.name || c.title, role: prole ? prole.charAt(0).toUpperCase() + prole.slice(1) : '', roleIcon: prole ? abs(PCMT_PACK_ROLE_ICONS[prole]) : '',
+        price: '', champ: !!ps.champ, rarity: c.rarity,
+        art: c.variant && PCMT_VARIANT_ART[c.variant] ? abs(PCMT_VARIANT_ART[c.variant]) : '', artFull: !!(c.variant && PCMT_VARIANT_FULL[c.variant]), artCenter: !!(c.variant && PCMT_VARIANT_CENTER[c.variant]), sheenColor: (c.variant && PCMT_VARIANT_SHEEN[c.variant]) || '',
+        badge: c.new ? 'NEW' : '×' + c.count, regionLogo: abs(PCMT_REGION_LOGOS[c.region] || PCMT_REGION_LOGOS.NA),
+        trophy: abs(PCMT_TROPHY_ICON),
+        mvp: { maps: ps.maps != null ? String(ps.maps) : '—', season: c.season, stats: [
+          { label: 'ACS', value: f(ps.acs, String) },
+          { label: 'KAST', value: f(ps.kast, function (v) { return v + '%'; }) },
+          { label: 'HS%', value: f(ps.hs, function (v) { return v + '%'; }) },
+          { label: 'DPR', value: f(ps.dpr, function (v) { return (+v).toFixed(2); }), low: true },
+          { label: 'Toxic rating', value: f(ps.toxic, function (v) { return (+v).toFixed(2); }) }
+        ] },
+        team: { code: ptm.code, name: ptm.name, color: ptm.color, logo: abs(ptm.logo), logoH: 30 }
+      };
+    }
     var p = byId[c.player] || { id: c.player, name: c.player, team: '', role: 'duelist', price: 0 };
     var tm = PCMT_ALL_DECK_TEAMS.find(function (x) { return x.code === p.team; }) || { code: p.team, name: p.team, color: '#a5dcdd', logo: '' };
     var role = p.role === 'yoru' ? 'duelist' : p.role, pr = Math.round(p.price * 10) / 10;
@@ -937,7 +971,7 @@ class Component extends DCLogic {
     var live = !!W.PCMT_LEAGUE, signedIn = live ? !!W.PCMT_LEAGUE.signedIn : true;
     var bankNum = live ? (+((W.PCMT_VP && W.PCMT_VP.balance) || 0) || 0) : 0;
     var mine = W.PCMT_MY_CARDS || {};
-    var src = (live ? (W.PCMT_PACKS || []) : PCMT_PACK_SAMPLE).slice().sort(function (a, b) { return (a.region === 'NA' ? 0 : 1) - (b.region === 'NA' ? 0 : 1) || String(a.name).localeCompare(b.name); });
+    var src = (live ? (W.PCMT_PACKS || []) : PCMT_PACK_SAMPLE).slice().sort(function (a, b) { return (a.season ? 1 : 0) - (b.season ? 1 : 0) || (a.region === 'NA' ? 0 : 1) - (b.region === 'NA' ? 0 : 1) || String(a.name).localeCompare(b.name); });
     var packs = src.map(function (p) {
       var o = p.odds || {}, priced = p.price != null, canBuy = !live || W.PCMT_IS_ADMIN || p.open_to_all;
       var short = live && priced && bankNum < p.price;
@@ -947,7 +981,8 @@ class Component extends DCLogic {
       var note = s.note && s.note.id === p.id ? s.note : null;
       return {
         id: p.id, name: p.name, art: PCMT_PACK_ART[p.region] || PCMT_PACK_ART.NA,
-        desc: (p.cards || 5) + ' cards, all ' + p.region + ' players (' + (PCMT_SEASON[p.region] || p.region) + ').',
+        desc: p.season ? (p.cards || 5) + ' cards from ' + p.season + ', with that season\'s teams and stats. Not used on The Deck.'
+                       : (p.cards || 5) + ' cards, all ' + p.region + ' players (' + (PCMT_SEASON[p.region] || p.region) + ').',
         odds: 'Each card: Common ' + (o.common || 0) + '% · Rare ' + (o.rare || 0) + '% · Epic ' + (o.epic || 0) + '% · Legendary ' + (o.legendary || 0) + '%',
         price: priced ? String(p.price) : '', priceLabel: priced ? String(p.price) : '—',
         disabled: disabled, btnBg: disabled ? 'transparent' : '#a5dcdd', btnInk: disabled ? '#93a9aa' : '#000', btnBorder: disabled ? '#2c3d40' : '#a5dcdd', cursor: disabled ? 'not-allowed' : 'pointer',

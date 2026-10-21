@@ -26,22 +26,22 @@ grant usage on all sequences in schema public to authenticated;`);
 const buy = (uid, pack = 'na-pack') => JSON.parse(sql(as(uid, `select public.buy_pack('${pack}');`)).trim());
 const bal = uid => +sql(`select coalesce(sum(amount),0) from public.vp_ledger where user_id = '${uid}';`).trim();
 
-check(+sql(`select count(*) from public.cards where active;`).trim() === 146, 'catalog has 131 commons + 15 variants (4 + 11 champions)');
+check(+sql(`select count(*) from public.cards where active;`).trim() === 270, 'catalog has 131 commons + 15 variants (4 + 11 champions), plus 108 past-season commons + 16 past champions');
 check(sql(`select rarity from public.cards where id = 'v:teklo-variant';`).trim() === 'rare', 'The Role of Yoru is Rare');
 check(fails(`set role anon; select public.buy_pack('na-pack');`), 'logged-out visitors cannot buy');
 check(fails(as(P1, `select public.buy_pack('na-pack');`), /aren't on sale yet/), 'before launch, a player who is not an admin cannot buy');
-check(sql(`select string_agg(price::text, ',') from public.card_packs`).trim() === '0,0', 'new packs start at 0 VP'); sql(`update public.card_packs set price = null`); check(fails(as(ADMIN, `select public.buy_pack('na-pack');`), /doesn't have a price/), 'a pack with no price cannot be bought');
-check(fails(as(P1, `update public.card_packs set price = 0;`)) || sql(`select string_agg(coalesce(price::text,'null'), ',') from public.card_packs`).trim() === 'null,null', 'a player cannot set the price');
+check(sql(`select string_agg(price::text, ',') from public.card_packs`).trim() === '0,0,0,0,0', 'new packs start at 0 VP'); sql(`update public.card_packs set price = null`); check(fails(as(ADMIN, `select public.buy_pack('na-pack');`), /doesn't have a price/), 'a pack with no price cannot be bought');
+check(fails(as(P1, `update public.card_packs set price = 0;`)) || sql(`select string_agg(coalesce(price::text,'null'), ',') from public.card_packs`).trim() === 'null,null,null,null,null', 'a player cannot set the price');
 sql(as(ADMIN, `update public.card_packs set price = 0;`));
-check(sql(`select string_agg(price::text, ',') from public.card_packs`).trim() === '0,0', 'an admin can set the price');
+check(sql(`select string_agg(price::text, ',') from public.card_packs`).trim() === '0,0,0,0,0', 'an admin can set the price');
 let r = buy(ADMIN);
 check(r.cards.length === 5 && r.cards.every(c => c.id && c.player && c.rarity), 'a pack gives 5 cards');
 check(bal(ADMIN) === 0 && +sql(`select count(*) from public.vp_ledger where user_id = '${ADMIN}'`).trim() === 0, 'a free pack takes no VP and writes no ledger line');
 
 // odds: 70 common / 22 rare / 7 epic / 1 legendary, with no epic/legendary cards they drop to rare
 const N = 1200; const tally = { common: 0, rare: 0, epic: 0, legendary: 0 };
-const many = sql(as(ADMIN, `select string_agg((c ->> 'rarity') || ':' || (c ->> 'region'), ',') from generate_series(1, ${N}) g, lateral jsonb_array_elements(public.buy_pack('na-pack' || left(g::text, 0)) -> 'cards') c;`)).trim().split(',');
-check(many.every(x => x.endsWith(':NA')), 'the NA pack only gives NA players');
+const many = sql(as(ADMIN, `select string_agg((c ->> 'rarity') || ':' || coalesce(c ->> 'season', '') || (c ->> 'region'), ',') from generate_series(1, ${N}) g, lateral jsonb_array_elements(public.buy_pack('na-pack' || left(g::text, 0)) -> 'cards') c;`)).trim().split(',');
+check(many.every(x => x.endsWith(':NA')), 'the NA pack only gives NA players, and never a past-season card');
 many.forEach(x => tally[x.split(':')[0]]++);
 const share = k => tally[k] / many.length;
 check(many.length === N * 5, `${N} packs gave ${N * 5} cards`);
@@ -56,6 +56,12 @@ const at = [1, 2, 3, 4, 5].map(k => pos.filter(x => x === k).length / pos.length
 check(at.every(f => f > 0.15 && f < 0.25), 'rares land anywhere in the pack: ' + at.map(f => (f * 100).toFixed(0) + '%').join(' / ') + ' at positions 1-5');
 const eu = sql(as(ADMIN, `select string_agg((c ->> 'rarity') || ':' || (c ->> 'region'), ',') from generate_series(1, 200) g, lateral jsonb_array_elements(public.buy_pack('emea-pack' || left(g::text, 0)) -> 'cards') c;`)).trim().split(',');
 check(eu.length === 1000 && eu.every(x => x.endsWith(':EMEA')) && eu.some(x => x === 'rare:EMEA'), 'the EMEA pack only gives EMEA players, and its champions come out as Rares');
+for (const [pack, season, reg, champs] of [['nas1-pack', 'S1 NA', 'NA', 6], ['nas2-pack', 'S2 NA', 'NA', 5], ['emeas1-pack', 'S1 EMEA', 'EMEA', 5]]) {
+  const tb = sql(as(ADMIN, `select string_agg((c ->> 'rarity') || '|' || coalesce(c ->> 'season', '-') || '|' || (c ->> 'region') || '|' || (c ->> 'id'), ',') from generate_series(1, 300) g, lateral jsonb_array_elements(public.buy_pack('${pack}' || left(g::text, 0)) -> 'cards') c;`)).trim().split(',').map(x => x.split('|'));
+  const rareIds = new Set(tb.filter(x => x[0] === 'rare').map(x => x[3]));
+  check(tb.length === 1500 && tb.every(x => x[1] === season && x[2] === reg) && tb.every(x => x[0] === 'common' ? x[3].startsWith('o:') : x[3].startsWith('v:champ-')) && rareIds.size === champs,
+    `the ${season} throwback pack only gives ${season} cards, Commons plus its ${champs} champions as Rares (${rareIds.size} seen)`);
+}
 
 // paying with VP
 sql(`update public.card_packs set price = 100, open_to_all = true; insert into public.vp_ledger (user_id, kind, week, amount) values ('${P1}', 'week', '2026-10-19', 250);`);
@@ -74,8 +80,8 @@ sql(`insert into public.vp_ledger (user_id, kind, week, amount) values ('${P2}',
   check(sql(as(P1, `select count(distinct user_id) from public.user_cards;`)).trim() === '1', 'players only see their own cards');
   check(fails(as(P1, `insert into public.user_cards (user_id, card_id) values ('${P1}', 'v:teklo-variant');`)), 'players cannot give themselves cards');
   check(fails(as(P1, `insert into public.vp_ledger (user_id, kind, amount) values ('${P1}', 'week', 999);`)), 'players cannot give themselves VP');
-  check(fails(as(P1, `update public.card_packs set price = 1;`)) || sql(`select string_agg(price::text, ',') from public.card_packs`).trim() === '100,100', 'players cannot change the price');
-  check(sql(`set role anon; select count(*) from public.card_packs;`).trim() === '2' && sql(`set role anon; select count(*) from public.cards;`).trim() === '146', 'anyone can see the packs and the catalog');
+  check(fails(as(P1, `update public.card_packs set price = 1;`)) || sql(`select string_agg(price::text, ',') from public.card_packs`).trim() === '100,100,100,100,100', 'players cannot change the price');
+  check(sql(`set role anon; select count(*) from public.card_packs;`).trim() === '5' && sql(`set role anon; select count(*) from public.cards;`).trim() === '270', 'anyone can see the packs and the catalog');
   sql('drop database cardtest;', 'postgres');
   console.log(bad ? bad + ' problem(s)' : 'All card pack checks passed');
   process.exit(bad ? 1 : 0);

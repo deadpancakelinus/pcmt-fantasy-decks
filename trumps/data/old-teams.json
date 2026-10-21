@@ -1,0 +1,31 @@
+{
+  "_how": "Teams of past PCMT seasons for MVP VS and the throwback packs. Name and logo from the team's pcmt.gg page (read 2026-10-21); colour picked from the logo; champion = won that season's final.",
+  "seasons": {
+    "S1 NA": {
+      "KAT": {"name": "Kurt's Kittens", "color": "#c0504d", "logo": "33fa3c43899bd1c2bd656ed5d6411382.png", "champion": false},
+      "YD": {"name": "You Get Shot You Die", "color": "#d64545", "logo": "50c04008ff7161451118b860c84f52c9.png", "champion": true},
+      "CIN": {"name": "Absolute Cinema", "color": "#c9c9c9", "logo": "16685f4c0e1adf073e454fe0d2b29a19.png", "champion": false},
+      "WALL": {"name": "The Brick Wall", "color": "#e07a2e", "logo": "95393482013ce6f5a6a7dc7a3954b9e3.png", "champion": false}
+    },
+    "S2 NA": {
+      "WING": {"name": "Wingman Warriors", "color": "#f2c94c", "logo": "378b1991304ee6ee83c8bffe02e64899.png", "champion": false},
+      "TS": {"name": "Tequila Sunrise", "color": "#f39c3a", "logo": "7fbe19c7ca426c3ac88f59daea9e95f1.png", "champion": false},
+      "JDG": {"name": "Just Dudes Gaming", "color": "#b08a5a", "logo": "98a4980f4d2f02ae59329e29223541ea.png", "champion": true},
+      "DRX": {"name": "Dementia Real Exists", "color": "#6f5ee6", "logo": "e70ddecc600bb21682d9d856a5c784f2.png", "champion": false},
+      "KOI": {"name": "Keep On Inting", "color": "#3a8ee6", "logo": "a69cfa2113d43c346424631f77b1514b.png", "champion": false},
+      "WOOD": {"name": "The Wooden Fence", "color": "#b07a3a", "logo": "e7e7541b7270786e487f26640f9e9257.png", "champion": false},
+      "DRG": {"name": "DeRank Gamers", "color": "#5be37a", "logo": "2711e87ad8480c728094c0282823e46f.png", "champion": false},
+      "ZIRC": {"name": "Zirconians", "color": "#c7d48f", "logo": "9528e211da5e57de2ab343a7d7139be4.png", "champion": false},
+      "MIBR": {"name": "Made in Bronze", "color": "#a8823c", "logo": "946afd18fc3ba0ad11390e90fe172391.png", "champion": false},
+      "EMEA": {"name": "Tech Pause Esports", "color": "#e5383b", "logo": "640d585c38908e1363726b7e955f4003.png", "champion": false},
+      "SLLY": {"name": "Silly Geese", "color": "#d8d8d8", "logo": "dabb76568d1f77eec740aeb3caf0cb73.png", "champion": false},
+      "KRU": {"name": "Knives R' Us", "color": "#ff2d6f", "logo": "6a7892987650fd4a4e0456dbc5387c59.png", "champion": false}
+    },
+    "S1 EMEA": {
+      "WFC": {"name": "Wetherspoons FC", "color": "#2f80ed", "logo": "cebed2cc22ecf63ff68b1c16af5f3f5a.png", "champion": true},
+      "T4K": {"name": "Team FourK", "color": "#9aa4ad", "logo": "8c5d45ecffef785252c358dee195b2a0.png", "champion": false},
+      "MISC": {"name": "Mischifs", "color": "#2e86de", "logo": "aae3db0cd217dd92c695a88e0dacb9f0.png", "champion": false},
+      "<3": {"name": "Less Than Three", "color": "#e85d75", "logo": "b778756d0a61160367efdcf7e06e0565.png", "champion": false}
+    }
+  }
+}

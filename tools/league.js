@@ -354,10 +354,13 @@
       var vp = me ? api('/rest/v1/vp_ledger?select=kind,week,amount,detail,created_at&order=created_at.desc&limit=5000').catch(function () { return null; }) : Promise.resolve([]);
       var admin = me ? api('/rest/v1/pcmt_admins?select=user_id&user_id=eq.' + me.id).catch(function () { return []; }) : Promise.resolve([]);
       // Card packs for sale (public) and the cards you own (empty until setup/cards-setup.sql has been run)
-      var packs = api('/rest/v1/card_packs?select=id,name,region,cards,odds,price,active,open_to_all&active=is.true&order=id').catch(function () { return []; });
+      // (season: throwback packs and past-season cards; falls back to the older columns until setup/cards-setup.sql is re-run)
+      var packs = api('/rest/v1/card_packs?select=id,name,region,season,cards,odds,price,active,open_to_all&active=is.true&order=id')
+        .catch(function () { return api('/rest/v1/card_packs?select=id,name,region,cards,odds,price,active,open_to_all&active=is.true&order=id'); }).catch(function () { return []; });
       var mine = me ? api('/rest/v1/user_cards?select=card_id,count&limit=5000').catch(function () { return []; }) : Promise.resolve([]);
       var onLibrary = /"data-pcmt-root":"Library"/.test((document.getElementById('dc-tree') || {}).textContent || ''); // not the address: the site serves /library as well as /library.html
-      var catalog = onLibrary ? api('/rest/v1/cards?select=id,player,variant,rarity,region,title&limit=5000').catch(function () { return []; }) : Promise.resolve([]);
+      var catalog = onLibrary ? api('/rest/v1/cards?select=id,player,variant,rarity,region,season,title&limit=5000')
+        .catch(function () { return api('/rest/v1/cards?select=id,player,variant,rarity,region,title&limit=5000'); }).catch(function () { return []; }) : Promise.resolve([]);
       return Promise.all([decks, profiles, unlocks, vp, multi, admin, packs, mine, catalog]);
     }).then(function (res) {
       attachMulti(res[4] || []);

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>fantasy.pcmt.gg MVP VS</title>
-<meta name="description" content="MVP VS: a Top Trumps-style card game with every PCMT S3 NA and S2 EMEA player. Play the bot or a friend.">
+<meta name="description" content="MVP VS: a Top Trumps-style card game with every PCMT player, this season or a past one. Play the bot or a friend.">
 <link rel="icon" href="assets/3bf9d529cabff94109b561693539029f.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,7 +27,8 @@
   .tt-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-bottom: 28px; }
   h1 { font: 700 clamp(40px, 7vw, 64px)/1 'Cabin Sketch', cursive; margin: 0; }
   .tt-sub { color: var(--dim); margin: 10px 0 0; max-width: 560px; }
-  .tt-region { display: flex; align-items: center; gap: 10px; }
+  .tt-region { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; max-width: 460px; }
+  .tt-region > .tt-past { flex: 1 0 100%; text-align: right; margin-top: 4px; }
   .tt-region > span { font: 600 11px/1 'JetBrains Mono', monospace; letter-spacing: .12em; color: var(--dim); }
   .tt-region button { display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px 9px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); font-size: 13px; font-weight: 600; cursor: pointer; }
   .tt-region button img { width: 22px; height: 22px; object-fit: contain; }
@@ -236,13 +237,17 @@
       <span>CARDS</span>
       <button type="button" data-region="na" aria-pressed="true"><img src="assets/c265e976f8968e60e4a2bdd32542b499.png" alt="">NA S3</button>
       <button type="button" data-region="emea" aria-pressed="false"><img src="assets/3c7e7374dceead68d5c58818d0bcfe8a.png" alt="">EMEA S2</button>
+      <span class="tt-past">PAST SEASONS</span>
+      <button type="button" data-region="nas1" aria-pressed="false"><img src="assets/c265e976f8968e60e4a2bdd32542b499.png" alt="">NA S1</button>
+      <button type="button" data-region="nas2" aria-pressed="false"><img src="assets/c265e976f8968e60e4a2bdd32542b499.png" alt="">NA S2</button>
+      <button type="button" data-region="emeas1" aria-pressed="false"><img src="assets/3c7e7374dceead68d5c58818d0bcfe8a.png" alt="">EMEA S1</button>
     </div>
   </div>
   <div id="tt-app" aria-live="polite"></div>
   <section class="tt-rules">
     <h2>How it works</h2>
     <ul>
-      <li>Pick <b>NA</b> or <b>EMEA</b> before dealing. A game only ever uses one region's cards: every S3 NA player or every S2 EMEA player, subs included.</li>
+      <li>Pick which cards to deal before you start: <b>NA S3</b> or <b>EMEA S2</b>, or a past season (<b>NA S1</b>, <b>NA S2</b>, <b>EMEA S1</b>) with that season's stats and teams. A game only ever uses one season's cards, subs included.</li>
       <li>Each card has five stats from the pcmt.gg stats page: <b>ACS</b>, <b>KAST</b>, <b>HS%</b>, <b>DPR</b> (deaths per round) and <b>Toxic rating</b>. The higher number wins, except DPR, where the lower number wins.</li>
       <li>Whoever has the better number (higher, or lower for DPR) takes both cards to the bottom of their deck and picks the next stat. On a tie, each player puts their own card back at the bottom of their deck and the same player picks again. With an odd number of players, whoever picks second starts with one extra card. Against the bot, you always pick first.</li>
       <li>You win by holding every card. If nobody has after round 60 (most games), whoever has more cards wins.</li>

@@ -2,13 +2,17 @@
 // Cards come from trumps-cards.js (built by trumps/build_cards.py). Database setup: setup/trumps-setup.sql.
 (function () {
   'use strict';
-  var CARDS = window.PCMT_TRUMPS_CARDS || { na: [], emea: [] };
+  var CARDS = window.PCMT_TRUMPS_CARDS || { na: [], emea: [], nas1: [], nas2: [], emeas1: [] };
   var SB_URL = 'https://wwrsavqipkxvdsxcemos.supabase.co';
   var SB_KEY = 'sb_publishable_e8v-uyAo4fnvwJCHUVA5FQ_LXR6yYM7';
   var TOKEN_KEY = 'pcmt-auth'; // same sign-in as the rest of the site
   var ROUND_LIMIT = 60;
   var REGIONS = { na: { label: 'NA', season: 'S3 NA', logo: 'assets/c265e976f8968e60e4a2bdd32542b499.png' },
-                  emea: { label: 'EMEA', season: 'S2 EMEA', logo: 'assets/3c7e7374dceead68d5c58818d0bcfe8a.png' } };
+                  emea: { label: 'EMEA', season: 'S2 EMEA', logo: 'assets/3c7e7374dceead68d5c58818d0bcfe8a.png' },
+                  // Past seasons: their cards carry their own team logo (old team codes can repeat today's).
+                  nas1: { label: 'NA S1', season: 'S1 NA', logo: 'assets/c265e976f8968e60e4a2bdd32542b499.png', past: true },
+                  nas2: { label: 'NA S2', season: 'S2 NA', logo: 'assets/c265e976f8968e60e4a2bdd32542b499.png', past: true },
+                  emeas1: { label: 'EMEA S1', season: 'S1 EMEA', logo: 'assets/3c7e7374dceead68d5c58818d0bcfe8a.png', past: true } };
   var STATS = [
     { k: 'acs', label: 'ACS', fmt: String },
     { k: 'kast', label: 'KAST', fmt: function (v) { return v + '%'; } },
@@ -162,7 +166,7 @@
     if (o.hidden) return '<div class="tt-card tt-back" aria-label="Face-down card"><i class="tt-back-in1"></i><i class="tt-back-in2"></i>' +
       '<i class="tt-gem t"></i><i class="tt-gem b"></i><i class="tt-gem l"></i><i class="tt-gem r"></i>' +
       '<span class="tt-back-emblem"><img src="' + EMBLEM + '" alt=""></span></div>';
-    var c = BY_ID[id], region = id.split('-')[0], logo = LOGOS[c.team];
+    var c = BY_ID[id], region = id.split('-')[0], logo = c.logo || (REGIONS[region].past ? '' : LOGOS[c.team]);
     var rows = STATS.map(function (s) {
       var cls = 'tt-stat' + (o.stat === s.k ? ' is-picked ' + (o.result || '') : '');
       var star = s.low ? '<i title="Lower wins on this stat">lower wins</i>' : '';

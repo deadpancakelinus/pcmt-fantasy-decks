@@ -12,7 +12,7 @@ $$;
 -- 2) Rooms. Players only ever see rooms they are seated in.
 create table if not exists public.trumps_rooms (
   code text primary key,
-  region text not null check (region in ('na', 'emea')),
+  region text not null check (region in ('na', 'emea', 'nas1', 'nas2', 'emeas1')),
   host uuid not null references auth.users (id) on delete cascade,
   guest uuid references auth.users (id) on delete cascade,
   host_name text not null default 'Player 1',
@@ -22,6 +22,9 @@ create table if not exists public.trumps_rooms (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+-- Past seasons (NA S1, NA S2, EMEA S1) can be dealt too.
+alter table public.trumps_rooms drop constraint if exists trumps_rooms_region_check;
+alter table public.trumps_rooms add constraint trumps_rooms_region_check check (region in ('na', 'emea', 'nas1', 'nas2', 'emeas1'));
 alter table public.trumps_rooms enable row level security;
 drop policy if exists "players read their rooms" on public.trumps_rooms;
 create policy "players read their rooms" on public.trumps_rooms for select
@@ -34,7 +37,7 @@ language plpgsql security definer set search_path = public as $$
 declare c text; n int := 0;
 begin
   if not public.trumps_can_play() then raise exception 'Log in with Discord to play online.'; end if;
-  if p_region not in ('na', 'emea') then raise exception 'Unknown region.'; end if;
+  if p_region not in ('na', 'emea', 'nas1', 'nas2', 'emeas1') then raise exception 'Unknown region.'; end if;
   -- Tidy up: rooms untouched for a day are removed.
   delete from public.trumps_rooms where updated_at < now() - interval '1 day';
   if (select count(*) from public.trumps_rooms where host = auth.uid()) >= 5 then

@@ -12,13 +12,13 @@ const check = (ok, msg) => { if (!ok) { bad++; console.log('FAIL ' + msg); } };
   fs.mkdirSync(SHOTS, { recursive: true });
   const b = await chromium.launch();
 
-  // 1) Engine: play many bot-vs-bot games per region.
+  // 1) Engine: play many bot-vs-bot games per region and past season.
   {
     const pg = await b.newPage();
     await pg.goto(`${BASE}/mvp-vs.html`);
     const r = await pg.evaluate(() => {
       const T = window.PCMT_TRUMPS, out = {};
-      for (const region of ['na', 'emea']) {
+      for (const region of ['na', 'emea', 'nas1', 'nas2', 'emeas1']) {
         const total = T.cards[region].length, all = new Set(T.cards[region].map(c => c.id));
         let games = 0, byCards = 0, byLimit = 0, draws = 0, errors = [];
         for (let seed = 1; seed <= 2000; seed++) {

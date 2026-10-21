@@ -150,7 +150,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </sc-for>
 </div>
 <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; height: 26px; flex: none">
-<img src="{{it.roleIcon}}" alt="{{it.roleLabel}}" title="{{it.roleLabel}}" style="width: 24px; height: 24px; display: block">
+<sc-if value="{{it.hasRole}}" hint-placeholder-val="{{ true }}"><img src="{{it.roleIcon}}" alt="{{it.roleLabel}}" title="{{it.roleLabel}}" style="width: 24px; height: 24px; display: block"></sc-if>
+<sc-if value="{{it.noRole}}" hint-placeholder-val="{{ false }}"><span></span></sc-if>
 <sc-if value="{{it.shiny}}" hint-placeholder-val="{{ false }}">
 <span class="st-stamp" title="{{it.rarityLabel}} card" style="border: 1.5px solid {{it.color}}; box-shadow: inset 0 0 0 2px #0b1011, inset 0 0 0 3px {{it.color}}, 0 0 12px {{it.glow}}; color: {{it.color}}">
 <svg aria-hidden="true" width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 20.9l1.6-7L2 9.2l7.1-.6z"></path></svg>
@@ -209,6 +210,18 @@ var PCMT_LIBRARY_SAMPLE = {
 var PCMT_RARITY_ORDER = { legendary: 0, epic: 1, rare: 2, common: 3 };
 var PCMT_RARITY_INK = { legendary: '#f5d76e', epic: '#c99bff', rare: '#7cc2ff', common: '#eaf4f4' };
 var PCMT_SEASON_LABEL = { NA: 'S3 NA', EMEA: 'S2 EMEA' };
+// Past seasons (throwback packs): the MVP VS deck in trumps-cards.js that holds each season's cards.
+var PCMT_PAST_SEASONS = { 'S1 NA': 'nas1', 'S2 NA': 'nas2', 'S1 EMEA': 'emeas1' };
+// A past-season card ("o:nas1-igneous", or a "champ-…" Rare): its player, team and stats from that season's MVP VS card.
+function pcmtPastCard(c) {
+  var key = c && c.season && PCMT_PAST_SEASONS[c.season], W = typeof window !== 'undefined' ? window : {}, st = null;
+  if (!key) return null;
+  ((W.PCMT_TRUMPS_CARDS || {})[key] || []).forEach(function (x) { if (x.id === c.player) st = x; });
+  if (st && c.variant && c.variant.indexOf('champ-') === 0 && !PCMT_VARIANT_ART[c.variant]) {   // past champions: the same trophy card
+    PCMT_VARIANT_ART[c.variant] = PCMT_VARIANT_ART_CHAMPS['champ-longclaw']; PCMT_VARIANT_CENTER[c.variant] = true; PCMT_VARIANT_SHEEN[c.variant] = '#f5d76e';
+  }
+  return st ? { st: st, team: { code: st.team || 'SUB', name: st.teamName, color: st.color, logo: st.logo ? 'assets/' + st.logo : '' } } : { st: null, team: { code: '', name: c.season, color: '#a5dcdd', logo: '' } };
+}
 
 // ---- Shared with the Store board (keep in step) ----
 var PCMT_VARIANT_ART = { 'teklo-variant': '/_blob/8b1855340f56f72ea07f5447ca167038', 'straight-variant': '/_blob/21ae11daa07a46a08f5d3cf16fd0b2d9', 'claps-variant': '/_blob/bb4db91bdcfb1958431ff90d376d30cb', 'lore-variant': '/_blob/6d7189fcc9c2218d0aa67f7572a102e3' };
@@ -352,11 +365,13 @@ class Component extends DCLogic {
     var byId = {};
     catalog.forEach(function (c) { byId[c.id] = c; });
     var all = Object.keys(mine).filter(function (k) { return mine[k] > 0 && byId[k]; }).map(function (k) {
-      var c = byId[k], p = players[c.player] || { id: c.player, name: c.player, team: '', role: 'duelist' };
-      var tm = PCMT_ALL_DECK_TEAMS.find(function (x) { return x.code === p.team; }) || { code: p.team, name: p.team, color: '#a5dcdd', logo: '' };
-      var role = String(p.role || 'duelist').split('/')[0]; if (role === 'yoru') role = 'duelist';
+      var c = byId[k], past = pcmtPastCard(c), ps = past && past.st;   // past: a throwback card with that season's player, team and stats
+      var p = past ? { id: c.player, name: ps ? ps.name : c.title, team: past.team.code, role: (ps && ps.role) || '' }
+                   : (players[c.player] || { id: c.player, name: c.player, team: '', role: 'duelist' });
+      var tm = past ? past.team : (PCMT_ALL_DECK_TEAMS.find(function (x) { return x.code === p.team; }) || { code: p.team, name: p.team, color: '#a5dcdd', logo: '' });
+      var role = String(p.role || (past ? '' : 'duelist')).split('/')[0]; if (role === 'yoru') role = 'duelist';
       // MVP VS stats: matched by the player's id (names can differ on PCMT.gg), then by name
-      var st = stats['id|' + c.player] || stats[c.region + '|' + String(p.name).toLowerCase()] || null;
+      var st = past ? ps : (stats['id|' + c.player] || stats[c.region + '|' + String(p.name).toLowerCase()] || null);
       var fmt = function (v, f) { return st && v != null ? f(v) : '—'; };
       var shiny = c.rarity !== 'common', col = tm.color || '#a5dcdd';
       return {
@@ -364,11 +379,11 @@ class Component extends DCLogic {
         variantKey: 'r:' + c.rarity, groupLabel: c.rarity.charAt(0).toUpperCase() + c.rarity.slice(1),
         title: c.variant ? c.title : (c.rarity.charAt(0).toUpperCase() + c.rarity.slice(1)),
         name: p.name, team: tm.code, teamName: tm.name, teamLogo: tm.logo || '', hasLogo: !!tm.logo, noLogo: !tm.logo, color: col,
-        season: PCMT_SEASON_LABEL[c.region] || c.region, maps: st ? String(st.maps) : '—',
+        season: past ? c.season : (PCMT_SEASON_LABEL[c.region] || c.region), maps: st ? String(st.maps) : '—',
         regionLogo: PCMT_REGION_LOGOS[c.region] || PCMT_REGION_LOGOS.NA,
         art: c.variant && PCMT_VARIANT_ART[c.variant] ? PCMT_VARIANT_ART[c.variant] : '', hasArt: !!(c.variant && PCMT_VARIANT_ART[c.variant]), artClass: c.variant && PCMT_VARIANT_FULL[c.variant] ? 'st-art-full' : c.variant && PCMT_VARIANT_CENTER[c.variant] ? 'st-art-center' : '',
-        roleIcon: PCMT_PACK_ROLE_ICONS[role] || PCMT_PACK_ROLE_ICONS.duelist, roleLabel: role.charAt(0).toUpperCase() + role.slice(1),
-        champ: PCMT_CHAMPS.indexOf(p.id) >= 0,
+        roleIcon: role ? (PCMT_PACK_ROLE_ICONS[role] || PCMT_PACK_ROLE_ICONS.duelist) : '', roleLabel: role.charAt(0).toUpperCase() + role.slice(1), hasRole: !!role, noRole: !role,
+        champ: past ? !!(ps && ps.champ) : PCMT_CHAMPS.indexOf(p.id) >= 0,
         nameSize: Math.max(18, Math.min(34, Math.floor(230 / Math.max(4, String(p.name).length * 0.62)))),
         cardLabel: (c.variant ? c.title + ' card: ' : '') + p.name + ', ' + tm.name + ', ' + c.rarity + ', you own ' + mine[k],
         shiny: shiny, rarityTag: c.rarity.toUpperCase(), rarityLabel: c.rarity.charAt(0).toUpperCase() + c.rarity.slice(1), glow: pcmtRgba(col, 0.45),

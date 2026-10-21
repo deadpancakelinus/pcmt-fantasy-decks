@@ -5,6 +5,8 @@
 -- How it works:
 --   * cards: every card that exists. Each store player is a Common card; variants (special art) have a rarity.
 --   * card_packs: packs for sale (an NA pack and an EMEA pack, each drawing only that region's players), with price (set on admin.html), cards per pack and odds per card.
+--   * Throwback packs: one per past season (S1 NA, S2 NA, S1 EMEA). A pack with a season only draws that season's cards;
+--     the NA and EMEA packs (no season) only draw this season's cards. Past-season cards are not on The Deck.
 --   * buy_pack(pack): the only way to buy. It runs on the server: checks the price and the buyer's VP,
 --     takes the VP, draws the cards with the odds, and saves them. Nothing in the browser can pick cards.
 --   * If a drawn rarity has no cards yet (e.g. no Legendary cards exist), the card drops to the next tier down.
@@ -19,9 +21,11 @@ create table if not exists public.cards (
   rarity text not null check (rarity in ('common', 'rare', 'epic', 'legendary')),
   title text not null,
   region text not null default 'NA' check (region in ('NA', 'EMEA')),
+  season text,                              -- null = this season; 'S1 NA' etc. for a past-season card (player = its MVP VS card id)
   active boolean not null default true      -- switched off instead of deleted, so owned cards stay valid
 );
 alter table public.cards add column if not exists region text not null default 'NA' check (region in ('NA', 'EMEA'));
+alter table public.cards add column if not exists season text;
 alter table public.cards enable row level security;
 drop policy if exists "anyone can read cards" on public.cards;
 create policy "anyone can read cards" on public.cards for select using (true);
@@ -30,6 +34,7 @@ create table if not exists public.card_packs (
   id text primary key,
   name text not null,
   region text not null default 'NA' check (region in ('NA', 'EMEA')),   -- the pack only draws cards from this region
+  season text,                              -- null = this season's cards; 'S1 NA' etc. = a throwback pack for that season
   cards integer not null default 5 check (cards between 1 and 10),
   odds jsonb not null,                      -- percent per card, e.g. {"common":70,"rare":22,"epic":7,"legendary":1}
   price integer check (price >= 0),         -- VP; null = not priced yet, can't be bought
@@ -37,6 +42,7 @@ create table if not exists public.card_packs (
   open_to_all boolean not null default false
 );
 alter table public.card_packs add column if not exists region text not null default 'NA' check (region in ('NA', 'EMEA'));
+alter table public.card_packs add column if not exists season text;
 alter table public.card_packs enable row level security;
 drop policy if exists "anyone can read packs" on public.card_packs;
 create policy "anyone can read packs" on public.card_packs for select using (true);
@@ -101,17 +107,17 @@ begin
       exit when roll < acc;
     end loop;
     idx := array_position(tiers, drawn); got_tier := drawn;
-    while idx > 1 and not exists (select 1 from public.cards where active and region = pk.region and rarity = tiers[idx]) loop
+    while idx > 1 and not exists (select 1 from public.cards where active and region = pk.region and season is not distinct from pk.season and rarity = tiers[idx]) loop
       idx := idx - 1;                                                    -- no cards in that tier yet: next tier down
     end loop;
     got_tier := tiers[idx];
-    select * into c from public.cards where active and region = pk.region and rarity = got_tier order by random() limit 1;
+    select * into c from public.cards where active and region = pk.region and season is not distinct from pk.season and rarity = got_tier order by random() limit 1;
     if not found then raise exception 'There are no cards to draw yet.'; end if;
     insert into public.user_cards (user_id, card_id, count) values (u, c.id, 1)
       on conflict (user_id, card_id) do update set count = public.user_cards.count + 1
       returning count into n;
     out := out || jsonb_build_array(jsonb_build_object('id', c.id, 'player', c.player, 'variant', c.variant, 'rarity', c.rarity,
-                                                       'title', c.title, 'region', c.region, 'count', n, 'new', n = 1));
+                                                       'title', c.title, 'region', c.region, 'season', c.season, 'count', n, 'new', n = 1));
   end loop;
   -- Shuffle the order so a rare can be anywhere in the pack (each card is drawn on its own, this just mixes the reveal order).
   select coalesce(jsonb_agg(x order by random()), '[]'::jsonb) into out from jsonb_array_elements(out) x;
