@@ -13,7 +13,7 @@ VARIANTS = [
     ('teklo-variant', 'teklo', 'rare', 'The Role of Yoru'),
     ('straight-variant', 'straight', 'rare', 'Straight Ace'),
     ('claps-variant', 'claps', 'rare', 'claps Clove'),
-    ('lore-variant', 'lore', 'rare', 'Hello, lore'),
+    ('lore-variant', 'lore', 'rare', 'Clove Value'),
     # PCMT champions: trophy art, gold sheen
     ('champ-longclaw', 'longclaw', 'rare', 'longclaw Champion'),
     ('champ-devil', 'devil', 'rare', 'devil Champion'),

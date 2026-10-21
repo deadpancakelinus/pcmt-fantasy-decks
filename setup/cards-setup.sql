@@ -257,7 +257,7 @@ insert into public.cards (id, player, variant, rarity, title, region) values
 ('v:teklo-variant', 'teklo', 'teklo-variant', 'rare', 'The Role of Yoru', 'NA'),
 ('v:straight-variant', 'straight', 'straight-variant', 'rare', 'Straight Ace', 'NA'),
 ('v:claps-variant', 'claps', 'claps-variant', 'rare', 'claps Clove', 'NA'),
-('v:lore-variant', 'lore', 'lore-variant', 'rare', 'Hello, lore', 'NA'),
+('v:lore-variant', 'lore', 'lore-variant', 'rare', 'Clove Value', 'NA'),
 ('v:champ-longclaw', 'longclaw', 'champ-longclaw', 'rare', 'longclaw Champion', 'NA'),
 ('v:champ-devil', 'devil', 'champ-devil', 'rare', 'devil Champion', 'NA'),
 ('v:champ-platinum', 'platinum', 'champ-platinum', 'rare', 'platinum Champion', 'NA'),
