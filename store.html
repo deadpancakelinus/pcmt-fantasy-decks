@@ -72,9 +72,9 @@ function pcmtPastCard(c) {
   return st ? { st: st, team: { code: st.team || 'SUB', name: st.teamName, color: st.color, logo: st.logo ? 'assets/' + st.logo : '' } } : { st: null, team: { code: '', name: c.season, color: '#a5dcdd', logo: '' } };
 }
 // Variant art by variant id (cards table: 'v:<id>').
-var PCMT_VARIANT_ART = { 'teklo-variant': 'assets/8b1855340f56f72ea07f5447ca167038.webp', 'straight-variant': 'assets/21ae11daa07a46a08f5d3cf16fd0b2d9.webp', 'claps-variant': 'assets/bb4db91bdcfb1958431ff90d376d30cb.webp', 'lore-variant': 'assets/6d7189fcc9c2218d0aa67f7572a102e3.webp' };
+var PCMT_VARIANT_ART = { 'teklo-variant': 'assets/8b1855340f56f72ea07f5447ca167038.webp', 'straight-variant': 'assets/21ae11daa07a46a08f5d3cf16fd0b2d9.webp', 'claps-variant': 'assets/bb4db91bdcfb1958431ff90d376d30cb.webp', 'lore-variant': 'assets/6d7189fcc9c2218d0aa67f7572a102e3.webp', 'claps-s2-variant': 'assets/6db6f0ae75aa2952c16701e3164f4569.webp' };
 // Art that fills the whole card face (screenshots); the rest sit at the side like a cut-out.
-var PCMT_VARIANT_FULL = { 'straight-variant': true, 'lore-variant': true };
+var PCMT_VARIANT_FULL = { 'straight-variant': true, 'lore-variant': true, 'claps-s2-variant': true };
 // Champion cards: the trophy sits in the middle of the card, and the sheen is gold.
 var PCMT_VARIANT_ART_CHAMPS = { 'champ-longclaw': 'assets/a8390c53c5aa10a347b6af0841aa6835.png', 'champ-devil': 'assets/a8390c53c5aa10a347b6af0841aa6835.png', 'champ-platinum': 'assets/a8390c53c5aa10a347b6af0841aa6835.png', 'champ-igneous': 'assets/a8390c53c5aa10a347b6af0841aa6835.png', 'champ-james': 'assets/a8390c53c5aa10a347b6af0841aa6835.png', 'champ-stingray': 'assets/a8390c53c5aa10a347b6af0841aa6835.png', 'champ-faye': 'assets/a8390c53c5aa10a347b6af0841aa6835.png', 'champ-charlotte': 'assets/a8390c53c5aa10a347b6af0841aa6835.png', 'champ-mide': 'assets/a8390c53c5aa10a347b6af0841aa6835.png', 'champ-king': 'assets/a8390c53c5aa10a347b6af0841aa6835.png', 'champ-tonnoman': 'assets/a8390c53c5aa10a347b6af0841aa6835.png' };
 Object.keys(PCMT_VARIANT_ART_CHAMPS).forEach(function (k) { PCMT_VARIANT_ART[k] = PCMT_VARIANT_ART_CHAMPS[k]; });
@@ -103,6 +103,11 @@ var PCMT_STORE_ITEMS = [
     teamLogo: 'assets/56f2be02d04c1bb89902b3eb4f989ac4.png', regionLogo: 'assets/c265e976f8968e60e4a2bdd32542b499.png',
     roleIcon: 'assets/8f7fb7ffa93c48ba09a00fcd223c7f7c.png', art: 'assets/6d7189fcc9c2218d0aa67f7572a102e3.webp',
     acs: 135, kast: 67, hs: 13, dpr: 0.65, toxic: 0.77 },
+  { id: 'claps-s2-variant', card: 'v:claps-s2-variant', rarity: 'rare', pack: 'NA S2 Throwback Pack', title: 'Butterfly Effect',
+    name: 'claps', team: 'WING', teamName: 'Wingman Warriors', color: '#f2c94c', season: 'S2 NA', maps: 28, role: 'controller',
+    teamLogo: 'assets/b5cc6e0076b3330040102ba01de44ae5.png', regionLogo: 'assets/c265e976f8968e60e4a2bdd32542b499.png',
+    roleIcon: 'assets/783fdcc50fe04d2622938ee185d4ed32.png', art: 'assets/6db6f0ae75aa2952c16701e3164f4569.webp',
+    acs: 315, kast: 77, hs: 24, dpr: 0.78, toxic: 1.38 },
   { id: 'champ-longclaw', card: 'v:champ-longclaw', rarity: 'rare', pack: 'NA Card Pack', title: 'longclaw Champion',
     name: 'longclaw', team: 'DFM', teamName: 'Dementia Found Me', color: '#5a78ff', season: 'S3 NA', maps: 28, role: 'controller',
     teamLogo: 'assets/a59455af931db22aaf5f61e2da9f3686.png', regionLogo: 'assets/c265e976f8968e60e4a2bdd32542b499.png',

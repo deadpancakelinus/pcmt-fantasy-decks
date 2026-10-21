@@ -8,7 +8,7 @@
       "WALL": {"name": "The Brick Wall", "color": "#e07a2e", "logo": "95393482013ce6f5a6a7dc7a3954b9e3.png", "champion": false}
     },
     "S2 NA": {
-      "WING": {"name": "Wingman Warriors", "color": "#f2c94c", "logo": "378b1991304ee6ee83c8bffe02e64899.png", "champion": false},
+      "WING": {"name": "Wingman Warriors", "color": "#f2c94c", "logo": "b5cc6e0076b3330040102ba01de44ae5.png", "champion": false},
       "TS": {"name": "Tequila Sunrise", "color": "#f39c3a", "logo": "7fbe19c7ca426c3ac88f59daea9e95f1.png", "champion": false},
       "JDG": {"name": "Just Dudes Gaming", "color": "#b08a5a", "logo": "98a4980f4d2f02ae59329e29223541ea.png", "champion": true},
       "DRX": {"name": "Dementia Real Exists", "color": "#6f5ee6", "logo": "e70ddecc600bb21682d9d856a5c784f2.png", "champion": false},

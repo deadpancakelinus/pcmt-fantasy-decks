@@ -224,9 +224,9 @@ function pcmtPastCard(c) {
 }
 
 // ---- Shared with the Store board (keep in step) ----
-var PCMT_VARIANT_ART = { 'teklo-variant': '/_blob/8b1855340f56f72ea07f5447ca167038', 'straight-variant': '/_blob/21ae11daa07a46a08f5d3cf16fd0b2d9', 'claps-variant': '/_blob/bb4db91bdcfb1958431ff90d376d30cb', 'lore-variant': '/_blob/6d7189fcc9c2218d0aa67f7572a102e3' };
+var PCMT_VARIANT_ART = { 'teklo-variant': '/_blob/8b1855340f56f72ea07f5447ca167038', 'straight-variant': '/_blob/21ae11daa07a46a08f5d3cf16fd0b2d9', 'claps-variant': '/_blob/bb4db91bdcfb1958431ff90d376d30cb', 'lore-variant': '/_blob/6d7189fcc9c2218d0aa67f7572a102e3', 'claps-s2-variant': '/_blob/6db6f0ae75aa2952c16701e3164f4569' };
 // Art that fills the whole card face (screenshots); the rest sit at the side like a cut-out.
-var PCMT_VARIANT_FULL = { 'straight-variant': true, 'lore-variant': true };
+var PCMT_VARIANT_FULL = { 'straight-variant': true, 'lore-variant': true, 'claps-s2-variant': true };
 // Champion cards: the trophy sits in the middle of the card, and the sheen is gold.
 var PCMT_VARIANT_ART_CHAMPS = { 'champ-longclaw': '/_blob/a8390c53c5aa10a347b6af0841aa6835', 'champ-devil': '/_blob/a8390c53c5aa10a347b6af0841aa6835', 'champ-platinum': '/_blob/a8390c53c5aa10a347b6af0841aa6835', 'champ-igneous': '/_blob/a8390c53c5aa10a347b6af0841aa6835', 'champ-james': '/_blob/a8390c53c5aa10a347b6af0841aa6835', 'champ-stingray': '/_blob/a8390c53c5aa10a347b6af0841aa6835', 'champ-faye': '/_blob/a8390c53c5aa10a347b6af0841aa6835', 'champ-charlotte': '/_blob/a8390c53c5aa10a347b6af0841aa6835', 'champ-mide': '/_blob/a8390c53c5aa10a347b6af0841aa6835', 'champ-king': '/_blob/a8390c53c5aa10a347b6af0841aa6835', 'champ-tonnoman': '/_blob/a8390c53c5aa10a347b6af0841aa6835' };
 Object.keys(PCMT_VARIANT_ART_CHAMPS).forEach(function (k) { PCMT_VARIANT_ART[k] = PCMT_VARIANT_ART_CHAMPS[k]; });

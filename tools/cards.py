@@ -41,6 +41,10 @@ PACKS = [
 ]
 # MVP VS deck key of each past season in trumps-cards.js
 PAST = {'S1 NA': 'nas1', 'S2 NA': 'nas2', 'S1 EMEA': 'emeas1'}
+PAST_VARIANTS = [
+    # id, MVP VS card id (past season), rarity, title; only in that season's throwback pack
+    ('claps-s2-variant', 'nas2-claps', 'rare', 'Butterfly Effect'),
+]
 
 here = os.path.dirname(os.path.abspath(__file__))
 js = open(sys.argv[1], encoding='utf-8').read()
@@ -81,6 +85,12 @@ for season, key in PAST.items():
             card_ids.append('v:champ-' + c['id'])
             rows.append('(%s, %s, %s, %s, %s, %s, %s)' % (lit('v:champ-' + c['id']), lit(c['id']), lit('champ-' + c['id']), lit('rare'),
                                                          lit('%s %s Champion' % (c['name'], season)), lit(reg), lit(season)))
+    for v in PAST_VARIANTS:
+        if v[1].split('-', 1)[0] != key:
+            continue
+        assert any(c['id'] == v[1] for c in deck), 'unknown past-season card in variant: %s' % v[1]
+        card_ids.append('v:' + v[0])
+        rows.append('(%s, %s, %s, %s, %s, %s, %s)' % (lit('v:' + v[0]), lit(v[1]), lit(v[0]), lit(v[2]), lit(v[3]), lit(reg), lit(season)))
     past_count[season] = (len(deck), sum(1 for c in deck if c['champ']))
 packs = ['(%s, %s, %s, %d, %s::jsonb, 0, %s)' % (lit(p[0]), lit(p[1]), lit(p[2]), p[3], lit(json.dumps(p[4])), lit(p[5])) for p in PACKS]
 
