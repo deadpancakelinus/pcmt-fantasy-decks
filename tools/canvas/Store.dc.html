@@ -195,9 +195,9 @@ var PCMT_PACK_SAMPLE = [
 var PCMT_PACK_ART = { NA: '/_blob/1ebfc850b10de6e909e96751b32a0977', EMEA: '/_blob/87166e6bb2de15f385a04e2962058989' };
 var PCMT_SEASON = { NA: 'NA S3', EMEA: 'EMEA S2' };
 // Variant art by variant id (cards table: 'v:<id>').
-var PCMT_VARIANT_ART = { 'teklo-variant': '/_blob/8b1855340f56f72ea07f5447ca167038', 'straight-variant': '/_blob/21ae11daa07a46a08f5d3cf16fd0b2d9', 'claps-variant': '/_blob/bb4db91bdcfb1958431ff90d376d30cb' };
+var PCMT_VARIANT_ART = { 'teklo-variant': '/_blob/8b1855340f56f72ea07f5447ca167038', 'straight-variant': '/_blob/21ae11daa07a46a08f5d3cf16fd0b2d9', 'claps-variant': '/_blob/bb4db91bdcfb1958431ff90d376d30cb', 'lore-variant': '/_blob/6d7189fcc9c2218d0aa67f7572a102e3' };
 // Art that fills the whole card face (screenshots); the rest sit at the side like a cut-out.
-var PCMT_VARIANT_FULL = { 'straight-variant': true };
+var PCMT_VARIANT_FULL = { 'straight-variant': true, 'lore-variant': true };
 // Champion cards: the trophy sits in the middle of the card, and the sheen is gold.
 var PCMT_VARIANT_ART_CHAMPS = { 'champ-longclaw': '/_blob/a8390c53c5aa10a347b6af0841aa6835', 'champ-devil': '/_blob/a8390c53c5aa10a347b6af0841aa6835', 'champ-platinum': '/_blob/a8390c53c5aa10a347b6af0841aa6835', 'champ-igneous': '/_blob/a8390c53c5aa10a347b6af0841aa6835', 'champ-james': '/_blob/a8390c53c5aa10a347b6af0841aa6835', 'champ-stingray': '/_blob/a8390c53c5aa10a347b6af0841aa6835', 'champ-faye': '/_blob/a8390c53c5aa10a347b6af0841aa6835', 'champ-charlotte': '/_blob/a8390c53c5aa10a347b6af0841aa6835', 'champ-mide': '/_blob/a8390c53c5aa10a347b6af0841aa6835', 'champ-king': '/_blob/a8390c53c5aa10a347b6af0841aa6835', 'champ-tonnoman': '/_blob/a8390c53c5aa10a347b6af0841aa6835' };
 Object.keys(PCMT_VARIANT_ART_CHAMPS).forEach(function (k) { PCMT_VARIANT_ART[k] = PCMT_VARIANT_ART_CHAMPS[k]; });
@@ -221,6 +221,11 @@ var PCMT_STORE_ITEMS = [
     teamLogo: '/_blob/46ec4a1f510710db9670e64c202b0cee', regionLogo: '/_blob/c265e976f8968e60e4a2bdd32542b499',
     roleIcon: '/_blob/783fdcc50fe04d2622938ee185d4ed32', art: '/_blob/bb4db91bdcfb1958431ff90d376d30cb',
     acs: 323, kast: 81, hs: 22, dpr: 0.78, toxic: 1.43 },
+  { id: 'lore-variant', card: 'v:lore-variant', rarity: 'rare', pack: 'NA Card Pack', title: 'Hello, lore',
+    name: 'lore', team: 'TS', teamName: 'Team Slugshow', color: '#9b6be8', season: 'S3 NA', maps: 17, role: 'initiator',
+    teamLogo: '/_blob/56f2be02d04c1bb89902b3eb4f989ac4', regionLogo: '/_blob/c265e976f8968e60e4a2bdd32542b499',
+    roleIcon: '/_blob/8f7fb7ffa93c48ba09a00fcd223c7f7c', art: '/_blob/6d7189fcc9c2218d0aa67f7572a102e3',
+    acs: 135, kast: 67, hs: 13, dpr: 0.65, toxic: 0.77 },
   { id: 'champ-longclaw', card: 'v:champ-longclaw', rarity: 'rare', pack: 'NA Card Pack', title: 'longclaw Champion',
     name: 'longclaw', team: 'DFM', teamName: 'Dementia Found Me', color: '#5a78ff', season: 'S3 NA', maps: 28, role: 'controller',
     teamLogo: '/_blob/a59455af931db22aaf5f61e2da9f3686', regionLogo: '/_blob/c265e976f8968e60e4a2bdd32542b499',

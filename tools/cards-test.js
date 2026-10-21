@@ -26,7 +26,7 @@ grant usage on all sequences in schema public to authenticated;`);
 const buy = (uid, pack = 'na-pack') => JSON.parse(sql(as(uid, `select public.buy_pack('${pack}');`)).trim());
 const bal = uid => +sql(`select coalesce(sum(amount),0) from public.vp_ledger where user_id = '${uid}';`).trim();
 
-check(+sql(`select count(*) from public.cards where active;`).trim() === 145, 'catalog has 131 commons + 14 variants (3 + 11 champions)');
+check(+sql(`select count(*) from public.cards where active;`).trim() === 146, 'catalog has 131 commons + 15 variants (4 + 11 champions)');
 check(sql(`select rarity from public.cards where id = 'v:teklo-variant';`).trim() === 'rare', 'The Role of Yoru is Rare');
 check(fails(`set role anon; select public.buy_pack('na-pack');`), 'logged-out visitors cannot buy');
 check(fails(as(P1, `select public.buy_pack('na-pack');`), /aren't on sale yet/), 'before launch, a player who is not an admin cannot buy');
@@ -75,7 +75,7 @@ sql(`insert into public.vp_ledger (user_id, kind, week, amount) values ('${P2}',
   check(fails(as(P1, `insert into public.user_cards (user_id, card_id) values ('${P1}', 'v:teklo-variant');`)), 'players cannot give themselves cards');
   check(fails(as(P1, `insert into public.vp_ledger (user_id, kind, amount) values ('${P1}', 'week', 999);`)), 'players cannot give themselves VP');
   check(fails(as(P1, `update public.card_packs set price = 1;`)) || sql(`select string_agg(price::text, ',') from public.card_packs`).trim() === '100,100', 'players cannot change the price');
-  check(sql(`set role anon; select count(*) from public.card_packs;`).trim() === '2' && sql(`set role anon; select count(*) from public.cards;`).trim() === '145', 'anyone can see the packs and the catalog');
+  check(sql(`set role anon; select count(*) from public.card_packs;`).trim() === '2' && sql(`set role anon; select count(*) from public.cards;`).trim() === '146', 'anyone can see the packs and the catalog');
   sql('drop database cardtest;', 'postgres');
   console.log(bad ? bad + ' problem(s)' : 'All card pack checks passed');
   process.exit(bad ? 1 : 0);
