@@ -211,7 +211,7 @@ var PCMT_RARITY_INK = { legendary: '#f5d76e', epic: '#c99bff', rare: '#7cc2ff', 
 var PCMT_SEASON_LABEL = { NA: 'S3 NA', EMEA: 'S2 EMEA' };
 
 // ---- Shared with the Store board (keep in step) ----
-var PCMT_VARIANT_ART = { 'teklo-variant': '/_blob/8b1855340f56f72ea07f5447ca167038', 'straight-variant': '/_blob/21ae11daa07a46a08f5d3cf16fd0b2d9' };
+var PCMT_VARIANT_ART = { 'teklo-variant': '/_blob/8b1855340f56f72ea07f5447ca167038', 'straight-variant': '/_blob/21ae11daa07a46a08f5d3cf16fd0b2d9', 'claps-variant': '/_blob/bb4db91bdcfb1958431ff90d376d30cb' };
 // Art that fills the whole card face (screenshots); the rest sit at the side like a cut-out.
 var PCMT_VARIANT_FULL = { 'straight-variant': true };
 // Champion cards: the trophy sits in the middle of the card, and the sheen is gold.
@@ -219,9 +219,6 @@ var PCMT_VARIANT_ART_CHAMPS = { 'champ-longclaw': '/_blob/a8390c53c5aa10a347b6af
 Object.keys(PCMT_VARIANT_ART_CHAMPS).forEach(function (k) { PCMT_VARIANT_ART[k] = PCMT_VARIANT_ART_CHAMPS[k]; });
 var PCMT_VARIANT_CENTER = { 'champ-longclaw': true, 'champ-devil': true, 'champ-platinum': true, 'champ-igneous': true, 'champ-james': true, 'champ-stingray': true, 'champ-faye': true, 'champ-charlotte': true, 'champ-mide': true, 'champ-king': true, 'champ-tonnoman': true };
 var PCMT_VARIANT_SHEEN = { 'champ-longclaw': '#f5d76e', 'champ-devil': '#f5d76e', 'champ-platinum': '#f5d76e', 'champ-igneous': '#f5d76e', 'champ-james': '#f5d76e', 'champ-stingray': '#f5d76e', 'champ-faye': '#f5d76e', 'champ-charlotte': '#f5d76e', 'champ-mide': '#f5d76e', 'champ-king': '#f5d76e', 'champ-tonnoman': '#f5d76e' };
-// Stat Leader cards: a crown over the stat in the middle of the card, and the sheen is the site colour.
-var PCMT_VARIANT_ART_LEADERS = { 'lead-acs-claps': '/_blob/e441ba4e71153962218e864418b351e1', 'lead-kast-claps': '/_blob/eff809509999b52af76dcff0cb09eeed', 'lead-kast-thighs': '/_blob/eff809509999b52af76dcff0cb09eeed', 'lead-hs-james': '/_blob/5e2ada7d5bb4d276c258b1ee2ec89561', 'lead-dpr-dunkn': '/_blob/a2cffedc70052ed0626c7f2cf24a03a2', 'lead-toxic-claps': '/_blob/3a619f56b46ec1e1e3a30ac2899f6f0e', 'lead-acs-shipty': '/_blob/e441ba4e71153962218e864418b351e1', 'lead-kast-nana': '/_blob/eff809509999b52af76dcff0cb09eeed', 'lead-hs-asra': '/_blob/5e2ada7d5bb4d276c258b1ee2ec89561', 'lead-dpr-kai': '/_blob/a2cffedc70052ed0626c7f2cf24a03a2', 'lead-toxic-shipty': '/_blob/3a619f56b46ec1e1e3a30ac2899f6f0e' };
-Object.keys(PCMT_VARIANT_ART_LEADERS).forEach(function (k) { PCMT_VARIANT_ART[k] = PCMT_VARIANT_ART_LEADERS[k]; PCMT_VARIANT_CENTER[k] = true; PCMT_VARIANT_SHEEN[k] = '#a5dcdd'; });
 var PCMT_CHAMPS = ['longclaw', 'devil', 'platinum', 'igneous', 'james', 'stingray', 'faye', 'charlotte', 'mide', 'king', 'tonnoman']; // NA S1/S2 and EMEA S1 champions, treated the same
 var PCMT_DECK_TEAMS = [
   { code: 'T1', name: 'Team 1', color: '#FF0000', logo: '/_blob/ce2bf22e2df8751703c00f132b854650' },
