@@ -61,6 +61,15 @@
   var PLAYERS = window.PCMT_SITE_PLAYERS || [];
   var BY_ID = {};
   PLAYERS.forEach(function (p) { BY_ID[p.id] = p; });
+  // Prices: players.js has the starting price; price changes made on the Freshbatch backend (player_price_changes)
+  // are loaded below. A deck's budget is checked with the prices from when it was saved (same as the VP payout).
+  var BASE_PRICE = {}, PRICE_LOG = [];   // PRICE_LOG: [{ player, price (null = back to players.js), t }], oldest first
+  PLAYERS.forEach(function (p) { BASE_PRICE[p.id] = p.price; });
+  function priceAt(id, t) {
+    var v = BASE_PRICE[id];
+    for (var i = 0; i < PRICE_LOG.length && PRICE_LOG[i].t <= t; i++) if (PRICE_LOG[i].player === id) v = PRICE_LOG[i].price == null ? BASE_PRICE[id] : PRICE_LOG[i].price;
+    return v;
+  }
   var TWIN = window.PCMT_SITE_TWIN || {};
   var CHAMPS = window.PCMT_SITE_CHAMPS || {};
   var LOWEST = {};
@@ -90,7 +99,8 @@
 
   // A deck counts only if it follows every rule.
   function deckIds(slots) { return Object.keys(slots || {}).map(function (k) { return slots[k]; }); }
-  function validDeck(slots) {
+  function validDeck(slots, t) {
+    if (t == null) t = Date.now();
     if (!slots || typeof slots !== 'object') return false;
     var keys = Object.keys(slots), ids = deckIds(slots);
     if (ids.length !== ROLES.length * 2 + 3) return false;
@@ -102,7 +112,7 @@
       var m = /^(duelist|controller|initiator|sentinel)-(1|2)$/.exec(k);
       if (m) { if (role(p) !== m[1]) return false; }
       else if (!/^wild-(1|2|3)$/.test(k)) return false;
-      cost += p.price;
+      cost += priceAt(id, t);
       teams[p.team] = (teams[p.team] || 0) + 1;
       if (teams[p.team] > TEAM_LIMIT) return false;
     }
@@ -135,7 +145,7 @@
     var prev = null, out = [];
     weeks.forEach(function (w) {
       if (!w.locked) return;
-      var before = subs.filter(function (s) { return s.t < w.lockAt && validDeck(s.slots); });
+      var before = subs.filter(function (s) { return s.t < w.lockAt && validDeck(s.slots, s.t); });
       var use = null;
       for (var i = before.length - 1; i >= 0; i--) {
         if (!prev || transfersBetween(prev.slots, before[i].slots) <= TRANSFERS) { use = before[i]; break; }
@@ -382,6 +392,7 @@
       // null = the VP table isn't set up yet (setup/vp-setup.sql not run)
       // 4Ks and 5Ks per series (public; empty until setup/vp-setup.sql has been run)
       var multi = api('/rest/v1/multikills?select=series,player,k4,k5&limit=20000').catch(function () { return []; });
+      var prices = api('/rest/v1/player_price_changes?select=player,price,changed_at&order=changed_at.asc,id.asc&limit=20000').catch(function () { return []; });
       var vp = me ? api('/rest/v1/vp_ledger?select=kind,week,amount,detail,created_at&order=created_at.desc&limit=5000').catch(function () { return null; }) : Promise.resolve([]);
       var admin = me ? api('/rest/v1/pcmt_admins?select=user_id&user_id=eq.' + me.id).catch(function () { return []; }) : Promise.resolve([]);
       // Card packs for sale (public) and the cards you own (empty until setup/cards-setup.sql has been run)
@@ -392,9 +403,14 @@
       var onLibrary = /"data-pcmt-root":"Library"/.test((document.getElementById('dc-tree') || {}).textContent || ''); // not the address: the site serves /library as well as /library.html
       var catalog = onLibrary ? api('/rest/v1/cards?select=id,player,variant,rarity,region,season,title&limit=5000')
         .catch(function () { return api('/rest/v1/cards?select=id,player,variant,rarity,region,title&limit=5000'); }).catch(function () { return []; }) : Promise.resolve([]);
-      return Promise.all([decks, profiles, unlocks, vp, multi, admin, packs, mine, catalog]);
+      return Promise.all([decks, profiles, unlocks, vp, multi, admin, packs, mine, catalog, prices]);
     }).then(function (res) {
       attachMulti(res[4] || []);
+      PRICE_LOG = (res[9] || []).map(function (c) { return { player: c.player, price: c.price == null ? null : +c.price, t: Date.parse(c.changed_at) }; });
+      // Today's prices everywhere on the site (The Deck, packs, budget): window.PCMT_PRICES = { <player id>: price }
+      window.PCMT_PRICES = {};
+      PLAYERS.forEach(function (p) { p.price = priceAt(p.id, Infinity); window.PCMT_PRICES[p.id] = p.price; });
+      window.PCMT_BASE_PRICES = BASE_PRICE;
       window.PCMT_IS_ADMIN = !!(res[5] && res[5].length);
       window.PCMT_PACKS = res[6] || [];
       window.PCMT_MY_CARDS = {};

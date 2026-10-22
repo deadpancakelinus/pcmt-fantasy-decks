@@ -26,6 +26,9 @@ def tpl(board, t):
 
 def logic(board, js):
     if board == 'Main.dc.html':
+        s = js.index('var PCMT_PLAYERS = [')
+        e = js.index('\n];', s) + 3
+        js = js[:e] + "\n(function () { var P = window.PCMT_PRICES || {}; PCMT_PLAYERS.forEach(function (p) { if (P[p.id] != null) p.price = P[p.id]; }); })();  // prices edited on the backend" + js[e:]
         js = sub1(js, 'var PCMT_AURA = { holderId: null, me: null };', 'var PCMT_AURA = window.PCMT_AURA_LIVE || { holderId: null, me: null };', board)
         s = js.index('function pcmtReadMyDeck() {')
         e = js.index('function pcmtReadDeck() {')
@@ -62,6 +65,9 @@ function pcmtSaveMyDeck(s) {
                   "      save: function () {\n        if (weekLocked) return;\n        if (window.PCMT_LEAGUE && !window.PCMT_LEAGUE.canLockIn(self.state)) return;\n", board)
         js = sub1(js, '      statusText: statusText,\n', '      statusText: window.PCMT_LEAGUE ? window.PCMT_LEAGUE.statusNote(s.slots, statusText, weekLocked) : statusText,\n', board)
     if board == 'Customization.dc.html':
+        s = js.index('var PCMT_PACK_PLAYERS = [')
+        e = js.index('];', s) + 2
+        js = js[:e] + "\n(function () { var P = window.PCMT_PRICES || {}; PCMT_PACK_PLAYERS.forEach(function (r) { if (P[r[0]] != null) r[4] = P[r[0]]; }); })();  // prices edited on the backend" + js[e:]
         js = sub1(js, 'var PCMT_WEEK_WINNERS = [];', 'var PCMT_WEEK_WINNERS = window.PCMT_WEEK_WINNERS_LIVE || [];', board)
         js = sub1(js, 'var PCMT_ME_ID = null;', 'var PCMT_ME_ID = window.PCMT_ME_STATS ? window.PCMT_ME_STATS.id : null;', board)
         js = sub1(js, 'var PCMT_ACTIVE_WEEKS = 0;', 'var PCMT_ACTIVE_WEEKS = window.PCMT_ME_STATS ? window.PCMT_ME_STATS.activeWeeks : 0;', board)

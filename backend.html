@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>fantasy.pcmt.gg Backend</title>
+<link rel="icon" href="assets/3bf9d529cabff94109b561693539029f.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cabin+Sketch:wght@400;700&family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root { color-scheme: dark; --bg: #000; --panel: #0b1011; --line: #1e2b2d; --ink: #eaf4f4; --dim: #93a9aa; --soft: #c4d4d4; --accent: #a5dcdd; --bad: #ff8a80; --good: #8be4b7; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); }
+  body { font: 400 16px/1.5 'Space Grotesk', system-ui, sans-serif; min-height: 100vh; }
+  button, input, select { font: inherit; color: inherit; }
+  a { color: var(--accent); } a:hover { color: #d4f0f0; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  header { border-bottom: 1px solid var(--line); background: #050808; }
+  .top { max-width: 1280px; margin: 0 auto; padding: 14px 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 32px; }
+  .brand { font: 700 32px/1 'Cabin Sketch', cursive; color: var(--accent); text-decoration: none; }
+  nav { display: flex; flex-wrap: wrap; gap: 4px; flex: 1 1 auto; }
+  nav a { padding: 12px 14px; border-radius: 6px; font: 400 13px/1 'JetBrains Mono', monospace; letter-spacing: .06em; text-transform: uppercase; text-decoration: none; color: var(--ink); }
+  nav a:hover { color: var(--ink); background: #101718; }
+  main { max-width: 1280px; margin: 0 auto; padding: 36px 24px 80px; display: flex; flex-direction: column; gap: 24px; }
+  h1 { margin: 0; font: 700 clamp(40px, 7vw, 60px)/1 'Cabin Sketch', cursive; }
+  .sub { margin: 8px 0 0; color: var(--soft); max-width: 640px; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+  .kicker { font: 400 12px/1 'JetBrains Mono', monospace; color: var(--dim); letter-spacing: .08em; text-transform: uppercase; }
+  .btn { min-height: 44px; padding: 0 18px; border-radius: 8px; border: 1px solid var(--accent); background: var(--accent); color: #000; font: 600 14px/1 'JetBrains Mono', monospace; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
+  .btn:disabled { opacity: .5; cursor: wait; }
+  .btn.discord { background: #4752C4; border-color: #4752C4; color: #fff; }
+  .btn.ghost { background: transparent; color: var(--ink); border-color: #2c3d40; }
+  select { width: 100%; min-height: 46px; padding: 0 12px; border-radius: 8px; border: 1px solid #2c3d40; background: #000; }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 13px; background: #000; border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; display: block; overflow-x: auto; white-space: pre; color: var(--soft); }
+  .teams { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 16px; }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font: 400 12px/1 'JetBrains Mono', monospace; color: var(--dim); letter-spacing: .06em; text-transform: uppercase; padding: 0 6px 10px; }
+  th.n, td.n { text-align: center; width: 76px; }
+  th.pts, td.pts { text-align: right; width: 56px; }
+  td { padding: 6px; border-top: 1px solid var(--line); }
+  td.name { font-weight: 500; }
+  td.name small { display: block; color: var(--dim); font: 400 12px/1.3 'JetBrains Mono', monospace; text-transform: capitalize; }
+  td.pts { font: 600 14px/1 'JetBrains Mono', monospace; color: var(--accent); }
+  input[type=number] { width: 64px; height: 42px; text-align: center; border-radius: 8px; border: 1px solid #2c3d40; background: #000; font-family: 'JetBrains Mono', monospace; font-size: 16px; }
+  input:focus, select:focus, .btn:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(165,220,221,.3); }
+  .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; }
+  .msg { margin: 0; color: var(--dim); }
+  .msg.ok { color: var(--good); } .msg.err { color: var(--bad); }
+  .note { margin: 0; font-size: 14px; color: var(--dim); }
+  [hidden] { display: none !important; }
+  footer { border-top: 1px solid var(--line); }
+  footer div { max-width: 1280px; margin: 0 auto; padding: 22px 24px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; font: 400 12px/1.4 'JetBrains Mono', monospace; color: var(--dim); }
+  @media (max-width: 520px) { .top, main { padding-left: 16px; padding-right: 16px; } .panel { padding: 16px; } th.n, td.n { width: 64px; } input[type=number] { width: 54px; } }
+  .badge { font: 600 12px/1 'JetBrains Mono', monospace; letter-spacing: .1em; text-transform: uppercase; color: #000; background: var(--accent); padding: 7px 10px; border-radius: 6px; }
+  .spacer { flex: 1 1 auto; }
+  .who { font-size: 13px; color: var(--dim); }
+  .tabs { display: flex; flex-wrap: wrap; gap: 6px; border-bottom: 1px solid var(--line); margin-bottom: 20px; }
+  .tabs button { min-height: 44px; padding: 0 16px; border: 1px solid transparent; border-bottom: none; border-radius: 8px 8px 0 0; background: none; color: var(--dim); font: 600 13px/1 'JetBrains Mono', monospace; letter-spacing: .06em; text-transform: uppercase; cursor: pointer; margin-bottom: -1px; }
+  .tabs button[aria-selected="true"] { color: var(--ink); background: var(--panel); border-color: var(--line); }
+  .tabs button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .pane { display: flex; flex-direction: column; gap: 16px; }
+  .toolbar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 16px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field input, .field select { min-height: 44px; padding: 0 12px; border-radius: 8px; border: 1px solid #2c3d40; background: #000; width: auto; min-width: 160px; }
+  .check { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; color: var(--soft); font-size: 15px; cursor: pointer; }
+  .check input { width: 20px; height: 20px; accent-color: #a5dcdd; }
+  .sheet { overflow: auto; max-height: 68vh; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
+  table.grid { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 15px; }
+  table.grid th { position: sticky; top: 0; z-index: 1; background: #0e1516; padding: 0; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; }
+  table.grid th.num { text-align: right; }
+  table.grid th .sort { all: unset; box-sizing: border-box; display: block; width: 100%; padding: 12px; font: 400 12px/1 'JetBrains Mono', monospace; color: var(--dim); letter-spacing: .06em; text-transform: uppercase; cursor: pointer; }
+  table.grid th.num .sort { text-align: right; }
+  table.grid th .sort:hover { color: var(--ink); }
+  table.grid th .sort:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  table.grid th[aria-sort="ascending"] .sort::after { content: ' ▲'; color: var(--accent); }
+  table.grid th[aria-sort="descending"] .sort::after { content: ' ▼'; color: var(--accent); }
+  table.grid td { padding: 8px 12px; border-top: 1px solid var(--line); vertical-align: middle; }
+  table.grid tbody tr:first-child td { border-top: none; }
+  table.grid tbody tr:hover td { background: rgba(165,220,221,.04); }
+  table.grid td.num { text-align: right; }
+  table.grid td.strong { font-weight: 600; }
+  table.grid td small { display: block; color: var(--dim); font: 400 12px/1.3 'JetBrains Mono', monospace; }
+  table.grid .dim { color: var(--dim); font-size: 13px; }
+  table.grid input[type=number] { width: 84px; height: 40px; }
+  table.grid input.moved { border-color: #f5d76e; color: #f5d76e; }
+  table.grid tr.edited td { background: rgba(245,215,110,.07); }
+  table.grid tr.retired td { opacity: .55; }
+  .tag { font: 600 11px/1 'JetBrains Mono', monospace; color: var(--dim); border: 1px solid #2c3d40; border-radius: 4px; padding: 2px 5px; margin-left: 6px; vertical-align: middle; }
+  .rar { font: 600 12px/1 'JetBrains Mono', monospace; letter-spacing: .06em; text-transform: uppercase; }
+  .rar-common { color: #93a9aa; } .rar-rare { color: #7cc2ff; } .rar-epic { color: #c99bff; } .rar-legendary { color: #f5d76e; }
+  .link { all: unset; cursor: pointer; color: var(--accent); font: 400 13px/1.2 'JetBrains Mono', monospace; text-decoration: underline; white-space: nowrap; padding: 10px 0; }
+  .link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .sticky { position: sticky; bottom: 0; background: var(--bg); padding: 12px 0; border-top: 1px solid var(--line); }
+  .stats { display: flex; flex-wrap: wrap; gap: 10px; }
+  .stat { display: flex; align-items: baseline; gap: 8px; padding: 12px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
+  .stat b { font: 700 28px/1 'Cabin Sketch', cursive; color: var(--accent); }
+  .stat span { font: 400 12px/1 'JetBrains Mono', monospace; color: var(--dim); letter-spacing: .08em; text-transform: uppercase; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  @media (max-width: 520px) { .field input, .field select { min-width: 0; width: 100%; } .field { flex: 1 1 100%; } }
+</style>
+</head>
+<body>
+<header>
+<div class="top">
+  <a class="brand" href="index.html">fantasy.pcmt.gg</a>
+  <span class="badge">Freshbatch backend</span>
+  <span class="spacer"></span>
+  <span class="who mono" id="who" hidden></span>
+</div>
+</header>
+
+<main>
+  <div>
+    <h1>Backend</h1>
+    <p class="sub">For Freshbatch staff only. Player prices, every card and who owns it, and the 4Ks and 5Ks for each series.</p>
+  </div>
+
+  <section class="panel" id="st-loading" role="status"><p class="msg">Loading…</p></section>
+
+  <section class="panel" id="st-out" hidden>
+    <span class="kicker">Freshbatch staff log in</span>
+    <p class="msg">Log in with your Discord account. Only accounts on the Freshbatch staff list get in.</p>
+    <div><button class="btn discord" id="login" type="button">Log in with Discord</button></div>
+  </section>
+
+  <section class="panel" id="st-nostaff" hidden>
+    <span class="kicker">Not on the staff list</span>
+    <p class="msg">This Discord account isn't on the Freshbatch staff list. Ask a Freshbatch admin to add it, using this account id:</p>
+    <code id="staff-sql"></code>
+    <div class="bar"><button class="btn ghost" id="copy-sql" type="button">Copy</button><button class="btn ghost" id="logout2" type="button">Log out</button></div>
+  </section>
+
+  <div id="st-staff" hidden>
+    <div class="tabs" role="tablist" aria-label="Backend sheets">
+      <button type="button" role="tab" id="tab-prices" aria-controls="pane-prices" aria-selected="true">Player prices</button>
+      <button type="button" role="tab" id="tab-cards" aria-controls="pane-cards" aria-selected="false" tabindex="-1">Cards</button>
+      <button type="button" role="tab" id="tab-multi" aria-controls="pane-multi" aria-selected="false" tabindex="-1">4Ks &amp; 5Ks</button>
+    </div>
+
+    <!-- ===== Player prices ===== -->
+    <section class="pane" role="tabpanel" id="pane-prices" aria-labelledby="tab-prices">
+      <p class="note">Change a price and press Save. The site uses the new price the next time a page loads: The Deck's prices and budget, and the cards in packs. Decks already saved keep counting with the prices from when they were saved, so a price rise never breaks someone's deck; it only applies to new changes. Prices go from 0 to 30 in steps of 0.5.</p>
+      <div class="toolbar">
+        <label class="field"><span class="kicker">Search</span><input type="search" id="p-search" placeholder="Player or team" autocomplete="off"></label>
+        <label class="field"><span class="kicker">Region</span><select id="p-region"><option value="">All</option><option>NA</option><option>EMEA</option></select></label>
+        <label class="check"><input type="checkbox" id="p-changed"> Only changed prices</label>
+        <span class="spacer"></span>
+        <button class="btn ghost" id="p-csv" type="button">Download CSV</button>
+      </div>
+      <div class="sheet"><table class="grid" id="p-table">
+        <thead><tr>
+          <th><button type="button" class="sort" data-k="name">Player</button></th>
+          <th><button type="button" class="sort" data-k="team">Team</button></th>
+          <th><button type="button" class="sort" data-k="region">Region</button></th>
+          <th><button type="button" class="sort" data-k="role">Role</button></th>
+          <th class="num"><button type="button" class="sort" data-k="base">Start price</button></th>
+          <th class="num"><button type="button" class="sort" data-k="price">Price</button></th>
+          <th><button type="button" class="sort" data-k="when">Last change</button></th>
+          <th><span class="sr">Reset</span></th>
+        </tr></thead>
+        <tbody id="p-rows"></tbody>
+      </table></div>
+      <div class="bar sticky">
+        <button class="btn" id="p-save" type="button" disabled>Save prices</button>
+        <button class="btn ghost" id="p-undo" type="button" disabled>Undo edits</button>
+        <p class="msg" id="p-msg" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+
+    <!-- ===== Cards ===== -->
+    <section class="pane" role="tabpanel" id="pane-cards" aria-labelledby="tab-cards" hidden>
+      <p class="note">Every card in packs: its rarity, the pack it comes from, how many copies players own and how many players own it. Retired cards (taken out of packs) are kept for the people who already pulled them.</p>
+      <div class="stats" id="c-stats"></div>
+      <div class="toolbar">
+        <label class="field"><span class="kicker">Search</span><input type="search" id="c-search" placeholder="Card, player or series" autocomplete="off"></label>
+        <label class="field"><span class="kicker">Rarity</span><select id="c-rarity"><option value="">All</option><option value="legendary">Legendary</option><option value="epic">Epic</option><option value="rare">Rare</option><option value="common">Common</option></select></label>
+        <label class="field"><span class="kicker">Pack</span><select id="c-pack"><option value="">All packs</option></select></label>
+        <label class="check"><input type="checkbox" id="c-retired"> Show retired cards</label>
+        <span class="spacer"></span>
+        <button class="btn ghost" id="c-csv" type="button">Download CSV</button>
+      </div>
+      <div class="sheet"><table class="grid" id="c-table">
+        <thead><tr>
+          <th><button type="button" class="sort" data-k="title">Card</button></th>
+          <th><button type="button" class="sort" data-k="player">Player</button></th>
+          <th><button type="button" class="sort" data-k="rarity">Rarity</button></th>
+          <th><button type="button" class="sort" data-k="season">Season</button></th>
+          <th><button type="button" class="sort" data-k="pack">Pack</button></th>
+          <th class="num"><button type="button" class="sort" data-k="copies">Copies</button></th>
+          <th class="num"><button type="button" class="sort" data-k="owners">Owners</button></th>
+        </tr></thead>
+        <tbody id="c-rows"></tbody>
+      </table></div>
+      <p class="msg" id="c-msg" role="status" aria-live="polite"></p>
+    </section>
+
+    <!-- ===== 4Ks & 5Ks ===== -->
+    <section class="pane" role="tabpanel" id="pane-multi" aria-labelledby="tab-multi" hidden>
+      <p class="note">Enter each player's 4Ks and 5Ks for a series. 4K = +1, 5K (ace) = +3, and an ace counts as a 5K only. The new points show on the site the next time a page loads, and VP pays out with them.</p>
+      <section class="panel">
+        <label class="kicker" for="series">Series</label>
+        <select id="series"></select>
+        <p class="note" id="series-note"></p>
+      </section>
+      <div class="teams" id="teams" hidden></div>
+      <div class="bar" id="savebar" hidden>
+        <button class="btn" id="save" type="button">Save 4Ks and 5Ks</button>
+        <p class="msg" id="msg" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer><div><span>fantasy.pcmt.gg · Plat Chat Members Tourney</span><span>Freshbatch backend</span></div><p style="max-width: 1280px; margin: 0 auto; padding: 0 24px 22px; font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.6; color: #93a9aa"><span style="display: block; margin-bottom: 6px; font-size: 12px; color: #c4d4d4">A <strong style="color: #eaf4f4">Freshbatch</strong> product</span>fantasy.pcmt.gg was created under Riot Games' <a href="https://www.riotgames.com/en/legal" target="_blank" rel="noopener" style="color: #a5dcdd">&quot;Legal Jibber Jabber&quot;</a> policy using assets owned by Riot Games. Riot Games does not endorse or sponsor this project.</p></footer>
+
+<script src="data.js"></script>
+<script src="players.js"></script>
+<script src="trumps-cards.js"></script>
+<script src="league.js"></script>
+<script>
+(function () {
+  'use strict';
+  var L = window.PCMT_LEAGUE, $ = function (id) { return document.getElementById(id); };
+  var PLAYERS = window.PCMT_SITE_PLAYERS || [], BY_ID = {};
+  PLAYERS.forEach(function (p) { BY_ID[p.id] = p; });
+  var BASE = {};   // starting prices from players.js (filled once league.js has loaded)
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function day(t) { return new Date(t).toLocaleString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }); }
+  function cap(s) { s = String(s || ''); return s.charAt(0).toUpperCase() + s.slice(1); }
+  function role(p) { var r = String(p.role || '').split('/')[0]; return r === 'yoru' ? 'duelist' : r; }
+  function csv(name, head, rows) {
+    var q = function (v) { v = String(v == null ? '' : v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+    var text = [head].concat(rows).map(function (r) { return r.map(q).join(','); }).join('\n') + '\n';
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([text], { type: 'text/csv' }));
+    a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+  }
+  function sortBy(list, key, dir) {
+    return list.slice().sort(function (a, b) {
+      var x = a[key], y = b[key];
+      if (typeof x === 'number' || typeof y === 'number') return ((x == null ? -1 : x) - (y == null ? -1 : y)) * dir;
+      return String(x || '').localeCompare(String(y || '')) * dir;
+    });
+  }
+  function wireSort(table, state, draw) {
+    table.querySelectorAll('button.sort').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var k = b.getAttribute('data-k');
+        state.dir = state.key === k ? -state.dir : 1; state.key = k; draw();
+      });
+    });
+  }
+  function markSort(table, state) {
+    table.querySelectorAll('th').forEach(function (th) { th.removeAttribute('aria-sort'); });
+    var b = table.querySelector('button.sort[data-k="' + state.key + '"]');
+    if (b) b.parentNode.setAttribute('aria-sort', state.dir > 0 ? 'ascending' : 'descending');
+  }
+
+  // ---------- shared lookups ----------
+  var REGION = {}, NAMES = {}, CATALOG = [], PACKS = [], TRUMPS = {};
+  (function () {
+    var T = window.PCMT_TRUMPS_CARDS || {};
+    Object.keys(T).forEach(function (k) { (T[k] || []).forEach(function (c) { TRUMPS[c.id] = c; }); });
+  })();
+
+  // ---------- tabs ----------
+  var TABS = ['prices', 'cards', 'multi'];
+  function openTab(name, focus) {
+    TABS.forEach(function (t) {
+      var on = t === name, tab = $('tab-' + t);
+      tab.setAttribute('aria-selected', on ? 'true' : 'false'); tab.tabIndex = on ? 0 : -1;
+      $('pane-' + t).hidden = !on;
+      if (on && focus) tab.focus();
+    });
+    try { history.replaceState(null, '', '#' + name); } catch (e) {}
+  }
+  TABS.forEach(function (t, i) {
+    var tab = $('tab-' + t);
+    tab.addEventListener('click', function () { openTab(t); });
+    tab.addEventListener('keydown', function (e) {
+      var j = e.key === 'ArrowRight' ? i + 1 : e.key === 'ArrowLeft' ? i - 1 : e.key === 'Home' ? 0 : e.key === 'End' ? TABS.length - 1 : null;
+      if (j == null) return; e.preventDefault(); openTab(TABS[(j + TABS.length) % TABS.length], true);
+    });
+  });
+
+  // ---------- player prices ----------
+  var LOG = [], edits = {}, pSort = { key: 'team', dir: 1 };
+  function latest(id) { var c = null; LOG.forEach(function (x) { if (x.player === id) c = x; }); return c; }
+  function current(id) { var c = latest(id); return c && c.price != null ? +c.price : BASE[id]; }
+  function priceRows() {
+    return PLAYERS.map(function (p) {
+      var c = latest(p.id), cur = current(p.id), ed = edits[p.id];
+      return { id: p.id, name: p.name, team: p.team, region: REGION[p.id] || '', role: cap(role(p)), base: BASE[p.id], price: cur,
+               value: ed === undefined ? cur : (ed === null ? BASE[p.id] : ed), edited: ed !== undefined, changed: cur !== BASE[p.id],
+               when: c ? Date.parse(c.changed_at) : null, by: c ? (NAMES[c.changed_by] || 'staff') : '' };
+    });
+  }
+  function drawPrices() {
+    var q = $('p-search').value.trim().toLowerCase(), reg = $('p-region').value, only = $('p-changed').checked;
+    var rows = sortBy(priceRows().filter(function (r) {
+      return (!q || (r.name + ' ' + r.team).toLowerCase().indexOf(q) >= 0) && (!reg || r.region === reg) && (!only || r.changed || r.edited);
+    }), pSort.key, pSort.dir);
+    $('p-rows').innerHTML = rows.length ? rows.map(function (r) {
+      return '<tr data-id="' + esc(r.id) + '"' + (r.edited ? ' class="edited"' : '') + '>' +
+        '<td class="strong">' + esc(r.name) + '</td><td>' + esc(r.team) + '</td><td>' + esc(r.region) + '</td><td>' + esc(r.role) + '</td>' +
+        '<td class="num mono">' + r.base.toFixed(1) + '</td>' +
+        '<td class="num"><input type="number" inputmode="decimal" min="0" max="30" step="0.5" value="' + r.value.toFixed(1) + '" aria-label="' + esc(r.name) + ' price"' + (r.value !== r.base ? ' class="moved"' : '') + '></td>' +
+        '<td class="dim">' + (r.when ? esc(day(r.when)) + ' · ' + esc(r.by) : '—') + '</td>' +
+        '<td>' + ((r.changed && !(r.edited && edits[r.id] === null)) || (r.edited && edits[r.id] !== null) ? '<button type="button" class="link" data-reset="' + esc(r.id) + '">Back to ' + r.base.toFixed(1) + '</button>' : '') + '</td></tr>';
+    }).join('') : '<tr><td colspan="8" class="dim">No players match.</td></tr>';
+    markSort($('p-table'), pSort);
+    var n = Object.keys(edits).length;
+    $('p-save').disabled = !n; $('p-undo').disabled = !n;
+    $('p-save').textContent = n ? 'Save ' + n + ' price' + (n === 1 ? '' : 's') : 'Save prices';
+  }
+  function pSay(t, cls) { $('p-msg').textContent = t; $('p-msg').className = 'msg' + (cls ? ' ' + cls : ''); }
+  $('p-rows').addEventListener('change', function (e) {
+    var inp = e.target.closest('input[type=number]'); if (!inp) return;
+    var id = inp.closest('tr').getAttribute('data-id'), v = inp.value.trim(), n = +v;
+    if (v === '' || !(n >= 0 && n <= 30) || Math.round(n * 2) !== n * 2) { pSay('Prices go from 0 to 30 in steps of 0.5.', 'err'); inp.value = current(id).toFixed(1); return; }
+    if (n === current(id)) delete edits[id]; else edits[id] = n === BASE[id] && current(id) !== BASE[id] ? null : n;
+    pSay(''); drawPrices();
+  });
+  $('p-rows').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-reset]'); if (!b) return;
+    var id = b.getAttribute('data-reset');
+    if (current(id) === BASE[id]) delete edits[id]; else edits[id] = null;
+    pSay(''); drawPrices();
+  });
+  ['p-search', 'p-region', 'p-changed'].forEach(function (id) { $(id).addEventListener('input', drawPrices); $(id).addEventListener('change', drawPrices); });
+  wireSort($('p-table'), pSort, drawPrices);
+  $('p-undo').addEventListener('click', function () { edits = {}; pSay(''); drawPrices(); });
+  $('p-save').addEventListener('click', function () {
+    var body = Object.keys(edits).map(function (id) { return { player: id, price: edits[id] }; });
+    if (!body.length) return;
+    $('p-save').disabled = true; pSay('Saving…');
+    L.api('/rest/v1/player_price_changes', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: body })
+      .then(function () { return loadPrices(); })
+      .then(function () { edits = {}; drawPrices(); pSay('Saved ' + body.length + ' price' + (body.length === 1 ? '' : 's') + '. The site uses them from the next page load.', 'ok'); })
+      .catch(function (e) { $('p-save').disabled = false; pSay('Couldn\'t save: ' + e.message, 'err'); });
+  });
+  $('p-csv').addEventListener('click', function () {
+    csv('pcmt-player-prices.csv', ['Player', 'Player id', 'Team', 'Region', 'Role', 'Start price', 'Price', 'Last change', 'Changed by'],
+      sortBy(priceRows(), pSort.key, pSort.dir).map(function (r) { return [r.name, r.id, r.team, r.region, r.role, r.base, r.price, r.when ? new Date(r.when).toISOString() : '', r.by]; }));
+  });
+  function loadPrices() {
+    return L.api('/rest/v1/player_price_changes?select=player,price,changed_at,changed_by&order=changed_at.asc,id.asc&limit=20000')
+      .then(function (r) { LOG = r || []; });
+  }
+  window.addEventListener('beforeunload', function (e) { if (Object.keys(edits).length || multiDirty) { e.preventDefault(); e.returnValue = ''; } });
+
+  // ---------- cards ----------
+  var COUNTS = {}, cSort = { key: 'rarity', dir: 1 }, RANK = { legendary: 0, epic: 1, rare: 2, common: 3 };
+  function packFor(c) {
+    var p = PACKS.filter(function (k) { return k.region === c.region && (k.season || null) === (c.season || null); })[0];
+    return p ? p.name : (c.season ? c.season + ' pack' : c.region + ' pack');
+  }
+  function cardRows() {
+    return CATALOG.map(function (c) {
+      var past = TRUMPS[c.player], site = BY_ID[c.player], n = COUNTS[c.id] || { copies: 0, owners: 0 };
+      var player = site ? site.name : past ? past.name : c.player;
+      return { id: c.id, title: c.variant ? c.title : player, player: player, rarity: c.rarity, rank: RANK[c.rarity],
+               season: c.season || (c.region === 'EMEA' ? 'S2 EMEA' : 'S3 NA'), pack: packFor(c), copies: +n.copies || 0, owners: +n.owners || 0,
+               active: c.active !== false, kind: c.variant ? (/^champ-/.test(c.variant) ? 'Champion' : 'Variant') : 'Player' };
+    });
+  }
+  function drawCards() {
+    var q = $('c-search').value.trim().toLowerCase(), rar = $('c-rarity').value, pk = $('c-pack').value, retired = $('c-retired').checked;
+    var all = cardRows(), rows = all.filter(function (r) {
+      return (retired || r.active) && (!rar || r.rarity === rar) && (!pk || r.pack === pk) && (!q || (r.title + ' ' + r.player + ' ' + r.season + ' ' + r.kind).toLowerCase().indexOf(q) >= 0);
+    });
+    var key = cSort.key === 'rarity' ? 'rank' : cSort.key;
+    rows = sortBy(rows, key, cSort.dir);
+    $('c-rows').innerHTML = rows.length ? rows.map(function (r) {
+      return '<tr' + (r.active ? '' : ' class="retired"') + '><td class="strong">' + esc(r.title) + (r.active ? '' : ' <span class="tag">retired</span>') + '<small>' + esc(r.kind) + '</small></td>' +
+        '<td>' + esc(r.player) + '</td><td><span class="rar rar-' + esc(r.rarity) + '">' + esc(cap(r.rarity)) + '</span></td><td>' + esc(r.season) + '</td><td>' + esc(r.pack) + '</td>' +
+        '<td class="num mono">' + r.copies + '</td><td class="num mono">' + r.owners + '</td></tr>';
+    }).join('') : '<tr><td colspan="7" class="dim">No cards match.</td></tr>';
+    markSort($('c-table'), cSort);
+    var act = all.filter(function (r) { return r.active; }), sum = function (f) { return act.reduce(function (t, r) { return t + f(r); }, 0); };
+    $('c-stats').innerHTML = [[act.length, 'cards in packs'], [act.filter(function (r) { return r.rarity !== 'common'; }).length, 'rare and up'],
+      [sum(function (r) { return r.copies; }), 'copies owned'], [rows.length, 'shown']].map(function (s) {
+      return '<div class="stat"><b>' + s[0] + '</b><span>' + s[1] + '</span></div>';
+    }).join('');
+  }
+  ['c-search', 'c-rarity', 'c-pack', 'c-retired'].forEach(function (id) { $(id).addEventListener('input', drawCards); $(id).addEventListener('change', drawCards); });
+  wireSort($('c-table'), cSort, drawCards);
+  $('c-csv').addEventListener('click', function () {
+    csv('pcmt-cards.csv', ['Card', 'Card id', 'Type', 'Player', 'Rarity', 'Season', 'Pack', 'Copies', 'Owners', 'In packs'],
+      sortBy(cardRows(), cSort.key === 'rarity' ? 'rank' : cSort.key, cSort.dir).map(function (r) { return [r.title, r.id, r.kind, r.player, cap(r.rarity), r.season, r.pack, r.copies, r.owners, r.active ? 'yes' : 'retired']; }));
+  });
+  function loadCards() {
+    return Promise.all([
+      L.api('/rest/v1/cards?select=id,player,variant,rarity,region,season,title,active&limit=5000'),
+      L.api('/rest/v1/card_packs?select=id,name,region,season,active&order=id'),
+      L.api('/rest/v1/rpc/fb_card_counts', { method: 'POST', body: {} })
+    ]).then(function (r) {
+      CATALOG = r[0] || []; PACKS = r[1] || []; COUNTS = {};
+      (r[2] || []).forEach(function (x) { COUNTS[x.card_id] = x; });
+      CATALOG.forEach(function (c) { if (/^c:/.test(c.id)) REGION[c.player] = c.region; });
+      $('c-pack').innerHTML = '<option value="">All packs</option>' + PACKS.map(function (p) { return '<option>' + esc(p.name) + '</option>'; }).join('');
+    });
+  }
+
+  // ---------- 4Ks and 5Ks (same as the admin page) ----------
+  var FROM = Date.parse('2026-10-19T09:00:00Z'); // 4Ks/5Ks count from this gameweek on (same as league.js)
+  var cur = null, saved = {}, multiDirty = false;
+  function keyOf(m) { return m.start + '|' + m.a + '|' + m.b; }
+  function when(t) { return new Date(t).toLocaleString('en-US', { timeZone: 'America/New_York', weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }); }
+  function seriesList() {
+    var by = {}, soon = Date.now() + 86400000;
+    (window.PCMT_MATCHES || []).forEach(function (m) { by[keyOf(m)] = { m: m, result: null }; });
+    (window.PCMT_RESULTS || []).forEach(function (r) { var k = keyOf(r); by[k] = { m: (by[k] && by[k].m) || r, result: r }; });
+    return Object.keys(by).map(function (k) { return by[k]; })
+      .filter(function (x) { var t = Date.parse(x.m.start); return t >= FROM && t <= soon; })
+      .sort(function (a, b) { return Date.parse(b.m.start) - Date.parse(a.m.start); });
+  }
+  function teamPlayers(s, team) {
+    var ids = s.result ? Object.keys(s.result.stats || {}).filter(function (id) { return BY_ID[id] && BY_ID[id].team === team; }) : [];
+    if (!ids.length) ids = PLAYERS.filter(function (p) { return p.team === team; }).map(function (p) { return p.id; });
+    return ids;
+  }
+  function drawMulti() {
+    var s = cur, wrap = $('teams');
+    if (!s) { wrap.hidden = true; $('savebar').hidden = true; return; }
+    $('series-note').textContent = s.result ? 'Result is in (' + s.result.winner + ' won). Points update as soon as you save.'
+      : 'No result yet. You can enter them now; they count once the result is added (the results check runs every 6 hours).';
+    wrap.innerHTML = [s.m.a, s.m.b].map(function (team) {
+      return '<section class="panel" aria-label="' + esc(team) + '"><span class="kicker">' + esc(team) + '</span><table><thead><tr><th>Player</th><th class="n">4K</th><th class="n">5K</th><th class="pts">Pts</th></tr></thead><tbody>' +
+        teamPlayers(s, team).map(function (id) {
+          var p = BY_ID[id], v = saved[id] || [0, 0];
+          return '<tr data-id="' + esc(id) + '"><td class="name">' + esc(p.name) + '<small>' + esc(p.role) + '</small></td>' +
+            '<td class="n"><input type="number" inputmode="numeric" min="0" max="30" step="1" value="' + v[0] + '" aria-label="' + esc(p.name) + ' 4Ks"></td>' +
+            '<td class="n"><input type="number" inputmode="numeric" min="0" max="30" step="1" value="' + v[1] + '" aria-label="' + esc(p.name) + ' 5Ks"></td>' +
+            '<td class="pts">+' + (v[0] + v[1] * 3) + '</td></tr>';
+        }).join('') + '</tbody></table></section>';
+    }).join('');
+    wrap.hidden = false; $('savebar').hidden = false;
+  }
+  function multiRows() {
+    return Array.prototype.map.call(document.querySelectorAll('#teams tr[data-id]'), function (tr) {
+      var inp = tr.querySelectorAll('input');
+      return { tr: tr, id: tr.getAttribute('data-id'), k4: Math.max(0, Math.min(30, Math.floor(+inp[0].value || 0))), k5: Math.max(0, Math.min(30, Math.floor(+inp[1].value || 0))) };
+    });
+  }
+  function say(t, cls) { $('msg').textContent = t; $('msg').className = 'msg' + (cls ? ' ' + cls : ''); }
+  $('teams').addEventListener('input', function () {
+    multiDirty = true; say('');
+    multiRows().forEach(function (r) { r.tr.querySelector('.pts').textContent = '+' + (r.k4 + r.k5 * 3); });
+  });
+  function loadSeries(i) {
+    var list = seriesList(); cur = list[i] || null; saved = {}; multiDirty = false; say('');
+    if (!cur) return drawMulti();
+    L.api('/rest/v1/multikills?select=player,k4,k5&series=eq.' + encodeURIComponent(keyOf(cur.m))).then(function (got) {
+      (got || []).forEach(function (x) { saved[x.player] = [x.k4 || 0, x.k5 || 0]; });
+      drawMulti();
+    }).catch(function (e) { drawMulti(); say('Couldn\'t load saved numbers: ' + e.message, 'err'); });
+  }
+  $('save').addEventListener('click', function () {
+    if (!cur) return;
+    var key = keyOf(cur.m), now = new Date().toISOString();
+    var body = multiRows().map(function (r) { return { series: key, player: r.id, k4: r.k4, k5: r.k5, updated_at: now }; });
+    $('save').disabled = true; say('Saving…');
+    L.api('/rest/v1/multikills?on_conflict=series,player', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: body })
+      .then(function () {
+        body.forEach(function (b) { saved[b.player] = [b.k4, b.k5]; }); multiDirty = false; drawMulti();
+        say('Saved ' + cur.m.a + ' vs ' + cur.m.b + '.' + (cur.result ? ' The new points are live.' : ' They count once the result is in.'), 'ok');
+      })
+      .catch(function (e) { say('Couldn\'t save: ' + e.message, 'err'); })
+      .then(function () { $('save').disabled = false; });
+  });
+  $('series').addEventListener('change', function () {
+    if (multiDirty && !confirm('You have unsaved numbers for this series. Switch anyway?')) { this.value = this.getAttribute('data-was'); return; }
+    this.setAttribute('data-was', this.value); loadSeries(+this.value);
+  });
+  function setupMulti() {
+    var list = seriesList(), sel = $('series');
+    if (!list.length) { sel.innerHTML = '<option>No series yet</option>'; sel.disabled = true; $('series-note').textContent = 'Series from the Oct 19 gameweek on show up here once they start.'; return; }
+    sel.innerHTML = list.map(function (x, i) { return '<option value="' + i + '">' + esc(when(x.m.start) + ' · ' + x.m.a + ' vs ' + x.m.b + ' (' + x.m.region + (x.m.bo ? ', BO' + x.m.bo : '') + ')' + (x.result ? '' : ' · waiting for result')) + '</option>'; }).join('');
+    sel.setAttribute('data-was', '0');
+    loadSeries(0);
+  }
+
+  // ---------- sign in ----------
+  function show(id) { ['st-loading', 'st-out', 'st-nostaff', 'st-staff'].forEach(function (s) { $(s).hidden = s !== id; }); }
+  $('login').addEventListener('click', function () { L.signIn('backend.html'); });
+  $('logout2').addEventListener('click', function () { L.signOut(); });
+  $('copy-sql').addEventListener('click', function () {
+    var t = $('staff-sql').textContent, b = this;
+    (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { b.textContent = 'Copied'; }, function () { b.textContent = 'Select the text and copy it'; });
+  });
+  (window.PCMT_LEAGUE_READY || Promise.resolve()).then(function () {
+    BASE = window.PCMT_BASE_PRICES || {};
+    PLAYERS.forEach(function (p) { if (BASE[p.id] == null) BASE[p.id] = p.price; });
+    var id = L.myId;
+    if (!id) return show('st-out');
+    $('who').textContent = (window.PCMT_AUTH && window.PCMT_AUTH.name) || ''; $('who').hidden = false;
+    $('staff-sql').textContent = "insert into public.freshbatch_staff (user_id) values ('" + id + "') on conflict do nothing;";
+    return L.api('/rest/v1/rpc/is_freshbatch', { method: 'POST', body: {} }).catch(function (e) {
+      show('st-nostaff'); $('staff-sql').textContent = 'Couldn\'t check the staff list (' + e.message + '). Has setup/backend-setup.sql been run?'; return 'error';
+    }).then(function (ok) {
+      if (ok === 'error') return;
+      if (ok !== true) return show('st-nostaff');
+      return Promise.all([
+        L.api('/rest/v1/profiles?select=id,name&limit=5000').then(function (r) { (r || []).forEach(function (p) { NAMES[p.id] = p.name; }); }).catch(function () {}),
+        loadPrices(), loadCards()
+      ]).then(function () {
+        show('st-staff');
+        var h = (location.hash || '').slice(1);
+        openTab(TABS.indexOf(h) >= 0 ? h : 'prices');
+        drawPrices(); drawCards(); setupMulti();
+      });
+    }).catch(function (e) { show('st-staff'); $('p-msg').textContent = 'Something went wrong loading the backend: ' + e.message; $('p-msg').className = 'msg err'; });
+  });
+})();
+</script>
+</body>
+</html>

@@ -43,6 +43,21 @@ create policy "see own admin row" on public.pcmt_admins for select using (auth.u
 -- To make someone an admin, run (their account id is shown on admin.html):
 --   insert into public.pcmt_admins (user_id) values ('<account id>') on conflict do nothing;
 
+-- Freshbatch staff (the people who run the site): they use backend.html. Add someone with
+--   insert into public.freshbatch_staff (user_id) values ('<account id>') on conflict do nothing;
+create table if not exists public.freshbatch_staff (
+  user_id uuid primary key references auth.users (id) on delete cascade,
+  added_at timestamptz not null default now()
+);
+alter table public.freshbatch_staff enable row level security;
+drop policy if exists "see own staff row" on public.freshbatch_staff;
+create policy "see own staff row" on public.freshbatch_staff for select using (auth.uid() = user_id);
+create or replace function public.is_freshbatch() returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.freshbatch_staff where user_id = auth.uid());
+$$;
+grant execute on function public.is_freshbatch() to anon, authenticated;
+
 create table if not exists public.multikills (
   series text not null,
   player text not null,
@@ -57,11 +72,11 @@ drop policy if exists "anyone can read multikills" on public.multikills;
 create policy "anyone can read multikills" on public.multikills for select using (true);
 drop policy if exists "admins add multikills" on public.multikills;
 create policy "admins add multikills" on public.multikills for insert
-  with check (exists (select 1 from public.pcmt_admins a where a.user_id = auth.uid()));
+  with check (exists (select 1 from public.pcmt_admins a where a.user_id = auth.uid()) or public.is_freshbatch());
 drop policy if exists "admins change multikills" on public.multikills;
 create policy "admins change multikills" on public.multikills for update
-  using (exists (select 1 from public.pcmt_admins a where a.user_id = auth.uid()))
-  with check (exists (select 1 from public.pcmt_admins a where a.user_id = auth.uid()));
+  using (exists (select 1 from public.pcmt_admins a where a.user_id = auth.uid()) or public.is_freshbatch())
+  with check (exists (select 1 from public.pcmt_admins a where a.user_id = auth.uid()) or public.is_freshbatch());
 
 create table if not exists public.vp_sync_log (
   id bigserial primary key,
@@ -130,6 +145,21 @@ begin
   return cost <= 100.000000001;
 end $$;
 
+-- Player prices as they were at time p_t: players.js prices, with any change made on backend.html before then
+-- (public.player_price_changes; a null price means back to the players.js price). A deck is checked against
+-- the prices from when it was saved, so a later price change never breaks a deck that was within budget.
+create or replace function public.vp_players_at(p_players jsonb, p_t timestamptz) returns jsonb
+language plpgsql stable security definer set search_path = public as $$
+declare ch jsonb;
+begin
+  if to_regclass('public.player_price_changes') is null then return p_players; end if;
+  select jsonb_object_agg(player, case when price is null then p_players -> player else (p_players -> player) || jsonb_build_object('price', price) end)
+    into ch
+    from (select distinct on (player) player, price from public.player_price_changes
+          where changed_at <= p_t and p_players ? player order by player, changed_at desc, id desc) q;
+  return p_players || coalesce(ch, '{}'::jsonb);
+end $$;
+
 create or replace function public.vp_transfers(p_prev jsonb, p_slots jsonb) returns int
 language sql immutable as $$
   select count(*)::int from jsonb_each_text(p_slots) s
@@ -182,8 +212,8 @@ begin
     for w in select b, first_t - interval '12 hours' as lock_at, b + interval '7 days' as e from vp_weeks order by b loop
       if p_now < w.lock_at then continue; end if;              -- gameweek not locked yet
       use_slots := null;
-      for d in select slots, name from public.deck_history where user_id = u and created_at < w.lock_at order by created_at desc, id desc loop
-        if public.vp_valid_deck(d.slots, players, p_twin) and (prev is null or public.vp_transfers(prev, d.slots) <= 2) then
+      for d in select slots, name, created_at from public.deck_history where user_id = u and created_at < w.lock_at order by created_at desc, id desc loop
+        if public.vp_valid_deck(d.slots, public.vp_players_at(players, d.created_at), p_twin) and (prev is null or public.vp_transfers(prev, d.slots) <= 2) then
           use_slots := d.slots; use_name := d.name; exit;
         end if;
       end loop;
