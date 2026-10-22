@@ -799,7 +799,7 @@ function pcmtStoreCards(pulled) {
     var role = p.role === 'yoru' ? 'duelist' : p.role, pr = Math.round(p.price * 10) / 10;
     return {
       name: p.name, role: role.charAt(0).toUpperCase() + role.slice(1), roleIcon: abs(PCMT_PACK_ROLE_ICONS[role] || PCMT_PACK_ROLE_ICONS.duelist),
-      price: pr % 1 === 0 ? String(pr) : pr.toFixed(1), champ: false,   // nobody has won this season yet; trophies are only on the season a player won
+      price: pr % 1 === 0 ? String(pr) : pr.toFixed(1), champ: PCMT_CHAMPS.indexOf(p.id) >= 0,   // trophy: a past PCMT champion
       rarity: c.rarity, art: c.variant && PCMT_VARIANT_ART[c.variant] ? abs(PCMT_VARIANT_ART[c.variant]) : '', artFull: !!(c.variant && PCMT_VARIANT_FULL[c.variant]), artCenter: !!(c.variant && PCMT_VARIANT_CENTER[c.variant]), sheenColor: (c.variant && PCMT_VARIANT_SHEEN[c.variant]) || '',
       badge: c.new ? 'NEW' : '×' + c.count, regionLogo: abs(PCMT_REGION_LOGOS[c.region] || PCMT_REGION_LOGOS.NA),
       trophy: abs(PCMT_TROPHY_ICON), mvp: pcmtMvpStats(c.region, p.name, c.player),

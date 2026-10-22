@@ -79,7 +79,7 @@ def deck_info():
     pj = open(os.path.join(ROOT, 'players.js'), encoding='utf-8').read()
     cm = re.search(r'PCMT_SITE_CHAMPS = \{([^}]*)\}', pj)
     if cm:
-        champs = set(re.findall(r"'?([a-z0-9-]+)'?\s*:\s*true", cm.group(1)))
+        champs = set(re.findall(r"[\"']?([a-z0-9-]+)[\"']?\s*:\s*true", cm.group(1)))
     for m in re.finditer(r"\{ ?id: '([a-z0-9-]+)', name: '([^']+)', team: '([A-Za-z0-9]+)', role: '([a-z/]+)'", src):
         pid, name, team, role = m.group(1), m.group(2).lower(), m.group(3), m.group(4).split('/')[0]
         role = 'duelist' if role == 'yoru' else role
@@ -140,7 +140,8 @@ def main():
                 'teamName': teams[team]['name'] if team in teams else ('Sub' if not team else team),
                 'color': teams[team]['color'] if team in teams else '#93a9aa',
                 'role': pick[0][1] if pick else agent_roles.get(key, ''),
-                'champ': bool(team and CURRENT_CHAMPION.get(season) == team),   # only who won this season
+                # trophy: a past PCMT champion, or on the team that won this season
+                'champ': bool(pick and pick[0][2]) or bool(team and CURRENT_CHAMPION.get(season) == team),
                 'sub': r['team'] == '(sub)',
                 'maps': int(r['mp']),
                 'toxic': num(r['toxic']),

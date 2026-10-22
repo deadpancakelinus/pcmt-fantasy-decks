@@ -391,7 +391,7 @@ class Component extends DCLogic {
         regionLogo: PCMT_REGION_LOGOS[c.region] || PCMT_REGION_LOGOS.NA,
         art: c.variant && PCMT_VARIANT_ART[c.variant] ? PCMT_VARIANT_ART[c.variant] : '', hasArt: !!(c.variant && PCMT_VARIANT_ART[c.variant]), artClass: c.variant && PCMT_VARIANT_FULL[c.variant] ? 'st-art-full' : c.variant && PCMT_VARIANT_CENTER[c.variant] ? 'st-art-center' : '',
         roleIcon: role ? (PCMT_PACK_ROLE_ICONS[role] || PCMT_PACK_ROLE_ICONS.duelist) : '', roleLabel: role.charAt(0).toUpperCase() + role.slice(1), hasRole: !!role, noRole: !role,
-        champ: past ? !!(ps && ps.champ) : false,   // trophies only on the season a player won (nobody has won the current seasons yet)
+        champ: past ? !!(ps && ps.champ) : PCMT_CHAMPS.indexOf(p.id) >= 0,   // past-season card: won that season; current card: a past PCMT champion
         nameSize: Math.max(18, Math.min(34, Math.floor(230 / Math.max(4, String(p.name).length * 0.62)))),
         cardLabel: (c.variant ? c.title + ' card: ' : '') + p.name + ', ' + tm.name + ', ' + c.rarity + ', you own ' + mine[k],
         shiny: shiny, rarityTag: c.rarity.toUpperCase(), rarityLabel: c.rarity.charAt(0).toUpperCase() + c.rarity.slice(1), glow: pcmtRgba(col, 0.45),
