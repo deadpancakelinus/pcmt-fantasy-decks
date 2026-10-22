@@ -77,6 +77,7 @@ var PCMT_VARIANT_ART = { 'teklo-variant': 'assets/8b1855340f56f72ea07f5447ca1670
 // lore-variant and claps-s2-variant are no longer in packs; their art stays so copies already pulled still look right.
 var PCMT_VARIANT_FULL = { 'straight-variant': true, 'lore-variant': true, 'claps-s2-variant': true };
 // Champion cards: the trophy sits in the middle of the card, and the sheen is gold.
+// Champion art (also used for past-season champions, and for champion cards already pulled before 2026-10-21).
 var PCMT_VARIANT_ART_CHAMPS = { 'champ-longclaw': 'assets/a8390c53c5aa10a347b6af0841aa6835.png', 'champ-devil': 'assets/a8390c53c5aa10a347b6af0841aa6835.png', 'champ-platinum': 'assets/a8390c53c5aa10a347b6af0841aa6835.png', 'champ-igneous': 'assets/a8390c53c5aa10a347b6af0841aa6835.png', 'champ-james': 'assets/a8390c53c5aa10a347b6af0841aa6835.png', 'champ-stingray': 'assets/a8390c53c5aa10a347b6af0841aa6835.png', 'champ-faye': 'assets/a8390c53c5aa10a347b6af0841aa6835.png', 'champ-charlotte': 'assets/a8390c53c5aa10a347b6af0841aa6835.png', 'champ-mide': 'assets/a8390c53c5aa10a347b6af0841aa6835.png', 'champ-king': 'assets/a8390c53c5aa10a347b6af0841aa6835.png', 'champ-tonnoman': 'assets/a8390c53c5aa10a347b6af0841aa6835.png' };
 Object.keys(PCMT_VARIANT_ART_CHAMPS).forEach(function (k) { PCMT_VARIANT_ART[k] = PCMT_VARIANT_ART_CHAMPS[k]; });
 var PCMT_VARIANT_CENTER = { 'champ-longclaw': true, 'champ-devil': true, 'champ-platinum': true, 'champ-igneous': true, 'champ-james': true, 'champ-stingray': true, 'champ-faye': true, 'champ-charlotte': true, 'champ-mide': true, 'champ-king': true, 'champ-tonnoman': true };
@@ -98,62 +99,7 @@ var PCMT_STORE_ITEMS = [
     name: 'claps', team: 'C9', teamName: 'Clown9', color: '#4dc3ef', season: 'S3 NA', maps: 28, role: 'controller',
     teamLogo: 'assets/46ec4a1f510710db9670e64c202b0cee.png', regionLogo: 'assets/c265e976f8968e60e4a2bdd32542b499.png',
     roleIcon: 'assets/783fdcc50fe04d2622938ee185d4ed32.png', art: 'assets/bb4db91bdcfb1958431ff90d376d30cb.webp',
-    acs: 323, kast: 81, hs: 22, dpr: 0.78, toxic: 1.43 },
-  { id: 'champ-longclaw', card: 'v:champ-longclaw', rarity: 'rare', pack: 'NA Card Pack', title: 'longclaw Champion',
-    name: 'longclaw', team: 'DFM', teamName: 'Dementia Found Me', color: '#5a78ff', season: 'S3 NA', maps: 28, role: 'controller',
-    teamLogo: 'assets/a59455af931db22aaf5f61e2da9f3686.png', regionLogo: 'assets/c265e976f8968e60e4a2bdd32542b499.png',
-    roleIcon: 'assets/783fdcc50fe04d2622938ee185d4ed32.png', art: 'assets/a8390c53c5aa10a347b6af0841aa6835.png',
-    acs: 183, kast: 71, hs: 25, dpr: 0.71, toxic: 0.93 },
-  { id: 'champ-devil', card: 'v:champ-devil', rarity: 'rare', pack: 'NA Card Pack', title: 'devil Champion',
-    name: 'devil', team: 'BAKA', teamName: 'Beautiful and Kinda Adorable', color: '#b98ad9', season: 'S3 NA', maps: 12, role: 'duelist',
-    teamLogo: 'assets/09e5595acee6eb70652c84027ef2e6d6.png', regionLogo: 'assets/c265e976f8968e60e4a2bdd32542b499.png',
-    roleIcon: 'assets/3911a104cbddaf481d7a7bf070a2e696.png', art: 'assets/a8390c53c5aa10a347b6af0841aa6835.png',
-    acs: 129, kast: 60, hs: 20, dpr: 0.76, toxic: 0.64 },
-  { id: 'champ-platinum', card: 'v:champ-platinum', rarity: 'rare', pack: 'NA Card Pack', title: 'platinum Champion',
-    name: 'platinum', team: 'IHOP', teamName: 'I Hate Odin Party', color: '#3d95dc', season: 'S3 NA', maps: 9, role: 'initiator',
-    teamLogo: 'assets/209d81a7df0d79fc71d99063600358ef.png', regionLogo: 'assets/c265e976f8968e60e4a2bdd32542b499.png',
-    roleIcon: 'assets/8f7fb7ffa93c48ba09a00fcd223c7f7c.png', art: 'assets/a8390c53c5aa10a347b6af0841aa6835.png',
-    acs: 165, kast: 71, hs: 22, dpr: 0.68, toxic: 0.86 },
-  { id: 'champ-igneous', card: 'v:champ-igneous', rarity: 'rare', pack: 'NA Card Pack', title: 'igneous Champion',
-    name: 'igneous', team: 'C9', teamName: 'Clown9', color: '#4dc3ef', season: 'S3 NA', maps: 26, role: 'initiator',
-    teamLogo: 'assets/46ec4a1f510710db9670e64c202b0cee.png', regionLogo: 'assets/c265e976f8968e60e4a2bdd32542b499.png',
-    roleIcon: 'assets/8f7fb7ffa93c48ba09a00fcd223c7f7c.png', art: 'assets/a8390c53c5aa10a347b6af0841aa6835.png',
-    acs: 178, kast: 73, hs: 13, dpr: 0.67, toxic: 0.93 },
-  { id: 'champ-james', card: 'v:champ-james', rarity: 'rare', pack: 'NA Card Pack', title: 'james Champion',
-    name: 'james', team: 'FNC', teamName: 'cow paulo FaN Club', color: '#ff8a1f', season: 'S3 NA', maps: 21, role: 'duelist',
-    teamLogo: 'assets/8a102a19e71060bb2dacb6d6b5263457.png', regionLogo: 'assets/c265e976f8968e60e4a2bdd32542b499.png',
-    roleIcon: 'assets/3911a104cbddaf481d7a7bf070a2e696.png', art: 'assets/a8390c53c5aa10a347b6af0841aa6835.png',
-    acs: 283, kast: 72, hs: 45, dpr: 0.78, toxic: 1.24 },
-  { id: 'champ-stingray', card: 'v:champ-stingray', rarity: 'rare', pack: 'NA Card Pack', title: 'stingray Champion',
-    name: 'stingray', team: 'NAVI', teamName: 'No Actual Valorant Intelligence', color: '#FF6EB4', season: 'S3 NA', maps: 17, role: 'initiator',
-    teamLogo: 'assets/f6b846609af48437299bc42d13d5dad0.png', regionLogo: 'assets/c265e976f8968e60e4a2bdd32542b499.png',
-    roleIcon: 'assets/8f7fb7ffa93c48ba09a00fcd223c7f7c.png', art: 'assets/a8390c53c5aa10a347b6af0841aa6835.png',
-    acs: 280, kast: 79, hs: 23, dpr: 0.65, toxic: 1.33 },
-  { id: 'champ-faye', card: 'v:champ-faye', rarity: 'rare', pack: 'EMEA Card Pack', title: 'faye Champion',
-    name: 'faye', team: 'SOG', teamName: 'The SOG', color: '#b8814a', season: 'S2 EMEA', maps: 10, role: 'controller',
-    teamLogo: 'assets/85e0857300495ee3133b6acf79e286c0.png', regionLogo: 'assets/3c7e7374dceead68d5c58818d0bcfe8a.png',
-    roleIcon: 'assets/783fdcc50fe04d2622938ee185d4ed32.png', art: 'assets/a8390c53c5aa10a347b6af0841aa6835.png',
-    acs: 209, kast: 70, hs: 24, dpr: 0.65, toxic: 1.04 },
-  { id: 'champ-charlotte', card: 'v:champ-charlotte', rarity: 'rare', pack: 'EMEA Card Pack', title: 'Charlotte Champion',
-    name: 'Charlotte', team: 'SOG', teamName: 'The SOG', color: '#b8814a', season: 'S2 EMEA', maps: 7, role: 'sentinel',
-    teamLogo: 'assets/85e0857300495ee3133b6acf79e286c0.png', regionLogo: 'assets/3c7e7374dceead68d5c58818d0bcfe8a.png',
-    roleIcon: 'assets/006daf34642009c6f6749139f80a613e.png', art: 'assets/a8390c53c5aa10a347b6af0841aa6835.png',
-    acs: 129, kast: 68, hs: 18, dpr: 0.68, toxic: 0.7 },
-  { id: 'champ-mide', card: 'v:champ-mide', rarity: 'rare', pack: 'EMEA Card Pack', title: 'mide Champion',
-    name: 'mide', team: 'LARP', teamName: 'Larpiat\u00e1n', color: '#6f8fe0', season: 'S2 EMEA', maps: 12, role: 'controller',
-    teamLogo: 'assets/f06cf372e21c32dbf3754b8bd506e0b5.jpg', regionLogo: 'assets/3c7e7374dceead68d5c58818d0bcfe8a.png',
-    roleIcon: 'assets/783fdcc50fe04d2622938ee185d4ed32.png', art: 'assets/a8390c53c5aa10a347b6af0841aa6835.png',
-    acs: 234, kast: 72, hs: 20, dpr: 0.72, toxic: 1.11 },
-  { id: 'champ-king', card: 'v:champ-king', rarity: 'rare', pack: 'EMEA Card Pack', title: 'King Champion',
-    name: 'King', team: 'NOOT', teamName: 'Penguin Patrol', color: '#3fb6a8', season: 'S2 EMEA', maps: 13, role: 'duelist',
-    teamLogo: 'assets/195da1efa2549707b6737764479c066c.png', regionLogo: 'assets/3c7e7374dceead68d5c58818d0bcfe8a.png',
-    roleIcon: 'assets/3911a104cbddaf481d7a7bf070a2e696.png', art: 'assets/a8390c53c5aa10a347b6af0841aa6835.png',
-    acs: 242, kast: 77, hs: 22, dpr: 0.74, toxic: 1.12 },
-  { id: 'champ-tonnoman', card: 'v:champ-tonnoman', rarity: 'rare', pack: 'EMEA Card Pack', title: 'Tonnoman Champion',
-    name: 'Tonnoman', team: 'HOT', teamName: 'Honestly Outrageous Temperatures', color: '#4f8ef7', season: 'S2 EMEA', maps: 15, role: 'controller',
-    teamLogo: 'assets/e078dfeeea5c9d916197f71d8b7ea80a.jpg', regionLogo: 'assets/3c7e7374dceead68d5c58818d0bcfe8a.png',
-    roleIcon: 'assets/783fdcc50fe04d2622938ee185d4ed32.png', art: 'assets/a8390c53c5aa10a347b6af0841aa6835.png',
-    acs: 222, kast: 71, hs: 27, dpr: 0.74, toxic: 1.06 }
+    acs: 323, kast: 81, hs: 22, dpr: 0.78, toxic: 1.43 }
 ];
 // The default card back (the BLUE deck), used for pack cards.
 var PCMT_STORE_BACK = { color: '#a5dcdd', edge: '#1f3a3b', ringClass: '', bgClass: '', frame: 'rgba(165,220,221,0.75)', frameSoft: 'rgba(165,220,221,0.4)', glow: 'rgba(165,220,221,0.3)',
@@ -853,7 +799,7 @@ function pcmtStoreCards(pulled) {
     var role = p.role === 'yoru' ? 'duelist' : p.role, pr = Math.round(p.price * 10) / 10;
     return {
       name: p.name, role: role.charAt(0).toUpperCase() + role.slice(1), roleIcon: abs(PCMT_PACK_ROLE_ICONS[role] || PCMT_PACK_ROLE_ICONS.duelist),
-      price: pr % 1 === 0 ? String(pr) : pr.toFixed(1), champ: PCMT_CHAMPS.indexOf(p.id) >= 0,
+      price: pr % 1 === 0 ? String(pr) : pr.toFixed(1), champ: false,   // nobody has won this season yet; trophies are only on the season a player won
       rarity: c.rarity, art: c.variant && PCMT_VARIANT_ART[c.variant] ? abs(PCMT_VARIANT_ART[c.variant]) : '', artFull: !!(c.variant && PCMT_VARIANT_FULL[c.variant]), artCenter: !!(c.variant && PCMT_VARIANT_CENTER[c.variant]), sheenColor: (c.variant && PCMT_VARIANT_SHEEN[c.variant]) || '',
       badge: c.new ? 'NEW' : '×' + c.count, regionLogo: abs(PCMT_REGION_LOGOS[c.region] || PCMT_REGION_LOGOS.NA),
       trophy: abs(PCMT_TROPHY_ICON), mvp: pcmtMvpStats(c.region, p.name, c.player),

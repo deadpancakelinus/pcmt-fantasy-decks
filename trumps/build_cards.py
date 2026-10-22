@@ -24,6 +24,8 @@ import re
 COLS = ['name', 'team', 'season', 'toxic', 'angus', 'acs', 'mp', 'rp', 'k', 'd', 'a', 'kd', 'kda',
         'kpr', 'dpr', 'apr', 'kast', 'adr', 'fk', 'fd', 'fkpr', 'fdpr', 'pm', 'hs', 'kmax', 'href', 'logo']
 SEASONS = {'S3 NA': 'na', 'S2 EMEA': 'emea'}
+# Winner of each current season (team code); None until the season's final is played.
+CURRENT_CHAMPION = {'S3 NA': None, 'S2 EMEA': None}
 # Past seasons: in MVP VS and their own throwback packs, never on The Deck.
 OLD_SEASONS = {'S1 NA': 'nas1', 'S2 NA': 'nas2', 'S1 EMEA': 'emeas1'}
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -138,7 +140,7 @@ def main():
                 'teamName': teams[team]['name'] if team in teams else ('Sub' if not team else team),
                 'color': teams[team]['color'] if team in teams else '#93a9aa',
                 'role': pick[0][1] if pick else agent_roles.get(key, ''),
-                'champ': bool(pick and pick[0][2]),
+                'champ': bool(team and CURRENT_CHAMPION.get(season) == team),   # only who won this season
                 'sub': r['team'] == '(sub)',
                 'maps': int(r['mp']),
                 'toxic': num(r['toxic']),
