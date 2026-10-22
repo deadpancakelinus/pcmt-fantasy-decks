@@ -26,7 +26,7 @@ grant usage on all sequences in schema public to authenticated;`);
 const buy = (uid, pack = 'na-pack') => JSON.parse(sql(as(uid, `select public.buy_pack('${pack}');`)).trim());
 const bal = uid => +sql(`select coalesce(sum(amount),0) from public.vp_ledger where user_id = '${uid}';`).trim();
 
-check(+sql(`select count(*) from public.cards where active;`).trim() === 261, 'catalog has 131 commons + 4 variants, plus 108 past-season commons + 16 past-season champions + 2 past-season variants');
+check(+sql(`select count(*) from public.cards where active;`).trim() === 262, 'catalog has 131 commons + 4 variants, plus 108 past-season commons + 16 past-season champions + 3 past-season variants');
 check(sql(`select rarity from public.cards where id = 'v:teklo-variant';`).trim() === 'rare', 'The Role of Yoru is Rare');
 check(fails(`set role anon; select public.buy_pack('na-pack');`), 'logged-out visitors cannot buy');
 check(fails(as(P1, `select public.buy_pack('na-pack');`), /aren't on sale yet/), 'before launch, a player who is not an admin cannot buy');
@@ -57,7 +57,7 @@ check(at.every(f => f > 0.15 && f < 0.25), 'rares land anywhere in the pack: ' +
 const eu = sql(as(ADMIN, `select string_agg((c ->> 'rarity') || ':' || (c ->> 'region'), ',') from generate_series(1, 200) g, lateral jsonb_array_elements(public.buy_pack('emea-pack' || left(g::text, 0)) -> 'cards') c;`)).trim().split(',');
 check(eu.length === 1000 && eu.every(x => x.endsWith(':EMEA')) && eu.every(x => x === 'common:EMEA'), 'the EMEA pack only gives EMEA players (all Common: it has no Rares now, so they drop a tier)');
 check(+sql(`select count(*) from public.cards where active and id like 'v:champ-%' and season is null;`).trim() === 0, 'no champion cards for the current seasons (nobody has won them yet)');
-for (const [pack, season, reg, champs] of [['nas1-pack', 'S1 NA', 'NA', 6], ['nas2-pack', 'S2 NA', 'NA', 7],   // 5 champions + The Lurking Sova + Psyclone Spotlight
+for (const [pack, season, reg, champs] of [['nas1-pack', 'S1 NA', 'NA', 6], ['nas2-pack', 'S2 NA', 'NA', 8],   // 5 champions + The Lurking Sova + Psyclone Spotlight + Detained
  ['emeas1-pack', 'S1 EMEA', 'EMEA', 5]]) {
   const tb = sql(as(ADMIN, `select string_agg((c ->> 'rarity') || '|' || coalesce(c ->> 'season', '-') || '|' || (c ->> 'region') || '|' || (c ->> 'id'), ',') from generate_series(1, 300) g, lateral jsonb_array_elements(public.buy_pack('${pack}' || left(g::text, 0)) -> 'cards') c;`)).trim().split(',').map(x => x.split('|'));
   const rareIds = new Set(tb.filter(x => x[0] === 'rare').map(x => x[3]));
@@ -83,7 +83,7 @@ sql(`insert into public.vp_ledger (user_id, kind, week, amount) values ('${P2}',
   check(fails(as(P1, `insert into public.user_cards (user_id, card_id) values ('${P1}', 'v:teklo-variant');`)), 'players cannot give themselves cards');
   check(fails(as(P1, `insert into public.vp_ledger (user_id, kind, amount) values ('${P1}', 'week', 999);`)), 'players cannot give themselves VP');
   check(fails(as(P1, `update public.card_packs set price = 1;`)) || sql(`select string_agg(price::text, ',') from public.card_packs`).trim() === '100,100,100,100,100', 'players cannot change the price');
-  check(sql(`set role anon; select count(*) from public.card_packs;`).trim() === '5' && sql(`set role anon; select count(*) from public.cards where active;`).trim() === '261', 'anyone can see the packs and the catalog');
+  check(sql(`set role anon; select count(*) from public.card_packs;`).trim() === '5' && sql(`set role anon; select count(*) from public.cards where active;`).trim() === '262', 'anyone can see the packs and the catalog');
   sql('drop database cardtest;', 'postgres');
   console.log(bad ? bad + ' problem(s)' : 'All card pack checks passed');
   process.exit(bad ? 1 : 0);

@@ -36,6 +36,7 @@ PAST_VARIANTS = [
     # id, MVP VS card id (past season), rarity, title; only in that season's throwback pack
     ('stingray-s2-variant', 'nas2-stingray', 'rare', 'The Lurking Sova'),
     ('psyclone-s2-variant', 'nas2-psyclone', 'rare', 'Psyclone Spotlight'),
+    ('lazy-s2-variant', 'nas2-lazy', 'rare', 'Detained'),
 ]
 
 here = os.path.dirname(os.path.abspath(__file__))
