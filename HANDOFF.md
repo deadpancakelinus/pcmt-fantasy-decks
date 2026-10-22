@@ -21,7 +21,7 @@ Start here. It covers what exists, how changes are made and shipped, and what's 
 | Main.dc.html | index.html | **The Deck** (deck building, player store, next match, lock countdown) |
 | Customization.dc.html | customization.html | Card backs, auras, favorites, codes, card packs |
 | Leaderboard.dc.html | leaderboard.html | This gameweek / overall standings |
-| Rules.dc.html | guide.html | Guide + Patch Notes (site is "Version 1.5 BETA"; footers on every page show the version) |
+| Rules.dc.html | guide.html | Guide + Batch Notes (site is "Version 1.5 BETA"; footers on every page show the version) |
 | Login.dc.html | login.html | Discord log in |
 | Transactions.dc.html | transactions.html | **Transactions** (last in the menu): The Bank (all VP the player has), Last Paycheck (VP from the last finished gameweek), Paychecks (VP in), Spending (VP out: pack and amount). Everyone except admins sees an empty page with only the card animation and "Coming Soon..." (nothing of the page is drawn). `collection.html` just redirects here. |
 | Store.dc.html | store.html | **Store**: The Bank, NA and EMEA card packs (buy with VP, then the pack opening plays with the cards you pulled), and the variants found in packs (The Role of Yoru: Rare, NA). Everyone except admins sees an empty page with only the card animation and "Coming Soon..." (nothing of the page is drawn). |
@@ -29,7 +29,7 @@ Start here. It covers what exists, how changes are made and shipped, and what's 
 | (hand-written) | admin.html | Hidden admin page (not in the nav): enter each player's 4Ks and 5Ks per series. Only accounts in `pcmt_admins` can save. |
 | (hand-written) | mvp-vs.html | **MVP VS** card game (see section 9). Its board MvpVs.dc.html is only the old "Coming soon" design and is not built. |
 
-Branding: header and titles say **fantasy.pcmt.gg**. The site is managed and designed by Freshbatch; every page footer says so ("Managed and designed by Freshbatch") above Riot's required fan-project notice. Every page footer carries Riot's required fan-project notice ("created under Riot Games' Legal Jibber Jabber policy…", linking riotgames.com/en/legal); keep it on any new page. Colors black + `#a5dcdd`; fonts Cabin Sketch / Space Grotesk / JetBrains Mono.
+Branding: header and titles say **fantasy.pcmt.gg**. The site is a Freshbatch product (managed and designed by Freshbatch); every page footer says "A Freshbatch product" above Riot's required fan-project notice. Every page footer carries Riot's required fan-project notice ("created under Riot Games' Legal Jibber Jabber policy…", linking riotgames.com/en/legal); keep it on any new page. Colors black + `#a5dcdd`; fonts Cabin Sketch / Space Grotesk / JetBrains Mono.
 
 ## 3. How the site is built
 
@@ -58,6 +58,7 @@ Branding: header and titles say **fantasy.pcmt.gg**. The site is managed and des
 - Gameweeks start Monday 09:00 UTC (5:00 AM EDT). Decks lock 12 h before the week's first series. 2 transfers per gameweek, counted against the last scored deck; an invalid deck falls back to the previous one.
 - Unlocks: team decks at 100 team points, Gold by active weeks, champion/missed win, Midlife Crisis at a 200-point week, Ethan aura for two consecutive weekly #1s, Champion's Aura holder from standings. Codes are redeemed server-side with `redeem_code` (PRIDE is seeded).
 
+- Batch Notes (the Guide's update notes, formerly Patch Notes): each entry is sent by Freshbatch ("Sent by Freshbatch · <month>") and opens with "It’s time for fresh." Keep that for new entries.
 - Deck names: blocked words (fuck, shit, ass, poop, pee, piss, Israel, faggot, with look-alike characters and spacing) can't be saved. The Deck refuses them with a message, league.js never sends them, and the `deck_history` insert trigger refuses them (`pcmt_bad_name` in setup/supabase-setup.sql). Older names already saved show with the word starred out on the Leaderboard. The rules are `pcmtCensorName` in the Main board and tools/league.js and `pcmt_bad_name` in SQL; keep the three in step.
 
 ## 6. Supabase
