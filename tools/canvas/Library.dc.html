@@ -37,9 +37,11 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 .lib-slot:last-child{margin-right:0}
 .lib-slot:hover,.lib-slot:focus{z-index:200 !important;transform:translateY(-22px) rotate(0deg) scale(1.05);filter:drop-shadow(0 16px 22px rgba(0,0,0,.7))}
 .lib-slot:focus-visible .st-card{box-shadow:0 0 0 3px #a5dcdd}
+.lib-title{position:absolute;left:50%;top:-16px;z-index:4;max-width:200px;padding:5px 10px;border-radius:6px;border:1.5px solid var(--ink,#7cc2ff);background:#0b1011;color:#eaf4f4;font-family:'Cabin Sketch',cursive;font-weight:700;font-size:16px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none;opacity:0;transform:translate(-50%,6px);transition:opacity .18s ease,transform .18s ease;box-shadow:0 0 12px var(--glow,rgba(124,194,255,.35)),0 4px 10px rgba(0,0,0,.6)}
+.lib-slot:hover .lib-title,.lib-slot:focus .lib-title{opacity:1;transform:translate(-50%,0)}
 .lib-count{position:absolute;left:-6px;top:-10px;z-index:3;padding:3px 8px;border-radius:6px;background:#a5dcdd;color:#000;font:600 11px/1 'JetBrains Mono',monospace;box-shadow:0 2px 6px rgba(0,0,0,.5)}
 @media (max-width:520px){.lib-slot{margin-right:-170px}.lib-stack{flex-wrap:nowrap;overflow-x:auto;padding:46px 8px 14px 10px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}.lib-slot{scroll-snap-align:start}}  /* phones: one stack per row that you swipe sideways */
-@media (prefers-reduced-motion: reduce){.lib-slot{transition:none}}
+@media (prefers-reduced-motion: reduce){.lib-slot,.lib-title{transition:none}}
 @keyframes st-sheen{0%{background-position:160% 0}55%,100%{background-position:-60% 0}}
 .st-stamp{display:inline-flex;align-items:center;gap:4px;padding:3px 7px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.14em;transform:rotate(-9deg);white-space:nowrap}
 .st-shine{background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:st-shine 6s ease-in-out infinite}
@@ -129,8 +131,9 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </div>
 <div class="lib-stack">
 <sc-for list="{{g.cards}}" as="it" hint-placeholder-count="4">
-<div class="lib-slot" tabindex="0" title="{{it.name}}" style="--r: {{it.tilt}}; z-index: {{it.z}}">
+<div class="lib-slot" tabindex="0" title="{{it.slotTitle}}" style="--r: {{it.tilt}}; z-index: {{it.z}}">
 <span class="lib-count" title="How many you own">×{{it.count}}</span>
+<sc-if value="{{it.hasTitle}}" hint-placeholder-val="{{ false }}"><span class="lib-title" aria-hidden="true" style="--ink: {{it.titleInk}}; --glow: {{it.titleGlow}}">{{it.title}}</span></sc-if>
 <div class="st-card" role="img" aria-label="{{it.cardLabel}}">
 <span class="st-wm" aria-hidden="true"><img src="{{it.regionLogo}}" alt=""></span>
 <sc-if value="{{it.hasArt}}" hint-placeholder-val="{{ false }}"><span class="st-art" aria-hidden="true"><img class="{{it.artClass}}" src="{{it.art}}" alt=""></span></sc-if>
@@ -380,6 +383,9 @@ class Component extends DCLogic {
         id: k, count: String(mine[k]), rarity: c.rarity, region: c.region, sortName: String(p.name).toLowerCase(),
         variantKey: 'r:' + c.rarity, groupLabel: c.rarity.charAt(0).toUpperCase() + c.rarity.slice(1),
         title: c.variant ? c.title : (c.rarity.charAt(0).toUpperCase() + c.rarity.slice(1)),
+        // Rare and up: the card's name pops up over the card on hover (or tap on a phone)
+        hasTitle: c.rarity !== 'common' && !!c.variant, slotTitle: c.rarity !== 'common' && c.variant ? '' : p.name,
+        titleInk: PCMT_RARITY_INK[c.rarity] || '#7cc2ff', titleGlow: pcmtRgba(PCMT_RARITY_INK[c.rarity] || '#7cc2ff', 0.35),
         name: p.name, team: tm.code, teamName: tm.name, teamLogo: tm.logo || '', hasLogo: !!tm.logo, noLogo: !tm.logo, color: col,
         season: past ? c.season : (PCMT_SEASON_LABEL[c.region] || c.region), maps: st ? String(st.maps) : '—',
         regionLogo: PCMT_REGION_LOGOS[c.region] || PCMT_REGION_LOGOS.NA,
