@@ -16,7 +16,6 @@ VARIANTS = [
     ('teklo-variant', 'teklo', 'rare', 'The Role of Yoru'),
     ('straight-variant', 'straight', 'rare', 'Straight Ace'),
     ('claps-variant', 'claps', 'rare', 'claps Clove'),
-    ('lore-variant', 'lore', 'rare', 'Clove Value'),
     # PCMT champions: trophy art, gold sheen
     ('champ-longclaw', 'longclaw', 'rare', 'longclaw Champion'),
     ('champ-devil', 'devil', 'rare', 'devil Champion'),
@@ -43,7 +42,6 @@ PACKS = [
 PAST = {'S1 NA': 'nas1', 'S2 NA': 'nas2', 'S1 EMEA': 'emeas1'}
 PAST_VARIANTS = [
     # id, MVP VS card id (past season), rarity, title; only in that season's throwback pack
-    ('claps-s2-variant', 'nas2-claps', 'rare', 'Butterfly Effect'),
 ]
 
 here = os.path.dirname(os.path.abspath(__file__))
