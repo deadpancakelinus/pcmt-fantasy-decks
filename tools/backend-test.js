@@ -100,6 +100,14 @@ check(users.has(P1) && !users.has(P2), 'VP payout agrees: the deck saved before 
 sql(as(STAFF, `insert into public.player_price_changes (player, price) values ('${cheapest.id}', null);`));
 check(+at(new Date(Date.now() + 60000).toISOString()) === cheapest.price, 'a reset (null price) puts the player back on the players.js price');
 
+// ---- page password ----
+check(sql(`set role anon; select coalesce(public.fb_page_unlock('anything')::text, 'none');`).trim() === 'none', 'no page password set yet: the page says so');
+check(fails(`set role anon; select public.fb_set_page_password('hunter2hunter2');`) && fails(as(STAFF, `select public.fb_set_page_password('hunter2hunter2');`)), 'nobody can set the page password from the site');
+check(fails(`select public.fb_set_page_password('short');`, /8 characters/), 'the page password needs at least 8 characters');
+sql(`select public.fb_set_page_password('fresh batch 2026');`);
+check(sql(`set role anon; select public.fb_page_unlock('fresh batch 2026');`).trim() === 't' && sql(`set role anon; select public.fb_page_unlock('wrong one');`).trim() === 'f', 'the right page password unlocks, a wrong one does not');
+check(!/fresh batch 2026/.test(sql(`select value from public.freshbatch_settings;`)) && fails(`set role anon; select * from public.freshbatch_settings;`) === false && sql(`set role anon; select count(*) from public.freshbatch_settings;`).trim() === '0', 'only a hash is stored, and the site cannot read it');
+
 sql('drop database fbtest;', 'postgres');
 console.log(bad ? bad + ' problem(s)' : 'All backend checks passed');
 process.exit(bad ? 1 : 0);

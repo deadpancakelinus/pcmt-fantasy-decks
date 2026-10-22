@@ -99,40 +99,44 @@
   .stat span { font: 400 12px/1 'JetBrains Mono', monospace; color: var(--dim); letter-spacing: .08em; text-transform: uppercase; }
   .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   @media (max-width: 520px) { .field input, .field select { min-width: 0; width: 100%; } .field { flex: 1 1 100%; } }
-  /* Freshbatch intro: plays once when the backend opens */
-  .intro { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; background: #f7ecdc; transition: opacity .45s ease; }
-  .intro.out { opacity: 0; pointer-events: none; }
-  .intro video { width: 100%; height: 100%; object-fit: contain; }
-  .intro .ctl { position: absolute; right: 16px; bottom: 16px; display: flex; gap: 8px; }
-  .intro button { font: 500 13px/1 'JetBrains Mono', monospace; color: #2a1a12; background: rgba(42, 26, 18, .08); border: 1px solid rgba(42, 26, 18, .25); border-radius: 999px; padding: 10px 16px; cursor: pointer; }
-  .intro button:hover { background: rgba(42, 26, 18, .16); }
-  .intro button:focus-visible { outline: 2px solid #2a1a12; outline-offset: 2px; }
+  /* Sign-in window: Freshbatch intro, page password, then Discord */
+  .gate { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 16px; background: rgba(0, 0, 0, .72); backdrop-filter: blur(6px); }
+  .gate-win { width: min(560px, 100%); max-height: calc(100vh - 32px); overflow: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 24px 80px rgba(0, 0, 0, .6); }
+  .gate-film { position: relative; aspect-ratio: 16 / 9; background: #f7ecdc; border-radius: 15px 15px 0 0; overflow: hidden; }
+  .gate-film video { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .gate-film button { position: absolute; right: 10px; bottom: 10px; font: 500 12px/1 'JetBrains Mono', monospace; color: #2a1a12; background: rgba(247, 236, 220, .85); border: 1px solid rgba(42, 26, 18, .3); border-radius: 999px; padding: 8px 12px; cursor: pointer; }
+  .gate-film button:focus-visible { outline: 2px solid #2a1a12; outline-offset: 2px; }
+  .gate-body { padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+  .gate-body h2 { margin: 0; font: 700 30px/1.05 'Cabin Sketch', cursive; }
+  .gate-body form { display: flex; flex-wrap: wrap; gap: 10px; }
+  .gate-body input[type=password] { flex: 1 1 220px; min-height: 46px; padding: 0 14px; border-radius: 8px; border: 1px solid #2c3d40; background: #000; font-size: 16px; }
+  .gate-body .btn { flex: 0 0 auto; }
 </style>
 </head>
 <body>
-<div class="intro" id="intro" aria-label="Freshbatch intro">
-  <video id="intro-video" src="media/freshbatch-intro.mp4" playsinline preload="auto"></video>
-  <div class="ctl"><button type="button" id="intro-sound" hidden>Sound on</button><button type="button" id="intro-skip">Skip</button></div>
+<div class="gate" id="gate" role="dialog" aria-modal="true" aria-labelledby="gate-title">
+  <div class="gate-win">
+    <div class="gate-film">
+      <video id="gate-video" src="media/freshbatch-intro.mp4" playsinline preload="auto" aria-label="Freshbatch intro"></video>
+      <button type="button" id="gate-sound" hidden>Sound on</button>
+    </div>
+    <div class="gate-body" id="gate-pw">
+      <h2 id="gate-title">Freshbatch backend</h2>
+      <p class="msg">Staff only. Enter the page password to continue.</p>
+      <form id="pw-form" autocomplete="off">
+        <label class="sr" for="pw">Page password</label>
+        <input type="password" id="pw" placeholder="Page password" autocomplete="current-password" required>
+        <button class="btn" type="submit" id="pw-go">Enter</button>
+      </form>
+      <p class="msg" id="pw-msg" role="status" aria-live="polite"></p>
+    </div>
+    <div class="gate-body" id="gate-login" hidden>
+      <h2>Log in</h2>
+      <p class="msg">Log in with your Discord account. Only accounts on the Freshbatch staff list get in.</p>
+      <div><button class="btn discord" id="login" type="button">Log in with Discord</button></div>
+    </div>
+  </div>
 </div>
-<script>
-(function () {
-  var box = document.getElementById('intro'), v = document.getElementById('intro-video'), snd = document.getElementById('intro-sound'), done = false;
-  function end() {
-    if (done) return; done = true;
-    try { sessionStorage.setItem('fb-intro', '1'); } catch (e) {}
-    box.classList.add('out'); setTimeout(function () { box.remove(); }, 500);
-  }
-  var seen = false; try { seen = sessionStorage.getItem('fb-intro') === '1'; } catch (e) {}
-  if (seen || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) { box.remove(); return; }
-  v.addEventListener('ended', end); v.addEventListener('error', end);
-  document.getElementById('intro-skip').addEventListener('click', end);
-  document.addEventListener('keydown', function k(e) { if (e.key === 'Escape') { end(); document.removeEventListener('keydown', k); } });
-  snd.addEventListener('click', function () { v.muted = false; snd.hidden = true; });
-  setTimeout(end, 12000);  // never get stuck on the intro
-  var p = v.play();
-  if (p && p.catch) p.catch(function () { v.muted = true; snd.hidden = false; v.play().catch(end); });  // browser blocked sound: play muted
-})();
-</script>
 <header>
 <div class="top">
   <a class="brand" href="index.html">fantasy.pcmt.gg</a>
@@ -148,13 +152,7 @@
     <p class="sub">For Freshbatch staff only. Player prices, every card and who owns it, and the 4Ks and 5Ks for each series.</p>
   </div>
 
-  <section class="panel" id="st-loading" role="status"><p class="msg">Loading…</p></section>
-
-  <section class="panel" id="st-out" hidden>
-    <span class="kicker">Freshbatch staff log in</span>
-    <p class="msg">Log in with your Discord account. Only accounts on the Freshbatch staff list get in.</p>
-    <div><button class="btn discord" id="login" type="button">Log in with Discord</button></div>
-  </section>
+  <section class="panel" id="st-loading" role="status"><p class="msg">Locked. Enter the page password to continue.</p></section>
 
   <section class="panel" id="st-nostaff" hidden>
     <span class="kicker">Not on the staff list</span>
@@ -515,19 +513,69 @@
     loadSeries(0);
   }
 
-  // ---------- sign in ----------
-  function show(id) { ['st-loading', 'st-out', 'st-nostaff', 'st-staff'].forEach(function (s) { $(s).hidden = s !== id; }); }
+  // ---------- sign in: page password, then Discord, then the staff list ----------
+  function show(id) { ['st-loading', 'st-nostaff', 'st-staff'].forEach(function (s) { $(s).hidden = s !== id; }); }
   $('login').addEventListener('click', function () { L.signIn('backend.html'); });
   $('logout2').addEventListener('click', function () { L.signOut(); });
   $('copy-sql').addEventListener('click', function () {
     var t = $('staff-sql').textContent, b = this;
     (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { b.textContent = 'Copied'; }, function () { b.textContent = 'Select the text and copy it'; });
   });
-  (window.PCMT_LEAGUE_READY || Promise.resolve()).then(function () {
+
+  var gate = $('gate'), film = $('gate-video'), snd = $('gate-sound'), behind = document.querySelectorAll('header, main');
+  function lockPage(on) { behind.forEach(function (el) { if (on) el.setAttribute('inert', ''); else el.removeAttribute('inert'); }); }
+  function playFilm() {
+    if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) {   // no motion: show the logo frame
+      film.addEventListener('loadedmetadata', function () { film.currentTime = Math.max(0, film.duration - 0.05); }, { once: true });
+      return;
+    }
+    var p = film.play();
+    if (p && p.catch) p.catch(function () { film.muted = true; snd.hidden = false; film.play().catch(function () {}); });  // sound blocked: play muted
+  }
+  snd.addEventListener('click', function () { film.muted = false; snd.hidden = true; if (film.ended) { film.currentTime = 0; film.play(); } });
+  function openGate(step) {
+    gate.hidden = false; lockPage(true);
+    $('gate-pw').hidden = step !== 'pw'; $('gate-login').hidden = step !== 'login';
+    (step === 'pw' ? $('pw') : $('login')).focus();
+  }
+  function closeGate() { gate.hidden = true; lockPage(false); film.pause(); }
+  function unlocked() { try { return sessionStorage.getItem('fb-unlocked') === '1'; } catch (e) { return false; } }
+
+  var ready = window.PCMT_LEAGUE_READY || Promise.resolve();
+  lockPage(true); playFilm();
+  $('pw').focus();
+  $('pw-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var pw = $('pw').value, go = $('pw-go'), msg = $('pw-msg');
+    if (!pw) return;
+    go.disabled = true; msg.className = 'msg'; msg.textContent = 'Checking…';
+    ready.then(function () { return L.api('/rest/v1/rpc/fb_page_unlock', { method: 'POST', body: { p_password: pw } }); }).then(function (ok) {
+      if (ok === true) {
+        try { sessionStorage.setItem('fb-unlocked', '1'); } catch (e2) {}
+        msg.textContent = ''; $('pw').value = '';
+        return afterPassword();
+      }
+      msg.className = 'msg err';
+      msg.textContent = ok === null ? 'No page password has been set yet.' : 'That password isn\'t right.';
+      $('pw').select();
+    }).catch(function (err) {
+      msg.className = 'msg err'; msg.textContent = 'Couldn\'t check the password (' + err.message + '). Has setup/backend-setup.sql been run?';
+    }).then(function () { go.disabled = false; });
+  });
+
+  function afterPassword() {
+    if (!L.myId) return openGate('login');
+    closeGate(); enter();
+  }
+  ready.then(function () {
     BASE = window.PCMT_BASE_PRICES || {};
     PLAYERS.forEach(function (p) { if (BASE[p.id] == null) BASE[p.id] = p.price; });
+    if (unlocked()) afterPassword(); else openGate('pw');
+  });
+
+  function enter() {
     var id = L.myId;
-    if (!id) return show('st-out');
+    show('st-loading'); $('st-loading').querySelector('.msg').textContent = 'Loading…';
     $('who').textContent = (window.PCMT_AUTH && window.PCMT_AUTH.name) || ''; $('who').hidden = false;
     $('staff-sql').textContent = "insert into public.freshbatch_staff (user_id) values ('" + id + "') on conflict do nothing;";
     return L.api('/rest/v1/rpc/is_freshbatch', { method: 'POST', body: {} }).catch(function (e) {
@@ -545,7 +593,7 @@
         drawPrices(); drawCards(); setupMulti();
       });
     }).catch(function (e) { show('st-staff'); $('p-msg').textContent = 'Something went wrong loading the backend: ' + e.message; $('p-msg').className = 'msg err'; });
-  });
+  }
 })();
 </script>
 </body>

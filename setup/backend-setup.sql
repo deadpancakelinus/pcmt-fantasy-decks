@@ -45,3 +45,40 @@ begin
 end $$;
 revoke all on function public.fb_card_counts() from public, anon;
 grant execute on function public.fb_card_counts() to authenticated;
+
+-- ===================== Page password =====================
+-- backend.html asks for a page password before the Discord login. Only a bcrypt hash is stored, and only the
+-- database owner can set it. Set or change it in the Supabase SQL editor with:
+--   select public.fb_set_page_password('<new password>');
+create schema if not exists extensions;
+create extension if not exists pgcrypto with schema extensions;
+create table if not exists public.freshbatch_settings (
+  key text primary key,
+  value text not null,
+  updated_at timestamptz not null default now()
+);
+alter table public.freshbatch_settings enable row level security;   -- no policies: nobody reads it from the site
+
+create or replace function public.fb_set_page_password(p_password text) returns text
+language plpgsql security definer set search_path = public, extensions as $$
+begin
+  if p_password is null or length(p_password) < 8 then raise exception 'Use at least 8 characters.'; end if;
+  insert into public.freshbatch_settings (key, value, updated_at) values ('page_password', extensions.crypt(p_password, extensions.gen_salt('bf', 10)), now())
+    on conflict (key) do update set value = excluded.value, updated_at = now();
+  return 'Page password set.';
+end $$;
+revoke all on function public.fb_set_page_password(text) from public, anon, authenticated;
+
+-- true = right password, false = wrong, null = no password set yet. A wrong guess waits a second.
+create or replace function public.fb_page_unlock(p_password text) returns boolean
+language plpgsql volatile security definer set search_path = public, extensions as $$
+declare h text;
+begin
+  select value into h from public.freshbatch_settings where key = 'page_password';
+  if h is null then return null; end if;
+  if p_password is not null and extensions.crypt(p_password, h) = h then return true; end if;
+  perform pg_sleep(1);
+  return false;
+end $$;
+revoke all on function public.fb_page_unlock(text) from public;
+grant execute on function public.fb_page_unlock(text) to anon, authenticated;

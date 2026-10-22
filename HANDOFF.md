@@ -123,3 +123,11 @@ Tables: `profiles`, `deck_history` (insert-only, server timestamps, 60/hour limi
 - Store pack opening: the pack waits for a tap and rips; the 5 cards come out face down in a stack and each tap reveals the next one, big in the middle (a Rare glows and shakes in its colour first); the last tap spreads all 5 out. Cards are MVP VS cards (same layout and stats, from trumps-cards.js, scaled to fit) with no rainbow sheen (Rares keep their own light). buy_pack shuffles the order, so a rare can be anywhere.
 - Rare and up: a soft light sweep across the card every 5 s, the same as the champion cards on The Deck and a shiny stamp with the rarity, both in the card's team colour.
 - Test: `node tools/cards-test.js "psql -h /tmp/pg -p 5499 -U postgres"` (odds, region, throwback seasons, VP, duplicates, at-once purchases, permissions).
+
+## Freshbatch backend (backend.html)
+- Hand-written page, not in the nav, noindex. Opens with a window that plays media/freshbatch-intro.mp4 and asks for the page password, then the Discord login, then checks the Freshbatch staff list. Tabs: Player prices (editable), Cards (rarity, pack, copies, owners), 4Ks & 5Ks.
+- SQL: setup/backend-setup.sql, after supabase → vp → cards. The staff list (`freshbatch_staff`, `is_freshbatch()`) is in vp-setup.sql so the 4K/5K rules can use it.
+- Add staff: `insert into public.freshbatch_staff (user_id) values ('<account id>') on conflict do nothing;` (the page shows the id to anyone not on the list).
+- Page password: set or change it in the Supabase SQL editor with `select public.fb_set_page_password('<password>');`. Only a bcrypt hash is stored; the site checks it with `fb_page_unlock`. It's a front door only; the data itself is staff-only in the database.
+- Prices: every change is a dated row in `player_price_changes` (null = back to the players.js price). league.js and vp_compute both check a deck against the prices from when it was saved, so a price change never breaks a saved deck.
+- Test: `node tools/backend-test.js "psql -h /tmp/pg -p 5499 -U postgres" players.js`.
