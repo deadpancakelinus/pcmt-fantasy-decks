@@ -37,6 +37,7 @@ def logic(board, js):
     Object.keys(v.slots || {}).forEach(function (k) { if (ok[v.slots[k]]) out.slots[k] = v.slots[k]; });
     out.igl = ok[v.igl] ? v.igl : null;
     out.squadName = typeof (v.squadName != null ? v.squadName : v.name) === 'string' ? String(v.squadName != null ? v.squadName : v.name).slice(0, 32) : '';
+    if (pcmtCensorName(out.squadName).bad) out.squadName = '';   // names that aren't allowed are cleared
     return out;
   }
   var local = null;

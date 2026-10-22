@@ -202,7 +202,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </div>
 <div style="display: flex; flex-direction: column; gap: 6px; flex: 0 1 340px; min-width: 240px">
 <label for="squad-name" style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.06em; text-transform: uppercase">Deck name</label>
-<input id="squad-name" type="text" maxlength="32" value="{{squadName}}" onChange="{{setSquadName}}" placeholder="Name your deck" style="height: 46px; box-sizing: border-box; padding: 0 14px; border-radius: 8px; border: 1px solid #2c3d40; background: #0b1011; color: #eaf4f4; font-size: 16px">
+<input id="squad-name" type="text" maxlength="32" value="{{squadName}}" onChange="{{setSquadName}}" placeholder="Name your deck" aria-describedby="squad-name-note" style="height: 46px; box-sizing: border-box; padding: 0 14px; border-radius: 8px; border: 1px solid #2c3d40; background: #0b1011; color: #eaf4f4; font-size: 16px">
+<sc-if value="{{hasNameError}}" hint-placeholder-val="{{ false }}"><span id="squad-name-note" role="alert" style="font-size: 14px; line-height: 1.4; color: #ff8a80">{{nameError}}</span></sc-if>
 </div>
 </div>
 
@@ -596,7 +597,7 @@ AUTHENTIC
 <span>Version 1.5 BETA</span>
 <a href="https://pcmt.gg" target="_blank" rel="noopener">Stats on PCMT.gg</a>
 </div>
-<p style="max-width: 1280px; margin: 0 auto; padding: 0 24px 22px; font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.6; color: #93a9aa">fantasy.pcmt.gg was created under Riot Games' <a href="https://www.riotgames.com/en/legal" target="_blank" rel="noopener" style="color: #a5dcdd">&quot;Legal Jibber Jabber&quot;</a> policy using assets owned by Riot Games. Riot Games does not endorse or sponsor this project.</p>
+<p style="max-width: 1280px; margin: 0 auto; padding: 0 24px 22px; font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.6; color: #93a9aa"><span style="display: block; margin-bottom: 6px; font-size: 12px; color: #c4d4d4">Managed and designed by <strong style="color: #eaf4f4">Freshbatch</strong></span>fantasy.pcmt.gg was created under Riot Games' <a href="https://www.riotgames.com/en/legal" target="_blank" rel="noopener" style="color: #a5dcdd">&quot;Legal Jibber Jabber&quot;</a> policy using assets owned by Riot Games. Riot Games does not endorse or sponsor this project.</p>
 </footer>
 
 </div>
@@ -902,6 +903,35 @@ function pcmtReadAura() {
 function pcmtReadStoreOpen() {
   try { return window.localStorage.getItem('pcmt-store-open') !== '0'; } catch (e) { return true; }
 }
+// Deck names: words that aren't allowed. Returns { bad, text } where text has each blocked word replaced by *.
+// Look-alike characters count (0=o, 1=i, 3=e, 4=a, 5=s, $=s, @=a ...), and spacing or dots between letters doesn't hide a word.
+// "ass" and "pee" only count as whole words (or a few common compounds), so class, pass, speed, assassin are fine.
+var PCMT_NAME_LEET = { '0': 'o', '1': 'i', '!': 'i', '|': 'i', '3': 'e', '4': 'a', '@': 'a', '5': 's', '$': 's', '7': 't', '8': 'b' };
+var PCMT_NAME_ANYWHERE = /f+u+c+k+|s+h+i+t+(?!ake)|p+o{2,}p+|p+i+s{2,}|f+a+g{2,}(?:o+t+)?|i+s+r+a+e+l+/g;
+var PCMT_NAME_WORDS = [/^a+s{2,}(?:e?s|holes?|hats?|wipes?|clowns?|face)?$/, /^(?:dumb|bad|jack|smart|fat|kick|lame|big|half|hard|wise|dick|stupid)a+s{2,}(?:e?s)?$/, /^p+e{2,}(?:s|d|ing|pee)?$/];
+function pcmtCensorName(name) {
+  name = String(name == null ? '' : name);
+  var letters = '', at = [], spaced = '', hit = {};
+  for (var i = 0; i < name.length; i++) {
+    var c = name.charAt(i).toLowerCase();
+    c = PCMT_NAME_LEET[c] || c;
+    var isL = c >= 'a' && c <= 'z';
+    if (isL) { letters += c; at.push(i); }
+    spaced += isL ? c : ' ';
+  }
+  var m, k;
+  PCMT_NAME_ANYWHERE.lastIndex = 0;
+  while ((m = PCMT_NAME_ANYWHERE.exec(letters))) { for (k = 0; k < m[0].length; k++) hit[at[m.index + k]] = true; }
+  var word = /[a-z]+/g;
+  while ((m = word.exec(spaced))) {
+    var w = m[0];
+    if (PCMT_NAME_WORDS.some(function (re) { return re.test(w); })) for (k = 0; k < w.length; k++) hit[m.index + k] = true;
+  }
+  if (/^(?:a+s{2,}|p+e{2,})$/.test(letters)) at.forEach(function (i) { hit[i] = true; });   // "a s s", "p.e.e"
+  var bad = Object.keys(hit).length > 0, text = '';
+  for (i = 0; i < name.length; i++) text += hit[i] ? '*' : name.charAt(i);
+  return { bad: bad, text: text };
+}
 function pcmtReadMyDeck() {
   var out = { slots: {}, igl: null, squadName: '', saved: false };
   try {
@@ -912,6 +942,7 @@ function pcmtReadMyDeck() {
       Object.keys(v.slots || {}).forEach(function (k) { if (ok[v.slots[k]]) out.slots[k] = v.slots[k]; });
       out.igl = ok[v.igl] ? v.igl : null;
       out.squadName = typeof v.squadName === 'string' ? v.squadName.slice(0, 32) : '';
+      if (pcmtCensorName(out.squadName).bad) out.squadName = '';   // names that aren't allowed are cleared
       out.saved = !!v.saved;
     }
   } catch (e) {}
@@ -1758,7 +1789,16 @@ class Component extends DCLogic {
       squadName: s.squadName || '',
       hasSquadName: !!(s.squadName || '').trim(),
       noSquadName: !(s.squadName || '').trim(),
-      setSquadName: function (e) { self.setState({ squadName: e && e.target ? e.target.value : '' }); },
+      setSquadName: function (e) {
+        var v = e && e.target ? e.target.value : '';
+        if (pcmtCensorName(v).bad) {   // blocked words: keep the old name and say why
+          if (e && e.target) e.target.value = self.state.squadName || '';
+          self.setState({ nameError: 'That deck name isn\'t allowed. Pick another one.' });
+          return;
+        }
+        self.setState({ squadName: v, nameError: '' });
+      },
+      nameError: s.nameError || '', hasNameError: !!s.nameError,
       matchTime: pcmtMatchTime(PCMT_NEXT_MATCH),
       nextMatches: ['NA', 'EMEA'].map(function (region) {
         var now = Date.now();

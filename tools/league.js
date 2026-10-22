@@ -6,6 +6,36 @@
   'use strict';
   var SB_URL = 'https://wwrsavqipkxvdsxcemos.supabase.co';
   var SB_KEY = 'sb_publishable_e8v-uyAo4fnvwJCHUVA5FQ_LXR6yYM7';
+  // Deck names: words that aren't allowed. Returns { bad, text } where text has each blocked word replaced by *.
+  // Look-alike characters count (0=o, 1=i, 3=e, 4=a, 5=s, $=s, @=a ...), and spacing or dots between letters doesn't hide a word.
+  // "ass" and "pee" only count as whole words (or a few common compounds), so class, pass, speed, assassin are fine.
+  var PCMT_NAME_LEET = { '0': 'o', '1': 'i', '!': 'i', '|': 'i', '3': 'e', '4': 'a', '@': 'a', '5': 's', '$': 's', '7': 't', '8': 'b' };
+  var PCMT_NAME_ANYWHERE = /f+u+c+k+|s+h+i+t+(?!ake)|p+o{2,}p+|p+i+s{2,}|f+a+g{2,}(?:o+t+)?|i+s+r+a+e+l+/g;
+  var PCMT_NAME_WORDS = [/^a+s{2,}(?:e?s|holes?|hats?|wipes?|clowns?|face)?$/, /^(?:dumb|bad|jack|smart|fat|kick|lame|big|half|hard|wise|dick|stupid)a+s{2,}(?:e?s)?$/, /^p+e{2,}(?:s|d|ing|pee)?$/];
+  function pcmtCensorName(name) {
+    name = String(name == null ? '' : name);
+    var letters = '', at = [], spaced = '', hit = {};
+    for (var i = 0; i < name.length; i++) {
+      var c = name.charAt(i).toLowerCase();
+      c = PCMT_NAME_LEET[c] || c;
+      var isL = c >= 'a' && c <= 'z';
+      if (isL) { letters += c; at.push(i); }
+      spaced += isL ? c : ' ';
+    }
+    var m, k;
+    PCMT_NAME_ANYWHERE.lastIndex = 0;
+    while ((m = PCMT_NAME_ANYWHERE.exec(letters))) { for (k = 0; k < m[0].length; k++) hit[at[m.index + k]] = true; }
+    var word = /[a-z]+/g;
+    while ((m = word.exec(spaced))) {
+      var w = m[0];
+      if (PCMT_NAME_WORDS.some(function (re) { return re.test(w); })) for (k = 0; k < w.length; k++) hit[m.index + k] = true;
+    }
+    if (/^(?:a+s{2,}|p+e{2,})$/.test(letters)) at.forEach(function (i) { hit[i] = true; });   // "a s s", "p.e.e"
+    var bad = Object.keys(hit).length > 0, text = '';
+    for (i = 0; i < name.length; i++) text += hit[i] ? '*' : name.charAt(i);
+    return { bad: bad, text: text };
+  }
+  window.PCMT_CENSOR_NAME = pcmtCensorName;
   var TOKEN_KEY = 'pcmt-auth';
   var BUDGET = 100, TEAM_LIMIT = 2, TRANSFERS = 2, LOCK_LEAD_H = 12;
   var ROLES = ['duelist', 'controller', 'initiator', 'sentinel'];
@@ -246,6 +276,7 @@
     onDeck: function (s) {
       if (!me || !s.saved) return;
       var d = { slots: s.slots || {}, igl: s.igl || null, name: s.squadName || '' };
+      if (pcmtCensorName(d.name).bad) d.name = '';   // never send a name that isn't allowed (the server refuses it too)
       if (JSON.stringify(d) === lastSubmitted && !submitting) { pendingDeck = null; clearTimeout(pendingTimer); return; }
       pendingDeck = d;
       clearTimeout(pendingTimer);
@@ -383,7 +414,7 @@
         sc.forEach(function (x) { w[x.week.key] = x.pts; });
         var latest = sc.length ? sc[sc.length - 1].deck : subsBy[uid][subsBy[uid].length - 1];
         var iglP = latest && BY_ID[latest.igl];
-        rows.push({ id: uid, manager: names[uid] || 'Manager', squad: (latest && latest.name) || '—', igl: iglP ? iglP.name : '—', weeks: w, me: !!me && uid === me.id });
+        rows.push({ id: uid, manager: names[uid] || 'Manager', squad: (latest && latest.name) ? pcmtCensorName(latest.name).text : '—', igl: iglP ? iglP.name : '—', weeks: w, me: !!me && uid === me.id });
       });
       window.PCMT_STANDINGS = rows;
 
@@ -420,7 +451,7 @@
         window.PCMT_ME_STATS = { teamPoints: teamPts, activeWeeks: active, bestWeek: best, championWin: champ, missedWin: missed, id: me.id };
         window.PCMT_VP = buildVP(res[3], weeks, myScored, curB);
         var last = mySubs[mySubs.length - 1];
-        if (last) { window.PCMT_MY_REMOTE_DECK = { slots: last.slots, igl: last.igl, name: last.name, uid: me.id }; lastSubmitted = JSON.stringify({ slots: last.slots || {}, igl: last.igl || null, name: last.name || '' }); }
+        if (last) { window.PCMT_MY_REMOTE_DECK = { slots: last.slots, igl: last.igl, name: pcmtCensorName(last.name).bad ? '' : last.name, uid: me.id }; lastSubmitted = JSON.stringify({ slots: last.slots || {}, igl: last.igl || null, name: last.name || '' }); }
       }
       if (window.PCMT_LOGIN_ERROR) setTimeout(function () { toast('Discord sign-in didn\'t finish: ' + window.PCMT_LOGIN_ERROR); }, 600);
     }).catch(function (e) { console.warn('league load failed', e); });

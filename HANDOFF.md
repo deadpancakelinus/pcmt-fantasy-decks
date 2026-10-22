@@ -29,7 +29,7 @@ Start here. It covers what exists, how changes are made and shipped, and what's 
 | (hand-written) | admin.html | Hidden admin page (not in the nav): enter each player's 4Ks and 5Ks per series. Only accounts in `pcmt_admins` can save. |
 | (hand-written) | mvp-vs.html | **MVP VS** card game (see section 9). Its board MvpVs.dc.html is only the old "Coming soon" design and is not built. |
 
-Branding: header and titles say **fantasy.pcmt.gg**. Every page footer carries Riot's required fan-project notice ("created under Riot Games' Legal Jibber Jabber policy…", linking riotgames.com/en/legal); keep it on any new page. Colors black + `#a5dcdd`; fonts Cabin Sketch / Space Grotesk / JetBrains Mono.
+Branding: header and titles say **fantasy.pcmt.gg**. The site is managed and designed by Freshbatch; every page footer says so ("Managed and designed by Freshbatch") above Riot's required fan-project notice. Every page footer carries Riot's required fan-project notice ("created under Riot Games' Legal Jibber Jabber policy…", linking riotgames.com/en/legal); keep it on any new page. Colors black + `#a5dcdd`; fonts Cabin Sketch / Space Grotesk / JetBrains Mono.
 
 ## 3. How the site is built
 
@@ -57,6 +57,8 @@ Branding: header and titles say **fantasy.pcmt.gg**. Every page footer carries R
 - 4Ks and 5Ks don't come from PCMT.gg (it doesn't have them). An admin enters them on admin.html into the `multikills` table, keyed by series `start|a|b` as in data.js. league.js attaches them to each result as `multi`, and the VP payout reads the same table.
 - Gameweeks start Monday 09:00 UTC (5:00 AM EDT). Decks lock 12 h before the week's first series. 2 transfers per gameweek, counted against the last scored deck; an invalid deck falls back to the previous one.
 - Unlocks: team decks at 100 team points, Gold by active weeks, champion/missed win, Midlife Crisis at a 200-point week, Ethan aura for two consecutive weekly #1s, Champion's Aura holder from standings. Codes are redeemed server-side with `redeem_code` (PRIDE is seeded).
+
+- Deck names: blocked words (fuck, shit, ass, poop, pee, piss, Israel, faggot, with look-alike characters and spacing) can't be saved. The Deck refuses them with a message, league.js never sends them, and the `deck_history` insert trigger refuses them (`pcmt_bad_name` in setup/supabase-setup.sql). Older names already saved show with the word starred out on the Leaderboard. The rules are `pcmtCensorName` in the Main board and tools/league.js and `pcmt_bad_name` in SQL; keep the three in step.
 
 ## 6. Supabase
 

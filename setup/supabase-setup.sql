@@ -33,12 +33,28 @@ create policy "decks readable by everyone" on public.deck_history for select usi
 drop policy if exists "insert own deck" on public.deck_history;
 create policy "insert own deck" on public.deck_history for insert with check (auth.uid() = user_id);
 
+-- Deck names: words that aren't allowed (same rules as pcmtCensorName in league.js and The Deck).
+-- Look-alike characters count (0=o, 1=i, 3=e, 4=a, 5=s, $=s, @=a ...) and spaces or dots between letters don't hide a word.
+-- "ass" and "pee" only count as whole words or a few compounds, so class, pass, speed and assassin are fine.
+create or replace function public.pcmt_bad_name(p_name text) returns boolean
+language sql immutable as $$
+  with n as (select translate(lower(coalesce(p_name, '')), '01!|34@5$78', 'oiiieaasstb') as t)
+  select regexp_replace(t, '[^a-z]', '', 'g') ~ 'f+u+c+k+|s+h+i+t+(?!ake)|p+o{2,}p+|p+i+s{2,}|f+a+g{2,}|i+s+r+a+e+l+'
+      or regexp_replace(t, '[^a-z]', '', 'g') ~ '^(a+s{2,}|p+e{2,})$'
+      or exists (select 1 from regexp_split_to_table(regexp_replace(t, '[^a-z]+', ' ', 'g'), ' ') w
+                 where w ~ '^a+s{2,}(e?s|holes?|hats?|wipes?|clowns?|face)?$'
+                    or w ~ '^(dumb|bad|jack|smart|fat|kick|lame|big|half|hard|wise|dick|stupid)a+s{2,}(e?s)?$'
+                    or w ~ '^p+e{2,}(s|d|ing|pee)?$')
+  from n
+$$;
+
 create or replace function public.deck_history_stamp() returns trigger
 language plpgsql as $$
 begin
   new.created_at := now();
   if jsonb_typeof(new.slots) <> 'object' then raise exception 'bad deck'; end if;
   new.name := left(coalesce(new.name, ''), 32);
+  if public.pcmt_bad_name(new.name) then raise exception 'That deck name isn''t allowed. Pick another one.'; end if;
   return new;
 end $$;
 drop trigger if exists deck_history_stamp on public.deck_history;
