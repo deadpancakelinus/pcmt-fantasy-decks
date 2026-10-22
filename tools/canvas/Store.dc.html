@@ -126,10 +126,14 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </div>
 </section>
 
-<section aria-labelledby="variants-h" style="display: flex; flex-direction: column; gap: 16px">
-<h2 id="variants-h" style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">Variants in packs</h2>
+<sc-for list="{{groups}}" as="g" hint-placeholder-count="2">
+<section aria-labelledby="{{g.hid}}" style="display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h2 id="{{g.hid}}" style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">{{g.title}}</h2>
+<sc-if value="{{g.hasNote}}" hint-placeholder-val="{{ true }}"><p style="margin: 0; max-width: 640px; font-size: 15px; line-height: 1.5; color: #c4d4d4">{{g.note}}</p></sc-if>
+</div>
 <div style="display: grid; grid-template-columns: repeat(auto-fill, 225px); gap: 22px; justify-content: start">
-<sc-for list="{{items}}" as="it" hint-placeholder-count="1">
+<sc-for list="{{g.items}}" as="it" hint-placeholder-count="1">
 <article style="display: flex; flex-direction: column; gap: 14px; min-width: 0">
 <div class="st-card" role="img" aria-label="{{it.cardLabel}}">
 <span class="st-wm" aria-hidden="true"><img src="{{it.regionLogo}}" alt=""></span>
@@ -162,12 +166,14 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </div>
 <div style="display: flex; flex-direction: column; gap: 4px">
 <h3 style="margin: 0; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 28px; line-height: 1.1">{{it.title}}</h3>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">{{it.foundIn}}</span>
 <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: {{it.ownedInk}}">{{it.owned}}</span>
 </div>
 </article>
 </sc-for>
 </div>
 </section>
+</sc-for>
 
 </div>
 </sc-if>
@@ -211,7 +217,7 @@ function pcmtPastCard(c) {
   return st ? { st: st, team: { code: st.team || 'SUB', name: st.teamName, color: st.color, logo: st.logo ? 'assets/' + st.logo : '' } } : { st: null, team: { code: '', name: c.season, color: '#a5dcdd', logo: '' } };
 }
 // Variant art by variant id (cards table: 'v:<id>').
-var PCMT_VARIANT_ART = { 'teklo-variant': '/_blob/8b1855340f56f72ea07f5447ca167038', 'straight-variant': '/_blob/21ae11daa07a46a08f5d3cf16fd0b2d9', 'claps-variant': '/_blob/bb4db91bdcfb1958431ff90d376d30cb', 'lore-variant': '/_blob/6d7189fcc9c2218d0aa67f7572a102e3', 'claps-s2-variant': '/_blob/6db6f0ae75aa2952c16701e3164f4569' };
+var PCMT_VARIANT_ART = { 'teklo-variant': '/_blob/8b1855340f56f72ea07f5447ca167038', 'straight-variant': '/_blob/21ae11daa07a46a08f5d3cf16fd0b2d9', 'claps-variant': '/_blob/bb4db91bdcfb1958431ff90d376d30cb', 'croc-variant': '/_blob/c78f02d9db76bfab051f4c44769a3d17', 'stingray-s2-variant': '/_blob/0b6460a50d263be2466f15c89cb24f7b', 'psyclone-s2-variant': '/_blob/170ab53f9041539ed463055bb039a0ab', 'lore-variant': '/_blob/6d7189fcc9c2218d0aa67f7572a102e3', 'claps-s2-variant': '/_blob/6db6f0ae75aa2952c16701e3164f4569' };
 // Art that fills the whole card face (screenshots); the rest sit at the side like a cut-out.
 // lore-variant and claps-s2-variant are no longer in packs; their art stays so copies already pulled still look right.
 var PCMT_VARIANT_FULL = { 'straight-variant': true, 'lore-variant': true, 'claps-s2-variant': true };
@@ -234,11 +240,26 @@ var PCMT_STORE_ITEMS = [
     teamLogo: '/_blob/56f2be02d04c1bb89902b3eb4f989ac4', regionLogo: '/_blob/c265e976f8968e60e4a2bdd32542b499',
     roleIcon: '/_blob/3911a104cbddaf481d7a7bf070a2e696', art: '/_blob/21ae11daa07a46a08f5d3cf16fd0b2d9',
     acs: 260, kast: 74, hs: 17, dpr: 0.74, toxic: 1.17 },
-  { id: 'claps-variant', card: 'v:claps-variant', rarity: 'rare', pack: 'NA Card Pack', title: 'claps Clove', blurb: 'claps\'s MVP VS card with special art behind the card face.',
+  { id: 'claps-variant', card: 'v:claps-variant', rarity: 'rare', pack: 'NA Card Pack', series: 'Spotlight Moment', title: 'claps Clove', blurb: 'claps\'s MVP VS card with special art behind the card face.',
     name: 'claps', team: 'C9', teamName: 'Clown9', color: '#4dc3ef', season: 'S3 NA', maps: 28, role: 'controller',
     teamLogo: '/_blob/46ec4a1f510710db9670e64c202b0cee', regionLogo: '/_blob/c265e976f8968e60e4a2bdd32542b499',
     roleIcon: '/_blob/783fdcc50fe04d2622938ee185d4ed32', art: '/_blob/bb4db91bdcfb1958431ff90d376d30cb',
-    acs: 323, kast: 81, hs: 22, dpr: 0.78, toxic: 1.43 }
+    acs: 323, kast: 81, hs: 22, dpr: 0.78, toxic: 1.43 },
+  { id: 'croc-variant', card: 'v:croc-variant', rarity: 'rare', pack: 'NA Card Pack', series: 'Spotlight Moment', title: 'Croc Spotlight', blurb: '',
+    name: 'MrCrocMan', team: 'T1', teamName: 'Team 1', color: '#ff0000', season: 'S3 NA', maps: 26, role: 'duelist',
+    teamLogo: '/_blob/ce2bf22e2df8751703c00f132b854650', regionLogo: '/_blob/c265e976f8968e60e4a2bdd32542b499',
+    roleIcon: '/_blob/3911a104cbddaf481d7a7bf070a2e696', art: '/_blob/c78f02d9db76bfab051f4c44769a3d17',
+    acs: 299, kast: 78, hs: 26, dpr: 0.69, toxic: 1.37 },
+  { id: 'stingray-s2-variant', card: 'v:stingray-s2-variant', rarity: 'rare', pack: 'NA S2 Throwback Pack', series: 'Spotlight Moment', title: 'The Lurking Sova', blurb: '',
+    name: 'stingray', team: 'JDG', teamName: 'Just Dudes Gaming', color: '#b08a5a', season: 'S2 NA', maps: 36, role: 'initiator',
+    teamLogo: '/_blob/f81bf98a86477bd11ca3cd035235d01a', regionLogo: '/_blob/c265e976f8968e60e4a2bdd32542b499',
+    roleIcon: '/_blob/8f7fb7ffa93c48ba09a00fcd223c7f7c', art: '/_blob/0b6460a50d263be2466f15c89cb24f7b',
+    acs: 253, kast: 78, hs: 24, dpr: 0.62, toxic: 1.26 },
+  { id: 'psyclone-s2-variant', card: 'v:psyclone-s2-variant', rarity: 'rare', pack: 'NA S2 Throwback Pack', series: 'Spotlight Moment', title: 'Psyclone Spotlight', blurb: '',
+    name: 'psyclone', team: 'WING', teamName: 'Wingman Warriors', color: '#f2c94c', season: 'S2 NA', maps: 26, role: 'sentinel',
+    teamLogo: '/_blob/b5cc6e0076b3330040102ba01de44ae5', regionLogo: '/_blob/c265e976f8968e60e4a2bdd32542b499',
+    roleIcon: '/_blob/006daf34642009c6f6749139f80a613e', art: '/_blob/170ab53f9041539ed463055bb039a0ab',
+    acs: 215, kast: 70, hs: 27, dpr: 0.63, toxic: 1.04 }
 ];
 // The default card back (the BLUE deck), used for pack cards.
 var PCMT_STORE_BACK = { color: '#a5dcdd', edge: '#1f3a3b', ringClass: '', bgClass: '', frame: 'rgba(165,220,221,0.75)', frameSoft: 'rgba(165,220,221,0.4)', glow: 'rgba(165,220,221,0.3)',
@@ -1088,6 +1109,7 @@ class Component extends DCLogic {
         shine: 'linear-gradient(100deg, ' + it.color + ' 0%, ' + it.color + ' 35%, #ffffff 50%, ' + it.color + ' 65%, ' + it.color + ' 100%)',
         cardLabel: it.title + ' card: ' + it.name + ', ' + it.teamName,
         blurb: it.blurb + ' ' + it.rarity.charAt(0).toUpperCase() + it.rarity.slice(1) + ', found in the ' + it.pack + '.',
+        foundIn: (it.rarity.charAt(0).toUpperCase() + it.rarity.slice(1)) + ' · ' + it.pack,
         owned: n ? 'You own ×' + n : (live && signedIn ? 'Not in your collection yet' : ''), ownedInk: n ? '#8be4b7' : '#93a9aa',
         stats: [
           { label: 'ACS', value: String(it.acs), low: false },
@@ -1098,6 +1120,18 @@ class Component extends DCLogic {
         ]
       });
     });
+    // Series (e.g. Spotlight Moment) get their own heading; they are shown so players know what they can pull, never sold on their own.
+    var groups = [], byName = {};
+    items.forEach(function (it) {
+      var key = it.series || '';
+      if (!byName[key]) {
+        byName[key] = { hid: 'variants-' + (key ? key.toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'all'), title: key ? key : 'Variants in packs',
+          note: key ? 'A series of Rare cards you can pull from packs. It can\'t be bought on its own. Each card shows the pack it comes from.' : '', hasNote: !!key, items: [] };
+        groups.push(byName[key]);
+      }
+      byName[key].items.push(it);
+    });
+    groups.sort(function (a, b) { return (a.hasNote ? 0 : 1) - (b.hasNote ? 0 : 1); });
     return {
       locked: locked,
       unlocked: !locked,  // players see nothing of the page until it's opened
@@ -1106,6 +1140,7 @@ class Component extends DCLogic {
       lockPointer: locked ? 'none' : 'auto',
       bank: live ? String(bankNum) : '[VP]',
       packs: packs,
+      groups: groups,
       cancelBuy: function () { self.setState({ confirming: null }); },
       items: items
     };

@@ -16,6 +16,7 @@ VARIANTS = [
     ('teklo-variant', 'teklo', 'rare', 'The Role of Yoru'),
     ('straight-variant', 'straight', 'rare', 'Straight Ace'),
     ('claps-variant', 'claps', 'rare', 'claps Clove'),
+    ('croc-variant', 'crocman', 'rare', 'Croc Spotlight'),
     # Champion Rares only exist for the season a player won: past seasons get theirs from trumps-cards.js
     # (see PAST below). Nobody has won NA S3 or EMEA S2 yet; when one ends, add that season's winners here
     # as ('champ-<player id>', '<player id>', 'rare', '<name> Champion') and their art in the Store and Library boards.
@@ -33,6 +34,8 @@ PACKS = [
 PAST = {'S1 NA': 'nas1', 'S2 NA': 'nas2', 'S1 EMEA': 'emeas1'}
 PAST_VARIANTS = [
     # id, MVP VS card id (past season), rarity, title; only in that season's throwback pack
+    ('stingray-s2-variant', 'nas2-stingray', 'rare', 'The Lurking Sova'),
+    ('psyclone-s2-variant', 'nas2-psyclone', 'rare', 'Psyclone Spotlight'),
 ]
 
 here = os.path.dirname(os.path.abspath(__file__))
