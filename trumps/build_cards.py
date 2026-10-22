@@ -65,7 +65,10 @@ def role_from_agents(maps):
 
 # PCMT.gg names that differ from the player's name in The Deck: (region, PCMT.gg name lower case) -> Deck name.
 DECK_NAMES = {
+    ('na', 'lazy'): 'lazynottired',
 }
+# Name shown on a card when it should differ from PCMT.gg's (by PCMT.gg player link slug, every season).
+SHOW_NAMES = {'lazy': 'lazynottired'}
 
 
 def deck_info():
@@ -122,7 +125,7 @@ def main():
                 if team and not t:
                     raise SystemExit('Team %s missing from old-teams.json for %s' % (team, season))
                 out[region].append({
-                    'id': region + '-' + slug, 'deck': '', 'name': r['name'], 'team': team,
+                    'id': region + '-' + slug, 'deck': '', 'name': SHOW_NAMES.get(slug, r['name']), 'team': team,
                     'teamName': t['name'] if t else 'Sub', 'color': t['color'] if t else '#93a9aa',
                     'logo': t['logo'] if t else '', 'role': agent_roles.get(key, ''),
                     'champ': bool(t and t['champion']), 'sub': r['team'] == '(sub)', 'maps': int(r['mp']),
@@ -135,7 +138,7 @@ def main():
             out[region].append({
                 'id': region + '-' + slug,
                 'deck': pick[0][3] if pick else '',   # the player's id in The Deck (players.js), if they're in it
-                'name': r['name'],
+                'name': SHOW_NAMES.get(slug, r['name']),
                 'team': team,
                 'teamName': teams[team]['name'] if team in teams else ('Sub' if not team else team),
                 'color': teams[team]['color'] if team in teams else '#93a9aa',
