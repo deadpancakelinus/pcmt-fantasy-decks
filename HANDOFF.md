@@ -8,7 +8,7 @@ Start here. It covers what exists, how changes are made and shipped, and what's 
 |---|---|
 | Live site | https://pcmt-fantasy.pages.dev (custom domain fantasy.pcmt.gg not connected yet) |
 | GitHub repo | `deadpancakelinus/pcmt-fantasy-decks` (Cloudflare Pages redeploys on every push to `main`) |
-| Designs | Six page boards in the design canvas; the current copy is in `tools/canvas/` |
+| Designs | The page boards in the design canvas; the current copy is in `tools/canvas/` |
 | Supabase | https://wwrsavqipkxvdsxcemos.supabase.co, publishable key `sb_publishable_e8v-uyAo4fnvwJCHUVA5FQ_LXR6yYM7` (public, already in league.js) |
 | Results check | Scheduled job "PCMT.gg match check for PCMT Fantasy Decks": reads PCMT.gg every 6 h at :29 ET and updates `data.js` |
 
@@ -18,6 +18,7 @@ Start here. It covers what exists, how changes are made and shipped, and what's 
 
 | Design board | Site file | Shown as |
 |---|---|---|
+| Home.dc.html | home.html | **Home** (first in the menu): a menu tile for every page, the next series and deck lock, the latest Batch Note (`PCMT_HOME_NOTE`, keep in step with the Guide), News (`PCMT_HOME_NEWS`, newest first) and the card packs (live from `card_packs`). Everyone except admins sees an empty page with only the card animation and "Coming Soon...". It's at home.html for now; when it opens to everyone it can become the front page. |
 | Main.dc.html | index.html | **The Deck** (deck building, player store, next match, lock countdown) |
 | Customization.dc.html | customization.html | Card backs, auras, favorites, codes, card packs |
 | Leaderboard.dc.html | leaderboard.html | This gameweek / overall standings |
@@ -44,7 +45,7 @@ Branding: header and titles say **fantasy.pcmt.gg**. The site is a Freshbatch pr
 1. Edit the board(s) in `tools/canvas/*.dc.html`.
 2. Build: `python3 -I tools/build.py tools/canvas assets <out>`
 3. Test: copy the repo `data.js` into `<out>`, serve it (`python3 -m http.server 8766 --directory <out>`, in the background) and run `NODE_PATH=$(npm root -g) node tools/smoke-test.js http://localhost:8766 <out>/shots`. It mocks Supabase and checks every page on desktop and phone. Look at the screenshots for visual changes.
-4. Copy `index.html customization.html leaderboard.html guide.html login.html transactions.html store.html library.html players.js league.js dc-lite.js _headers` from `<out>` into the repo root (**not** `data.js`, **not** `assets/`, **not** `mvp-vs.html` or `admin.html`, which are hand-written). Copy changed boards into `tools/canvas/`.
+4. Copy `home.html index.html customization.html leaderboard.html guide.html login.html transactions.html store.html library.html players.js league.js dc-lite.js _headers` from `<out>` into the repo root (**not** `data.js`, **not** `assets/`, **not** `mvp-vs.html` or `admin.html`, which are hand-written). Copy changed boards into `tools/canvas/`.
 5. Update the design canvas with the changed boards so it stays in step with `tools/canvas/`.
 6. Commit, then `git fetch && git stash && git rebase origin/main && git stash pop && git push` (the scheduled check also pushes to `main`).
 

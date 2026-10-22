@@ -8,6 +8,7 @@ import wire
 
 SRC, ASSETS, OUT = sys.argv[1], sys.argv[2], sys.argv[3]
 PAGES = {  # board -> output file
+    'Home.dc.html': 'home.html',
     'Main.dc.html': 'index.html',
     'Customization.dc.html': 'customization.html',
     'Leaderboard.dc.html': 'leaderboard.html',

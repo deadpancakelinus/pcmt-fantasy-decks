@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>fantasy.pcmt.gg Home</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cabin+Sketch:wght@400;700&amp;family=JetBrains+Mono:wght@400;600&amp;family=Space+Grotesk:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#000}
+html{color-scheme:dark}
+*{scrollbar-color:#2c3d40 #050808}
+::-webkit-scrollbar{width:12px;height:12px}
+::-webkit-scrollbar-track{background:#050808}
+::-webkit-scrollbar-thumb{background:#2c3d40;border-radius:999px;border:3px solid #050808}
+::-webkit-scrollbar-thumb:hover{background:#3d5457}
+::-webkit-scrollbar-corner{background:#050808}
+a{color:#a5dcdd}a:hover{color:#d4f0f0}
+.pcmt-loader{--radius:78px;--speed:2.4s;position:relative;width:calc(var(--radius)*2 + 60px);height:calc(var(--radius)*2 + 60px)}
+.pcmt-loader span{position:absolute;left:50%;top:50%;width:34px;height:48px;margin:-24px 0 0 -17px;border-radius:5px;background:url("/_blob/38f3fa3227d68bf879b50c6927b7ab1f") center/90% no-repeat,#000;border:1.5px solid #a5dcdd;box-shadow:0 2px 6px rgba(0,0,0,.35);animation:pcmt-card-splay var(--speed) cubic-bezier(.65,0,.35,1) infinite;animation-delay:calc(var(--i)*0.035s)}
+@keyframes pcmt-card-splay{0%,8%{transform:rotate(0deg) translateY(0)}40%,58%{transform:rotate(calc(var(--i)*24deg)) translateY(calc(var(--radius)*-1))}92%,100%{transform:rotate(360deg) translateY(0)}}
+@media (prefers-reduced-motion: reduce){.pcmt-loader span{animation-duration:calc(var(--speed)*3)}}
+.pcmt-loading{transition:opacity .4s ease}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !important;box-shadow:0 0 0 3px rgba(165,220,221,.3)}
+a.hm-tile,a.hm-pack{color:inherit}
+.hm-hero{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(280px,1fr);gap:28px;align-items:start}
+@media (max-width:860px){.hm-hero{grid-template-columns:1fr}}
+.hm-panel{background:#0b1011;border:1px solid #1e2b2d;border-radius:12px;padding:20px}
+.hm-menu{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,270px),1fr));gap:12px}
+.hm-tile{display:flex;gap:14px;align-items:flex-start;padding:18px;border-radius:12px;background:#0b1011;border:1px solid #1e2b2d;text-decoration:none;transition:border-color .15s ease,transform .15s ease}
+.hm-tile:hover,.hm-tile:focus-visible{border-color:#a5dcdd;transform:translateY(-2px)}
+.hm-tile:focus-visible,.hm-pack:focus-visible{outline:2px solid #a5dcdd;outline-offset:2px}
+.hm-icon{flex:none;width:40px;height:40px;border-radius:10px;display:grid;place-items:center;background:rgba(165,220,221,.12);color:#a5dcdd}
+.hm-two{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:28px}
+.hm-news{display:grid;grid-template-columns:64px minmax(0,1fr);gap:14px;padding:14px 16px;border-radius:12px;background:#0b1011;border:1px solid #1e2b2d}
+.hm-packs{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,360px),1fr));gap:12px}
+.hm-pack{display:flex;gap:14px;align-items:center;padding:14px 16px;border-radius:12px;background:#0b1011;border:1px solid #1e2b2d;text-decoration:none;transition:border-color .15s ease}
+.hm-pack:hover{border-color:#a5dcdd}
+@media (prefers-reduced-motion: reduce){.hm-tile,.hm-pack{transition:none}}
+</style>
+</helmet>
+<div data-pcmt-root="Home" style="position: relative; min-height: 100vh; background: #000; color: #eaf4f4; font-family: 'Space Grotesk', system-ui, sans-serif">
+<sc-if value="{{loaderOn}}" hint-placeholder-val="{{ false }}">
+<div class="pcmt-loading" role="status" aria-live="polite" style="position: absolute; inset: 0; z-index: 9999; background: #000; opacity: {{loaderOpacity}}; pointer-events: {{loaderPointer}}">
+<div style="position: sticky; top: 0; height: 100vh; max-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px">
+<div class="pcmt-loader" aria-hidden="true"><span style="--i:0"></span><span style="--i:1"></span><span style="--i:2"></span><span style="--i:3"></span><span style="--i:4"></span><span style="--i:5"></span><span style="--i:6"></span><span style="--i:7"></span><span style="--i:8"></span><span style="--i:9"></span><span style="--i:10"></span><span style="--i:11"></span><span style="--i:12"></span><span style="--i:13"></span><span style="--i:14"></span></div>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.12em; color: #a5dcdd">{{loaderLabel}}</span>
+</div>
+</div>
+</sc-if>
+
+
+<header style="border-bottom: 1px solid #1e2b2d; background: #050808">
+<div style="max-width: 1280px; margin: 0 auto; padding: 14px 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 32px">
+<a href="Main.dc.html" style="display: flex; align-items: baseline; gap: 10px; text-decoration: none">
+<span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 32px; color: #a5dcdd; line-height: 1">fantasy.pcmt.gg</span>
+</a>
+<nav aria-label="Main" style="display: flex; flex-wrap: wrap; gap: 4px; flex: 1 1 auto">
+<a href="Home.dc.html" aria-current="page" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #000; background: #a5dcdd; font-weight: 600">Home</a>
+<a href="Leaderboard.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Leaderboard</a>
+<a href="Main.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">The Deck</a>
+<a href="Customization.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Customization</a>
+<a href="Rules.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Guide</a>
+<a href="MvpVs.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">MVP VS</a>
+<a href="Store.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Store</a>
+<a href="Library.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Library</a>
+<a href="Transactions.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Transactions</a>
+</nav>
+<a href="Login.dc.html" style="min-height: 44px; display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; border-radius: 8px; background: #4752C4; color: #fff; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; text-decoration: none"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><path d="M10 17l5-5-5-5"></path><path d="M15 12H3"></path></svg>Log in with Discord</a>
+<span style="order: -1; flex: 1 0 100%; margin-bottom: -4px; text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.08em; white-space: nowrap">NA S3 · EMEA S2</span>
+</div>
+</header>
+
+<main style="position: relative; max-width: 1280px; margin: 0 auto; padding: 36px 24px 64px">
+<sc-if value="{{locked}}" hint-placeholder-val="{{ true }}">
+<div role="status" style="position: relative; min-height: 62vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; padding: 24px; text-align: center; ">
+<div class="pcmt-loader" aria-hidden="true"><span style="--i:0"></span><span style="--i:1"></span><span style="--i:2"></span><span style="--i:3"></span><span style="--i:4"></span><span style="--i:5"></span><span style="--i:6"></span><span style="--i:7"></span><span style="--i:8"></span><span style="--i:9"></span><span style="--i:10"></span><span style="--i:11"></span><span style="--i:12"></span><span style="--i:13"></span><span style="--i:14"></span></div>
+<p style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; letter-spacing: 0.18em; color: #a5dcdd">COMING SOON...</p>
+</div>
+</sc-if>
+<sc-if value="{{unlocked}}" hint-placeholder-val="{{ false }}">
+<div aria-hidden="{{lockHidden}}" style="filter: {{lockBlur}}; pointer-events: {{lockPointer}}; user-select: {{lockPointer}}">
+<div style="display: flex; flex-direction: column; gap: 44px">
+
+<section aria-labelledby="home-h" class="hm-hero">
+<div style="display: flex; flex-direction: column; gap: 14px; min-width: 0">
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.14em; color: #a5dcdd">IT’S TIME FOR FRESH</span>
+<h1 id="home-h" style="margin: 0; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 60px; line-height: 1">Home</h1>
+<p style="margin: 0; max-width: 620px; font-size: 18px; line-height: 1.55; color: #c4d4d4">Build a deck of PCMT players, open card packs and play MVP VS. Everything new on fantasy.pcmt.gg starts here.</p>
+<div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px">
+<a href="Main.dc.html" style="min-height: 44px; display: inline-flex; align-items: center; padding: 0 18px; border-radius: 8px; background: #a5dcdd; color: #000; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; text-decoration: none">Build your deck</a>
+<a href="Store.dc.html" style="min-height: 44px; display: inline-flex; align-items: center; padding: 0 18px; border-radius: 8px; border: 1px solid #2c3d40; color: #eaf4f4; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; text-decoration: none">Open card packs</a>
+</div>
+</div>
+<div class="hm-panel" style="display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px">
+<h2 style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; letter-spacing: 0.1em; color: #a5dcdd">NEXT UP</h2>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">{{lockLabel}}</span>
+</div>
+<sc-if value="{{hasMatches}}" hint-placeholder-val="{{ true }}">
+<ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px">
+<sc-for list="{{matches}}" as="m" hint-placeholder-count="2">
+<li style="display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border-radius: 10px; background: #050808; border: 1px solid #1e2b2d">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 10px">
+<span style="display: inline-flex; align-items: center; gap: 8px; min-width: 0"><img src="{{m.aLogo}}" alt="" style="width: 28px; height: 28px; object-fit: contain"><span style="font-weight: 600; color: {{m.aColor}}">{{m.a}}</span></span>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">vs</span>
+<span style="display: inline-flex; align-items: center; gap: 8px; min-width: 0"><span style="font-weight: 600; color: {{m.bColor}}">{{m.b}}</span><img src="{{m.bLogo}}" alt="" style="width: 28px; height: 28px; object-fit: contain"></span>
+</div>
+<div style="display: flex; justify-content: space-between; gap: 10px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa"><span>{{m.when}}</span><span>{{m.meta}}</span></div>
+</li>
+</sc-for>
+</ul>
+</sc-if>
+<sc-if value="{{noMatches}}" hint-placeholder-val="{{ false }}"><p style="margin: 0; color: #c4d4d4; line-height: 1.5">No series scheduled right now. Check back soon.</p></sc-if>
+<sc-if value="{{hasResult}}" hint-placeholder-val="{{ false }}"><p style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">Last result: <span style="color: #eaf4f4">{{resultLabel}}</span></p></sc-if>
+<a href="Leaderboard.dc.html" style="font-family: 'JetBrains Mono', monospace; font-size: 13px">See the leaderboard</a>
+</div>
+</section>
+
+<section aria-labelledby="menu-h" style="display: flex; flex-direction: column; gap: 16px">
+<h2 id="menu-h" style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">Go to</h2>
+<nav aria-label="All pages" class="hm-menu">
+<sc-for list="{{menu}}" as="it" hint-placeholder-count="8">
+<a href="{{it.href}}" class="hm-tile">
+<span class="hm-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="{{it.icon}}"></path></svg></span>
+<span style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
+<span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 24px; line-height: 1.1; color: #eaf4f4">{{it.title}}</span>
+<span style="font-size: 14px; line-height: 1.45; color: #93a9aa">{{it.text}}</span>
+</span>
+</a>
+</sc-for>
+</nav>
+</section>
+
+<div class="hm-two">
+<section aria-labelledby="notes-h" style="display: flex; flex-direction: column; gap: 16px; min-width: 0">
+<div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px">
+<h2 id="notes-h" style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">Latest Batch Notes</h2>
+<a href="Rules.dc.html#batch-notes" style="font-family: 'JetBrains Mono', monospace; font-size: 13px">All Batch Notes</a>
+</div>
+<article class="hm-panel" style="display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px">
+<h3 style="margin: 0; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 32px; line-height: 1; color: #a5dcdd">{{note.version}}</h3>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">Sent by Freshbatch · {{note.date}}</span>
+</div>
+<p style="margin: 0; color: #c4d4d4; line-height: 1.55; font-size: 16px"><strong style="color: #eaf4f4">It’s time for fresh.</strong> {{note.text}}</p>
+</article>
+</section>
+
+<section aria-labelledby="news-h" style="display: flex; flex-direction: column; gap: 16px; min-width: 0">
+<h2 id="news-h" style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">News</h2>
+<ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px">
+<sc-for list="{{news}}" as="n" hint-placeholder-count="4">
+<li class="hm-news">
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; white-space: nowrap">{{n.date}}</span>
+<span style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
+<a href="{{n.href}}" style="font-weight: 700; font-size: 16px; color: #eaf4f4; text-decoration: none">{{n.title}}</a>
+<span style="font-size: 14px; line-height: 1.5; color: #c4d4d4">{{n.text}}</span>
+</span>
+</li>
+</sc-for>
+</ul>
+</section>
+</div>
+
+<section aria-labelledby="packs-h" style="display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap">
+<h2 id="packs-h" style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">Card packs</h2>
+<a href="Store.dc.html" style="font-family: 'JetBrains Mono', monospace; font-size: 13px">Go to the Store</a>
+</div>
+<div class="hm-packs">
+<sc-for list="{{packs}}" as="pk" hint-placeholder-count="5">
+<a href="Store.dc.html" class="hm-pack">
+<img src="{{pk.art}}" alt="" style="width: 74px; height: 100px; object-fit: contain; flex: none; filter: drop-shadow(0 8px 12px rgba(0,0,0,.6))">
+<span style="display: flex; flex-direction: column; gap: 6px; min-width: 0">
+<span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 22px; line-height: 1.1; color: #eaf4f4">{{pk.name}}</span>
+<span style="font-size: 13px; line-height: 1.45; color: #93a9aa">{{pk.desc}}</span>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: #a5dcdd">{{pk.price}}</span>
+</span>
+</a>
+</sc-for>
+</div>
+</section>
+
+</div>
+</div>
+</sc-if>
+</main>
+
+<footer style="border-top: 1px solid #1e2b2d">
+<div style="max-width: 1280px; margin: 0 auto; padding: 22px 24px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">
+<span>fantasy.pcmt.gg · Plat Chat Members Tourney</span>
+<span>Version 1.5 BETA</span>
+<a href="https://pcmt.gg" target="_blank" rel="noopener">Stats on PCMT.gg</a>
+</div>
+<p style="max-width: 1280px; margin: 0 auto; padding: 0 24px 22px; font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.6; color: #93a9aa"><span style="display: block; margin-bottom: 6px; font-size: 12px; color: #c4d4d4">A <strong style="color: #eaf4f4">Freshbatch</strong> product</span>fantasy.pcmt.gg was created under Riot Games' <a href="https://www.riotgames.com/en/legal" target="_blank" rel="noopener" style="color: #a5dcdd">&quot;Legal Jibber Jabber&quot;</a> policy using assets owned by Riot Games. Riot Games does not endorse or sponsor this project.</p>
+</footer>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1900}}'>
+// ---- Home ----
+// Coming soon for everyone except admins (the live site sets PCMT_IS_ADMIN), like the Store and Library.
+// Live data: PCMT_PACKS (league.js), PCMT_MATCHES / PCMT_RESULTS (data.js). The canvas shows the samples below.
+
+// The newest Batch Note. Keep it in step with the first entry in the Guide's Batch Notes.
+var PCMT_HOME_NOTE = { version: 'Version 1.5 BETA', date: 'October 2026', text: 'New: MVP VS. A card game with every S3 NA and S2 EMEA player. Pick a stat, beat their card, and take the deck. Play the bot or a friend.' };
+
+// News, newest first. Add new items at the top.
+var PCMT_HOME_NEWS = [
+  { date: 'Oct 22', title: 'Snapshot Moments', href: 'Store.dc.html', text: 'A new series of Rare cards: Straight Ace and Detained. Pull them from the NA Card Pack and the NA S2 Throwback Pack.' },
+  { date: 'Oct 21', title: 'Spotlight Moment', href: 'Store.dc.html', text: 'Four Rare cards: claps Clove, Croc Spotlight, The Lurking Sova and Psyclone Spotlight.' },
+  { date: 'Oct 21', title: 'Throwback packs', href: 'Store.dc.html', text: 'NA S1, NA S2 and EMEA S1 packs bring back past seasons, with that season’s teams and stats.' },
+  { date: 'Oct 21', title: 'Past seasons in MVP VS', href: 'MvpVs.dc.html', text: 'Deal NA S1, NA S2 or EMEA S1 cards and play with the stats from that season.' },
+  { date: 'Oct 19', title: 'MVP VS is live', href: 'MvpVs.dc.html', text: 'Pick a stat, beat their card and take the deck. Play the bot or a friend online.' }
+];
+
+// Every page, for the menu. icon = one SVG path (24 x 24, drawn as an outline).
+var PCMT_HOME_MENU = [
+  { title: 'The Deck', href: 'Main.dc.html', text: 'Build your 11 and pick your IGL.', icon: 'M7 4h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM12 8l1.5 3 3 .4-2.2 2.1.6 3-2.9-1.6-2.9 1.6.6-3-2.2-2.1 3-.4z' },
+  { title: 'Leaderboard', href: 'Leaderboard.dc.html', text: 'This gameweek and the season so far.', icon: 'M4 20h16M7 20v-6M12 20V6M17 20v-9' },
+  { title: 'MVP VS', href: 'MvpVs.dc.html', text: 'Top Trumps with every PCMT player.', icon: 'M4 6h7v12H4zM13 6h7v12h-7zM7.5 10v4M16.5 10v4' },
+  { title: 'Store', href: 'Store.dc.html', text: 'Spend VP on card packs.', icon: 'M5 8h14l-1.2 11.2a1 1 0 0 1-1 .8H7.2a1 1 0 0 1-1-.8zM9 8V6a3 3 0 0 1 6 0v2' },
+  { title: 'Library', href: 'Library.dc.html', text: 'Every card you’ve pulled.', icon: 'M5 4h4v16H5zM10 4h4v16h-4zM15.5 5l3.8-1 3 15.5-3.8 1z' },
+  { title: 'Transactions', href: 'Transactions.dc.html', text: 'Your VP: paychecks and spending.', icon: 'M12 3v18M16.5 7.5c0-1.7-2-3-4.5-3s-4.5 1.3-4.5 3 2 2.6 4.5 3 4.5 1.3 4.5 3-2 3-4.5 3-4.5-1.3-4.5-3' },
+  { title: 'Customization', href: 'Customization.dc.html', text: 'Card backs, auras and codes.', icon: 'M4 20l4-1 10-10-3-3L5 16zM13 7l3 3M15 4l1-1 3 3-1 1' },
+  { title: 'Guide', href: 'Rules.dc.html', text: 'How scoring works, plus Batch Notes.', icon: 'M4 5a2 2 0 0 1 2-2h5v17H6a2 2 0 0 0-2 2zM20 5a2 2 0 0 0-2-2h-5v17h5a2 2 0 0 1 2 2z' }
+];
+
+// Canvas samples (the live site uses the real packs and matches).
+var PCMT_HOME_SAMPLE_PACKS = [
+  { id: 'na-pack', name: 'NA Card Pack', region: 'NA', cards: 5, price: 100 },
+  { id: 'emea-pack', name: 'EMEA Card Pack', region: 'EMEA', cards: 5, price: 100 },
+  { id: 'nas1-pack', name: 'NA S1 Throwback Pack', region: 'NA', season: 'S1 NA', cards: 5, price: null },
+  { id: 'nas2-pack', name: 'NA S2 Throwback Pack', region: 'NA', season: 'S2 NA', cards: 5, price: null },
+  { id: 'emeas1-pack', name: 'EMEA S1 Throwback Pack', region: 'EMEA', season: 'S1 EMEA', cards: 5, price: null }
+];
+var PCMT_HOME_SAMPLE_MATCHES = [
+  { region: 'NA', start: '2026-10-24T00:00:00Z', a: 'T1', b: 'NAVI', bo: 5 }
+];
+var PCMT_PACK_ART = { NA: '/_blob/1ebfc850b10de6e909e96751b32a0977', EMEA: '/_blob/87166e6bb2de15f385a04e2962058989' };
+var PCMT_SEASON = { NA: 'NA S3', EMEA: 'EMEA S2' };
+// Teams (same as the Store board), for the next series.
+var PCMT_DECK_TEAMS = [
+  { code: 'T1', name: 'Team 1', color: '#FF0000', logo: '/_blob/ce2bf22e2df8751703c00f132b854650' },
+  { code: 'TL', name: 'Team Dyslexia', color: '#1c9ad8', logo: '/_blob/18b0eb4cbe217fc77dda8f01e3ff4c16' },
+  { code: 'IHOP', name: 'I Hate Odin Party', color: '#3d95dc', logo: '/_blob/209d81a7df0d79fc71d99063600358ef' },
+  { code: 'FSG', name: 'Furry Squirrels Gaming', color: '#e8603c', logo: '/_blob/ad1fa170a11534a10c9a953f0a092175' },
+  { code: 'FNC', name: 'cow paulo FaN Club', color: '#ff8a1f', logo: '/_blob/8a102a19e71060bb2dacb6d6b5263457' },
+  { code: 'SSG', name: 'Squirtle Squad Gaming', color: '#f2b01e', logo: '/_blob/1e20352a30572a577222d14b6a2389ce' },
+  { code: 'RRQ', name: 'Rage Re-Queuers', color: '#f5d90a', logo: '/_blob/2c8df8598d3c163942e4d347ee4d7e8e' },
+  { code: 'C9', name: 'Clown9', color: '#4dc3ef', logo: '/_blob/46ec4a1f510710db9670e64c202b0cee' },
+  { code: 'SRB', name: 'Sunshine and Rainbows', color: '#58c47a', logo: '/_blob/24ce287349ef3d8ae3c603e22142a375' },
+  { code: 'TS', name: 'Team Slugshow', color: '#9b6be8', logo: '/_blob/56f2be02d04c1bb89902b3eb4f989ac4' },
+  { code: 'EPY', name: 'Team Entropy', color: '#e6e6e6', logo: '/_blob/2b237feaf70d67ef58a84efbab9a3e51' },
+  { code: 'DFM', name: 'Dementia Found Me', color: '#5a78ff', logo: '/_blob/a59455af931db22aaf5f61e2da9f3686' },
+  { code: 'BAKA', name: 'Beautiful and Kinda Adorable', color: '#b98ad9', logo: '/_blob/09e5595acee6eb70652c84027ef2e6d6' },
+  { code: 'NAVI', name: 'No Actual Valorant Intelligence', color: '#FF6EB4', logo: '/_blob/f6b846609af48437299bc42d13d5dad0' },
+  { code: '100T', name: "100 Tony's", color: '#45dfe8', logo: '/_blob/2afecaefb84157c171a79e0bae8932b5' },
+  { code: 'SPG', name: 'Spank Ptheory Gaming', color: '#ff7f66', logo: '/_blob/fb1551434b59a200d90d2e9ed6a51e8b' }
+];
+// EMEA Season 2 team decks: same unlock rule as NA. logo: null shows the tricode until a logo is added.
+var PCMT_EMEA_DECK_TEAMS = [
+  { code: 'FaZe', name: 'Fabulous and Zesty', color: '#f28bd8', logo: '/_blob/9da6e0491a922186cad6bc5daf699626' },
+  { code: 'ATLC', name: 'ATLNTIC Esports', color: '#e04848', logo: '/_blob/086abe908c829ddcb51bee4b1db16b83' },
+  { code: 'SEAL', name: 'Stay Seally', color: '#8fd3e8', logo: '/_blob/7f2055fcc7e78ae7d1510fe56608fd83' },
+  { code: 'HOT', name: 'Honestly Outrageous Temperatures', color: '#4f8ef7', logo: '/_blob/e078dfeeea5c9d916197f71d8b7ea80a' },
+  { code: 'NIP', name: 'Name in Progress', color: '#c2478f', logo: '/_blob/f953d56be563808b39dbb961891fae8e' },
+  { code: 'LARP', name: 'Larpiatán', color: '#6f8fe0', logo: '/_blob/f06cf372e21c32dbf3754b8bd506e0b5' },
+  { code: 'XTC', name: 'Xually Terribly Cursed', color: '#f0913a', logo: '/_blob/570eadcaf88a4d369017946bff2b0356' },
+  { code: 'SOG', name: 'The SOG', color: '#b8814a', logo: '/_blob/85e0857300495ee3133b6acf79e286c0' },
+  { code: 'NOOT', name: 'Penguin Patrol', color: '#3fb6a8', logo: '/_blob/195da1efa2549707b6737764479c066c' },
+  { code: 'NATS', name: 'Never Available To Scrim', color: '#ef8f8f', logo: '/_blob/8cbc4258cff847c1db533f124fd9addf' }
+];
+var PCMT_SMALL_LOGOS = { HOT: 1, LARP: 1, NATS: 1 }; // photo logos: shown smaller so they sit inside the ring
+var PCMT_REGION_LOGOS = { NA: '/_blob/c265e976f8968e60e4a2bdd32542b499', EMEA: '/_blob/3c7e7374dceead68d5c58818d0bcfe8a' };
+var PCMT_ALL_DECK_TEAMS = PCMT_DECK_TEAMS.concat(PCMT_EMEA_DECK_TEAMS);
+class Component extends DCLogic {
+  componentDidMount() {
+    var self = this, start = Date.now();
+    if (this._pageDidMount) this._pageDidMount();
+    this._navClick = function (e) {
+      if (e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+      if (!a || a.target === '_blank') return;
+      var root = a.closest('[data-pcmt-root]');
+      if (!root || root.getAttribute('data-pcmt-root') !== 'Home') return;
+      if (!/\.dc\.html(#|$|\?)/.test(a.getAttribute('href'))) return;
+      try { window.sessionStorage.setItem('pcmt-nav', String(Date.now())); } catch (err) {}
+    };
+    document.addEventListener('click', this._navClick, true);
+    function imagesReady() {
+      var imgs = Array.prototype.slice.call(document.images || []);
+      return Promise.all(imgs.map(function (im) {
+        return im.complete ? null : new Promise(function (res) { im.addEventListener('load', res, { once: true }); im.addEventListener('error', res, { once: true }); });
+      }));
+    }
+    var fonts = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+    var cap = new Promise(function (res) { self._loaderCap = setTimeout(res, 5000); });
+    Promise.race([Promise.all([fonts, imagesReady()]), cap]).then(function () {
+      self._loaderMin = setTimeout(function () { self.hideLoader(); }, Math.max(0, 1200 - (Date.now() - start)));
+    });
+  }
+
+  componentWillUnmount() {
+    clearTimeout(this._loaderCap); clearTimeout(this._loaderMin); clearTimeout(this._loaderFade); clearTimeout(this._loaderBuf); clearTimeout(this._loaderNav); clearTimeout(this._navHide);
+    if (this._navClick) document.removeEventListener('click', this._navClick, true);
+    if (this._pageWillUnmount) this._pageWillUnmount();
+  }
+
+  showLoader(label) {
+    clearTimeout(this._loaderFade);
+    this.setState({ loaderPhase: 'on', loaderLabel: label || 'Loading' });
+  }
+
+  hideLoader() {
+    var self = this;
+    if ((this.state && this.state.loaderPhase) === 'gone') return;
+    this.setState({ loaderPhase: 'fade' });
+    clearTimeout(this._loaderFade);
+    this._loaderFade = setTimeout(function () { self.setState({ loaderPhase: 'gone' }); }, 420);
+  }
+
+  bufferFor(label, ms, done) {
+    var self = this;
+    this.showLoader(label);
+    clearTimeout(this._loaderBuf);
+    this._loaderBuf = setTimeout(function () { if (done) done(); self.hideLoader(); }, ms);
+  }
+
+  renderVals() {
+    if (this._arrived === undefined) {
+      this._arrived = false;
+      try {
+        var t = Number(window.sessionStorage.getItem('pcmt-nav') || 0);
+        if (t && Date.now() - t < 4000) { this._arrived = true; window.sessionStorage.removeItem('pcmt-nav'); }
+      } catch (err) {}
+    }
+    var phase = (this.state && this.state.loaderPhase) || (this._arrived ? 'gone' : 'on');
+    return Object.assign(this._pageVals(), {
+      loaderOn: phase !== 'gone',
+      loaderOpacity: phase === 'on' ? 1 : 0,
+      loaderPointer: phase === 'on' ? 'auto' : 'none',
+      loaderLabel: ((this.state && this.state.loaderLabel) || 'Loading').toUpperCase()
+    });
+  }
+
+  _pageVals() {
+    var W = typeof window !== 'undefined' ? window : {};
+    var locked = !W.PCMT_IS_ADMIN;
+    var live = !!W.PCMT_LEAGUE;
+    var teams = {};
+    PCMT_ALL_DECK_TEAMS.forEach(function (t) { teams[t.code] = t; });
+    var when = function (iso) {
+      try {
+        var d = new Date(iso);
+        return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }) + ' · ' + d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', timeZoneName: 'short' });
+      } catch (e) { return iso; }
+    };
+    var now = Date.now();
+    // Next series: the soonest two that haven't started.
+    var all = (live ? (W.PCMT_MATCHES || []) : PCMT_HOME_SAMPLE_MATCHES).slice().sort(function (a, b) { return Date.parse(a.start) - Date.parse(b.start); });
+    var upcoming = live ? all.filter(function (m) { return Date.parse(m.start) > now; }) : all;
+    var matches = upcoming.slice(0, 2).map(function (m) {
+      var ta = teams[m.a] || { name: m.a, color: '#eaf4f4', logo: '' }, tb = teams[m.b] || { name: m.b, color: '#eaf4f4', logo: '' };
+      return { a: m.a, b: m.b, aColor: ta.color, bColor: tb.color, aLogo: ta.logo || PCMT_REGION_LOGOS[m.region] || PCMT_REGION_LOGOS.NA, bLogo: tb.logo || PCMT_REGION_LOGOS[m.region] || PCMT_REGION_LOGOS.NA,
+               when: when(m.start), meta: (m.region || 'NA') + (m.bo ? ' · Bo' + m.bo : '') };
+    });
+    // Deck lock: 12 hours before the gameweek's first series (gameweeks start Monday 09:00 UTC).
+    var d = new Date(now), ws = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 9) - ((d.getUTCDay() + 6) % 7) * 864e5;
+    if (ws > now) ws -= 7 * 864e5;
+    var inWeek = all.filter(function (m) { var t = Date.parse(m.start); return t >= ws && t < ws + 7 * 864e5; });
+    var lockLabel = 'Decks are open';
+    if (inWeek.length) {
+      var lockAt = Date.parse(inWeek[0].start) - 12 * 36e5;
+      lockLabel = now < lockAt ? 'Decks lock ' + when(new Date(lockAt).toISOString()).split(' · ')[0] : 'Decks locked until Monday';
+    }
+    var results = live ? (W.PCMT_RESULTS || []) : [];
+    var last = results.length ? results.slice().sort(function (a, b) { return Date.parse(b.start) - Date.parse(a.start); })[0] : null;
+    var packs = (live ? (W.PCMT_PACKS || []) : PCMT_HOME_SAMPLE_PACKS).slice()
+      .sort(function (a, b) { return (a.season ? 1 : 0) - (b.season ? 1 : 0) || (a.region === 'NA' ? 0 : 1) - (b.region === 'NA' ? 0 : 1) || String(a.name).localeCompare(b.name); })
+      .map(function (p) {
+        return { name: p.name, art: PCMT_PACK_ART[p.region] || PCMT_PACK_ART.NA,
+                 desc: (p.cards || 5) + ' cards from ' + (p.season || PCMT_SEASON[p.region] || p.region) + (p.season ? ', that season’s teams and stats.' : '.'),
+                 price: p.price != null ? p.price + ' VP' : 'Price coming soon' };
+      });
+    return {
+      locked: locked,
+      unlocked: !locked,  // players see nothing of the page until it's opened
+      lockHidden: locked ? 'true' : 'false',
+      lockBlur: locked ? 'blur(8px)' : 'none',
+      lockPointer: locked ? 'none' : 'auto',
+      matches: matches, hasMatches: matches.length > 0, noMatches: !matches.length,
+      lockLabel: lockLabel,
+      hasResult: !!last, resultLabel: last ? last.a + ' vs ' + last.b + ', ' + last.winner + ' won' : '',
+      menu: PCMT_HOME_MENU,
+      note: PCMT_HOME_NOTE,
+      news: PCMT_HOME_NEWS,
+      packs: packs
+    };
+  }
+}
+</script>
+</body>
+</html>
