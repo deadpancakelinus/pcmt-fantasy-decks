@@ -93,7 +93,7 @@ begin
   end if;
   if pk.price is null then raise exception 'This pack doesn''t have a price yet.'; end if;
   select coalesce(sum(amount), 0)::int into bal from public.vp_ledger where user_id = u;
-  if bal < pk.price then raise exception 'Not enough Credits: this pack costs % Credits and you have %.', pk.price, bal; end if;
+  if bal < pk.price then raise exception 'Not enough VP: this pack costs % VP and you have %.', pk.price, bal; end if;
   if pk.price > 0 then
     insert into public.vp_ledger (user_id, kind, amount, detail) values (u, 'pack', -pk.price, jsonb_build_object('pack', pk.name));
   end if;
@@ -187,7 +187,7 @@ insert into public.cards (id, player, variant, rarity, title, region, season) va
 ('c:nik', 'nik', null, 'common', 'nik', 'NA', null),
 ('c:masao', 'masao', null, 'common', 'masao', 'NA', null),
 ('c:longclaw', 'longclaw', null, 'common', 'longclaw', 'NA', null),
-('c:teklo', 'teklo', null, 'common', 'teklo', 'NA', null),
+('c:teklo', 'teklo', null, 'common', 'teklologik', 'NA', null),
 ('c:hascan', 'hascan', null, 'common', 'hascan', 'NA', null),
 ('c:lucas', 'lucas', null, 'common', 'lucas', 'NA', null),
 ('c:night', 'night', null, 'common', 'night', 'NA', null),
@@ -354,7 +354,7 @@ insert into public.cards (id, player, variant, rarity, title, region, season) va
 ('o:nas2-slow', 'nas2-slow', null, 'common', 'slow', 'NA', 'S2 NA'),
 ('o:nas2-cloud', 'nas2-cloud', null, 'common', 'cloud', 'NA', 'S2 NA'),
 ('o:nas2-dunkn', 'nas2-dunkn', null, 'common', 'dunkn', 'NA', 'S2 NA'),
-('o:nas2-teklo', 'nas2-teklo', null, 'common', 'teklo', 'NA', 'S2 NA'),
+('o:nas2-teklo', 'nas2-teklo', null, 'common', 'teklologik', 'NA', 'S2 NA'),
 ('o:nas2-hascan', 'nas2-hascan', null, 'common', 'hascan', 'NA', 'S2 NA'),
 ('o:nas2-jack', 'nas2-jack', null, 'common', 'Jack', 'NA', 'S2 NA'),
 ('o:nas2-linus', 'nas2-linus', null, 'common', 'linus', 'NA', 'S2 NA'),

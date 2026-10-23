@@ -58,7 +58,7 @@ var PCMT_SITE_PLAYERS = [
   {"id": "nik", "name": "nik", "team": "DFM", "role": "duelist", "price": 9.0},
   {"id": "masao", "name": "masao", "team": "DFM", "role": "initiator", "price": 9.5},
   {"id": "longclaw", "name": "longclaw", "team": "DFM", "role": "controller", "price": 8.5},
-  {"id": "teklo", "name": "teklo", "team": "DFM", "role": "duelist", "price": 7.0},
+  {"id": "teklo", "name": "teklologik", "team": "DFM", "role": "duelist", "price": 7.0},
   {"id": "hascan", "name": "hascan", "team": "DFM", "role": "sentinel", "price": 8.5},
   {"id": "lucas", "name": "lucas", "team": "BAKA", "role": "duelist", "price": 13.5},
   {"id": "night", "name": "night", "team": "BAKA", "role": "controller", "price": 9.5},

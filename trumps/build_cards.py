@@ -66,9 +66,10 @@ def role_from_agents(maps):
 # PCMT.gg names that differ from the player's name in The Deck: (region, PCMT.gg name lower case) -> Deck name.
 DECK_NAMES = {
     ('na', 'lazy'): 'lazynottired',
+    ('na', 'teklo'): 'teklologik',
 }
 # Name shown on a card when it should differ from PCMT.gg's (by PCMT.gg player link slug, every season).
-SHOW_NAMES = {'lazy': 'lazynottired'}
+SHOW_NAMES = {'lazy': 'lazynottired', 'teklo': 'teklologik'}
 
 
 def deck_info():
