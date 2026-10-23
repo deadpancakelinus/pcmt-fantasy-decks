@@ -36,16 +36,15 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 .lib-slot{position:relative;flex:none;width:225px;margin-right:-163px;transform:rotate(var(--r,0deg));transform-origin:50% 100%;transition:transform .22s ease,filter .22s ease;outline:none;cursor:pointer;filter:drop-shadow(-6px 0 10px rgba(0,0,0,.55))}
 .lib-mvp{position:relative;background:#172124;border:1px solid #2a3a3e;border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:14px;transition:border-color .15s ease,box-shadow .15s ease}
 .lib-mvp.is-over{border-color:#7cc2ff;box-shadow:0 0 0 3px rgba(124,194,255,.25),0 0 30px rgba(124,194,255,.18)}
-.lib-mvp-row{display:flex;flex-wrap:wrap;gap:12px;min-height:96px;padding:12px;border:1.5px dashed #3a4f53;border-radius:10px;align-items:center}
-.lib-mvp.is-over .lib-mvp-row{border-color:#7cc2ff}
-.lib-mvp-empty{margin:auto;font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.06em;color:#93a9aa}
-.lib-mvp-card{position:relative;display:flex;align-items:center;gap:10px;width:230px;max-width:100%;padding:8px 36px 8px 8px;border-radius:10px;border:1px solid var(--ink);background:#0d1416;box-shadow:0 0 14px color-mix(in srgb,var(--ink) 30%,transparent)}
-.lib-mvp-art{flex:none;width:56px;height:70px;border-radius:6px;overflow:hidden;background:#172124;display:grid;place-items:center}
-.lib-mvp-art img{width:100%;height:100%;object-fit:cover}.lib-mvp-art img.st-art-center{object-fit:contain;width:80%}
-.lib-mvp-text{display:flex;flex-direction:column;gap:3px;min-width:0}
-.lib-mvp-title{font-family:'Cabin Sketch',cursive;font-weight:700;font-size:20px;line-height:1.1;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.lib-mvp-who{font-family:'JetBrains Mono',monospace;font-size:11px;color:#93a9aa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lib-mvp-x{position:absolute;top:6px;right:6px;width:28px;height:28px;border-radius:50%;border:1px solid #3a4f53;background:#172124;color:#eaf4f4;font-size:16px;line-height:1;cursor:pointer;display:grid;place-items:center;padding:0}
+.lib-mvp-row{display:flex;flex-wrap:wrap;gap:18px 16px;min-height:200px;padding:16px;border:1.5px dashed #3a4f53;border-radius:10px;align-items:flex-start}
+.lib-mvp.is-over .lib-mvp-row{display:flex;flex-wrap:wrap;gap:18px 16px;min-height:200px;padding:16px;border:1.5px dashed #3a4f53;border-radius:10px;align-items:flex-start}
+.lib-mvp-empty{margin:auto;align-self:center;font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.06em;color:#93a9aa}
+.lib-mvp-card{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px}
+.lib-mvp-face{zoom:.72}
+.lib-mvp-face .st-card{box-shadow:0 0 0 2px var(--ink),0 0 22px color-mix(in srgb,var(--ink) 40%,transparent)}
+.lib-mvp-name{max-width:170px;font-family:'Cabin Sketch',cursive;font-weight:700;font-size:18px;line-height:1.1;color:var(--ink);text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lib-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.lib-mvp-x{position:absolute;top:-10px;right:-10px;z-index:3;width:30px;height:30px;border-radius:50%;border:1px solid #3a4f53;background:#172124;color:#eaf4f4;font-size:16px;line-height:1;cursor:pointer;display:grid;place-items:center;padding:0;box-shadow:0 4px 10px rgba(0,0,0,.4)}
 .lib-mvp-x:hover{border-color:#ff8a80;color:#ff8a80}.lib-mvp-x:focus-visible{outline:2px solid #a5dcdd;outline-offset:2px}
 .lib-slot[data-rare="1"]{cursor:grab;-webkit-touch-callout:none}
 .lib-slot img{-webkit-user-drag:none;user-select:none}
@@ -143,15 +142,47 @@ body.lib-dragging,body.lib-dragging *{cursor:grabbing !important;user-select:non
 </div>
 <div class="lib-mvp-row">
 <sc-for list="{{picked}}" as="pc" hint-placeholder-count="2">
-<div class="lib-mvp-card" style="--ink: {{pc.ink}}" title="{{pc.title}}">
-<span class="lib-mvp-art" aria-hidden="true"><img class="{{pc.artClass}}" src="{{pc.art}}" alt=""></span>
-<span class="lib-mvp-text"><span class="lib-mvp-title">{{pc.title}}</span><span class="lib-mvp-who">{{pc.who}}</span></span>
+<div class="lib-mvp-card" style="--ink: {{pc.titleInk}}">
+<div class="lib-mvp-face">
+<div class="st-card" role="img" aria-label="{{pc.cardLabel}}">
+<span class="st-wm" aria-hidden="true"><img src="{{pc.regionLogo}}" alt=""></span>
+<sc-if value="{{pc.hasArt}}" hint-placeholder-val="{{ false }}"><span class="st-art" aria-hidden="true"><img class="{{pc.artClass}}" src="{{pc.art}}" alt=""></span></sc-if>
+<sc-if value="{{pc.shiny}}" hint-placeholder-val="{{ false }}"><span class="st-sheen" aria-hidden="true" style="background-image: {{pc.sheen}}"></span></sc-if>
+<span style="display: block; height: 5px; background: {{pc.color}}; flex: none; position: relative; z-index: 1"></span>
+<div class="st-body">
+<div style="display: flex; justify-content: space-between; align-items: center; height: 30px; flex: none">
+<sc-if value="{{pc.hasLogo}}" hint-placeholder-val="{{ true }}"><img src="{{pc.teamLogo}}" alt="{{pc.teamName}}" title="{{pc.teamName}}" style="height: 30px; width: auto; max-width: 70px; object-fit: contain; display: block"></sc-if>
+<sc-if value="{{pc.noLogo}}" hint-placeholder-val="{{ false }}"><span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 20px; line-height: 1; color: {{pc.color}}">{{pc.team}}</span></sc-if>
+<span title="{{pc.maps}} maps played in {{pc.season}}" style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 30px; line-height: 1; color: {{pc.color}}; font-variant-numeric: tabular-nums; display: inline-flex; align-items: baseline; gap: 4px">{{pc.maps}}<small style="font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 9px; letter-spacing: 0.1em; opacity: 0.8">MAPS</small></span>
+</div>
+<div style="display: flex; align-items: center; gap: 6px; height: 38px; flex: none; font-family: 'Cabin Sketch', cursive; font-weight: 700; line-height: 1.1; white-space: nowrap; overflow: hidden; font-size: {{pc.nameSize}}px"><span style="overflow: hidden; min-width: 0">{{pc.name}}</span><sc-if value="{{pc.champ}}" hint-placeholder-val="{{ false }}"><img src="{{trophy}}" alt="PCMT champion" title="PCMT champion" style="width: 19px; height: 19px; object-fit: contain; flex: none; filter: drop-shadow(0 0 4px rgba(245,215,110,.6))"></sc-if></div>
+<div style="font-size: 10px; line-height: 1.2; font-weight: 500; color: {{pc.color}}; opacity: 0.85; flex: none; overflow: hidden; white-space: nowrap; text-overflow: ellipsis">{{pc.teamName}} · {{pc.season}}</div>
+<div style="display: flex; flex-direction: column; gap: 5px; flex: 1; justify-content: center">
+<sc-for list="{{pc.stats}}" as="st" hint-placeholder-count="5">
+<div class="st-stat"><span style="font-size: 14px">{{st.label}}<sc-if value="{{st.low}}" hint-placeholder-val="{{ false }}"><i style="font-style: normal; color: #93a9aa; margin-left: 6px; font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase">lower wins</i></sc-if></span><span style="font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums">{{st.value}}</span></div>
+</sc-for>
+</div>
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; height: 26px; flex: none">
+<sc-if value="{{pc.hasRole}}" hint-placeholder-val="{{ true }}"><img src="{{pc.roleIcon}}" alt="{{pc.roleLabel}}" title="{{pc.roleLabel}}" style="width: 24px; height: 24px; display: block"></sc-if>
+<sc-if value="{{pc.noRole}}" hint-placeholder-val="{{ false }}"><span></span></sc-if>
+<sc-if value="{{pc.shiny}}" hint-placeholder-val="{{ false }}">
+<span class="st-stamp" title="{{pc.rarityLabel}} card" style="border: 1.5px solid {{pc.color}}; box-shadow: inset 0 0 0 2px #172124, inset 0 0 0 3px {{pc.color}}, 0 0 12px {{pc.glow}}; color: {{pc.color}}">
+<svg aria-hidden="true" width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 20.9l1.6-7L2 9.2l7.1-.6z"></path></svg>
+<span class="st-shine" style="background-image: {{pc.shine}}">{{pc.rarityTag}}</span>
+</span>
+</sc-if>
+</div>
+</div>
+<span style="display: block; height: 5px; background: {{pc.color}}; flex: none; position: relative; z-index: 1"></span>
+</div>
+</div>
+<span class="lib-mvp-name">{{pc.title}}</span>
 <button type="button" class="lib-mvp-x" onClick="{{pc.remove}}" disabled="{{pc.busy}}" aria-label="Take {{pc.title}} out of MVP VS">×</button>
 </div>
 </sc-for>
 <sc-if value="{{noPicked}}" hint-placeholder-val="{{ false }}"><span class="lib-mvp-empty" aria-hidden="true">Drop Rare cards here</span></sc-if>
 </div>
-<p role="status" aria-live="polite" style="margin: 0; font-size: 14px; color: {{rareMsgInk}}">{{rareMsg}}</p>
+<p role="status" aria-live="polite" class="{{rareMsgClass}}" style="margin: 0; font-size: 14px; color: #ff8a80">{{rareMsg}}</p>
 </section>
 </sc-if>
 
@@ -531,8 +562,7 @@ class Component extends DCLogic {
     var rares = all.filter(function (c) { return c.rarity !== 'common'; });
     this._rareTitles = {}; rares.forEach(function (c) { self._rareTitles[c.id] = c.title; });
     var picked = rares.filter(function (c) { return inDeck[c.id]; }).map(function (c) {
-      return { id: c.id, title: c.title, who: c.name + ' · ' + c.season, ink: c.titleInk, art: c.art, artClass: c.artClass, busy: s.rareBusy === c.id,
-               remove: function () { self.toggleRare(c.id, false, c.title); } };
+      return Object.assign({}, c, { busy: s.rareBusy === c.id, remove: function () { self.toggleRare(c.id, false, c.title); } });
     });
     all.forEach(function (c) { c.dragRare = c.rarity !== 'common' && signedIn ? '1' : '0'; c.dragHint = c.rarity !== 'common' && signedIn ? 'mvp-h' : ''; });
     var show = s.show || 'ALL';
@@ -571,7 +601,7 @@ class Component extends DCLogic {
       groups: groups,
       empty: !cards.length,
       hasRares: signedIn && rares.length > 0, picked: picked, noPicked: !picked.length,
-      rareMsg: s.rareMsg || '', rareMsgInk: s.rareOk ? '#8be4b7' : '#ff8a80',
+      rareMsg: s.rareMsg || '', rareMsgClass: s.rareOk ? 'lib-sr' : '',   // only errors show; the rest is for screen readers
       emptyText: !signedIn ? 'Log in with Discord to see your cards.' : all.length ? 'No cards here yet.' : 'No cards yet. Open card packs in the Store and every card you pull shows up here.'
     };
   }
