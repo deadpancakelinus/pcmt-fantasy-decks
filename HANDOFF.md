@@ -59,7 +59,7 @@ Branding: header and titles say **fantasy.pcmt.gg**. The site is a Freshbatch pr
 - Gameweeks start Monday 09:00 UTC (5:00 AM EDT). Decks lock 12 h before the week's first series. 2 transfers per gameweek, counted against the last scored deck; an invalid deck falls back to the previous one.
 - Unlocks: team decks at 100 team points, Gold by active weeks, champion/missed win, Midlife Crisis at a 200-point week, Ethan aura for two consecutive weekly #1s, Champion's Aura holder from standings. Codes are redeemed server-side with `redeem_code` (PRIDE is seeded).
 
-- Batch Notes (the Guide's update notes, formerly Patch Notes): each entry is sent by Freshbatch ("Sent by Freshbatch · <month>") with no "It’s time for fresh." opener (removed Oct 23 2026).
+- Batch Notes (the Guide's update notes, formerly Patch Notes): each entry is signed "Freshbatch · <month>", with no "It’s time for fresh" anywhere (removed Oct 23 2026).
 - Deck names: blocked words (fuck, shit, ass, poop, pee, piss, Israel, faggot, with look-alike characters and spacing) can't be saved. The Deck refuses them with a message, league.js never sends them, and the `deck_history` insert trigger refuses them (`pcmt_bad_name` in setup/supabase-setup.sql). Older names already saved show with the word starred out on the Leaderboard. The rules are `pcmtCensorName` in the Main board and tools/league.js and `pcmt_bad_name` in SQL; keep the three in step.
 
 ## 6. Supabase
