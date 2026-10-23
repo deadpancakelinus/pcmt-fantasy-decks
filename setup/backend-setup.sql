@@ -84,11 +84,11 @@ revoke all on function public.fb_page_unlock(text) from public;
 grant execute on function public.fb_page_unlock(text) to anon, authenticated;
 
 -- ===================== Comments and complaints =====================
--- Written on the Home page (at least 50 words), read by staff in the backend's Complaints log.
+-- Written on the Home page (up to 50 words), read by staff in the backend's Complaints log.
 -- Sent only through submit_complaint(); nobody can insert, edit or delete rows directly.
 create table if not exists public.complaints (
   id bigserial primary key,
-  body text not null check (char_length(body) between 1 and 6000),
+  body text not null check (char_length(body) between 1 and 1000),
   words integer not null,
   user_id uuid references auth.users (id) on delete set null,   -- null = written while logged out
   created_at timestamptz not null default now()
@@ -104,8 +104,9 @@ language plpgsql volatile security definer set search_path = public as $$
 declare b text := btrim(coalesce(p_body, '')); n int; uid uuid := auth.uid(); new_id bigint;
 begin
   n := case when b = '' then 0 else coalesce(array_length(regexp_split_to_array(b, '\s+'), 1), 0) end;
-  if n < 50 then raise exception 'Write at least 50 words (you have %).', n; end if;
-  if char_length(b) > 6000 then raise exception 'That''s too long. Keep it under 6,000 characters.'; end if;
+  if n = 0 then raise exception 'Write something first.'; end if;
+  if n > 50 then raise exception 'Keep it to 50 words (you have %).', n; end if;
+  if char_length(b) > 1000 then raise exception 'That''s too long. Keep it under 1,000 characters.'; end if;
   -- Limits against spam: 5 an hour for each logged-in player, 20 an hour from everyone logged out.
   if uid is not null then
     if (select count(*) from public.complaints where user_id = uid and created_at > now() - interval '1 hour') >= 5 then

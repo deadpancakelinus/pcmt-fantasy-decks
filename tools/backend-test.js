@@ -111,17 +111,17 @@ check(!/fresh batch 2026/.test(sql(`select value from public.freshbatch_settings
 
 // ---- comments and complaints ----
 const words = n => Array.from({ length: n }, (_, i) => 'word' + i).join(' ');
-check(fails(`set role anon; select public.submit_complaint('${words(49)}');`, /at least 50 words \(you have 49\)/), 'a comment under 50 words is refused, with the count');
+check(fails(`set role anon; select public.submit_complaint('${words(51)}');`, /50 words \(you have 51\)/) && fails(`set role anon; select public.submit_complaint('   ');`, /Write something/), 'over 50 words (or nothing) is refused, with the count');
 sql(`set role anon; select public.submit_complaint('  ${words(50)}  ');`);
-sql(as(P1, `select public.submit_complaint('${words(60)}');`));
-check(sql(`select count(*) || '|' || count(user_id) || '|' || min(words) from public.complaints;`).trim() === '2|1|50', 'anyone can send 50+ words (logged out or in); the server counts words and records who');
+sql(as(P1, `select public.submit_complaint('${words(12)}');`));
+check(sql(`select count(*) || '|' || count(user_id) || '|' || min(words) from public.complaints;`).trim() === '2|1|12', 'anyone can send up to 50 words (logged out or in); the server counts words and records who');
 check(fails(`set role anon; insert into public.complaints (body, words) values ('x', 99);`) && sql(as(P1, `update public.complaints set body = 'x'; delete from public.complaints;`)) !== null &&
       sql(`select count(*) from public.complaints where body = 'x';`).trim() === '0' && sql(`select count(*) from public.complaints;`).trim() === '2', 'nobody can add, edit or delete complaints directly');
 check(sql(as(P1, 'select count(*) from public.complaints;')).trim() === '0' && sql(`set role anon; select count(*) from public.complaints;`).trim() === '0', 'players cannot read the complaints log');
 check(sql(as(STAFF, 'select count(*) from public.complaints;')).trim() === '2', 'staff can read the complaints log');
 for (let i = 0; i < 4; i++) sql(as(P1, `select public.submit_complaint('${words(50)}');`));
 check(fails(as(P1, `select public.submit_complaint('${words(50)}');`), /a lot this hour/), 'a player is limited to 5 an hour');
-check(fails(`set role anon; select public.submit_complaint('${'x '.repeat(3100)}');`, /too long/), 'very long comments are refused');
+check(fails(`set role anon; select public.submit_complaint('${'x'.repeat(400) + ' ' + 'y'.repeat(700)}');`, /too long/), 'very long words are refused too (1,000 characters max)');
 
 sql('drop database fbtest;', 'postgres');
 console.log(bad ? bad + ' problem(s)' : 'All backend checks passed');

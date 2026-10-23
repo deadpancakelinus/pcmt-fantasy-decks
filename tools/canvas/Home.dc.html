@@ -148,8 +148,8 @@ a.hm-tile{color:inherit}
 
 <section aria-labelledby="cc-h" class="hm-panel hm-cc" style="display: flex; flex-direction: column; gap: 14px">
 <h2 id="cc-h" style="margin: 0; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 32px; line-height: 1.1; color: #eaf4f4">Comments or complaints always welcome :)</h2>
-<label for="cc-text" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap">Your comment or complaint, at least 50 words</label>
-<textarea id="cc-text" value="{{ccText}}" onChange="{{ccInput}}" aria-describedby="cc-count" maxlength="6000"></textarea>
+<label for="cc-text" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap">Your comment or complaint, up to 50 words</label>
+<textarea id="cc-text" value="{{ccText}}" onChange="{{ccInput}}" aria-describedby="cc-count" maxlength="1000"></textarea>
 <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px">
 <span id="cc-count" style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: {{ccCountColor}}">{{ccCount}}</span>
 <button type="button" onClick="{{ccSend}}" disabled="{{ccDisabled}}">{{ccLabel}}</button>
@@ -303,11 +303,12 @@ class Component extends DCLogic {
     });
   }
 
-  // Comments and complaints: at least 50 words, sent to the backend's Complaints log.
+  // Comments and complaints: up to 50 words, sent to the backend's Complaints log.
   ccWords(t) { var m = String(t || '').trim().match(/\S+/g); return m ? m.length : 0; }
   ccSend() {
     var self = this, st = this.state || {}, text = String(st.ccText || '').trim();
-    if (st.ccBusy || this.ccWords(text) < 50) return;
+    var n = this.ccWords(text);
+    if (st.ccBusy || n < 1 || n > 50) return;
     var L = typeof window !== 'undefined' && window.PCMT_LEAGUE;
     this.setState({ ccBusy: true, ccMsg: '', ccOk: false });
     var send = L && L.complain ? L.complain(text) : new Promise(function (res) { setTimeout(res, 600); });   // the canvas just pretends
@@ -357,16 +358,16 @@ class Component extends DCLogic {
       matches: matches, hasMatches: matches.length > 0, noMatches: !matches.length,
       lockLabel: lockLabel,
       nextUrl: upcoming[0] && upcoming[0].url ? upcoming[0].url : 'https://pcmt.gg/matches',   // the next series' own page on PCMT.gg
-      nextLabel: upcoming[0] && upcoming[0].url ? 'This match on pcmt.gg' : 'Matches on pcmt.gg',
+      nextLabel: 'pcmt.gg',
       hasResult: !!last, resultLabel: last ? last.a + ' vs ' + last.b + ', ' + last.winner + ' won' : '',
       menu: PCMT_HOME_MENU,
       note: PCMT_HOME_NOTE,
       ccText: cc.ccText || '',
       ccInput: function (e) { self.setState({ ccText: e && e.target ? e.target.value : '', ccMsg: '' }); },
       ccSend: function () { self.ccSend(); },
-      ccCount: ccN + (ccN === 1 ? ' word' : ' words') + (ccN < 50 ? ' (at least 50)' : ''),
-      ccCountColor: ccN >= 50 ? '#8be4b7' : '#93a9aa',
-      ccDisabled: ccN < 50 || !!cc.ccBusy,
+      ccCount: ccN + ' / 50 words' + (ccN > 50 ? ' (too many)' : ''),
+      ccCountColor: ccN > 50 ? '#ff8a80' : '#93a9aa',
+      ccDisabled: ccN < 1 || ccN > 50 || !!cc.ccBusy,
       ccLabel: cc.ccBusy ? 'Sending…' : 'Send',
       ccMsg: cc.ccMsg || '',
       ccMsgColor: cc.ccOk ? '#8be4b7' : '#ff8a80'
