@@ -34,9 +34,9 @@
   .btn.ghost { background: transparent; color: var(--ink); border-color: #2c3d40; }
   select { width: 100%; min-height: 46px; padding: 0 12px; border-radius: 8px; border: 1px solid #2c3d40; background: #000; }
   code { font-family: 'JetBrains Mono', monospace; font-size: 13px; background: #000; border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; display: block; overflow-x: auto; white-space: pre; color: var(--soft); }
-  .teams { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 560px), 1fr)); gap: 16px; }
+  .teams { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 16px; }
   .mk-scroll { overflow-x: auto; }
-  table.mk { min-width: 560px; }
+  table.mk { min-width: 320px; }
   table.mk input[type=number] { width: 52px; }
   table { width: 100%; border-collapse: collapse; }
   th { text-align: left; font: 400 12px/1 'JetBrains Mono', monospace; color: var(--dim); letter-spacing: .06em; text-transform: uppercase; padding: 0 6px 10px; }
@@ -78,7 +78,7 @@
 <main>
   <div>
     <h1>Admin</h1>
-    <p class="sub">Enter each player's 4Ks, 5Ks and clutches for a series, and set card pack prices below. 4K +1, 5K (ace) +3 (an ace counts as a 5K only). Clutches: 1v2 +1, 1v3 +2, 1v4 +4, 1v5 +6. The new points show on the site the next time a page loads, and Credits pay out with them.</p>
+    <p class="sub">Enter each player's 4Ks and 5Ks for a series, and set card pack prices below. 4K +1, 5K (ace) +3 (an ace counts as a 5K only). The new points show on the site the next time a page loads, and Credits pay out with them.</p>
   </div>
 
   <section class="panel" id="st-loading" role="status"><p class="msg">Loading…</p></section>
@@ -90,7 +90,7 @@
 
   <section class="panel" id="st-noadmin" hidden>
     <span class="kicker">Not an admin</span>
-    <p class="msg">This account can't enter 4Ks, 5Ks and clutches yet. To make it an admin, run this once in Supabase → SQL Editor, then reload this page:</p>
+    <p class="msg">This account can't enter 4Ks and 5Ks yet. To make it an admin, run this once in Supabase → SQL Editor, then reload this page:</p>
     <code id="admin-sql"></code>
     <div><button class="btn ghost" id="copy-sql" type="button">Copy SQL</button></div>
     <p class="note" id="setup-note" hidden>If Supabase says <span class="mono">pcmt_admins</span> doesn't exist, run <span class="mono">setup/vp-setup.sql</span> first.</p>
@@ -105,7 +105,7 @@
   <div class="teams" id="teams" hidden></div>
 
   <div class="bar" id="savebar" hidden>
-    <button class="btn" id="save" type="button">Save 4Ks, 5Ks and clutches</button>
+    <button class="btn" id="save" type="button">Save 4Ks and 5Ks</button>
     <p class="msg" id="msg" role="status" aria-live="polite"></p>
   </div>
 
@@ -125,9 +125,9 @@
 <script>
 (function () {
   'use strict';
-  var FROM = Date.parse('2026-10-19T09:00:00Z'); // 4Ks, 5Ks and clutches count from this gameweek on (same as league.js)
+  var FROM = Date.parse('2026-10-19T09:00:00Z'); // 4Ks and 5Ks count from this gameweek on (same as league.js)
   // Columns of the multikills table, with their points (same as SCORING in league.js).
-  var KINDS = [['k4', '4K', 1], ['k5', '5K', 3], ['c2', '1v2', 1], ['c3', '1v3', 2], ['c4', '1v4', 4], ['c5', '1v5', 6]];
+  var KINDS = [['k4', '4K', 1], ['k5', '5K', 3]];
   function ptsOf(v) { return KINDS.reduce(function (t, k, i) { return t + (v[i] || 0) * k[2]; }, 0); }
   function fromRow(x) { return KINDS.map(function (k) { return x[k[0]] || 0; }); }
   var L = window.PCMT_LEAGUE, $ = function (id) { return document.getElementById(id); };
@@ -163,9 +163,9 @@
     wrap.innerHTML = [s.m.a, s.m.b].map(function (team) {
       return '<section class="panel" aria-label="' + esc(team) + '"><span class="kicker">' + esc(team) + '</span><div class="mk-scroll"><table class="mk"><thead><tr><th>Player</th>' + KINDS.map(function (k) { return '<th class="n">' + k[1] + '</th>'; }).join('') + '<th class="pts">Pts</th></tr></thead><tbody>' +
         teamPlayers(s, team).map(function (id) {
-          var p = BY_ID[id], v = saved[id] || [0, 0, 0, 0, 0, 0];
+          var p = BY_ID[id], v = saved[id] || [0, 0];
           return '<tr data-id="' + esc(id) + '"><td class="name">' + esc(p.name) + '<small>' + esc(p.role) + '</small></td>' +
-            KINDS.map(function (k, i) { return '<td class="n"><input type="number" inputmode="numeric" min="0" max="30" step="1" value="' + v[i] + '" aria-label="' + esc(p.name) + ' ' + k[1] + (k[0][0] === 'k' ? 's' : ' clutches') + '"></td>'; }).join('') +
+            KINDS.map(function (k, i) { return '<td class="n"><input type="number" inputmode="numeric" min="0" max="30" step="1" value="' + v[i] + '" aria-label="' + esc(p.name) + ' ' + k[1] + 's"></td>'; }).join('') +
             '<td class="pts">+' + ptsOf(v) + '</td></tr>';
         }).join('') + '</tbody></table></div></section>';
     }).join('');

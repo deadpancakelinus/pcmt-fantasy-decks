@@ -39,11 +39,10 @@
   var TOKEN_KEY = 'pcmt-auth';
   var BUDGET = 100, TEAM_LIMIT = 2, TRANSFERS = 2, LOCK_LEAD_H = 12;
   var ROLES = ['duelist', 'controller', 'initiator', 'sentinel'];
-  // Scoring (same as the Guide and setup/vp-setup.sql vp_series_points). toxic = places 1-3 by PCMT.gg's Toxic rating (RT);
-  // clutch = 1v2, 1v3, 1v4, 1v5.
+  // Scoring (same as the Guide and setup/vp-setup.sql vp_series_points). toxic = places 1-3 by PCMT.gg's Toxic rating (RT).
   var SCORING = { kill: 1, per5MapKills: 1, assist: 0.5, firstBlood: 0.5, toxic: [3, 2, 1], topKast: 1, topAcs: 2, sweep: 2, mapWin: 1,
-                  fourK: 1, fiveK: 3, flawless: 7, shutout: -5, zeroKillMap: -5, winBy4: 1, winBy10: 2, clutch: [1, 2, 4, 6], per50Adr: 1 };
-  // 4Ks, 5Ks and clutches (entered on the backend) count from this gameweek on.
+                  fourK: 1, fiveK: 3, flawless: 7, shutout: -5, zeroKillMap: -5, winBy4: 1, winBy10: 2, per50Adr: 1 };
+  // 4Ks and 5Ks (entered on the backend) count from this gameweek on.
   var MULTI_FROM = Date.parse('2026-10-19T09:00:00Z');
   var DAY = 86400000;
 
@@ -84,7 +83,7 @@
 
   // One series: { <player id>: points }. r.stats[id] = [K, D, A, FK, ACS, KAST, ADR, RT] (series totals),
   // r.maps = [{ map, a: rounds won by team a, b: rounds won by team b, k: { <player id>: kills on that map } }],
-  // r.multi[id] = [4Ks, 5Ks, 1v2, 1v3, 1v4, 1v5].
+  // r.multi[id] = [4Ks, 5Ks].
   function seriesPoints(r) {
     var out = {}, S = SCORING, st = r.stats || {}, ids = Object.keys(st), maps = r.maps || [];
     var num = function (x) { return +x || 0; }, has = function (x) { return x != null && x !== ''; };
@@ -116,7 +115,7 @@
       });
       if (side && sweep && p.team === r.winner) pts += S.sweep;
       var c = mk[k];
-      if (c) pts += num(c[0]) * S.fourK + num(c[1]) * S.fiveK + num(c[2]) * S.clutch[0] + num(c[3]) * S.clutch[1] + num(c[4]) * S.clutch[2] + num(c[5]) * S.clutch[3];
+      if (c) pts += num(c[0]) * S.fourK + num(c[1]) * S.fiveK;
       out[k] = pts;
     });
     return out;
@@ -394,7 +393,7 @@
   function attachMulti(rows) {
     var by = {};
     (rows || []).forEach(function (x) {
-      var v = [x.k4 || 0, x.k5 || 0, x.c2 || 0, x.c3 || 0, x.c4 || 0, x.c5 || 0];
+      var v = [x.k4 || 0, x.k5 || 0];
       if (v.some(Boolean)) (by[x.series] = by[x.series] || {})[x.player] = v;
     });
     (window.PCMT_RESULTS || []).forEach(function (r) { r.multi = by[seriesKey(r)] || {}; });
@@ -422,7 +421,7 @@
       var unlocks = me ? api('/rest/v1/user_unlocks?select=unlock').catch(function () { return []; }) : Promise.resolve([]);
       // null = the VP table isn't set up yet (setup/vp-setup.sql not run)
       // 4Ks and 5Ks per series (public; empty until setup/vp-setup.sql has been run)
-      var multi = api('/rest/v1/multikills?select=*&limit=20000').catch(function () { return []; });
+      var multi = api('/rest/v1/multikills?select=series,player,k4,k5&limit=20000').catch(function () { return []; });
       var prices = api('/rest/v1/player_price_changes?select=player,price,changed_at&order=changed_at.asc,id.asc&limit=20000').catch(function () { return []; });
       var vp = me ? api('/rest/v1/vp_ledger?select=kind,week,amount,detail,created_at&order=created_at.desc&limit=5000').catch(function () { return null; }) : Promise.resolve([]);
       var admin = me ? api('/rest/v1/pcmt_admins?select=user_id&user_id=eq.' + me.id).catch(function () { return []; }) : Promise.resolve([]);

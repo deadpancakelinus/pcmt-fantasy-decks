@@ -537,14 +537,14 @@ var PCMT_LOCK_LEAD_H = 12;
 //   maps: [ { map: name, a: rounds won by team a, b: rounds won by team b, k: { <same keys as stats>: kills on that map } } ] }
 // stats are the series totals from the match page's "All Maps" table (ACS, KAST, ADR and RT, the Toxic rating, as shown there).
 var PCMT_RESULTS = window.PCMT_RESULTS || [];
-// Scoring (same as the Guide). toxic = places 1-3 by RT in the series; clutch = 1v2, 1v3, 1v4, 1v5.
-// 4Ks, 5Ks and clutches are entered on the backend (r.multi = { <player id>: [4Ks, 5Ks, 1v2, 1v3, 1v4, 1v5] }), counted from the Oct 19 2026 gameweek on.
+// Scoring (same as the Guide). toxic = places 1-3 by RT in the series.
+// 4Ks and 5Ks are entered on the backend (r.multi = { <player id>: [4Ks, 5Ks] }), counted from the Oct 19 2026 gameweek on.
 var PCMT_SCORING = { kill: 1, per5MapKills: 1, assist: 0.5, firstBlood: 0.5, toxic: [3, 2, 1], topKast: 1, topAcs: 2, sweep: 2, mapWin: 1,
-                        fourK: 1, fiveK: 3, flawless: 7, shutout: -5, zeroKillMap: -5, winBy4: 1, winBy10: 2, clutch: [1, 2, 4, 6], per50Adr: 1 };
+                        fourK: 1, fiveK: 3, flawless: 7, shutout: -5, zeroKillMap: -5, winBy4: 1, winBy10: 2, per50Adr: 1 };
 var PCMT_MULTI_FROM = Date.parse('2026-10-19T09:00:00Z');
 // One series: { <player id>: points }. r.stats[id] = [K, D, A, FK, ACS, KAST, ADR, RT] (series totals),
 // r.maps = [{ map, a: rounds won by team a, b: rounds won by team b, k: { <player id>: kills on that map } }],
-// r.multi[id] = [4Ks, 5Ks, 1v2, 1v3, 1v4, 1v5].
+// r.multi[id] = [4Ks, 5Ks].
 function pcmtSeriesPoints(r) {
   var byId = {};
   PCMT_PLAYERS.forEach(function (p) { byId[p.id] = p; });
@@ -578,7 +578,7 @@ function pcmtSeriesPoints(r) {
     });
     if (side && sweep && p.team === r.winner) pts += S.sweep;
     var c = mk[k];
-    if (c) pts += num(c[0]) * S.fourK + num(c[1]) * S.fiveK + num(c[2]) * S.clutch[0] + num(c[3]) * S.clutch[1] + num(c[4]) * S.clutch[2] + num(c[5]) * S.clutch[3];
+    if (c) pts += num(c[0]) * S.fourK + num(c[1]) * S.fiveK;
     out[k] = pts;
   });
   return out;

@@ -63,19 +63,10 @@ create table if not exists public.multikills (
   player text not null,
   k4 integer not null default 0 check (k4 between 0 and 30),
   k5 integer not null default 0 check (k5 between 0 and 30),
-  c2 integer not null default 0 check (c2 between 0 and 30),   -- clutches: 1v2, 1v3, 1v4, 1v5
-  c3 integer not null default 0 check (c3 between 0 and 30),
-  c4 integer not null default 0 check (c4 between 0 and 30),
-  c5 integer not null default 0 check (c5 between 0 and 30),
   updated_at timestamptz not null default now(),
   updated_by uuid default auth.uid(),
   primary key (series, player)
 );
--- (tables made before clutches were added)
-alter table public.multikills add column if not exists c2 integer not null default 0 check (c2 between 0 and 30);
-alter table public.multikills add column if not exists c3 integer not null default 0 check (c3 between 0 and 30);
-alter table public.multikills add column if not exists c4 integer not null default 0 check (c4 between 0 and 30);
-alter table public.multikills add column if not exists c5 integer not null default 0 check (c5 between 0 and 30);
 alter table public.multikills enable row level security;
 drop policy if exists "anyone can read multikills" on public.multikills;
 create policy "anyone can read multikills" on public.multikills for select using (true);
@@ -178,7 +169,7 @@ $$;
 -- Works out every manager's VP for each finished gameweek and pays anything still owed.
 -- p_pay = false only reports (used for checking); it never writes.
 -- One series' points per player, same as seriesPoints() in league.js (and the Guide).
--- r.stats -> id = [K, D, A, FK, ACS, KAST, ADR, RT]; r.maps = [{ map, a, b, k: { id: kills } }]; r.multi -> id = [4K, 5K, 1v2, 1v3, 1v4, 1v5].
+-- r.stats -> id = [K, D, A, FK, ACS, KAST, ADR, RT]; r.maps = [{ map, a, b, k: { id: kills } }]; r.multi -> id = [4K, 5K].
 create or replace function public.vp_series_points(r jsonb, p_players jsonb) returns jsonb
 language plpgsql immutable set search_path = public as $$
 declare
@@ -221,8 +212,7 @@ begin
     if side is not null and sweep and p_players -> x.k ->> 'team' = r ->> 'winner' then pts := pts + 2; end if;
     c := mk -> x.k;
     if jsonb_typeof(c) = 'array' then
-      pts := pts + public.vp_num(c ->> 0) * 1 + public.vp_num(c ->> 1) * 3
-                 + public.vp_num(c ->> 2) * 1 + public.vp_num(c ->> 3) * 2 + public.vp_num(c ->> 4) * 4 + public.vp_num(c ->> 5) * 6;
+      pts := pts + public.vp_num(c ->> 0) * 1 + public.vp_num(c ->> 1) * 3;   -- 4K +1, 5K +3
     end if;
     out := out || jsonb_build_object(x.k, pts);
   end loop;
@@ -311,10 +301,9 @@ returns jsonb
 language plpgsql security definer set search_path = public as $$
 declare res jsonb; mk jsonb;
 begin
-  -- 4Ks, 5Ks and clutches from the backend, attached to each result as "multi": {"<player id>": [4Ks, 5Ks, 1v2, 1v3, 1v4, 1v5]}
+  -- 4Ks and 5Ks from the backend, attached to each result as "multi": {"<player id>": [4Ks, 5Ks]}
   select coalesce(jsonb_object_agg(series, pl), '{}'::jsonb) into mk from (
-    select series, jsonb_object_agg(player, jsonb_build_array(k4, k5, c2, c3, c4, c5)) pl from public.multikills
-    where k4 > 0 or k5 > 0 or c2 > 0 or c3 > 0 or c4 > 0 or c5 > 0 group by series) q;
+    select series, jsonb_object_agg(player, jsonb_build_array(k4, k5)) pl from public.multikills where k4 > 0 or k5 > 0 group by series) q;
   select coalesce(jsonb_agg(x || jsonb_build_object('multi', coalesce(mk -> ((x ->> 'start') || '|' || (x ->> 'a') || '|' || (x ->> 'b')), '{}'::jsonb))), '[]'::jsonb)
     into res from jsonb_array_elements(public.vp_extract(p_data_js, 'PCMT_RESULTS')) x;
   return public.vp_compute(public.vp_extract(p_data_js, 'PCMT_MATCHES'), res,
