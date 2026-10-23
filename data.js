@@ -13,6 +13,15 @@ var PCMT_MATCHES = [
     "bo": 5,
     "hours": 5,
     "url": "https://pcmt.gg/events/s3-na/t1-vs-navi-s3-playoffs-2026-10-24-2"
+  },
+  {
+    "region": "EMEA",
+    "start": "2026-10-24T17:00:00Z",
+    "a": "NATS",
+    "b": "ATLC",
+    "bo": 3,
+    "hours": 3,
+    "url": "https://pcmt.gg/events/s2-emea/nats-vs-atlc-s2-playoffs-2026-10-24"
   }
 ];
 
