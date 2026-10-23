@@ -68,7 +68,6 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <a href="MvpVs.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">MVP VS</a>
 <a href="Store.dc.html" aria-current="page" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #000; background: #a5dcdd; font-weight: 600">Store</a>
 <a href="Library.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Library</a>
-<a href="Transactions.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Transactions</a>
 </nav>
 <a href="Login.dc.html" style="margin-left: auto; order: 2; min-height: 44px; display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; border-radius: 8px; background: #4752C4; color: #fff; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; text-decoration: none"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><path d="M10 17l5-5-5-5"></path><path d="M15 12H3"></path></svg>Log in with Discord</a>
 <span style="order: -1; flex: 1 0 100%; margin-bottom: -4px; text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.08em; white-space: nowrap">NA S3 · EMEA S2</span>
@@ -127,6 +126,54 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </div>
 </section>
 
+<section id="credits" aria-labelledby="credits-h" style="display: flex; flex-direction: column; gap: 16px; scroll-margin-top: 24px">
+<h2 id="credits-h" style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">Paychecks and spending</h2>
+<sc-if value="{{vpSignedOut}}" hint-placeholder-val="{{ false }}">
+<div style="background: #172124; border: 1px solid #3a4f53; border-radius: 12px; padding: 18px 22px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px">
+<span style="color: #c4d4d4; line-height: 1.5">Log in with Discord to see your paychecks and spending.</span>
+<a href="Login.dc.html" style="min-height: 44px; display: inline-flex; align-items: center; padding: 0 18px; border-radius: 8px; background: #4752C4; color: #fff; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; text-decoration: none">Log in</a>
+</div>
+</sc-if>
+<sc-if value="{{vpSignedIn}}" hint-placeholder-val="{{ true }}">
+<div style="overflow-x: auto; border: 1px solid #2a3a3e; border-radius: 12px; background: #172124">
+<table style="width: 100%; border-collapse: collapse; font-size: 16px">
+<thead>
+<tr>
+<th scope="row" colspan="2" style="padding: 18px 16px; border-bottom: 1px solid #2a3a3e; text-align: left; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; color: #93a9aa; letter-spacing: 0.08em; text-transform: uppercase">Total Credits</th>
+<td style="padding: 18px 16px; border-bottom: 1px solid #2a3a3e; text-align: right"><span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 36px; line-height: 1; color: #a5dcdd; font-variant-numeric: tabular-nums">{{bank}}</span></td>
+</tr>
+<sc-if value="{{hasArriving}}" hint-placeholder-val="{{ false }}">
+<tr><td colspan="3" role="status" style="padding: 10px 16px; border-bottom: 1px solid #2a3a3e; font-size: 14px; color: #f5d76e; line-height: 1.5">+{{arriving}} Credits from last gameweek are on their way. They arrive within the hour.</td></tr>
+</sc-if>
+</thead>
+<tbody>
+<tr><th scope="colgroup" colspan="3" style="padding: 12px 16px; border-bottom: 1px solid #2a3a3e; background: #111a1c; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; color: #93a9aa; letter-spacing: 0.08em; text-transform: uppercase; text-align: left">Paychecks</th></tr>
+<sc-for list="{{history}}" as="h" hint-placeholder-count="3">
+<tr>
+<td style="padding: 14px 16px; border-bottom: 1px solid #2a3a3e">{{h.label}}</td>
+<td style="padding: 14px 16px; border-bottom: 1px solid #2a3a3e; color: #93a9aa">{{h.deck}}</td>
+<td style="padding: 14px 16px; border-bottom: 1px solid #2a3a3e; text-align: right; font-family: 'JetBrains Mono', monospace; font-weight: 600; color: #a5dcdd">+{{h.vp}}</td>
+</tr>
+</sc-for>
+<sc-if value="{{noHistory}}" hint-placeholder-val="{{ false }}">
+<tr><td colspan="3" style="padding: 20px 16px; border-bottom: 1px solid #2a3a3e; text-align: center; color: #93a9aa">Your first Credits arrive when a gameweek you played in ends.</td></tr>
+</sc-if>
+<tr><th scope="colgroup" colspan="3" style="padding: 12px 16px; border-bottom: 1px solid #2a3a3e; background: #111a1c; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; color: #93a9aa; letter-spacing: 0.08em; text-transform: uppercase; text-align: left">Spending</th></tr>
+<sc-for list="{{spent}}" as="x" hint-placeholder-count="2">
+<tr>
+<td style="padding: 14px 16px; border-bottom: 1px solid #2a3a3e">{{x.date}}</td>
+<td style="padding: 14px 16px; border-bottom: 1px solid #2a3a3e; color: #93a9aa">{{x.pack}}</td>
+<td style="padding: 14px 16px; border-bottom: 1px solid #2a3a3e; text-align: right; font-family: 'JetBrains Mono', monospace; font-weight: 600; color: #ff8a80">−{{x.vp}}</td>
+</tr>
+</sc-for>
+<sc-if value="{{noSpent}}" hint-placeholder-val="{{ false }}">
+<tr><td colspan="3" style="padding: 20px 16px; text-align: center; color: #93a9aa">Nothing spent yet. Card packs you buy show up here.</td></tr>
+</sc-if>
+</tbody>
+</table>
+</div>
+</sc-if>
+</section>
 
 </div>
 </sc-if>
@@ -1072,6 +1119,14 @@ class Component extends DCLogic {
       lockBlur: locked ? 'blur(8px)' : 'none',
       lockPointer: locked ? 'none' : 'auto',
       bank: live ? String(bankNum) : '[Credits]',
+      vpSignedOut: live && !signedIn,
+      vpSignedIn: !live || signedIn,
+      history: live ? ((W.PCMT_VP && W.PCMT_VP.history) || []) : [{ label: 'Week of [date]', deck: '[Deck name]', vp: '[Credits]' }, { label: 'Week of [date]', deck: '[Deck name]', vp: '[Credits]' }],
+      spent: live ? ((W.PCMT_VP && W.PCMT_VP.spent) || []) : [{ date: '[date]', pack: '[Pack name]', vp: '[Credits]' }],
+      noHistory: live && !((W.PCMT_VP && W.PCMT_VP.history) || []).length,
+      noSpent: live && !((W.PCMT_VP && W.PCMT_VP.spent) || []).length,
+      hasArriving: live && !!(W.PCMT_VP && W.PCMT_VP.arriving > 0),
+      arriving: live && W.PCMT_VP ? String(W.PCMT_VP.arriving || 0) : '0',
       packs: packs,
       cancelBuy: function () { self.setState({ confirming: null }); }
     };

@@ -24,7 +24,7 @@ Start here. It covers what exists, how changes are made and shipped, and what's 
 | Leaderboard.dc.html | leaderboard.html | This gameweek / overall standings |
 | Rules.dc.html | guide.html | Guide + Batch Notes (site is "Version 1.5 BETA"; footers on every page show the version) |
 | Login.dc.html | login.html | Discord log in |
-| Transactions.dc.html | transactions.html | **Transactions** (last in the menu): The Bank (all VP the player has), Last Paycheck (VP from the last finished gameweek), Paychecks (VP in), Spending (VP out: pack and amount). Everyone except admins sees an empty page with only the card animation and "Coming Soon..." (nothing of the page is drawn). `collection.html` just redirects here. |
+| (removed) | transactions.html | Redirects to store.html#credits. Paychecks and spending now live at the bottom of the Store. |
 | Store.dc.html | store.html | **Store**: The Bank, NA and EMEA card packs (buy with VP, then the pack opening plays with the cards you pulled), and the variants found in packs (The Role of Yoru: Rare, NA). Everyone except admins sees an empty page with only the card animation and "Coming Soon..." (nothing of the page is drawn). |
 | Library.dc.html | library.html | **Library** (right after Store): every card the player owns from packs, MVP VS-size with their MVP VS stats (from trumps-cards.js), one row per rarity (Rare, Common, ...), rarest first; each row is a fanned stack with faces showing, and hovering or tapping a card lifts it out (phones: one stack per row you swipe sideways); ×count on each card; All / NA / EMEA / Rare filters. Everyone except admins sees an empty page with only the card animation and "Coming Soon..." (nothing of the page is drawn). |
 | (hand-written) | admin.html | Old admin page: now just sends people to backend.html (4Ks and 5Ks and card pack prices moved there). |
@@ -45,7 +45,7 @@ Branding: header and titles say **fantasy.pcmt.gg**. The site is a Freshbatch pr
 1. Edit the board(s) in `tools/canvas/*.dc.html`.
 2. Build: `python3 -I tools/build.py tools/canvas assets <out>`
 3. Test: copy the repo `data.js` into `<out>`, serve it (`python3 -m http.server 8766 --directory <out>`, in the background) and run `NODE_PATH=$(npm root -g) node tools/smoke-test.js http://localhost:8766 <out>/shots`. It mocks Supabase and checks every page on desktop and phone. Look at the screenshots for visual changes.
-4. Copy `home.html index.html customization.html leaderboard.html guide.html login.html transactions.html store.html library.html players.js league.js dc-lite.js freshbatch.js variant-art.js _headers` from `<out>` into the repo root (**not** `data.js`, **not** `assets/`, **not** `mvp-vs.html` or `admin.html`, which are hand-written). Copy changed boards into `tools/canvas/`.
+4. Copy `home.html index.html customization.html leaderboard.html guide.html login.html store.html library.html players.js league.js dc-lite.js freshbatch.js variant-art.js _headers` from `<out>` into the repo root (**not** `data.js`, **not** `assets/`, **not** `mvp-vs.html` or `admin.html`, which are hand-written). Copy changed boards into `tools/canvas/`.
 5. Update the design canvas with the changed boards so it stays in step with `tools/canvas/`.
 6. Commit, then `git fetch && git stash && git rebase origin/main && git stash pop && git push` (the scheduled check also pushes to `main`).
 
@@ -76,7 +76,7 @@ Tables: `profiles`, `deck_history` (insert-only, server timestamps, 60/hour limi
 ## 8. Open items
 
 - Run `setup/cards-setup.sql` in the Supabase SQL Editor (after vp-setup.sql) to switch on card packs; then set prices on backend.html (Card packs tab).
-- Run `setup/vp-setup.sql` in the Supabase SQL Editor to switch on VP (until then, the Transactions page shows "VP isn't switched on yet" to admins).
+- Run `setup/vp-setup.sql` in the Supabase SQL Editor to switch on VP (until then, the Store's paychecks panel shows "VP isn't switched on yet" to admins).
 - Run `setup/fix-display-names.sql` in the Supabase SQL Editor if not done yet.
 - Connect fantasy.pcmt.gg: Cloudflare Pages → Custom domains, then add it to Supabase Redirect URLs.
 - Run `setup/trumps-setup.sql` in the Supabase SQL Editor to switch on MVP VS online rooms (until then, online shows "not switched on yet" and the bot game works). Re-run it after 2026-10-21 so online rooms accept the past seasons.
@@ -96,13 +96,13 @@ Tables: `profiles`, `deck_history` (insert-only, server timestamps, 60/hour limi
 - Known limit: the game state is trusted from the two players' browsers and holds both hands, so a player with dev tools could peek at the other hand or fake a move. Moving the rules into a Supabase function would fix it if that ever matters.
 - Test: serve the repo root (`python3 -m http.server 8767 --directory .`) and run `NODE_PATH=$(npm root -g) node trumps/test.js http://localhost:8767 <shots>`. The site smoke test also opens mvp-vs.
 
-## 10. VP and the Transactions page
+## 10. VP (Credits) and the Store paychecks panel
 
 - VP for a gameweek = the sum of the card numbers of the deck that counted that week (the same deck the leaderboard scores: locked deck, transfer and fallback rules). Each card counts at least 0, and there is no IGL bonus.
 - Paid when the gameweek ends (Monday 09:00 UTC), when the card numbers reset. If a late result raises a card, the difference is paid as a top-up. A payout is never taken back.
 - Server side: `setup/vp-setup.sql`. `vp_sync()` runs every hour (pg_cron, minute 7). It fetches the live `data.js` and `players.js`, recomputes every finished gameweek with `vp_compute` and writes only the missing amounts to `vp_ledger`. Players can only read their own rows and cannot run the payout. `vp_sync_log` keeps the last runs.
 - Ledger lines: `week` = payout (positive), `pack` = VP spent on a card pack (negative, `detail.pack` = pack name). A check constraint enforces this. The Bank is the sum of a player's lines, so buying a pack lowers it.
-- Site side: `league.js` reads `vp_ledger` and shows it on transactions.html. Last Paycheck is what the ledger paid for the last finished gameweek.
+- Site side: `league.js` reads `vp_ledger` and shows it in the "Paychecks and spending" panel at the bottom of store.html (top line: total Credits). Last Paycheck is what the ledger paid for the last finished gameweek.
 - Test: start a throwaway Postgres, then run `node tools/vp-test.js "psql -h /tmp/pg -p 5499 -U postgres" <out>/players.js`. It checks the SQL against the site's own scoring in random seasons, plus top-ups, re-runs and permissions.
 - Next phases: card packs bought with VP, cards stored per player on the server, a card album page, then MVP VS hands from owned cards and VP bets (game run on the server).
 
@@ -136,7 +136,7 @@ Tables: `profiles`, `deck_history` (insert-only, server timestamps, 60/hour limi
 - `cards.released`: only released cards can be pulled. Commons are always released; every Rare (variants and champions) starts held back. A Rare roll on a pack with no released Rares gives a Common (same drop-down rule as before), so the 80/20 odds stay set and start counting the moment one is released.
 - Staff release or hold back each Rare on backend.html (Rare cards tab), via `fb_release_card(card, released)` (staff only). The Store's odds line shows what a pack can really drop (league.js loads released Rares as `PCMT_RELEASED_RARES`).
 - The Store is open to everyone, packs only: the Rare card series sections were taken off the page. `PCMT_STORE_ITEMS` stays in the Store board (pack opening uses its stats, and the build writes each variant's art and series to `variant-art.js` for the backend).
-- Store (packs only), Library and Transactions are open to everyone (Oct 23 2026); they no longer depend on `PCMT_IS_ADMIN`.
+- Store (packs only) and Library are open to everyone (Oct 23 2026); the Transactions page was folded into the bottom of the Store; they no longer depend on `PCMT_IS_ADMIN`.
 - MVP VS Rares (Oct 23 2026): on the Library page a player picks which of their Rare-or-up cards go in their MVP VS deck (`user_cards.in_deck`, set only with `set_card_in_deck()`, which checks they own it and it isn't a Common). In MVP VS (trumps.js), when one of your cards is dealt and you picked Rares of that player, it shows as one of them (chosen at random from the game seed, so it stays the same all game): their art, a glow and a RARE stamp. Nothing picked: the Common. Stats never change, and only your own cards change (the bot's and your opponent's stay Common). Art comes from variant-art.js.
 - Library MVP VS panel (Oct 23 2026): titled "MVP VS", "Display your wealth in MVP VS". Players drag Rare cards from the stacks below into it (mouse: drag; phone: press and hold, then drag; keyboard: focus a Rare card and press Enter); × takes one out. Same `set_card_in_deck()` underneath.
 - MVP VS subs (cards with no team logo) show the NA or EMEA logo of the region they sub for.

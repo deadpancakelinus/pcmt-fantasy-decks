@@ -14,7 +14,6 @@ PAGES = {  # board -> output file
     'Leaderboard.dc.html': 'leaderboard.html',
     'Rules.dc.html': 'guide.html',
     'Login.dc.html': 'login.html',
-    'Transactions.dc.html': 'transactions.html',
     'Store.dc.html': 'store.html',
     'Library.dc.html': 'library.html',
 }
