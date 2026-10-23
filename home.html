@@ -47,7 +47,7 @@ a.hm-tile,a.hm-pack{color:inherit}
 <script type="application/json" id="dc-props">{}</script>
 <script type="text/plain" id="dc-logic">
 // ---- Home ----
-// Coming soon for everyone except admins (the live site sets PCMT_IS_ADMIN), like the Store and Library.
+// Open to everyone.
 // Live data: PCMT_PACKS (league.js), PCMT_MATCHES / PCMT_RESULTS (data.js). The canvas shows the samples below.
 
 // The newest Batch Note. Keep it in step with the first entry in the Guide's Batch Notes.
@@ -194,7 +194,7 @@ class Component extends DCLogic {
 
   _pageVals() {
     var W = typeof window !== 'undefined' ? window : {};
-    var locked = !W.PCMT_IS_ADMIN;
+    var locked = false;   // open to everyone (was admins only)
     var live = !!W.PCMT_LEAGUE;
     var teams = {};
     PCMT_ALL_DECK_TEAMS.forEach(function (t) { teams[t.code] = t; });
