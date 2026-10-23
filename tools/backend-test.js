@@ -25,7 +25,8 @@ insert into public.freshbatch_staff (user_id) values ('${STAFF}'); insert into p
 grant usage on schema public to anon, authenticated;
 grant usage on schema auth to anon, authenticated;   -- as on Supabase: auth.uid() works for everyone
 grant select on all tables in schema public to anon, authenticated;
-grant insert, update, delete on public.player_price_changes, public.multikills, public.freshbatch_staff to authenticated;
+grant insert, update, delete on public.player_price_changes, public.multikills, public.freshbatch_staff, public.complaints to authenticated;
+grant insert on public.complaints to anon;
 grant usage on all sequences in schema public to authenticated;`);
 
 // ---- who is staff ----
@@ -107,6 +108,20 @@ check(fails(`select public.fb_set_page_password('short');`, /8 characters/), 'th
 sql(`select public.fb_set_page_password('fresh batch 2026');`);
 check(sql(`set role anon; select public.fb_page_unlock('fresh batch 2026');`).trim() === 't' && sql(`set role anon; select public.fb_page_unlock('wrong one');`).trim() === 'f', 'the right page password unlocks, a wrong one does not');
 check(!/fresh batch 2026/.test(sql(`select value from public.freshbatch_settings;`)) && fails(`set role anon; select * from public.freshbatch_settings;`) === false && sql(`set role anon; select count(*) from public.freshbatch_settings;`).trim() === '0', 'only a hash is stored, and the site cannot read it');
+
+// ---- comments and complaints ----
+const words = n => Array.from({ length: n }, (_, i) => 'word' + i).join(' ');
+check(fails(`set role anon; select public.submit_complaint('${words(49)}');`, /at least 50 words \(you have 49\)/), 'a comment under 50 words is refused, with the count');
+sql(`set role anon; select public.submit_complaint('  ${words(50)}  ');`);
+sql(as(P1, `select public.submit_complaint('${words(60)}');`));
+check(sql(`select count(*) || '|' || count(user_id) || '|' || min(words) from public.complaints;`).trim() === '2|1|50', 'anyone can send 50+ words (logged out or in); the server counts words and records who');
+check(fails(`set role anon; insert into public.complaints (body, words) values ('x', 99);`) && sql(as(P1, `update public.complaints set body = 'x'; delete from public.complaints;`)) !== null &&
+      sql(`select count(*) from public.complaints where body = 'x';`).trim() === '0' && sql(`select count(*) from public.complaints;`).trim() === '2', 'nobody can add, edit or delete complaints directly');
+check(sql(as(P1, 'select count(*) from public.complaints;')).trim() === '0' && sql(`set role anon; select count(*) from public.complaints;`).trim() === '0', 'players cannot read the complaints log');
+check(sql(as(STAFF, 'select count(*) from public.complaints;')).trim() === '2', 'staff can read the complaints log');
+for (let i = 0; i < 4; i++) sql(as(P1, `select public.submit_complaint('${words(50)}');`));
+check(fails(as(P1, `select public.submit_complaint('${words(50)}');`), /a lot this hour/), 'a player is limited to 5 an hour');
+check(fails(`set role anon; select public.submit_complaint('${'x '.repeat(3100)}');`, /too long/), 'very long comments are refused');
 
 sql('drop database fbtest;', 'postgres');
 console.log(bad ? bad + ' problem(s)' : 'All backend checks passed');

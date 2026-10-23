@@ -82,3 +82,39 @@ begin
 end $$;
 revoke all on function public.fb_page_unlock(text) from public;
 grant execute on function public.fb_page_unlock(text) to anon, authenticated;
+
+-- ===================== Comments and complaints =====================
+-- Written on the Home page (at least 50 words), read by staff in the backend's Complaints log.
+-- Sent only through submit_complaint(); nobody can insert, edit or delete rows directly.
+create table if not exists public.complaints (
+  id bigserial primary key,
+  body text not null check (char_length(body) between 1 and 6000),
+  words integer not null,
+  user_id uuid references auth.users (id) on delete set null,   -- null = written while logged out
+  created_at timestamptz not null default now()
+);
+create index if not exists complaints_created on public.complaints (created_at desc);
+alter table public.complaints enable row level security;
+drop policy if exists "staff read complaints" on public.complaints;
+create policy "staff read complaints" on public.complaints for select using (public.is_freshbatch());
+
+-- Words are counted the same way as on the Home page: runs of non-space characters.
+create or replace function public.submit_complaint(p_body text) returns bigint
+language plpgsql volatile security definer set search_path = public as $$
+declare b text := btrim(coalesce(p_body, '')); n int; uid uuid := auth.uid(); new_id bigint;
+begin
+  n := case when b = '' then 0 else coalesce(array_length(regexp_split_to_array(b, '\s+'), 1), 0) end;
+  if n < 50 then raise exception 'Write at least 50 words (you have %).', n; end if;
+  if char_length(b) > 6000 then raise exception 'That''s too long. Keep it under 6,000 characters.'; end if;
+  -- Limits against spam: 5 an hour for each logged-in player, 20 an hour from everyone logged out.
+  if uid is not null then
+    if (select count(*) from public.complaints where user_id = uid and created_at > now() - interval '1 hour') >= 5 then
+      raise exception 'You''ve sent a lot this hour. Try again a bit later.'; end if;
+  elsif (select count(*) from public.complaints where user_id is null and created_at > now() - interval '1 hour') >= 20 then
+    raise exception 'Lots of comments right now. Log in with Discord or try again a bit later.';
+  end if;
+  insert into public.complaints (body, words, user_id) values (b, n, uid) returning id into new_id;
+  return new_id;
+end $$;
+revoke all on function public.submit_complaint(text) from public;
+grant execute on function public.submit_complaint(text) to anon, authenticated;

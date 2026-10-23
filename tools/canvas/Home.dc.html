@@ -30,6 +30,10 @@ a.hm-tile{color:inherit}
 .hm-hero{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(280px,1fr);gap:28px;align-items:start}
 @media (max-width:860px){.hm-hero{grid-template-columns:1fr}}
 .hm-panel{background:#0b1011;border:1px solid #1e2b2d;border-radius:12px;padding:20px}
+.hm-cc textarea{display:block;width:100%;box-sizing:border-box;min-height:150px;resize:vertical;padding:12px 14px;border-radius:8px;border:1px solid #2c3d40;background:#000;color:#eaf4f4;font:16px/1.55 'Space Grotesk',system-ui,sans-serif}
+.hm-cc button{min-height:44px;padding:0 18px;border-radius:8px;border:1px solid #a5dcdd;background:#a5dcdd;color:#000;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600}
+.hm-cc button:disabled{opacity:.45;cursor:not-allowed}
+.hm-cc button:focus-visible{outline:2px solid #a5dcdd;outline-offset:2px}
 .hm-menu{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,270px),1fr));gap:12px}
 .hm-tile{display:flex;gap:14px;align-items:flex-start;padding:18px;border-radius:12px;background:#0b1011;border:1px solid #1e2b2d;text-decoration:none;transition:border-color .15s ease,transform .15s ease}
 .hm-tile:hover,.hm-tile:focus-visible{border-color:#a5dcdd;transform:translateY(-2px)}
@@ -110,7 +114,7 @@ a.hm-tile{color:inherit}
 </sc-if>
 <sc-if value="{{noMatches}}" hint-placeholder-val="{{ false }}"><p style="margin: 0; color: #c4d4d4; line-height: 1.5">No series scheduled right now. Check back soon.</p></sc-if>
 <sc-if value="{{hasResult}}" hint-placeholder-val="{{ false }}"><p style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">Last result: <span style="color: #eaf4f4">{{resultLabel}}</span></p></sc-if>
-<a href="https://pcmt.gg" target="_blank" rel="noopener" style="font-family: 'JetBrains Mono', monospace; font-size: 13px">Full schedule on pcmt.gg</a>
+<a href="{{nextUrl}}" target="_blank" rel="noopener" style="font-family: 'JetBrains Mono', monospace; font-size: 13px">{{nextLabel}}</a>
 </div>
 </section>
 
@@ -140,6 +144,17 @@ a.hm-tile{color:inherit}
 </div>
 <p style="margin: 0; color: #c4d4d4; line-height: 1.55; font-size: 16px">{{note.text}}</p>
 </article>
+</section>
+
+<section aria-labelledby="cc-h" class="hm-panel hm-cc" style="display: flex; flex-direction: column; gap: 14px">
+<h2 id="cc-h" style="margin: 0; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 32px; line-height: 1.1; color: #eaf4f4">Comments or complaints always welcome :)</h2>
+<label for="cc-text" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap">Your comment or complaint, at least 50 words</label>
+<textarea id="cc-text" value="{{ccText}}" onChange="{{ccInput}}" aria-describedby="cc-count" maxlength="6000"></textarea>
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px">
+<span id="cc-count" style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: {{ccCountColor}}">{{ccCount}}</span>
+<button type="button" onClick="{{ccSend}}" disabled="{{ccDisabled}}">{{ccLabel}}</button>
+</div>
+<p role="status" aria-live="polite" style="margin: 0; font-size: 15px; line-height: 1.5; color: {{ccMsgColor}}">{{ccMsg}}</p>
 </section>
 
 
@@ -181,7 +196,7 @@ var PCMT_HOME_MENU = [
 
 // Canvas sample (the live site uses the real matches).
 var PCMT_HOME_SAMPLE_MATCHES = [
-  { region: 'NA', start: '2026-10-24T00:00:00Z', a: 'T1', b: 'NAVI', bo: 5 }
+  { region: 'NA', start: '2026-10-24T00:00:00Z', a: 'T1', b: 'NAVI', bo: 5, url: 'https://pcmt.gg/events/s3-na/t1-vs-navi-s3-playoffs-2026-10-24-2' }
 ];
 // Teams (same as the Store board), for the next series.
 var PCMT_DECK_TEAMS = [
@@ -288,9 +303,22 @@ class Component extends DCLogic {
     });
   }
 
+  // Comments and complaints: at least 50 words, sent to the backend's Complaints log.
+  ccWords(t) { var m = String(t || '').trim().match(/\S+/g); return m ? m.length : 0; }
+  ccSend() {
+    var self = this, st = this.state || {}, text = String(st.ccText || '').trim();
+    if (st.ccBusy || this.ccWords(text) < 50) return;
+    var L = typeof window !== 'undefined' && window.PCMT_LEAGUE;
+    this.setState({ ccBusy: true, ccMsg: '', ccOk: false });
+    var send = L && L.complain ? L.complain(text) : new Promise(function (res) { setTimeout(res, 600); });   // the canvas just pretends
+    send.then(function () { self.setState({ ccBusy: false, ccText: '', ccOk: true, ccMsg: 'Thanks! Freshbatch reads every one.' }); },
+              function (e) { self.setState({ ccBusy: false, ccOk: false, ccMsg: (e && e.message) || 'Couldn\'t send that. Try again.' }); });
+  }
+
   _pageVals() {
     var W = typeof window !== 'undefined' ? window : {};
     var locked = false;   // open to everyone (was admins only)
+    var self = this, cc = this.state || {}, ccN = this.ccWords(cc.ccText);
     var live = !!W.PCMT_LEAGUE;
     var teams = {};
     PCMT_ALL_DECK_TEAMS.forEach(function (t) { teams[t.code] = t; });
@@ -328,9 +356,20 @@ class Component extends DCLogic {
       lockPointer: locked ? 'none' : 'auto',
       matches: matches, hasMatches: matches.length > 0, noMatches: !matches.length,
       lockLabel: lockLabel,
+      nextUrl: upcoming[0] && upcoming[0].url ? upcoming[0].url : 'https://pcmt.gg/matches',   // the next series' own page on PCMT.gg
+      nextLabel: upcoming[0] && upcoming[0].url ? 'This match on pcmt.gg' : 'Matches on pcmt.gg',
       hasResult: !!last, resultLabel: last ? last.a + ' vs ' + last.b + ', ' + last.winner + ' won' : '',
       menu: PCMT_HOME_MENU,
-      note: PCMT_HOME_NOTE
+      note: PCMT_HOME_NOTE,
+      ccText: cc.ccText || '',
+      ccInput: function (e) { self.setState({ ccText: e && e.target ? e.target.value : '', ccMsg: '' }); },
+      ccSend: function () { self.ccSend(); },
+      ccCount: ccN + (ccN === 1 ? ' word' : ' words') + (ccN < 50 ? ' (at least 50)' : ''),
+      ccCountColor: ccN >= 50 ? '#8be4b7' : '#93a9aa',
+      ccDisabled: ccN < 50 || !!cc.ccBusy,
+      ccLabel: cc.ccBusy ? 'Sending…' : 'Send',
+      ccMsg: cc.ccMsg || '',
+      ccMsgColor: cc.ccOk ? '#8be4b7' : '#ff8a80'
     };
   }
 }

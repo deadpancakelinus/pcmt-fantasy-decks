@@ -319,6 +319,10 @@
       clearTimeout(pendingTimer);
       pendingTimer = setTimeout(function () { sendDeck(false); }, 700);
     },
+    // Sends a comment or complaint from the Home page (at least 50 words; logged out is fine). Staff read them on backend.html.
+    complain: function (text) {
+      return refreshIfNeeded().then(function () { return api('/rest/v1/rpc/submit_complaint', { method: 'POST', body: { p_body: text } }); });
+    },
     redeem: function (code) {
       if (!me) return Promise.reject(new Error('Log in with Discord to redeem codes.'));
       return api('/rest/v1/rpc/redeem_code', { method: 'POST', body: { p_code: code } }).then(function (u) {
