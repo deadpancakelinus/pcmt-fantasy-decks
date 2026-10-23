@@ -17,7 +17,7 @@
   button, input { font: inherit; color: inherit; }
   .mono, .tt-kicker, .tt-nav a, .tt-btn, .tt-seat, .tt-counts span, .tt-stat-v, .tt-meta, .tt-turn, .tt-region button { font-family: 'JetBrains Mono', monospace; }
   .tt-top { border-bottom: 1px solid var(--line); }
-  .tt-top-in { padding-block: 14px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; align-items: center; gap: 28px; flex-wrap: wrap; }
+  .tt-top-in { box-sizing: content-box; padding-block: 14px; padding-left: max(24px, env(safe-area-inset-left, 0px)); padding-right: max(24px, env(safe-area-inset-right, 0px)); display: flex; align-items: center; gap: 12px 32px; flex-wrap: wrap; }   /* same as the other pages, so the header lines up */
   .tt-brand { font: 700 30px/1 'Cabin Sketch', cursive; color: var(--accent); text-decoration: none; }
   .tt-nav { display: flex; gap: 4px; flex-wrap: wrap; }
   .tt-nav a { color: var(--ink); text-decoration: none; font-size: 13px; letter-spacing: .08em; padding: 9px 12px; border-radius: 6px; }
@@ -97,7 +97,7 @@
   .tt-card-body { position: relative; z-index: 1; flex: 1; padding: 14px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
   .tt-card-top { display: flex; justify-content: space-between; align-items: center; height: 30px; flex: none; }
   .tt-team { height: 30px; width: auto; max-width: 70px; object-fit: contain; display: block; }
-  .tt-nologo { display: grid; place-items: center; height: 26px; padding: 0 8px; border: 1px dashed #93a9aa; border-radius: 6px; font: 600 11px/1 'JetBrains Mono', monospace; color: #93a9aa; }
+  .tt-team.tt-sub { opacity: .9; }   /* subs carry their region's logo (NA or EMEA) */
   .tt-maps { font: 700 30px/1 'Cabin Sketch', cursive; color: var(--team); font-variant-numeric: tabular-nums; display: inline-flex; align-items: baseline; gap: 4px; }
   .tt-maps small { font: 600 9px/1 'JetBrains Mono', monospace; letter-spacing: .1em; opacity: .8; }
   .tt-name { display: flex; align-items: center; gap: 6px; height: 38px; flex: none; font-family: 'Cabin Sketch', cursive; font-weight: 700; line-height: 1.1; white-space: nowrap; overflow: hidden; }
@@ -194,7 +194,7 @@
   .tt-rules li { margin: 4px 0; }
 
   @media (max-width: 640px) {
-    .tt-top-in { gap: 12px; }
+    .tt-top-in { gap: 12px 32px; }
     .tt-brand { font-size: 24px; }
     .tt-nav a { padding: 8px; font-size: 11px; }
     main { padding-block-start: 24px; }
@@ -223,7 +223,7 @@
 <a href="index.html" style="display: flex; align-items: baseline; gap: 10px; text-decoration: none">
 <span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 32px; color: #a5dcdd; line-height: 1">fantasy.pcmt.gg</span>
 </a>
-<nav aria-label="Main" style="display: flex; flex-wrap: wrap; gap: 4px; flex: 1 1 auto">
+<nav aria-label="Main" style="display: flex; flex-wrap: wrap; gap: 4px; flex: 1 0 100%; order: 3">
 <a href="home.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Home</a>
 <a href="leaderboard.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Leaderboard</a>
 <a href="index.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">The Deck</a>
@@ -234,8 +234,8 @@
 <a href="library.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Library</a>
 <a href="transactions.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Transactions</a>
 </nav>
-<a id="tt-auth" href="login.html" style="min-height: 44px; display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; border-radius: 8px; background: #4752C4; color: #fff; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; text-decoration: none"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><path d="M10 17l5-5-5-5"></path><path d="M15 12H3"></path></svg><span id="tt-auth-label">Log in with Discord</span></a>
-<span style="order: -1; flex: 1 0 100%; margin-bottom: -4px; text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.08em; white-space: nowrap">NA S3 · EMEA S2</span>
+<a id="tt-auth" href="login.html" style="margin-left: auto; order: 2; min-height: 44px; display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; border-radius: 8px; background: #4752C4; color: #fff; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; text-decoration: none"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><path d="M10 17l5-5-5-5"></path><path d="M15 12H3"></path></svg><span id="tt-auth-label">Log in with Discord</span></a>
+<span style="order: -1; flex: 1 0 100%; margin-bottom: -4px; text-align: right; line-height: normal; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.08em; white-space: nowrap">NA S3 · EMEA S2</span>
 </div>
 </header>
 <main>

@@ -214,7 +214,7 @@
       (art ? '<span class="tt-rare-art' + (rv.variant.indexOf('champ-') === 0 ? ' is-center' : '') + '" aria-hidden="true"><img src="' + art + '" alt=""></span>' : '') +
       (rv ? '<span class="tt-rare-sheen" aria-hidden="true"></span>' : '') +
       '<span class="tt-edge"></span><div class="tt-card-body">' +
-      '<div class="tt-card-top">' + (logo ? '<img class="tt-team" src="assets/' + logo + '" alt="' + esc(c.teamName) + '" title="' + esc(c.teamName) + '">' : '<span class="tt-nologo">SUB</span>') +
+      '<div class="tt-card-top">' + (logo ? '<img class="tt-team" src="assets/' + logo + '" alt="' + esc(c.teamName) + '" title="' + esc(c.teamName) + '">' : '<img class="tt-team tt-sub" src="' + REGIONS[region].logo + '" alt="' + REGIONS[region].label.split(' ')[0] + ' sub" title="Sub (' + REGIONS[region].label.split(' ')[0] + ')">') +   // subs: the logo of the region they sub for
       '<span class="tt-maps" title="' + c.maps + ' maps played in ' + REGIONS[region].season + '">' + c.maps + '<small>MAPS</small></span></div>' +
       '<div class="tt-name" style="font-size:' + nameSize + 'px"><span>' + esc(c.name) + '</span>' +
       (c.champ ? '<img src="' + CHAMP_ICON + '" alt="PCMT champion" title="PCMT champion">' : '') + '</div>' +
