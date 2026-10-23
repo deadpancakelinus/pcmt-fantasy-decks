@@ -71,8 +71,9 @@
   .check input { width: 20px; height: 20px; accent-color: #a5dcdd; }
   .sheet { overflow: auto; max-height: 68vh; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
   table.grid { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 15px; }
-  table.grid th { position: sticky; top: 0; z-index: 1; background: #0e1516; padding: 0; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; }
+  table.grid th { position: sticky; top: 0; z-index: 1; background: #1b2629; padding: 0; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; }
   table.grid th.num { text-align: right; }
+  table.grid th.plain { padding: 12px; font: 400 12px/1 'JetBrains Mono', monospace; color: var(--dim); letter-spacing: .06em; text-transform: uppercase; }
   table.grid th .sort { all: unset; box-sizing: border-box; display: block; width: 100%; padding: 12px; font: 400 12px/1 'JetBrains Mono', monospace; color: var(--dim); letter-spacing: .06em; text-transform: uppercase; cursor: pointer; }
   table.grid th.num .sort { text-align: right; }
   table.grid th .sort:hover { color: var(--ink); }
@@ -101,6 +102,8 @@
   .stat b { font: 700 28px/1 'Cabin Sketch', cursive; color: var(--accent); }
   .stat span { font: 400 12px/1 'JetBrains Mono', monospace; color: var(--dim); letter-spacing: .08em; text-transform: uppercase; }
   .count { font-weight: 400; color: var(--dim); }
+  .sub2 { display: block; color: var(--dim); font: 400 12px/1.3 'JetBrains Mono', monospace; }
+  table.grid input[type=checkbox] { vertical-align: middle; }
   .cx-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
   .cx-item { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; }
   .cx-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 16px; font: 400 12px/1.4 'JetBrains Mono', monospace; color: var(--dim); }
@@ -158,7 +161,7 @@
 <main>
   <div>
     <h1>Backend</h1>
-    <p class="sub">For Freshbatch staff only. Player prices, every card and who owns it, the 4Ks and 5Ks for each series, and the comments and complaints sent from the Home page.</p>
+    <p class="sub">For Freshbatch staff only. Player prices, every card and who owns it, card pack prices, the 4Ks and 5Ks for each series, and the comments and complaints sent from the Home page.</p>
   </div>
 
   <section class="panel" id="st-loading" role="status"><p class="msg">Locked. Enter the page password to continue.</p></section>
@@ -174,6 +177,7 @@
     <div class="tabs" role="tablist" aria-label="Backend sheets">
       <button type="button" role="tab" id="tab-prices" aria-controls="pane-prices" aria-selected="true">Player prices</button>
       <button type="button" role="tab" id="tab-cards" aria-controls="pane-cards" aria-selected="false" tabindex="-1">Cards</button>
+      <button type="button" role="tab" id="tab-packs" aria-controls="pane-packs" aria-selected="false" tabindex="-1">Card packs</button>
       <button type="button" role="tab" id="tab-multi" aria-controls="pane-multi" aria-selected="false" tabindex="-1">4Ks &amp; 5Ks</button>
       <button type="button" role="tab" id="tab-complaints" aria-controls="pane-complaints" aria-selected="false" tabindex="-1">Complaints <span class="count" id="cx-badge"></span></button>
     </div>
@@ -233,6 +237,16 @@
         <tbody id="c-rows"></tbody>
       </table></div>
       <p class="msg" id="c-msg" role="status" aria-live="polite"></p>
+    </section>
+
+    <!-- ===== Card packs ===== -->
+    <section class="pane" role="tabpanel" id="pane-packs" aria-labelledby="tab-packs" hidden>
+      <p class="note">Set each pack's price in Credits. While "Open to everyone" is off, only Freshbatch staff and site admins can buy it, so you can test (a price of 0 is free). Odds and what's in each pack come from <span class="mono">tools/cards.py</span>.</p>
+      <div class="sheet"><table class="grid">
+        <thead><tr><th class="plain">Pack</th><th class="plain">Odds per card</th><th class="plain num">Price (Credits)</th><th class="plain num">Open to everyone</th></tr></thead>
+        <tbody id="pk-rows"></tbody>
+      </table></div>
+      <div class="bar"><button class="btn" id="pk-save" type="button">Save packs</button><p class="msg" id="pk-msg" role="status" aria-live="polite"></p></div>
     </section>
 
     <!-- ===== 4Ks & 5Ks ===== -->
@@ -319,7 +333,7 @@
   })();
 
   // ---------- tabs ----------
-  var TABS = ['prices', 'cards', 'multi', 'complaints'];
+  var TABS = ['prices', 'cards', 'packs', 'multi', 'complaints'];
   function openTab(name, focus) {
     TABS.forEach(function (t) {
       var on = t === name, tab = $('tab-' + t);
@@ -539,6 +553,40 @@
     loadSeries(0);
   }
 
+  // ---------- Card packs: price and who can buy (was on admin.html) ----------
+  function pkSay(t, cls) { $('pk-msg').textContent = t; $('pk-msg').className = 'msg' + (cls ? ' ' + cls : ''); }
+  function oddsText(o) {
+    o = o || {};
+    return [['Common', o.common], ['Rare', o.rare], ['Epic', o.epic], ['Legendary', o.legendary]].filter(function (t) { return +t[1] > 0; })
+      .map(function (t) { return t[0] + ' ' + t[1] + '%'; }).join(' · ') || '—';
+  }
+  function drawPacks() {
+    var packs = (window.PCMT_PACKS || []).slice().sort(function (a, b) { return (a.season ? 1 : 0) - (b.season ? 1 : 0) || (a.region === 'NA' ? 0 : 1) - (b.region === 'NA' ? 0 : 1) || String(a.name).localeCompare(b.name); });
+    if (!packs.length) { $('pk-rows').innerHTML = '<tr><td colspan="4">No packs yet. Run <span class="mono">setup/cards-setup.sql</span> in Supabase.</td></tr>'; $('pk-save').hidden = true; return; }
+    $('pk-save').hidden = false;
+    $('pk-rows').innerHTML = packs.map(function (p) {
+      return '<tr data-pack="' + esc(p.id) + '"><td>' + esc(p.name) + '<span class="sub2">' + esc(p.region) + (p.season ? ' · ' + esc(p.season) : '') + ' · ' + esc(p.cards) + ' cards</span></td>' +
+        '<td class="mono">' + esc(oddsText(p.odds)) + '</td>' +
+        '<td class="num"><input type="number" inputmode="numeric" min="0" step="1" value="' + (p.price == null ? '' : p.price) + '" placeholder="—" aria-label="' + esc(p.name) + ' price in Credits"></td>' +
+        '<td class="num"><input type="checkbox"' + (p.open_to_all ? ' checked' : '') + ' aria-label="' + esc(p.name) + ' open to everyone" style="width:22px;height:22px;accent-color:#a5dcdd"></td></tr>';
+    }).join('');
+  }
+  $('pk-save').addEventListener('click', function () {
+    var rows = Array.prototype.slice.call(document.querySelectorAll('#pk-rows tr[data-pack]'));
+    if (rows.some(function (tr) { var v = tr.querySelector('input[type=number]').value.trim(); return v !== '' && !/^\d+$/.test(v); })) return pkSay('Prices must be whole numbers of Credits (or empty for no price).', 'err');
+    $('pk-save').disabled = true; pkSay('Saving…');
+    Promise.all(rows.map(function (tr) {
+      var v = tr.querySelector('input[type=number]').value.trim(), id = tr.getAttribute('data-pack');
+      var body = { price: v === '' ? null : +v, open_to_all: tr.querySelector('input[type=checkbox]').checked };
+      return L.api('/rest/v1/card_packs?id=eq.' + encodeURIComponent(id), { method: 'PATCH', headers: { Prefer: 'return=representation' }, body: body })
+        .then(function (r) { if (!r || !r.length) throw new Error('not saved (has the latest setup been run in Supabase?)'); return r[0]; });
+    })).then(function (saved) {
+      saved.forEach(function (row) { (window.PCMT_PACKS || []).forEach(function (p) { if (p.id === row.id) { p.price = row.price; p.open_to_all = row.open_to_all; } }); });
+      pkSay('Saved. The Store shows the new prices on its next load.', 'ok');
+    }).catch(function (e) { pkSay('Couldn\'t save: ' + e.message, 'err'); })
+      .then(function () { $('pk-save').disabled = false; });
+  });
+
   // ---------- Complaints (from the Home page) ----------
   var CX = [], cxErr = '';
   function loadComplaints() {
@@ -658,7 +706,7 @@
         show('st-staff');
         var h = (location.hash || '').slice(1);
         openTab(TABS.indexOf(h) >= 0 ? h : 'prices');
-        drawPrices(); drawCards(); setupMulti(); drawComplaints();
+        drawPrices(); drawCards(); drawPacks(); setupMulti(); drawComplaints();
       });
     }).catch(function (e) { show('st-staff'); $('p-msg').textContent = 'Something went wrong loading the backend: ' + e.message; $('p-msg').className = 'msg err'; });
   }

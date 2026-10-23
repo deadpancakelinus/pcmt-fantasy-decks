@@ -4,14 +4,14 @@
 --
 -- How it works:
 --   * cards: every card that exists. Each store player is a Common card; variants (special art) have a rarity.
---   * card_packs: packs for sale (an NA pack and an EMEA pack, each drawing only that region's players), with price (set on admin.html), cards per pack and odds per card.
+--   * card_packs: packs for sale (an NA pack and an EMEA pack, each drawing only that region's players), with price (set on backend.html, Card packs tab), cards per pack and odds per card.
 --   * Throwback packs: one per past season (S1 NA, S2 NA, S1 EMEA). A pack with a season only draws that season's cards;
 --     the NA and EMEA packs (no season) only draw this season's cards. Past-season cards are not on The Deck.
 --   * buy_pack(pack): the only way to buy. It runs on the server: checks the price and the buyer's VP,
 --     takes the VP, draws the cards with the odds, and saves them. Nothing in the browser can pick cards.
 --   * If a drawn rarity has no cards yet (e.g. no Legendary cards exist), the card drops to the next tier down.
 --   * Duplicates are kept: user_cards counts how many of each card a player owns.
---   * Until a pack is opened to everyone (open_to_all on admin.html), only admins can buy it.
+--   * Until a pack is opened to everyone (open_to_all on backend.html), only admins and Freshbatch staff can buy it, to test.
 
 -- ===================== Tables =====================
 create table if not exists public.cards (
@@ -48,8 +48,8 @@ drop policy if exists "anyone can read packs" on public.card_packs;
 create policy "anyone can read packs" on public.card_packs for select using (true);
 drop policy if exists "admins change packs" on public.card_packs;
 create policy "admins change packs" on public.card_packs for update
-  using (exists (select 1 from public.pcmt_admins a where a.user_id = auth.uid()))
-  with check (exists (select 1 from public.pcmt_admins a where a.user_id = auth.uid()));
+  using (exists (select 1 from public.pcmt_admins a where a.user_id = auth.uid()) or public.is_freshbatch())
+  with check (exists (select 1 from public.pcmt_admins a where a.user_id = auth.uid()) or public.is_freshbatch());
 
 create table if not exists public.user_cards (
   user_id uuid not null references auth.users (id) on delete cascade,
@@ -88,7 +88,7 @@ begin
   perform pg_advisory_xact_lock(hashtext('pcmt-buy:' || u::text));    -- one purchase at a time per player
   select * into pk from public.card_packs where id = p_pack;
   if not found or not pk.active then raise exception 'That pack isn''t for sale.'; end if;
-  if not pk.open_to_all and not exists (select 1 from public.pcmt_admins a where a.user_id = u) then
+  if not pk.open_to_all and not exists (select 1 from public.pcmt_admins a where a.user_id = u) and not public.is_freshbatch() then
     raise exception 'Packs aren''t on sale yet.';
   end if;
   if pk.price is null then raise exception 'This pack doesn''t have a price yet.'; end if;

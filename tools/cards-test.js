@@ -34,6 +34,17 @@ check(sql(`select string_agg(price::text, ',') from public.card_packs`).trim() =
 check(fails(as(P1, `update public.card_packs set price = 0;`)) || sql(`select string_agg(coalesce(price::text,'null'), ',') from public.card_packs`).trim() === 'null,null,null,null,null', 'a player cannot set the price');
 sql(as(ADMIN, `update public.card_packs set price = 0;`));
 check(sql(`select string_agg(price::text, ',') from public.card_packs`).trim() === '0,0,0,0,0', 'an admin can set the price');
+{ // Freshbatch staff price packs on the backend and can test-buy before launch, like admins
+  const STAFF = '00000000-0000-0000-0000-0000000000f1';
+  sql(`insert into auth.users (id) values ('${STAFF}'); insert into public.freshbatch_staff (user_id) values ('${STAFF}');`);
+  sql(as(STAFF, `update public.card_packs set price = 7 where id = 'na-pack';`));
+  check(sql(`select price from public.card_packs where id = 'na-pack';`).trim() === '7', 'Freshbatch staff can set a pack price');
+  sql(as(P1, `update public.card_packs set price = 1 where id = 'na-pack';`));
+  check(sql(`select price from public.card_packs where id = 'na-pack';`).trim() === '7', 'players cannot change pack prices');
+  sql(as(STAFF, `update public.card_packs set price = 0 where id = 'na-pack';`));
+  check(sql(as(STAFF, `select jsonb_array_length(public.buy_pack('na-pack') -> 'cards');`)).trim() === '5', 'Freshbatch staff can test-buy a pack before it opens to everyone');
+  sql(`delete from public.user_cards where user_id = '${STAFF}'; delete from public.pack_openings where user_id = '${STAFF}';`);
+}
 let r = buy(ADMIN);
 check(r.cards.length === 5 && r.cards.every(c => c.id && c.player && c.rarity), 'a pack gives 5 cards');
 check(bal(ADMIN) === 0 && +sql(`select count(*) from public.vp_ledger where user_id = '${ADMIN}'`).trim() === 0, 'a free pack takes no VP and writes no ledger line');
