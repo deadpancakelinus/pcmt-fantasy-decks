@@ -88,7 +88,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
 <div style="display: flex; flex-direction: column; gap: 6px">
 <h1 style="margin: 0; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 60px; line-height: 1">Store</h1>
-<p style="margin: 8px 0 0; max-width: 640px; font-size: 18px; line-height: 1.55; color: #c4d4d4">Spend your Credits on card packs. Every pack has 5 cards from its region, and some cards are rare variants.</p>
+<p style="margin: 8px 0 0; max-width: 640px; font-size: 18px; line-height: 1.55; color: #c4d4d4">Spend your Credits on card packs. Every pack has 5 cards from its region.</p>
 </div>
 <div style="display: flex; align-items: baseline; gap: 10px; padding: 12px 18px; border: 1px solid #2a3a3e; border-radius: 12px; background: #172124">
 <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.08em; text-transform: uppercase">The Bank</span>
@@ -127,54 +127,6 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </div>
 </section>
 
-<sc-for list="{{groups}}" as="g" hint-placeholder-count="2">
-<section aria-labelledby="{{g.hid}}" style="display: flex; flex-direction: column; gap: 16px">
-<div style="display: flex; flex-direction: column; gap: 6px">
-<h2 id="{{g.hid}}" style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">{{g.title}}</h2>
-<sc-if value="{{g.hasNote}}" hint-placeholder-val="{{ true }}"><p style="margin: 0; max-width: 640px; font-size: 15px; line-height: 1.5; color: #c4d4d4">{{g.note}}</p></sc-if>
-</div>
-<div style="display: grid; grid-template-columns: repeat(auto-fill, 225px); gap: 22px; justify-content: start">
-<sc-for list="{{g.items}}" as="it" hint-placeholder-count="1">
-<article style="display: flex; flex-direction: column; gap: 14px; min-width: 0">
-<div class="st-card" role="img" aria-label="{{it.cardLabel}}">
-<span class="st-wm" aria-hidden="true"><img src="{{it.regionLogo}}" alt=""></span>
-<span class="st-art" aria-hidden="true"><img class="{{it.artClass}}" src="{{it.art}}" alt=""></span>
-<sc-if value="{{it.shiny}}" hint-placeholder-val="{{ true }}"><span class="st-sheen" aria-hidden="true" style="background-image: {{it.sheen}}"></span></sc-if>
-<span style="display: block; height: 5px; background: {{it.color}}; flex: none; position: relative; z-index: 1"></span>
-<div class="st-body">
-<div style="display: flex; justify-content: space-between; align-items: center; height: 30px; flex: none">
-<img src="{{it.teamLogo}}" alt="{{it.teamName}}" title="{{it.teamName}}" style="height: 30px; width: auto; max-width: 70px; object-fit: contain; display: block">
-<span title="{{it.maps}} maps played in {{it.season}}" style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 30px; line-height: 1; color: {{it.color}}; font-variant-numeric: tabular-nums; display: inline-flex; align-items: baseline; gap: 4px">{{it.maps}}<small style="font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 9px; letter-spacing: 0.1em; opacity: 0.8">MAPS</small></span>
-</div>
-<div style="display: flex; align-items: center; height: 38px; flex: none; font-family: 'Cabin Sketch', cursive; font-weight: 700; line-height: 1.1; white-space: nowrap; overflow: hidden; font-size: {{it.nameSize}}px"><span style="overflow: hidden; min-width: 0">{{it.name}}</span></div>
-<div style="font-size: 10px; line-height: 1.2; font-weight: 500; color: {{it.color}}; opacity: 0.85; flex: none; overflow: hidden; white-space: nowrap; text-overflow: ellipsis">{{it.teamName}} · {{it.season}}</div>
-<div style="display: flex; flex-direction: column; gap: 5px; flex: 1; justify-content: center">
-<sc-for list="{{it.stats}}" as="st" hint-placeholder-count="5">
-<div class="st-stat"><span style="font-size: 14px">{{st.label}}<sc-if value="{{st.low}}" hint-placeholder-val="{{ false }}"><i style="font-style: normal; color: #93a9aa; margin-left: 6px; font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase">lower wins</i></sc-if></span><span style="font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums">{{st.value}}</span></div>
-</sc-for>
-</div>
-<div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; height: 26px; flex: none">
-<img src="{{it.roleIcon}}" alt="{{it.roleLabel}}" title="{{it.roleLabel}}" style="width: 24px; height: 24px; display: block">
-<sc-if value="{{it.shiny}}" hint-placeholder-val="{{ true }}">
-<span class="st-stamp" title="{{it.rarityLabel}} card" style="border: 1.5px solid {{it.color}}; box-shadow: inset 0 0 0 2px #172124, inset 0 0 0 3px {{it.color}}, 0 0 12px {{it.glow}}; color: {{it.color}}">
-<svg aria-hidden="true" width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 20.9l1.6-7L2 9.2l7.1-.6z"></path></svg>
-<span class="st-shine" style="background-image: {{it.shine}}">{{it.rarityTag}}</span>
-</span>
-</sc-if>
-</div>
-</div>
-<span style="display: block; height: 5px; background: {{it.color}}; flex: none; position: relative; z-index: 1"></span>
-</div>
-<div style="display: flex; flex-direction: column; gap: 4px">
-<h3 style="margin: 0; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 28px; line-height: 1.1">{{it.title}}</h3>
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">{{it.foundIn}}</span>
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: {{it.ownedInk}}">{{it.owned}}</span>
-</div>
-</article>
-</sc-for>
-</div>
-</section>
-</sc-for>
 
 </div>
 </sc-if>
@@ -984,6 +936,18 @@ function pcmtSamplePull(pack) {
   return out;
 }
 if (typeof window !== 'undefined') window.__pcmtPackAnim = pcmtPackAnim;
+// The odds a pack can really drop: a rarity with no released cards for that pack falls to the tier below (same as buy_pack).
+// released = [{ region, season, rarity }] of released Rare-and-up cards, or null when unknown (shows the pack's odds as set).
+function pcmtPackOdds(p, released) {
+  var o = p.odds || {}, tiers = ['common', 'rare', 'epic', 'legendary'], e = { common: 0, rare: 0, epic: 0, legendary: 0 };
+  tiers.forEach(function (t, i) {
+    var v = +o[t] || 0, j = i;
+    if (!v) return;
+    while (j > 0 && released && !released.some(function (c) { return c.rarity === tiers[j] && c.region === p.region && (c.season || null) === (p.season || null); })) j--;
+    e[tiers[j]] += v;
+  });
+  return e;
+}
 class Component extends DCLogic {
   componentDidMount() {
     var self = this, start = Date.now();
@@ -1076,8 +1040,7 @@ class Component extends DCLogic {
   _pageVals() {
     var self = this, s = this.state || {};
     var W = typeof window !== 'undefined' ? window : {};
-    // Coming soon for everyone except admins (the live site sets PCMT_IS_ADMIN).
-    var locked = !W.PCMT_IS_ADMIN;
+    var locked = false;   // open to everyone (packs only; Rare cards aren't released yet)
     var live = !!W.PCMT_LEAGUE, signedIn = live ? !!W.PCMT_LEAGUE.signedIn : true;
     var bankNum = live ? (+((W.PCMT_VP && W.PCMT_VP.balance) || 0) || 0) : 0;
     var mine = W.PCMT_MY_CARDS || {};
@@ -1093,7 +1056,7 @@ class Component extends DCLogic {
         id: p.id, name: p.name, art: PCMT_PACK_ART[p.region] || PCMT_PACK_ART.NA,
         desc: p.season ? (p.cards || 5) + ' cards from ' + p.season + ', with that season\'s teams and stats. Not used on The Deck.'
                        : (p.cards || 5) + ' cards, all ' + p.region + ' players (' + (PCMT_SEASON[p.region] || p.region) + ').',
-        odds: 'Each card: ' + [['Common', o.common], ['Rare', o.rare], ['Epic', o.epic], ['Legendary', o.legendary]].filter(function (t) { return +t[1] > 0; }).map(function (t) { return t[0] + ' ' + t[1] + '%'; }).join(' · '),   // tiers at 0% aren't listed
+        odds: (function (e) { return 'Each card: ' + [['Common', e.common], ['Rare', e.rare], ['Epic', e.epic], ['Legendary', e.legendary]].filter(function (t) { return +t[1] > 0; }).map(function (t) { return t[0] + ' ' + t[1] + '%'; }).join(' · '); })(pcmtPackOdds(p, live ? W.PCMT_RELEASED_RARES : null)),   // tiers at 0% aren't listed
         price: priced ? String(p.price) : '', priceLabel: priced ? String(p.price) : '—',
         disabled: disabled, btnBg: disabled ? 'transparent' : '#a5dcdd', btnInk: disabled ? '#93a9aa' : '#000', btnBorder: disabled ? '#3a4f53' : '#a5dcdd', cursor: disabled ? 'not-allowed' : 'pointer',
         buyLabel: label, confirming: s.confirming === p.id, notConfirming: s.confirming !== p.id,
@@ -1102,42 +1065,6 @@ class Component extends DCLogic {
         hasNote: !!note, note: note ? note.text : '', noteInk: note && note.ok ? '#8be4b7' : '#ff8a80'
       };
     });
-    var items = PCMT_STORE_ITEMS.map(function (it) {
-      var n = mine[it.card] || 0;
-      return Object.assign({}, it, {
-        nameSize: Math.max(18, Math.min(34, Math.floor(230 / Math.max(4, it.name.length * 0.62)))),
-        roleLabel: it.role.charAt(0).toUpperCase() + it.role.slice(1),
-        rarityTag: it.rarity.toUpperCase(), rarityLabel: it.rarity.charAt(0).toUpperCase() + it.rarity.slice(1),
-        artClass: PCMT_VARIANT_FULL[it.id] ? 'st-art-full' : PCMT_VARIANT_CENTER[it.id] ? 'st-art-center' : '',
-        // Rare and up: a sheen across the card and a shiny stamp, both in the card's own colour.
-        shiny: it.rarity !== 'common', glow: pcmtRgba(it.color, 0.45),
-        sheen: (function (sc) { return 'linear-gradient(115deg, transparent 42%, ' + pcmtRgba(sc, 0.2) + ' 50%, transparent 58%)'; })(PCMT_VARIANT_SHEEN[it.id] || it.color),
-        shine: 'linear-gradient(100deg, ' + it.color + ' 0%, ' + it.color + ' 35%, #ffffff 50%, ' + it.color + ' 65%, ' + it.color + ' 100%)',
-        cardLabel: it.title + ' card: ' + it.name + ', ' + it.teamName,
-        blurb: it.blurb + ' ' + it.rarity.charAt(0).toUpperCase() + it.rarity.slice(1) + ', found in the ' + it.pack + '.',
-        foundIn: (it.rarity.charAt(0).toUpperCase() + it.rarity.slice(1)) + ' · ' + it.pack,
-        owned: n ? 'You own ×' + n : (live && signedIn ? 'Not in your collection yet' : ''), ownedInk: n ? '#8be4b7' : '#93a9aa',
-        stats: [
-          { label: 'ACS', value: String(it.acs), low: false },
-          { label: 'KAST', value: it.kast + '%', low: false },
-          { label: 'HS%', value: it.hs + '%', low: false },
-          { label: 'DPR', value: it.dpr.toFixed(2), low: true },
-          { label: 'Toxic rating', value: it.toxic.toFixed(2), low: false }
-        ]
-      });
-    });
-    // Series (e.g. Spotlight Moment) get their own heading; they are shown so players know what they can pull, never sold on their own.
-    var groups = [], byName = {};
-    items.forEach(function (it) {
-      var key = it.series || '';
-      if (!byName[key]) {
-        byName[key] = { hid: 'variants-' + (key ? key.toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'all'), title: key ? key : 'Variants in packs',
-          note: key ? 'A series of Rare cards you can pull from packs. It can\'t be bought on its own. Each card shows the pack it comes from.' : '', hasNote: !!key, items: [] };
-        groups.push(byName[key]);
-      }
-      byName[key].items.push(it);
-    });
-    groups.sort(function (a, b) { return (a.hasNote ? 0 : 1) - (b.hasNote ? 0 : 1); });
     return {
       locked: locked,
       unlocked: !locked,  // players see nothing of the page until it's opened
@@ -1146,9 +1073,7 @@ class Component extends DCLogic {
       lockPointer: locked ? 'none' : 'auto',
       bank: live ? String(bankNum) : '[Credits]',
       packs: packs,
-      groups: groups,
-      cancelBuy: function () { self.setState({ confirming: null }); },
-      items: items
+      cancelBuy: function () { self.setState({ confirming: null }); }
     };
   }
 }

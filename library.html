@@ -224,8 +224,7 @@ class Component extends DCLogic {
   _pageVals() {
     var self = this, s = this.state || {};
     var W = typeof window !== 'undefined' ? window : {};
-    // Coming soon for everyone except admins (the live site sets PCMT_IS_ADMIN).
-    var locked = !W.PCMT_IS_ADMIN;
+    var locked = false;   // open to everyone
     var live = !!W.PCMT_LEAGUE, signedIn = live ? !!W.PCMT_LEAGUE.signedIn : true;
     var mine = live ? (W.PCMT_MY_CARDS || {}) : PCMT_LIBRARY_SAMPLE.mine;
     var catalog = live ? (W.PCMT_CARD_CATALOG || []) : PCMT_LIBRARY_SAMPLE.catalog;

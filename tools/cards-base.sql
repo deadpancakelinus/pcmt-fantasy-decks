@@ -26,6 +26,14 @@ create table if not exists public.cards (
 );
 alter table public.cards add column if not exists region text not null default 'NA' check (region in ('NA', 'EMEA'));
 alter table public.cards add column if not exists season text;
+-- released: only released cards can be pulled from packs. Commons are always released; Rare (and up) cards start
+-- unreleased and are released one by one by Freshbatch staff on backend.html (Rare cards tab).
+do $$ begin
+  if not exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'cards' and column_name = 'released') then
+    alter table public.cards add column released boolean not null default false;
+    update public.cards set released = (rarity = 'common');
+  end if;
+end $$;
 alter table public.cards enable row level security;
 drop policy if exists "anyone can read cards" on public.cards;
 create policy "anyone can read cards" on public.cards for select using (true);
@@ -107,11 +115,11 @@ begin
       exit when roll < acc;
     end loop;
     idx := array_position(tiers, drawn); got_tier := drawn;
-    while idx > 1 and not exists (select 1 from public.cards where active and region = pk.region and season is not distinct from pk.season and rarity = tiers[idx]) loop
-      idx := idx - 1;                                                    -- no cards in that tier yet: next tier down
+    while idx > 1 and not exists (select 1 from public.cards where active and released and region = pk.region and season is not distinct from pk.season and rarity = tiers[idx]) loop
+      idx := idx - 1;                                                    -- no released cards in that tier yet: next tier down
     end loop;
     got_tier := tiers[idx];
-    select * into c from public.cards where active and region = pk.region and season is not distinct from pk.season and rarity = got_tier order by random() limit 1;
+    select * into c from public.cards where active and released and region = pk.region and season is not distinct from pk.season and rarity = got_tier order by random() limit 1;
     if not found then raise exception 'There are no cards to draw yet.'; end if;
     insert into public.user_cards (user_id, card_id, count) values (u, c.id, 1)
       on conflict (user_id, card_id) do update set count = public.user_cards.count + 1
@@ -126,3 +134,18 @@ begin
 end $$;
 revoke all on function public.buy_pack(text) from public, anon;
 grant execute on function public.buy_pack(text) to authenticated;
+
+-- Release (or hold back) a Rare-or-up card: Freshbatch staff only, from backend.html. Commons are always released.
+create or replace function public.fb_release_card(p_card text, p_released boolean) returns boolean
+language plpgsql security definer set search_path = public as $$
+declare r text;
+begin
+  if not public.is_freshbatch() then raise exception 'Freshbatch staff only.'; end if;
+  select rarity into r from public.cards where id = p_card;
+  if r is null then raise exception 'No card %.', p_card; end if;
+  if r = 'common' then raise exception 'Common cards are always released.'; end if;
+  update public.cards set released = coalesce(p_released, false) where id = p_card;
+  return coalesce(p_released, false);
+end $$;
+revoke all on function public.fb_release_card(text, boolean) from public, anon;
+grant execute on function public.fb_release_card(text, boolean) to authenticated;

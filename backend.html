@@ -102,6 +102,18 @@
   .stat b { font: 700 28px/1 'Cabin Sketch', cursive; color: var(--accent); }
   .stat span { font: 400 12px/1 'JetBrains Mono', monospace; color: var(--dim); letter-spacing: .08em; text-transform: uppercase; }
   .count { font-weight: 400; color: var(--dim); }
+  .rc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); gap: 16px; }
+  .rc { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+  .rc-art { aspect-ratio: 4 / 3; background: #0d1416 radial-gradient(circle at 50% 40%, rgba(124,194,255,.18), transparent 70%); display: grid; place-items: center; overflow: hidden; }
+  .rc-art img { width: 100%; height: 100%; object-fit: cover; }
+  .rc-art img.center { object-fit: contain; width: 70%; height: 80%; }
+  .rc-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .rc-title { margin: 0; font: 700 24px/1.1 'Cabin Sketch', cursive; }
+  .rc-meta { font: 400 12px/1.5 'JetBrains Mono', monospace; color: var(--dim); }
+  .rc-state { font: 600 12px/1 'JetBrains Mono', monospace; letter-spacing: .06em; text-transform: uppercase; }
+  .rc-state.held { color: #f5d76e; } .rc-state.out { color: var(--good); }
+  .rc-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: auto; padding-top: 8px; }
+  .rc-foot .btn { min-height: 40px; }
   .sub2 { display: block; color: var(--dim); font: 400 12px/1.3 'JetBrains Mono', monospace; }
   table.grid input[type=checkbox] { vertical-align: middle; }
   .cx-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
@@ -161,7 +173,7 @@
 <main>
   <div>
     <h1>Backend</h1>
-    <p class="sub">For Freshbatch staff only. Player prices, every card and who owns it, card pack prices, the 4Ks and 5Ks for each series, and the comments and complaints sent from the Home page.</p>
+    <p class="sub">For Freshbatch staff only. Player prices, every card and who owns it, the Rare cards waiting to be released, card pack prices, the 4Ks and 5Ks for each series, and the comments and complaints sent from the Home page.</p>
   </div>
 
   <section class="panel" id="st-loading" role="status"><p class="msg">Locked. Enter the page password to continue.</p></section>
@@ -177,6 +189,7 @@
     <div class="tabs" role="tablist" aria-label="Backend sheets">
       <button type="button" role="tab" id="tab-prices" aria-controls="pane-prices" aria-selected="true">Player prices</button>
       <button type="button" role="tab" id="tab-cards" aria-controls="pane-cards" aria-selected="false" tabindex="-1">Cards</button>
+      <button type="button" role="tab" id="tab-rares" aria-controls="pane-rares" aria-selected="false" tabindex="-1">Rare cards</button>
       <button type="button" role="tab" id="tab-packs" aria-controls="pane-packs" aria-selected="false" tabindex="-1">Card packs</button>
       <button type="button" role="tab" id="tab-multi" aria-controls="pane-multi" aria-selected="false" tabindex="-1">4Ks &amp; 5Ks</button>
       <button type="button" role="tab" id="tab-complaints" aria-controls="pane-complaints" aria-selected="false" tabindex="-1">Complaints <span class="count" id="cx-badge"></span></button>
@@ -239,6 +252,18 @@
       <p class="msg" id="c-msg" role="status" aria-live="polite"></p>
     </section>
 
+    <!-- ===== Rare cards ===== -->
+    <section class="pane" role="tabpanel" id="pane-rares" aria-labelledby="tab-rares" hidden>
+      <p class="note">Every Rare card. They're held back: packs can't drop a card until it's released here, and a pack's Rare roll gives a Common instead. Release a card and it can be pulled from its pack straight away (the Store shows the new odds on its next load). Hold it back again to stop new pulls; anyone who already pulled it keeps it.</p>
+      <div class="stats" id="r-stats"></div>
+      <div class="toolbar">
+        <label class="field"><span class="kicker">Pack</span><select id="r-pack"><option value="">All packs</option></select></label>
+        <label class="field"><span class="kicker">Show</span><select id="r-show"><option value="">All</option><option value="held">Held back</option><option value="out">Released</option></select></label>
+      </div>
+      <p class="msg" id="r-msg" role="status" aria-live="polite"></p>
+      <div class="rc-grid" id="r-list"></div>
+    </section>
+
     <!-- ===== Card packs ===== -->
     <section class="pane" role="tabpanel" id="pane-packs" aria-labelledby="tab-packs" hidden>
       <p class="note">Set each pack's price in Credits. While "Open to everyone" is off, only Freshbatch staff and site admins can buy it, so you can test (a price of 0 is free). Odds and what's in each pack come from <span class="mono">tools/cards.py</span>.</p>
@@ -285,6 +310,7 @@
 <script src="players.js"></script>
 <script src="trumps-cards.js"></script>
 <script src="league.js"></script>
+<script src="variant-art.js"></script>
 <script>
 (function () {
   'use strict';
@@ -333,7 +359,7 @@
   })();
 
   // ---------- tabs ----------
-  var TABS = ['prices', 'cards', 'packs', 'multi', 'complaints'];
+  var TABS = ['prices', 'cards', 'rares', 'packs', 'multi', 'complaints'];
   function openTab(name, focus) {
     TABS.forEach(function (t) {
       var on = t === name, tab = $('tab-' + t);
@@ -460,7 +486,7 @@
   });
   function loadCards() {
     return Promise.all([
-      L.api('/rest/v1/cards?select=id,player,variant,rarity,region,season,title,active&limit=5000'),
+      L.api('/rest/v1/cards?select=id,player,variant,rarity,region,season,title,active,released&limit=5000').catch(function () { return L.api('/rest/v1/cards?select=id,player,variant,rarity,region,season,title,active&limit=5000'); }),
       L.api('/rest/v1/card_packs?select=id,name,region,season,active&order=id'),
       L.api('/rest/v1/rpc/fb_card_counts', { method: 'POST', body: {} })
     ]).then(function (r) {
@@ -552,6 +578,53 @@
     sel.setAttribute('data-was', '0');
     loadSeries(0);
   }
+
+  // ---------- Rare cards: release them one by one ----------
+  var hasReleased = function () { return CATALOG.some(function (c) { return 'released' in c; }); };
+  function packOf(c) {
+    var p = PACKS.filter(function (k) { return k.region === c.region && (k.season || null) === (c.season || null); })[0];
+    return p ? p.name : (c.season ? c.season + ' Throwback Pack' : c.region + ' Card Pack');
+  }
+  function artOf(c) {
+    var v = c.variant || '', m = window.PCMT_VARIANT_ART_MAP || {}, ch = window.PCMT_VARIANT_ART_CHAMP || {};
+    if (m[v]) return { src: m[v], center: v.indexOf('champ-') === 0 };
+    if (v.indexOf('champ-') === 0) { var any = ch[Object.keys(ch)[0]]; return any ? { src: any, center: true } : null; }   // past champions share the trophy art
+    return null;
+  }
+  function seriesOf(c) { var v = c.variant || ''; return (window.PCMT_VARIANT_SERIES || {})[v] || (v.indexOf('champ-') === 0 ? 'Champions' : ''); }
+  function drawRares() {
+    var rares = CATALOG.filter(function (c) { return c.rarity !== 'common' && c.active !== false; });
+    var packs = []; rares.forEach(function (c) { var n = packOf(c); if (packs.indexOf(n) < 0) packs.push(n); });
+    var sel = $('r-pack'), keep = sel.value;
+    sel.innerHTML = '<option value="">All packs</option>' + packs.map(function (n) { return '<option>' + esc(n) + '</option>'; }).join(''); sel.value = keep;
+    var out = rares.filter(function (c) { return c.released; }).length;
+    $('r-stats').innerHTML = '<div class="stat"><b>' + rares.length + '</b><span>Rare cards</span></div><div class="stat"><b>' + (rares.length - out) + '</b><span>Held back</span></div><div class="stat"><b>' + out + '</b><span>Released</span></div>';
+    if (!hasReleased()) { $('r-msg').className = 'msg err'; $('r-msg').textContent = 'Releasing needs the latest card setup in Supabase (the "released" switch isn\'t there yet).'; }
+    var f = $('r-pack').value, show = $('r-show').value;
+    var list = rares.filter(function (c) { return (!f || packOf(c) === f) && (!show || (show === 'out') === !!c.released); })
+      .sort(function (a, b) { return (seriesOf(a) === 'Champions') - (seriesOf(b) === 'Champions') || packOf(a).localeCompare(packOf(b)) || a.title.localeCompare(b.title); });
+    $('r-list').innerHTML = list.map(function (c) {
+      var art = artOf(c), cnt = COUNTS[c.id] || {}, ser = seriesOf(c), p = BY_ID[c.player] || TRUMPS[c.player];
+      var who = p ? p.name : String(c.player).replace(/^[a-z]+\d?-/, '');
+      return '<article class="rc"><div class="rc-art">' + (art ? '<img src="' + esc(art.src) + '" alt="" class="' + (art.center ? 'center' : '') + '" loading="lazy">' : '') + '</div>' +
+        '<div class="rc-body"><span class="rc-state ' + (c.released ? 'out' : 'held') + '">' + (c.released ? 'Released' : 'Held back') + '</span>' +
+        '<h3 class="rc-title">' + esc(c.title) + '</h3>' +
+        '<span class="rc-meta">' + esc(who) + ' · ' + esc(cap(c.rarity)) + (ser ? ' · ' + esc(ser) : '') + '<br>' + esc(packOf(c)) + '<br>' + (cnt.owners ? cnt.owners + ' owner' + (cnt.owners === 1 ? '' : 's') + ', ' + cnt.copies + ' cop' + (cnt.copies === 1 ? 'y' : 'ies') : 'Nobody owns it yet') + '</span>' +
+        '<div class="rc-foot"><button type="button" class="btn' + (c.released ? ' ghost' : '') + '" data-release="' + esc(c.id) + '" data-to="' + (c.released ? '0' : '1') + '"' + (hasReleased() ? '' : ' disabled') + '>' + (c.released ? 'Hold back' : 'Release') + '</button><span class="msg" role="status" aria-live="polite"></span></div></div></article>';
+    }).join('') || '<p class="msg">No Rare cards match.</p>';
+  }
+  $('r-pack').addEventListener('change', drawRares); $('r-show').addEventListener('change', drawRares);
+  $('r-list').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-release]'); if (!b) return;
+    var id = b.getAttribute('data-release'), to = b.getAttribute('data-to') === '1', say = b.nextElementSibling;
+    b.disabled = true; say.className = 'msg'; say.textContent = to ? 'Releasing…' : 'Holding back…';
+    L.api('/rest/v1/rpc/fb_release_card', { method: 'POST', body: { p_card: id, p_released: to } }).then(function (r) {
+      CATALOG.forEach(function (c) { if (c.id === id) c.released = !!r; });
+      drawRares(); $('r-msg').className = 'msg ok';
+      var c = CATALOG.filter(function (x) { return x.id === id; })[0];
+      $('r-msg').textContent = (c ? c.title : id) + (r ? ' is released: it can be pulled from the ' + packOf(c) + ' now.' : ' is held back again: no new pulls.');
+    }).catch(function (err) { b.disabled = false; say.className = 'msg err'; say.textContent = 'Couldn\'t change it: ' + err.message; });
+  });
 
   // ---------- Card packs: price and who can buy (was on admin.html) ----------
   function pkSay(t, cls) { $('pk-msg').textContent = t; $('pk-msg').className = 'msg' + (cls ? ' ' + cls : ''); }
@@ -706,7 +779,7 @@
         show('st-staff');
         var h = (location.hash || '').slice(1);
         openTab(TABS.indexOf(h) >= 0 ? h : 'prices');
-        drawPrices(); drawCards(); drawPacks(); setupMulti(); drawComplaints();
+        drawPrices(); drawCards(); drawRares(); drawPacks(); setupMulti(); drawComplaints();
       });
     }).catch(function (e) { show('st-staff'); $('p-msg').textContent = 'Something went wrong loading the backend: ' + e.message; $('p-msg').className = 'msg err'; });
   }

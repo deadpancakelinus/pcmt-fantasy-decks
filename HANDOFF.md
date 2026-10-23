@@ -45,7 +45,7 @@ Branding: header and titles say **fantasy.pcmt.gg**. The site is a Freshbatch pr
 1. Edit the board(s) in `tools/canvas/*.dc.html`.
 2. Build: `python3 -I tools/build.py tools/canvas assets <out>`
 3. Test: copy the repo `data.js` into `<out>`, serve it (`python3 -m http.server 8766 --directory <out>`, in the background) and run `NODE_PATH=$(npm root -g) node tools/smoke-test.js http://localhost:8766 <out>/shots`. It mocks Supabase and checks every page on desktop and phone. Look at the screenshots for visual changes.
-4. Copy `home.html index.html customization.html leaderboard.html guide.html login.html transactions.html store.html library.html players.js league.js dc-lite.js freshbatch.js _headers` from `<out>` into the repo root (**not** `data.js`, **not** `assets/`, **not** `mvp-vs.html` or `admin.html`, which are hand-written). Copy changed boards into `tools/canvas/`.
+4. Copy `home.html index.html customization.html leaderboard.html guide.html login.html transactions.html store.html library.html players.js league.js dc-lite.js freshbatch.js variant-art.js _headers` from `<out>` into the repo root (**not** `data.js`, **not** `assets/`, **not** `mvp-vs.html` or `admin.html`, which are hand-written). Copy changed boards into `tools/canvas/`.
 5. Update the design canvas with the changed boards so it stays in step with `tools/canvas/`.
 6. Commit, then `git fetch && git stash && git rebase origin/main && git stash pop && git push` (the scheduled check also pushes to `main`).
 
@@ -125,9 +125,15 @@ Tables: `profiles`, `deck_history` (insert-only, server timestamps, 60/hour limi
 - Test: `node tools/cards-test.js "psql -h /tmp/pg -p 5499 -U postgres"` (odds, region, throwback seasons, VP, duplicates, at-once purchases, permissions).
 
 ## Freshbatch backend (backend.html)
-- Hand-written page, not in the nav, noindex. Opens with a window that plays media/freshbatch-intro.mp4 and asks for the page password, then the Discord login, then checks the Freshbatch staff list. Tabs: Player prices (editable), Cards (rarity, pack, copies, owners), Card packs (price and open to everyone, from the old admin page; staff and admins can save and test-buy unopened packs), 4Ks & 5Ks, Complaints.
+- Hand-written page, not in the nav, noindex. Opens with a window that plays media/freshbatch-intro.mp4 and asks for the page password, then the Discord login, then checks the Freshbatch staff list. Tabs: Player prices (editable), Cards (rarity, pack, copies, owners), Rare cards (art, pack, series, owners; Release / Hold back each one with `fb_release_card`), Card packs (price and open to everyone, from the old admin page; staff and admins can save and test-buy unopened packs), 4Ks & 5Ks, Complaints.
 - SQL: setup/backend-setup.sql, after supabase → vp → cards. The staff list (`freshbatch_staff`, `is_freshbatch()`) is in vp-setup.sql so the 4K/5K rules can use it.
 - Add staff: `insert into public.freshbatch_staff (user_id) values ('<account id>') on conflict do nothing;` (the page shows the id to anyone not on the list).
 - Page password: set or change it in the Supabase SQL editor with `select public.fb_set_page_password('<password>');`. Only a bcrypt hash is stored; the site checks it with `fb_page_unlock`. It's a front door only; the data itself is staff-only in the database.
 - Prices: every change is a dated row in `player_price_changes` (null = back to the players.js price). league.js and vp_compute both check a deck against the prices from when it was saved, so a price change never breaks a saved deck.
 - Test: `node tools/backend-test.js "psql -h /tmp/pg -p 5499 -U postgres" players.js`.
+
+## Rare card release (Oct 23 2026)
+- `cards.released`: only released cards can be pulled. Commons are always released; every Rare (variants and champions) starts held back. A Rare roll on a pack with no released Rares gives a Common (same drop-down rule as before), so the 80/20 odds stay set and start counting the moment one is released.
+- Staff release or hold back each Rare on backend.html (Rare cards tab), via `fb_release_card(card, released)` (staff only). The Store's odds line shows what a pack can really drop (league.js loads released Rares as `PCMT_RELEASED_RARES`).
+- The Store is open to everyone, packs only: the Rare card series sections were taken off the page. `PCMT_STORE_ITEMS` stays in the Store board (pack opening uses its stats, and the build writes each variant's art and series to `variant-art.js` for the backend).
+- Store (packs only), Library and Transactions are open to everyone (Oct 23 2026); they no longer depend on `PCMT_IS_ADMIN`.

@@ -438,7 +438,10 @@
       var onLibrary = /"data-pcmt-root":"Library"/.test((document.getElementById('dc-tree') || {}).textContent || ''); // not the address: the site serves /library as well as /library.html
       var catalog = onLibrary ? api('/rest/v1/cards?select=id,player,variant,rarity,region,season,title&limit=5000')
         .catch(function () { return api('/rest/v1/cards?select=id,player,variant,rarity,region,title&limit=5000'); }).catch(function () { return []; }) : Promise.resolve([]);
-      return Promise.all([decks, profiles, unlocks, vp, multi, admin, packs, mine, catalog, prices]);
+      // Released Rare-and-up cards, so the Store shows the odds a pack can really drop (null = not known yet)
+      var onStore = /"data-pcmt-root":"Store"/.test((document.getElementById('dc-tree') || {}).textContent || '');
+      var released = onStore ? api('/rest/v1/cards?select=region,season,rarity&active=is.true&released=is.true&rarity=neq.common&limit=5000').catch(function () { return null; }) : Promise.resolve(null);
+      return Promise.all([decks, profiles, unlocks, vp, multi, admin, packs, mine, catalog, prices, released]);
     }).then(function (res) {
       attachMulti(res[4] || []);
       PRICE_LOG = (res[9] || []).map(function (c) { return { player: c.player, price: c.price == null ? null : +c.price, t: Date.parse(c.changed_at) }; });
@@ -450,6 +453,7 @@
       window.PCMT_PACKS = res[6] || [];
       window.PCMT_MY_CARDS = {};
       window.PCMT_CARD_CATALOG = res[8] || [];
+      window.PCMT_RELEASED_RARES = res[10] || null;
       (res[7] || []).forEach(function (c) { window.PCMT_MY_CARDS[c.card_id] = c.count; });
       var decks = res[0] || [], profiles = res[1] || [], unlocks = res[2] || [];
       window.PCMT_SERVER_UNLOCKS = unlocks.map(function (u) { return u.unlock; });

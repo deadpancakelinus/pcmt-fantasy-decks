@@ -96,6 +96,7 @@ insert into public.cards (id, player, variant, rarity, title, region, season) va
 %s
 on conflict (id) do update set player = excluded.player, variant = excluded.variant, rarity = excluded.rarity, title = excluded.title, region = excluded.region, season = excluded.season, active = true;
 update public.cards set active = false where id not in (%s);
+update public.cards set released = true where rarity = 'common' and not released;   -- commons are always released; new Rares start held back
 
 -- Packs: a new pack starts at 0 VP (change it on admin.html). Odds and size come from tools/cards.py.
 insert into public.card_packs (id, name, region, cards, odds, price, season) values
