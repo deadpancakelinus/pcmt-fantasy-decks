@@ -34,10 +34,13 @@
   .btn.ghost { background: transparent; color: var(--ink); border-color: #2c3d40; }
   select { width: 100%; min-height: 46px; padding: 0 12px; border-radius: 8px; border: 1px solid #2c3d40; background: #000; }
   code { font-family: 'JetBrains Mono', monospace; font-size: 13px; background: #000; border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; display: block; overflow-x: auto; white-space: pre; color: var(--soft); }
-  .teams { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 16px; }
+  .teams { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 560px), 1fr)); gap: 16px; }
+  .mk-scroll { overflow-x: auto; }
+  table.mk { min-width: 560px; }
+  table.mk input[type=number] { width: 52px; }
   table { width: 100%; border-collapse: collapse; }
   th { text-align: left; font: 400 12px/1 'JetBrains Mono', monospace; color: var(--dim); letter-spacing: .06em; text-transform: uppercase; padding: 0 6px 10px; }
-  th.n, td.n { text-align: center; width: 76px; }
+  th.n, td.n { text-align: center; width: 64px; }
   th.pts, td.pts { text-align: right; width: 56px; }
   td { padding: 6px; border-top: 1px solid var(--line); }
   td.name { font-weight: 500; }
@@ -75,7 +78,7 @@
 <main>
   <div>
     <h1>Admin</h1>
-    <p class="sub">Enter each player's 4Ks and 5Ks for a series, and set card pack prices below. 4K = +1, 5K (ace) = +3, and an ace counts as a 5K only. The new points show on the site the next time a page loads, and Credits pay out with them.</p>
+    <p class="sub">Enter each player's 4Ks, 5Ks and clutches for a series, and set card pack prices below. 4K +1, 5K (ace) +3 (an ace counts as a 5K only). Clutches: 1v2 +1, 1v3 +2, 1v4 +4, 1v5 +6. The new points show on the site the next time a page loads, and Credits pay out with them.</p>
   </div>
 
   <section class="panel" id="st-loading" role="status"><p class="msg">Loading…</p></section>
@@ -87,7 +90,7 @@
 
   <section class="panel" id="st-noadmin" hidden>
     <span class="kicker">Not an admin</span>
-    <p class="msg">This account can't enter 4Ks and 5Ks yet. To make it an admin, run this once in Supabase → SQL Editor, then reload this page:</p>
+    <p class="msg">This account can't enter 4Ks, 5Ks and clutches yet. To make it an admin, run this once in Supabase → SQL Editor, then reload this page:</p>
     <code id="admin-sql"></code>
     <div><button class="btn ghost" id="copy-sql" type="button">Copy SQL</button></div>
     <p class="note" id="setup-note" hidden>If Supabase says <span class="mono">pcmt_admins</span> doesn't exist, run <span class="mono">setup/vp-setup.sql</span> first.</p>
@@ -102,7 +105,7 @@
   <div class="teams" id="teams" hidden></div>
 
   <div class="bar" id="savebar" hidden>
-    <button class="btn" id="save" type="button">Save 4Ks and 5Ks</button>
+    <button class="btn" id="save" type="button">Save 4Ks, 5Ks and clutches</button>
     <p class="msg" id="msg" role="status" aria-live="polite"></p>
   </div>
 
@@ -122,7 +125,11 @@
 <script>
 (function () {
   'use strict';
-  var FROM = Date.parse('2026-10-19T09:00:00Z'); // 4Ks/5Ks count from this gameweek on (same as league.js)
+  var FROM = Date.parse('2026-10-19T09:00:00Z'); // 4Ks, 5Ks and clutches count from this gameweek on (same as league.js)
+  // Columns of the multikills table, with their points (same as SCORING in league.js).
+  var KINDS = [['k4', '4K', 1], ['k5', '5K', 3], ['c2', '1v2', 1], ['c3', '1v3', 2], ['c4', '1v4', 4], ['c5', '1v5', 6]];
+  function ptsOf(v) { return KINDS.reduce(function (t, k, i) { return t + (v[i] || 0) * k[2]; }, 0); }
+  function fromRow(x) { return KINDS.map(function (k) { return x[k[0]] || 0; }); }
   var L = window.PCMT_LEAGUE, $ = function (id) { return document.getElementById(id); };
   var PLAYERS = window.PCMT_SITE_PLAYERS || [], BY_ID = {};
   PLAYERS.forEach(function (p) { BY_ID[p.id] = p; });
@@ -154,34 +161,33 @@
     $('series-note').textContent = s.result ? 'Result is in (' + s.result.winner + ' won). Points update as soon as you save.'
       : 'No result yet. You can enter them now; they count once the result is added (the results check runs every 6 hours).';
     wrap.innerHTML = [s.m.a, s.m.b].map(function (team) {
-      return '<section class="panel" aria-label="' + esc(team) + '"><span class="kicker">' + esc(team) + '</span><table><thead><tr><th>Player</th><th class="n">4K</th><th class="n">5K</th><th class="pts">Pts</th></tr></thead><tbody>' +
+      return '<section class="panel" aria-label="' + esc(team) + '"><span class="kicker">' + esc(team) + '</span><div class="mk-scroll"><table class="mk"><thead><tr><th>Player</th>' + KINDS.map(function (k) { return '<th class="n">' + k[1] + '</th>'; }).join('') + '<th class="pts">Pts</th></tr></thead><tbody>' +
         teamPlayers(s, team).map(function (id) {
-          var p = BY_ID[id], v = saved[id] || [0, 0];
+          var p = BY_ID[id], v = saved[id] || [0, 0, 0, 0, 0, 0];
           return '<tr data-id="' + esc(id) + '"><td class="name">' + esc(p.name) + '<small>' + esc(p.role) + '</small></td>' +
-            '<td class="n"><input type="number" inputmode="numeric" min="0" max="30" step="1" value="' + v[0] + '" aria-label="' + esc(p.name) + ' 4Ks"></td>' +
-            '<td class="n"><input type="number" inputmode="numeric" min="0" max="30" step="1" value="' + v[1] + '" aria-label="' + esc(p.name) + ' 5Ks"></td>' +
-            '<td class="pts">+' + (v[0] + v[1] * 3) + '</td></tr>';
-        }).join('') + '</tbody></table></section>';
+            KINDS.map(function (k, i) { return '<td class="n"><input type="number" inputmode="numeric" min="0" max="30" step="1" value="' + v[i] + '" aria-label="' + esc(p.name) + ' ' + k[1] + (k[0][0] === 'k' ? 's' : ' clutches') + '"></td>'; }).join('') +
+            '<td class="pts">+' + ptsOf(v) + '</td></tr>';
+        }).join('') + '</tbody></table></div></section>';
     }).join('');
     wrap.hidden = false; $('savebar').hidden = false;
   }
   function rows() {
     return Array.prototype.map.call(document.querySelectorAll('#teams tr[data-id]'), function (tr) {
       var inp = tr.querySelectorAll('input');
-      return { tr: tr, id: tr.getAttribute('data-id'), k4: Math.max(0, Math.min(30, Math.floor(+inp[0].value || 0))), k5: Math.max(0, Math.min(30, Math.floor(+inp[1].value || 0))) };
+      return { tr: tr, id: tr.getAttribute('data-id'), v: KINDS.map(function (k, i) { return Math.max(0, Math.min(30, Math.floor(+inp[i].value || 0))); }) };
     });
   }
   $('teams').addEventListener('input', function () {
     dirty = true; $('msg').textContent = ''; $('msg').className = 'msg';
-    rows().forEach(function (r) { r.tr.querySelector('.pts').textContent = '+' + (r.k4 + r.k5 * 3); });
+    rows().forEach(function (r) { r.tr.querySelector('.pts').textContent = '+' + ptsOf(r.v); });
   });
 
   function loadSeries(i) {
     var list = seriesList(); current = list[i] || null; saved = {}; dirty = false;
     $('msg').textContent = '';
     if (!current) return render();
-    L.api('/rest/v1/multikills?select=player,k4,k5&series=eq.' + encodeURIComponent(keyOf(current.m))).then(function (got) {
-      (got || []).forEach(function (x) { saved[x.player] = [x.k4 || 0, x.k5 || 0]; });
+    L.api('/rest/v1/multikills?select=*&series=eq.' + encodeURIComponent(keyOf(current.m))).then(function (got) {
+      (got || []).forEach(function (x) { saved[x.player] = fromRow(x); });
       render();
     }).catch(function (e) { render(); say('Couldn\'t load saved numbers: ' + e.message, 'err'); });
   }
@@ -190,11 +196,11 @@
   $('save').addEventListener('click', function () {
     if (!current) return;
     var key = keyOf(current.m), now = new Date().toISOString();
-    var body = rows().map(function (r) { return { series: key, player: r.id, k4: r.k4, k5: r.k5, updated_at: now }; });
+    var body = rows().map(function (r) { return (function () { var o = { series: key, player: r.id, updated_at: now }; KINDS.forEach(function (k, i) { o[k[0]] = r.v[i]; }); return o; })(); });
     $('save').disabled = true; say('Saving…');
     L.api('/rest/v1/multikills?on_conflict=series,player', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: body })
       .then(function () {
-        body.forEach(function (b) { saved[b.player] = [b.k4, b.k5]; }); dirty = false;
+        body.forEach(function (b) { saved[b.player] = fromRow(b); }); dirty = false;
         render();
         say('Saved ' + current.m.a + ' vs ' + current.m.b + '.' + (current.result ? ' The new points are live.' : ' They count once the result is in.'), 'ok');
       })

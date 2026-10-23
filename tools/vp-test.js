@@ -10,12 +10,14 @@ const check = (ok, msg) => { console.log((ok ? 'ok   ' : 'FAIL ') + msg); if (!o
 // ---- the site's rules, straight from league.js ----
 const LEAGUE = fs.readFileSync(__dirname + '/league.js', 'utf8');
 const core = LEAGUE.slice(LEAGUE.indexOf('  function weekStart(t)'), LEAGUE.indexOf('  // ---------- Supabase over plain fetch'));
+// the scoring numbers and the 4K/5K/clutch start date, exactly as league.js has them
+const SCORING_JS = 'var ' + LEAGUE.match(/var SCORING = \{[\s\S]*?\};/)[0].slice(4) + ' var ' + LEAGUE.match(/var MULTI_FROM = [^;]*;/)[0].slice(4);
 function siteRules(matches, results) {
   const ctx = { window: {} };
   vm.runInNewContext(PLAYERS_JS.replace(/var (PCMT_SITE_\w+)/g, 'window.$1'), ctx);
   ctx.window.PCMT_MATCHES = matches; ctx.window.PCMT_RESULTS = results;
-  vm.runInNewContext('var DAY = 86400000, BUDGET = 100, TEAM_LIMIT = 2, TRANSFERS = 2, LOCK_LEAD_H = 12, ROLES = ["duelist","controller","initiator","sentinel"],' +
-    ' SCORING = { kill: 2, assist: 1, firstKill: 1, seriesWin: 2, topAcs: 3, topKast: 1, fourK: 1, fiveK: 3 }, MULTI_FROM = Date.parse("2026-10-19T09:00:00Z");\n' + core +
+  vm.runInNewContext('var DAY = 86400000, BUDGET = 100, TEAM_LIMIT = 2, TRANSFERS = 2, LOCK_LEAD_H = 12, ROLES = ["duelist","controller","initiator","sentinel"];' +
+    ' ' + SCORING_JS + '\n' + core +
     '\nthis.api = { buildWeeks: buildWeeks, scoreManager: scoreManager, weekCardVP: weekCardVP, validDeck: validDeck };', ctx);
   return ctx.api;
 }
@@ -30,19 +32,31 @@ function scenario(seed) {
   const teams = [...new Set(P.map(p => p.team))];
   const base = Date.parse('2026-10-19T09:00:00Z'), H = 3600000, D = 24 * H;
   const matches = [], results = [], multi = [];
-  const addMulti = (r, ids) => ids.forEach(id => { if (R() < 0.35) multi.push({ series: r.start + '|' + r.a + '|' + r.b, player: id, k4: Math.floor(R() * 3), k5: R() < 0.25 ? 1 : 0 }); });
+  const addMulti = (r, ids) => ids.forEach(id => { if (R() < 0.35) multi.push({ series: r.start + '|' + r.a + '|' + r.b, player: id, k4: Math.floor(R() * 3), k5: R() < 0.25 ? 1 : 0,
+    c2: Math.floor(R() * 2), c3: R() < 0.3 ? 1 : 0, c4: R() < 0.1 ? 1 : 0, c5: R() < 0.05 ? 1 : 0 }); });
   for (let w = 0; w < 4; w++) for (let s = 0; s < 1 + Math.floor(R() * 3); s++) {
     const t = new Date(base + w * 7 * D + (3 + R() * 3.5) * D).toISOString().replace('.000', '');
     const a = pick(teams); let b = pick(teams); while (b === a) b = pick(teams);
     matches.push({ region: 'NA', start: t, a, b, bo: 3, hours: 3, url: 'x' });
     if (w < 3 || R() < 0.5) {
-      const stats = {};
+      const stats = {}, winner = R() < 0.5 ? a : b;
       P.filter(p => p.team === a || p.team === b).forEach(p => {
-        stats[p.id] = [Math.floor(R() * 40), Math.floor(R() * 45), Math.floor(R() * 20), Math.floor(R() * 8), Math.floor(150 + R() * 200), Math.floor(55 + R() * 35)];
+        stats[p.id] = [Math.floor(R() * 40), Math.floor(R() * 45), Math.floor(R() * 20), Math.floor(R() * 8), Math.floor(150 + R() * 200), Math.floor(55 + R() * 35),
+                       Math.round((60 + R() * 160) * 10) / 10, R() < 0.05 ? '' : Math.round((0.5 + R()) * 1000) / 1000];
       });
-      if (R() < 0.4) { const ids = Object.keys(stats); stats[ids[1]][4] = stats[ids[0]][4] = 400; } // tie for top ACS
-      stats['~stranger'] = [5, 20, 1, 0, R() < 0.2 ? 999 : 120, 50];                              // not in the store
-      results.push({ region: 'NA', start: t, a, b, winner: R() < 0.5 ? a : b, url: 'x', stats });
+      const ids = Object.keys(stats);
+      if (R() < 0.4) { stats[ids[1]][4] = stats[ids[0]][4] = 400; }           // tie for top ACS
+      if (R() < 0.4) { stats[ids[2]][7] = stats[ids[3]][7] = 1.9; }           // tie for the top Toxic rating
+      stats['~stranger'] = [5, 20, 1, 0, R() < 0.2 ? 999 : 120, 50, 100, R() < 0.3 ? 2.5 : 0.4];   // not in the store
+      // maps: the winner takes 2 (sometimes 2-1), scores include 13-0, 0-13, 14-12 and wins by 4-12
+      const loser = winner === a ? b : a, wins = R() < 0.5 ? [winner, winner] : [winner, loser, winner], maps = [];
+      wins.forEach(w => {
+        const lose = [0, 2, 5, 9, 11, 12][Math.floor(R() * 6)], ot = R() < 0.15, ws = ot ? 14 : 13, ls = ot ? 12 : lose;
+        const m = { map: 'Map', a: w === a ? ws : ls, b: w === b ? ws : ls, k: {} };
+        ids.forEach(id => { if (R() < 0.92) m.k[id] = R() < 0.06 ? 0 : Math.floor(R() * 30); });
+        maps.push(m);
+      });
+      results.push({ region: 'NA', start: t, a, b, winner, url: 'x', stats, maps });
       addMulti(results[results.length - 1], Object.keys(stats).concat(['nobody']));
     }
   }
@@ -51,7 +65,7 @@ function scenario(seed) {
     P.filter(p => p.team === a || p.team === b).forEach(p => { stats[p.id] = [20, 15, 5, 2, 200 + Math.floor(R() * 100), 70]; });
     matches.push({ region: 'NA', start: t, a, b, bo: 3, hours: 3, url: 'x' });
     results.push({ region: 'NA', start: t, a, b, winner: a, url: 'x', stats });
-    Object.keys(stats).forEach(id => multi.push({ series: t + '|' + a + '|' + b, player: id, k4: 5, k5: 5 }));
+    Object.keys(stats).forEach(id => multi.push({ series: t + '|' + a + '|' + b, player: id, k4: 5, k5: 5, c2: 3, c3: 3, c4: 1, c5: 1 }));
   }
   function randomDeck() {
     for (let tries = 0; tries < 400; tries++) {
@@ -106,7 +120,7 @@ function scenario(seed) {
 
 function withMulti(sc) {
   const by = {};
-  (sc.multi || []).forEach(x => { if (x.k4 || x.k5) (by[x.series] = by[x.series] || {})[x.player] = [x.k4, x.k5]; });
+  (sc.multi || []).forEach(x => { const v = [x.k4, x.k5, x.c2, x.c3, x.c4, x.c5]; if (v.some(Boolean)) (by[x.series] = by[x.series] || {})[x.player] = v; });   // as league.js attachMulti
   return sc.results.map(r => Object.assign({}, r, { multi: by[r.start + '|' + r.a + '|' + r.b] || {} }));
 }
 function expected(sc, now) {
@@ -139,11 +153,34 @@ sql(vpSql.slice(0, vpSql.indexOf('-- [supabase-only]')));
 sql(vpSql.slice(0, vpSql.indexOf('-- [supabase-only]'))); // setup is safe to run twice
 sql('alter table public.deck_history disable trigger user;');
 
+// ---- a real series from PCMT.gg (NAVI 2-1 C9, Oct 10), scored by the site and by the server ----
+{
+  const real = JSON.parse(fs.readFileSync(__dirname + '/test-navi-c9.json', 'utf8'));
+  real.multi = { stingray: [1, 0, 1, 0, 0, 0], claps: [0, 1, 0, 1, 0, 0] };   // made-up 4Ks/5Ks/clutches
+  const early = Object.assign({}, real);            // Oct 10: before 4Ks/5Ks/clutches counted
+  real.start = '2026-10-24T00:00:00Z';              // as if played this gameweek
+  const site = (() => { const c = { window: {} }; vm.runInNewContext(PLAYERS_JS.replace(/var (PCMT_SITE_\w+)/g, 'window.$1'), c);
+    vm.runInNewContext('var ' + SCORING_JS.slice(4) + '\n' + LEAGUE.slice(LEAGUE.indexOf('  var PLAYERS = window.PCMT_SITE_PLAYERS'), LEAGUE.indexOf('  var BASE_PRICE')) +
+      LEAGUE.slice(LEAGUE.indexOf('  // One series: {'), LEAGUE.indexOf('  // A deck counts only if it follows every rule.')) + '\nthis.sp = seriesPoints;', c); return c.sp; })();
+  const pl = '(select jsonb_object_agg(p ->> \'id\', p) from jsonb_array_elements(' + lit(JSON.stringify(P)) + '::jsonb) p)';
+  // without 4Ks/clutches first: the hand-worked numbers from the Guide's rules
+  const plain = Object.assign({}, real, { multi: {} });
+  const e = site(early);
+  check(e.stingray === 98.5 && e.claps === 114, 'real series: 4Ks/5Ks/clutches before the Oct 19 gameweek are ignored');
+  const js0 = site(plain);
+  check(js0.stingray === 98.5 && js0.claps === 114, `real series by hand: stingray 98.5 (got ${js0.stingray}), claps 114 (got ${js0.claps})`);
+  const js = site(real);
+  const db = JSON.parse(sql(`select public.vp_series_points(${lit(JSON.stringify(real))}::jsonb, ${pl});`));
+  const diffs = Object.keys(Object.assign({}, js, db)).filter(k => +js[k] !== +db[k]).map(k => `${k}: site ${js[k]} / server ${db[k]}`);
+  check(!diffs.length && Object.keys(js).length === 10, 'real series: site and server give every player the same points ' + diffs.join('; '));
+  check(js.stingray === 98.5 + 1 + 1 && js.claps === 114 + 3 + 2, `real series: 4K +1, 5K +3, 1v2 +1, 1v3 +2 (stingray ${js.stingray}, claps ${js.claps})`);
+}
+
 let totalWeeks = 0, totalVp = 0;
 for (let seed = 1; seed <= 12; seed++) {
   const sc = scenario(seed);
   sql('truncate public.vp_ledger, public.deck_history, public.multikills; delete from auth.users;');
-  if (sc.multi.length) sql('insert into public.multikills (series, player, k4, k5) values ' + sc.multi.map(m => `(${lit(m.series)}, ${lit(m.player)}, ${m.k4}, ${m.k5})`).join(',') + ';');
+  if (sc.multi.length) sql('insert into public.multikills (series, player, k4, k5, c2, c3, c4, c5) values ' + sc.multi.map(m => `(${lit(m.series)}, ${lit(m.player)}, ${m.k4}, ${m.k5}, ${m.c2}, ${m.c3}, ${m.c4}, ${m.c5})`).join(',') + ';');
   sql('insert into auth.users (id) values ' + sc.users.map(u => '(' + lit(u) + ')').join(',') + ';');
   if (sc.decks.length) sql('insert into public.deck_history (user_id, name, slots, igl, created_at) values ' +
     sc.decks.map(d => `(${lit(d.user_id)}, ${lit(d.name)}, ${lit(JSON.stringify(d.slots))}::jsonb, ${lit(d.igl)}, ${lit(d.created_at)})`).join(',\n') + ';');

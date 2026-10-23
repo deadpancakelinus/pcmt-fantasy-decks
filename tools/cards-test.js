@@ -70,7 +70,7 @@ sql(`update public.card_packs set price = 100, open_to_all = true; insert into p
 r = buy(P1); check(r.balance === 150 && bal(P1) === 150, 'buying a 100 VP pack takes 100 VP from the Bank');
 check(sql(`select detail ->> 'pack' from public.vp_ledger where user_id = '${P1}' and kind = 'pack' limit 1;`).trim() === 'NA Card Pack', 'the Spending line names the pack');
 buy(P1);
-check(fails(as(P1, `select public.buy_pack('na-pack');`), /Not enough VP: this pack costs 100 VP and you have 50/), 'not enough VP: refused with a clear message, nothing taken');
+check(fails(as(P1, `select public.buy_pack('na-pack');`), /Not enough Credits: this pack costs 100 Credits and you have 50/), 'not enough Credits: refused with a clear message, nothing taken');
 check(bal(P1) === 50 && +sql(`select coalesce(sum(count),0) from public.user_cards where user_id = '${P1}'`).trim() === 10, 'Bank and cards stay right after the refusal');
 
 // two purchases at the same moment with VP for only one

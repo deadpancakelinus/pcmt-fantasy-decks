@@ -533,28 +533,52 @@ var PCMT_LOCK_LEAD_H = 12;
 // Finished series from PCMT.gg, one entry each, added by the PCMT.gg results check.
 // { region: 'NA'|'EMEA', start: ISO time the series started (same as in PCMT_MATCHES), a: team code, b: team code,
 //   winner: team code, url: PCMT.gg match page,
-//   stats: { <player id from PCMT_PLAYERS, or '~' + PCMT.gg name for anyone not in the store>: [kills, deaths, assists, firstKills, acs, kast] } }
-// Stats are the series totals from the match page's "All Maps" table (ACS and KAST as shown there).
+//   stats: { <player id from PCMT_PLAYERS, or '~' + PCMT.gg name for anyone not in the store>: [kills, deaths, assists, firstKills, acs, kast, adr, rt] },
+//   maps: [ { map: name, a: rounds won by team a, b: rounds won by team b, k: { <same keys as stats>: kills on that map } } ] }
+// stats are the series totals from the match page's "All Maps" table (ACS, KAST, ADR and RT, the Toxic rating, as shown there).
 var PCMT_RESULTS = window.PCMT_RESULTS || [];
-// Scoring (same as the Guide).
-// fourK / fiveK: 4Ks and 5Ks in the series (r.multi = { <player id>: [4Ks, 5Ks] }, entered on the admin page), counted from the Oct 19 2026 gameweek on.
-var PCMT_SCORING = { kill: 2, assist: 1, firstKill: 1, seriesWin: 2, topAcs: 3, topKast: 1, fourK: 1, fiveK: 3 };
+// Scoring (same as the Guide). toxic = places 1-3 by RT in the series; clutch = 1v2, 1v3, 1v4, 1v5.
+// 4Ks, 5Ks and clutches are entered on the backend (r.multi = { <player id>: [4Ks, 5Ks, 1v2, 1v3, 1v4, 1v5] }), counted from the Oct 19 2026 gameweek on.
+var PCMT_SCORING = { kill: 1, per5MapKills: 1, assist: 0.5, firstBlood: 0.5, toxic: [3, 2, 1], topKast: 1, topAcs: 2, sweep: 2, mapWin: 1,
+                        fourK: 1, fiveK: 3, flawless: 7, shutout: -5, zeroKillMap: -5, winBy4: 1, winBy10: 2, clutch: [1, 2, 4, 6], per50Adr: 1 };
 var PCMT_MULTI_FROM = Date.parse('2026-10-19T09:00:00Z');
+// One series: { <player id>: points }. r.stats[id] = [K, D, A, FK, ACS, KAST, ADR, RT] (series totals),
+// r.maps = [{ map, a: rounds won by team a, b: rounds won by team b, k: { <player id>: kills on that map } }],
+// r.multi[id] = [4Ks, 5Ks, 1v2, 1v3, 1v4, 1v5].
 function pcmtSeriesPoints(r) {
-  var out = {}, ids = Object.keys(r.stats || {}), S = PCMT_SCORING;
-  var mk = (Date.parse(r.start) >= PCMT_MULTI_FROM && r.multi) || {};
-  var topAcs = Math.max.apply(null, ids.map(function (k) { return +r.stats[k][4] || 0; }));
-  var topKast = Math.max.apply(null, ids.map(function (k) { return +r.stats[k][5] || 0; }));
   var byId = {};
   PCMT_PLAYERS.forEach(function (p) { byId[p.id] = p; });
+  var out = {}, S = PCMT_SCORING, st = r.stats || {}, ids = Object.keys(st), maps = r.maps || [];
+  var num = function (x) { return +x || 0; }, has = function (x) { return x != null && x !== ''; };
+  var mk = (Date.parse(r.start) >= PCMT_MULTI_FROM && r.multi) || {};
+  var top = function (i) { return Math.max.apply(null, ids.map(function (k) { return num(st[k][i]); })); };
+  var topAcs = top(4), topKast = top(5);
+  var rts = ids.filter(function (k) { return has(st[k][7]); }).map(function (k) { return +st[k][7]; });
+  var won = { a: 0, b: 0 };
+  maps.forEach(function (m) { if (num(m.a) > num(m.b)) won.a++; else if (num(m.b) > num(m.a)) won.b++; });
+  var sweep = (r.winner === r.a && won.a > 0 && won.b === 0) || (r.winner === r.b && won.b > 0 && won.a === 0);
   ids.forEach(function (k) {
-    var st = r.stats[k], p = byId[k];
+    var x = st[k], p = byId[k];
     if (!p) return; // not in the store
-    var pts = st[0] * S.kill + st[2] * S.assist + st[3] * S.firstKill; // deaths don't score
-    if (p.team === r.winner) pts += S.seriesWin;
-    if (ids.length && +st[4] === topAcs) pts += S.topAcs;   // ties: every tied player gets it
-    if (ids.length && +st[5] === topKast) pts += S.topKast;
-    if (mk[k]) pts += (+mk[k][0] || 0) * S.fourK + (+mk[k][1] || 0) * S.fiveK;
+    var side = p.team === r.a ? 'a' : p.team === r.b ? 'b' : null;
+    var pts = num(x[0]) * S.kill + num(x[2]) * S.assist + num(x[3]) * S.firstBlood;   // deaths don't score
+    pts += Math.floor(num(x[6]) / 50) * S.per50Adr;
+    if (has(x[7])) pts += S.toxic[rts.filter(function (v) { return v > +x[7]; }).length] || 0;   // ties share the place
+    if (num(x[4]) === topAcs) pts += S.topAcs;   // ties: every tied player gets it
+    if (num(x[5]) === topKast) pts += S.topKast;
+    maps.forEach(function (m) {
+      var mkills = m.k ? m.k[k] : null;
+      if (has(mkills)) { pts += Math.floor(num(mkills) / 5) * S.per5MapKills; if (num(mkills) === 0) pts += S.zeroKillMap; }
+      if (!side) return;
+      var mine = num(m[side]), theirs = num(m[side === 'a' ? 'b' : 'a']), diff = mine - theirs;
+      if (diff > 0) {
+        pts += S.mapWin;
+        if (theirs === 0) pts += S.flawless; else if (diff >= 10) pts += S.winBy10; else if (diff >= 4) pts += S.winBy4;
+      } else if (diff < 0 && mine === 0) pts += S.shutout;
+    });
+    if (side && sweep && p.team === r.winner) pts += S.sweep;
+    var c = mk[k];
+    if (c) pts += num(c[0]) * S.fourK + num(c[1]) * S.fiveK + num(c[2]) * S.clutch[0] + num(c[3]) * S.clutch[1] + num(c[4]) * S.clutch[2] + num(c[5]) * S.clutch[3];
     out[k] = pts;
   });
   return out;

@@ -39,8 +39,11 @@
   var TOKEN_KEY = 'pcmt-auth';
   var BUDGET = 100, TEAM_LIMIT = 2, TRANSFERS = 2, LOCK_LEAD_H = 12;
   var ROLES = ['duelist', 'controller', 'initiator', 'sentinel'];
-  var SCORING = { kill: 2, assist: 1, firstKill: 1, seriesWin: 2, topAcs: 3, topKast: 1, fourK: 1, fiveK: 3 };
-  // 4Ks and 5Ks (entered on admin.html) count from this gameweek on.
+  // Scoring (same as the Guide and setup/vp-setup.sql vp_series_points). toxic = places 1-3 by PCMT.gg's Toxic rating (RT);
+  // clutch = 1v2, 1v3, 1v4, 1v5.
+  var SCORING = { kill: 1, per5MapKills: 1, assist: 0.5, firstBlood: 0.5, toxic: [3, 2, 1], topKast: 1, topAcs: 2, sweep: 2, mapWin: 1,
+                  fourK: 1, fiveK: 3, flawless: 7, shutout: -5, zeroKillMap: -5, winBy4: 1, winBy10: 2, clutch: [1, 2, 4, 6], per50Adr: 1 };
+  // 4Ks, 5Ks and clutches (entered on the backend) count from this gameweek on.
   var MULTI_FROM = Date.parse('2026-10-19T09:00:00Z');
   var DAY = 86400000;
 
@@ -79,19 +82,41 @@
     PLAYERS.forEach(function (p) { if (p.price === min[p.team]) LOWEST[p.id] = true; });
   })();
 
+  // One series: { <player id>: points }. r.stats[id] = [K, D, A, FK, ACS, KAST, ADR, RT] (series totals),
+  // r.maps = [{ map, a: rounds won by team a, b: rounds won by team b, k: { <player id>: kills on that map } }],
+  // r.multi[id] = [4Ks, 5Ks, 1v2, 1v3, 1v4, 1v5].
   function seriesPoints(r) {
-    var out = {}, ids = Object.keys(r.stats || {});
+    var out = {}, S = SCORING, st = r.stats || {}, ids = Object.keys(st), maps = r.maps || [];
+    var num = function (x) { return +x || 0; }, has = function (x) { return x != null && x !== ''; };
     var mk = (Date.parse(r.start) >= MULTI_FROM && r.multi) || {};
-    var topAcs = Math.max.apply(null, ids.map(function (k) { return +r.stats[k][4] || 0; }));
-    var topKast = Math.max.apply(null, ids.map(function (k) { return +r.stats[k][5] || 0; }));
+    var top = function (i) { return Math.max.apply(null, ids.map(function (k) { return num(st[k][i]); })); };
+    var topAcs = top(4), topKast = top(5);
+    var rts = ids.filter(function (k) { return has(st[k][7]); }).map(function (k) { return +st[k][7]; });
+    var won = { a: 0, b: 0 };
+    maps.forEach(function (m) { if (num(m.a) > num(m.b)) won.a++; else if (num(m.b) > num(m.a)) won.b++; });
+    var sweep = (r.winner === r.a && won.a > 0 && won.b === 0) || (r.winner === r.b && won.b > 0 && won.a === 0);
     ids.forEach(function (k) {
-      var st = r.stats[k], p = BY_ID[k];
-      if (!p) return;
-      var pts = st[0] * SCORING.kill + st[2] * SCORING.assist + st[3] * SCORING.firstKill; // deaths don't score
-      if (p.team === r.winner) pts += SCORING.seriesWin;
-      if (+st[4] === topAcs) pts += SCORING.topAcs;
-      if (+st[5] === topKast) pts += SCORING.topKast;
-      if (mk[k]) pts += (+mk[k][0] || 0) * SCORING.fourK + (+mk[k][1] || 0) * SCORING.fiveK;
+      var x = st[k], p = BY_ID[k];
+      if (!p) return; // not in the store
+      var side = p.team === r.a ? 'a' : p.team === r.b ? 'b' : null;
+      var pts = num(x[0]) * S.kill + num(x[2]) * S.assist + num(x[3]) * S.firstBlood;   // deaths don't score
+      pts += Math.floor(num(x[6]) / 50) * S.per50Adr;
+      if (has(x[7])) pts += S.toxic[rts.filter(function (v) { return v > +x[7]; }).length] || 0;   // ties share the place
+      if (num(x[4]) === topAcs) pts += S.topAcs;   // ties: every tied player gets it
+      if (num(x[5]) === topKast) pts += S.topKast;
+      maps.forEach(function (m) {
+        var mkills = m.k ? m.k[k] : null;
+        if (has(mkills)) { pts += Math.floor(num(mkills) / 5) * S.per5MapKills; if (num(mkills) === 0) pts += S.zeroKillMap; }
+        if (!side) return;
+        var mine = num(m[side]), theirs = num(m[side === 'a' ? 'b' : 'a']), diff = mine - theirs;
+        if (diff > 0) {
+          pts += S.mapWin;
+          if (theirs === 0) pts += S.flawless; else if (diff >= 10) pts += S.winBy10; else if (diff >= 4) pts += S.winBy4;
+        } else if (diff < 0 && mine === 0) pts += S.shutout;
+      });
+      if (side && sweep && p.team === r.winner) pts += S.sweep;
+      var c = mk[k];
+      if (c) pts += num(c[0]) * S.fourK + num(c[1]) * S.fiveK + num(c[2]) * S.clutch[0] + num(c[3]) * S.clutch[1] + num(c[4]) * S.clutch[2] + num(c[5]) * S.clutch[3];
       out[k] = pts;
     });
     return out;
@@ -175,7 +200,7 @@
     var pts = {}, cards = {}, total = 0;
     week.results.forEach(function (r) { var sp = seriesPoints(r); Object.keys(sp).forEach(function (k) { pts[k] = (pts[k] || 0) + sp[k]; }); });
     deckIds(deck.slots).forEach(function (id) { var v = Math.max(0, pts[id] || 0); cards[id] = v; total += v; });
-    return { total: total, cards: cards };
+    return { total: Math.round(total), cards: cards };   // paid in whole Credits
   }
 
   // ---------- Supabase over plain fetch ----------
@@ -368,7 +393,10 @@
   function seriesKey(m) { return m.start + '|' + m.a + '|' + m.b; }
   function attachMulti(rows) {
     var by = {};
-    (rows || []).forEach(function (x) { if (x.k4 || x.k5) (by[x.series] = by[x.series] || {})[x.player] = [x.k4 || 0, x.k5 || 0]; });
+    (rows || []).forEach(function (x) {
+      var v = [x.k4 || 0, x.k5 || 0, x.c2 || 0, x.c3 || 0, x.c4 || 0, x.c5 || 0];
+      if (v.some(Boolean)) (by[x.series] = by[x.series] || {})[x.player] = v;
+    });
     (window.PCMT_RESULTS || []).forEach(function (r) { r.multi = by[seriesKey(r)] || {}; });
   }
   window.PCMT_SERIES_KEY = seriesKey;
@@ -394,7 +422,7 @@
       var unlocks = me ? api('/rest/v1/user_unlocks?select=unlock').catch(function () { return []; }) : Promise.resolve([]);
       // null = the VP table isn't set up yet (setup/vp-setup.sql not run)
       // 4Ks and 5Ks per series (public; empty until setup/vp-setup.sql has been run)
-      var multi = api('/rest/v1/multikills?select=series,player,k4,k5&limit=20000').catch(function () { return []; });
+      var multi = api('/rest/v1/multikills?select=*&limit=20000').catch(function () { return []; });
       var prices = api('/rest/v1/player_price_changes?select=player,price,changed_at&order=changed_at.asc,id.asc&limit=20000').catch(function () { return []; });
       var vp = me ? api('/rest/v1/vp_ledger?select=kind,week,amount,detail,created_at&order=created_at.desc&limit=5000').catch(function () { return null; }) : Promise.resolve([]);
       var admin = me ? api('/rest/v1/pcmt_admins?select=user_id&user_id=eq.' + me.id).catch(function () { return []; }) : Promise.resolve([]);

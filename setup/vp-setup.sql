@@ -63,10 +63,19 @@ create table if not exists public.multikills (
   player text not null,
   k4 integer not null default 0 check (k4 between 0 and 30),
   k5 integer not null default 0 check (k5 between 0 and 30),
+  c2 integer not null default 0 check (c2 between 0 and 30),   -- clutches: 1v2, 1v3, 1v4, 1v5
+  c3 integer not null default 0 check (c3 between 0 and 30),
+  c4 integer not null default 0 check (c4 between 0 and 30),
+  c5 integer not null default 0 check (c5 between 0 and 30),
   updated_at timestamptz not null default now(),
   updated_by uuid default auth.uid(),
   primary key (series, player)
 );
+-- (tables made before clutches were added)
+alter table public.multikills add column if not exists c2 integer not null default 0 check (c2 between 0 and 30);
+alter table public.multikills add column if not exists c3 integer not null default 0 check (c3 between 0 and 30);
+alter table public.multikills add column if not exists c4 integer not null default 0 check (c4 between 0 and 30);
+alter table public.multikills add column if not exists c5 integer not null default 0 check (c5 between 0 and 30);
 alter table public.multikills enable row level security;
 drop policy if exists "anyone can read multikills" on public.multikills;
 create policy "anyone can read multikills" on public.multikills for select using (true);
@@ -168,6 +177,58 @@ $$;
 
 -- Works out every manager's VP for each finished gameweek and pays anything still owed.
 -- p_pay = false only reports (used for checking); it never writes.
+-- One series' points per player, same as seriesPoints() in league.js (and the Guide).
+-- r.stats -> id = [K, D, A, FK, ACS, KAST, ADR, RT]; r.maps = [{ map, a, b, k: { id: kills } }]; r.multi -> id = [4K, 5K, 1v2, 1v3, 1v4, 1v5].
+create or replace function public.vp_series_points(r jsonb, p_players jsonb) returns jsonb
+language plpgsql immutable set search_path = public as $$
+declare
+  st jsonb := coalesce(r -> 'stats', '{}'::jsonb);
+  maps jsonb := case when jsonb_typeof(r -> 'maps') = 'array' then r -> 'maps' else '[]'::jsonb end;
+  mk jsonb := case when public.vp_ts(r ->> 'start') >= timestamptz '2026-10-19 09:00:00+00' and jsonb_typeof(r -> 'multi') = 'object'
+                   then r -> 'multi' else '{}'::jsonb end;
+  top_acs numeric; top_kast numeric; won_a int := 0; won_b int := 0; sweep boolean;
+  x record; m jsonb; side text; pts numeric; mine numeric; theirs numeric; diff numeric; mk_k text; c jsonb; out jsonb := '{}'::jsonb;
+begin
+  select max(public.vp_num(q.v ->> 4)), max(public.vp_num(q.v ->> 5)) into top_acs, top_kast from jsonb_each(st) q(k, v);
+  for m in select e from jsonb_array_elements(maps) e loop
+    if public.vp_num(m ->> 'a') > public.vp_num(m ->> 'b') then won_a := won_a + 1;
+    elsif public.vp_num(m ->> 'b') > public.vp_num(m ->> 'a') then won_b := won_b + 1; end if;
+  end loop;
+  sweep := (r ->> 'winner' = r ->> 'a' and won_a > 0 and won_b = 0) or (r ->> 'winner' = r ->> 'b' and won_b > 0 and won_a = 0);
+  for x in select q.k, q.v from jsonb_each(st) q(k, v) where p_players ? q.k loop
+    side := case when p_players -> x.k ->> 'team' = r ->> 'a' then 'a' when p_players -> x.k ->> 'team' = r ->> 'b' then 'b' end;
+    pts := public.vp_num(x.v ->> 0) * 1 + public.vp_num(x.v ->> 2) * 0.5 + public.vp_num(x.v ->> 3) * 0.5   -- kills, assists, first bloods (deaths don't score)
+         + floor(public.vp_num(x.v ->> 6) / 50)                                                            -- +1 per 50 ADR
+         + case when public.vp_num(x.v ->> 4) = top_acs then 2 else 0 end
+         + case when public.vp_num(x.v ->> 5) = top_kast then 1 else 0 end;
+    if coalesce(x.v ->> 7, '') <> '' then                                                                    -- Toxic rating places 1-3 (ties share)
+      pts := pts + case (select count(*) from jsonb_each(st) q(k, v) where coalesce(q.v ->> 7, '') <> '' and public.vp_num(q.v ->> 7) > public.vp_num(x.v ->> 7))
+                   when 0 then 3 when 1 then 2 when 2 then 1 else 0 end;
+    end if;
+    for m in select e from jsonb_array_elements(maps) e loop
+      mk_k := m -> 'k' ->> x.k;
+      if coalesce(mk_k, '') <> '' then
+        pts := pts + floor(public.vp_num(mk_k) / 5) + case when public.vp_num(mk_k) = 0 then -5 else 0 end;   -- +1 per 5 kills on a map, 0 kills -5
+      end if;
+      if side is null then continue; end if;
+      mine := public.vp_num(m ->> side); theirs := public.vp_num(m ->> case side when 'a' then 'b' else 'a' end); diff := mine - theirs;
+      if diff > 0 then
+        pts := pts + 1 + case when theirs = 0 then 7 when diff >= 10 then 2 when diff >= 4 then 1 else 0 end;   -- map win, 13-0, by 10-12, by 4-9
+      elsif diff < 0 and mine = 0 then
+        pts := pts - 5;                                                                                     -- 0-13
+      end if;
+    end loop;
+    if side is not null and sweep and p_players -> x.k ->> 'team' = r ->> 'winner' then pts := pts + 2; end if;
+    c := mk -> x.k;
+    if jsonb_typeof(c) = 'array' then
+      pts := pts + public.vp_num(c ->> 0) * 1 + public.vp_num(c ->> 1) * 3
+                 + public.vp_num(c ->> 2) * 1 + public.vp_num(c ->> 3) * 2 + public.vp_num(c ->> 4) * 4 + public.vp_num(c ->> 5) * 6;
+    end if;
+    out := out || jsonb_build_object(x.k, pts);
+  end loop;
+  return out;
+end $$;
+
 create or replace function public.vp_compute(p_matches jsonb, p_results jsonb, p_players jsonb, p_twin jsonb,
                                              p_now timestamptz default now(), p_pay boolean default true)
 returns jsonb
@@ -185,18 +246,9 @@ begin
   for r in select x from jsonb_array_elements(coalesce(p_results, '[]')) x loop
     if public.vp_ts(r ->> 'start') is null then continue; end if;
     rb := to_char(public.vp_week_start(public.vp_ts(r ->> 'start')) at time zone 'UTC', 'YYYY-MM-DD');
-    select max(public.vp_num(v ->> 4)), max(public.vp_num(v ->> 5)) into top_acs, top_kast
-      from jsonb_each(coalesce(r -> 'stats', '{}')) s(k, v);
-    for sp in select s.k, s.v from jsonb_each(coalesce(r -> 'stats', '{}')) s(k, v) where players ? s.k loop
+    for sp in select q.k, q.v from jsonb_each(public.vp_series_points(r, players)) q(k, v) loop
       weekpts := jsonb_set(weekpts, array[rb], coalesce(weekpts -> rb, '{}'::jsonb), true);
-      weekpts := jsonb_set(weekpts, array[rb, sp.k], to_jsonb(
-          coalesce((weekpts -> rb ->> sp.k)::numeric, 0)
-          + public.vp_num(sp.v ->> 0) * 2 + public.vp_num(sp.v ->> 2) * 1 + public.vp_num(sp.v ->> 3) * 1   -- kills, assists, first kills (deaths don't score)
-          + case when (players -> sp.k ->> 'team') = (r ->> 'winner') then 2 else 0 end
-          + case when public.vp_num(sp.v ->> 4) = top_acs then 3 else 0 end
-          + case when public.vp_num(sp.v ->> 5) = top_kast then 1 else 0 end
-          + case when public.vp_ts(r ->> 'start') >= timestamptz '2026-10-19 09:00:00+00'      -- 4K +1, 5K +3 from this gameweek on
-                 then public.vp_num(r -> 'multi' -> sp.k ->> 0) * 1 + public.vp_num(r -> 'multi' -> sp.k ->> 1) * 3 else 0 end), true);
+      weekpts := jsonb_set(weekpts, array[rb, sp.k], to_jsonb(coalesce((weekpts -> rb ->> sp.k)::numeric, 0) + (sp.v #>> '{}')::numeric), true);
     end loop;
   end loop;
 
@@ -225,7 +277,7 @@ begin
       if p_now < w.e then continue; end if;                    -- paid when the gameweek ends
       rb := to_char(w.b at time zone 'UTC', 'YYYY-MM-DD');
       select coalesce(jsonb_object_agg(v, greatest(0, coalesce((weekpts -> rb ->> v)::numeric, 0))), '{}'::jsonb),
-             coalesce(sum(greatest(0, coalesce((weekpts -> rb ->> v)::numeric, 0))), 0)::int
+             round(coalesce(sum(greatest(0, coalesce((weekpts -> rb ->> v)::numeric, 0))), 0))::int   -- paid in whole Credits
         into cards, owed from jsonb_each_text(use_slots) s(k, v);
       select coalesce(sum(amount), 0)::int into paid from public.vp_ledger where user_id = u and kind = 'week' and week = rb::date;
       out := out || jsonb_build_array(jsonb_build_object('user', u, 'week', rb, 'owed', owed, 'paid_before', paid));
@@ -259,9 +311,10 @@ returns jsonb
 language plpgsql security definer set search_path = public as $$
 declare res jsonb; mk jsonb;
 begin
-  -- 4Ks and 5Ks from the admin page, attached to each result as "multi": {"<player id>": [4Ks, 5Ks]}
+  -- 4Ks, 5Ks and clutches from the backend, attached to each result as "multi": {"<player id>": [4Ks, 5Ks, 1v2, 1v3, 1v4, 1v5]}
   select coalesce(jsonb_object_agg(series, pl), '{}'::jsonb) into mk from (
-    select series, jsonb_object_agg(player, jsonb_build_array(k4, k5)) pl from public.multikills where k4 > 0 or k5 > 0 group by series) q;
+    select series, jsonb_object_agg(player, jsonb_build_array(k4, k5, c2, c3, c4, c5)) pl from public.multikills
+    where k4 > 0 or k5 > 0 or c2 > 0 or c3 > 0 or c4 > 0 or c5 > 0 group by series) q;
   select coalesce(jsonb_agg(x || jsonb_build_object('multi', coalesce(mk -> ((x ->> 'start') || '|' || (x ->> 'a') || '|' || (x ->> 'b')), '{}'::jsonb))), '[]'::jsonb)
     into res from jsonb_array_elements(public.vp_extract(p_data_js, 'PCMT_RESULTS')) x;
   return public.vp_compute(public.vp_extract(p_data_js, 'PCMT_MATCHES'), res,
