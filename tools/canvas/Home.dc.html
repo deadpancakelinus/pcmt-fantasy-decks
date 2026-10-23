@@ -108,13 +108,13 @@ a.hm-tile{color:inherit}
 <span style="display: inline-flex; align-items: center; gap: 8px; min-width: 0"><span style="font-weight: 600; color: {{m.bColor}}">{{m.b}}</span><img src="{{m.bLogo}}" alt="" style="width: 28px; height: 28px; object-fit: contain"></span>
 </div>
 <div style="display: flex; justify-content: space-between; gap: 10px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa"><span>{{m.when}}</span><span>{{m.meta}}</span></div>
+<a href="{{m.url}}" target="_blank" rel="noopener" aria-label="{{m.a}} vs {{m.b}} on pcmt.gg" style="align-self: flex-start; font-family: 'JetBrains Mono', monospace; font-size: 12px">pcmt.gg</a>
 </li>
 </sc-for>
 </ul>
 </sc-if>
 <sc-if value="{{noMatches}}" hint-placeholder-val="{{ false }}"><p style="margin: 0; color: #c4d4d4; line-height: 1.5">No series scheduled right now. Check back soon.</p></sc-if>
 <sc-if value="{{hasResult}}" hint-placeholder-val="{{ false }}"><p style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">Last result: <span style="color: #eaf4f4">{{resultLabel}}</span></p></sc-if>
-<a href="{{nextUrl}}" target="_blank" rel="noopener" style="font-family: 'JetBrains Mono', monospace; font-size: 13px">{{nextLabel}}</a>
 </div>
 </section>
 
@@ -196,7 +196,8 @@ var PCMT_HOME_MENU = [
 
 // Canvas sample (the live site uses the real matches).
 var PCMT_HOME_SAMPLE_MATCHES = [
-  { region: 'NA', start: '2026-10-24T00:00:00Z', a: 'T1', b: 'NAVI', bo: 5, url: 'https://pcmt.gg/events/s3-na/t1-vs-navi-s3-playoffs-2026-10-24-2' }
+  { region: 'NA', start: '2026-10-24T00:00:00Z', a: 'T1', b: 'NAVI', bo: 5, url: 'https://pcmt.gg/events/s3-na/t1-vs-navi-s3-playoffs-2026-10-24-2' },
+  { region: 'EMEA', start: '2026-10-24T17:00:00Z', a: 'NATS', b: 'ATLC', bo: 3, url: 'https://pcmt.gg/events/s2-emea/nats-vs-atlc-s2-playoffs-2026-10-24' }
 ];
 // Teams (same as the Store board), for the next series.
 var PCMT_DECK_TEAMS = [
@@ -336,7 +337,8 @@ class Component extends DCLogic {
     var matches = upcoming.slice(0, 2).map(function (m) {
       var ta = teams[m.a] || { name: m.a, color: '#eaf4f4', logo: '' }, tb = teams[m.b] || { name: m.b, color: '#eaf4f4', logo: '' };
       return { a: m.a, b: m.b, aColor: ta.color, bColor: tb.color, aLogo: ta.logo || PCMT_REGION_LOGOS[m.region] || PCMT_REGION_LOGOS.NA, bLogo: tb.logo || PCMT_REGION_LOGOS[m.region] || PCMT_REGION_LOGOS.NA,
-               when: when(m.start), meta: (m.region || 'NA') + (m.bo ? ' · Bo' + m.bo : '') };
+               when: when(m.start), meta: (m.region || 'NA') + (m.bo ? ' · Bo' + m.bo : ''),
+               url: m.url || 'https://pcmt.gg/matches' };   // each series links to its own page on PCMT.gg
     });
     // Deck lock: 12 hours before the gameweek's first series (gameweeks start Monday 09:00 UTC).
     var d = new Date(now), ws = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 9) - ((d.getUTCDay() + 6) % 7) * 864e5;
@@ -357,8 +359,6 @@ class Component extends DCLogic {
       lockPointer: locked ? 'none' : 'auto',
       matches: matches, hasMatches: matches.length > 0, noMatches: !matches.length,
       lockLabel: lockLabel,
-      nextUrl: upcoming[0] && upcoming[0].url ? upcoming[0].url : 'https://pcmt.gg/matches',   // the next series' own page on PCMT.gg
-      nextLabel: 'pcmt.gg',
       hasResult: !!last, resultLabel: last ? last.a + ' vs ' + last.b + ', ' + last.winner + ' won' : '',
       menu: PCMT_HOME_MENU,
       note: PCMT_HOME_NOTE,
