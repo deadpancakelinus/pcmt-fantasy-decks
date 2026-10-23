@@ -177,7 +177,7 @@ declare
   maps jsonb := case when jsonb_typeof(r -> 'maps') = 'array' then r -> 'maps' else '[]'::jsonb end;
   mk jsonb := case when public.vp_ts(r ->> 'start') >= timestamptz '2026-10-19 09:00:00+00' and jsonb_typeof(r -> 'multi') = 'object'
                    then r -> 'multi' else '{}'::jsonb end;
-  top_acs numeric; top_kast numeric; won_a int := 0; won_b int := 0; sweep boolean;
+  top_acs numeric; top_kast numeric; won_a int := 0; won_b int := 0; series_bonus numeric := 0;
   x record; m jsonb; side text; pts numeric; mine numeric; theirs numeric; diff numeric; mk_k text; c jsonb; out jsonb := '{}'::jsonb;
 begin
   select max(public.vp_num(q.v ->> 4)), max(public.vp_num(q.v ->> 5)) into top_acs, top_kast from jsonb_each(st) q(k, v);
@@ -185,7 +185,9 @@ begin
     if public.vp_num(m ->> 'a') > public.vp_num(m ->> 'b') then won_a := won_a + 1;
     elsif public.vp_num(m ->> 'b') > public.vp_num(m ->> 'a') then won_b := won_b + 1; end if;
   end loop;
-  sweep := (r ->> 'winner' = r ->> 'a' and won_a > 0 and won_b = 0) or (r ->> 'winner' = r ->> 'b' and won_b > 0 and won_a = 0);
+  -- series score bonus for the winners: 2-0 +2, 3-0 +3, 3-1 +1
+  series_bonus := case case when r ->> 'winner' = r ->> 'a' then won_a || '-' || won_b when r ->> 'winner' = r ->> 'b' then won_b || '-' || won_a end
+                  when '2-0' then 2 when '3-0' then 3 when '3-1' then 1 else 0 end;
   for x in select q.k, q.v from jsonb_each(st) q(k, v) where p_players ? q.k loop
     side := case when p_players -> x.k ->> 'team' = r ->> 'a' then 'a' when p_players -> x.k ->> 'team' = r ->> 'b' then 'b' end;
     pts := public.vp_num(x.v ->> 0) * 1 + public.vp_num(x.v ->> 2) * 0.5 + public.vp_num(x.v ->> 3) * 0.5   -- kills, assists, first bloods (deaths don't score)
@@ -209,7 +211,7 @@ begin
         pts := pts - 5;                                                                                     -- 0-13
       end if;
     end loop;
-    if side is not null and sweep and p_players -> x.k ->> 'team' = r ->> 'winner' then pts := pts + 2; end if;
+    if side is not null and p_players -> x.k ->> 'team' = r ->> 'winner' then pts := pts + series_bonus; end if;
     c := mk -> x.k;
     if jsonb_typeof(c) = 'array' then
       pts := pts + public.vp_num(c ->> 0) * 1 + public.vp_num(c ->> 1) * 3;   -- 4K +1, 5K +3

@@ -48,7 +48,8 @@ function scenario(seed) {
       if (R() < 0.4) { stats[ids[2]][7] = stats[ids[3]][7] = 1.9; }           // tie for the top Toxic rating
       stats['~stranger'] = [5, 20, 1, 0, R() < 0.2 ? 999 : 120, 50, 100, R() < 0.3 ? 2.5 : 0.4];   // not in the store
       // maps: the winner takes 2 (sometimes 2-1), scores include 13-0, 0-13, 14-12 and wins by 4-12
-      const loser = winner === a ? b : a, wins = R() < 0.5 ? [winner, winner] : [winner, loser, winner], maps = [];
+      const loser = winner === a ? b : a, maps = [];
+      const wins = [[winner, winner], [winner, loser, winner], [winner, winner, winner], [winner, loser, winner, winner], [loser, winner, loser, winner, winner]][Math.floor(R() * 5)];   // 2-0, 2-1, 3-0, 3-1, 3-2
       wins.forEach(w => {
         const lose = [0, 2, 5, 9, 11, 12][Math.floor(R() * 6)], ot = R() < 0.15, ws = ot ? 14 : 13, ls = ot ? 12 : lose;
         const m = { map: 'Map', a: w === a ? ws : ls, b: w === b ? ws : ls, k: {} };
@@ -173,6 +174,16 @@ sql('alter table public.deck_history disable trigger user;');
   const diffs = Object.keys(Object.assign({}, js, db)).filter(k => +js[k] !== +db[k]).map(k => `${k}: site ${js[k]} / server ${db[k]}`);
   check(!diffs.length && Object.keys(js).length === 10, 'real series: site and server give every player the same points ' + diffs.join('; '));
   check(js.stingray === 98.5 + 2 && js.claps === 114 + 3, `real series: 4K +1, 5K +3 (stingray ${js.stingray}, claps ${js.claps})`);
+  // Bo5 series scores (the winners' bonus): 3-0 +3, 3-1 +1, 3-2 nothing; a 2-1 Bo3 like this one gets nothing either
+  const bo5 = (score) => { const m = plain.maps[0], r = Object.assign({}, plain, { maps: [] });
+    for (let i = 0; i < score[0]; i++) r.maps.push({ map: 'W' + i, a: 13, b: 11, k: {} });
+    for (let i = 0; i < score[1]; i++) r.maps.push({ map: 'L' + i, a: 11, b: 13, k: {} });
+    const s1 = site(r), s0 = site(Object.assign({}, r, { winner: 'C9' }));   // compare with NAVI not winning
+    const db1 = JSON.parse(sql(`select public.vp_series_points(${lit(JSON.stringify(r))}::jsonb, ${pl});`));
+    return [s1.kennys - s0.kennys, +db1.kennys - s1.kennys]; };
+  const b30 = bo5([3, 0]), b31 = bo5([3, 1]), b32 = bo5([3, 2]), b20 = bo5([2, 0]), b21 = bo5([2, 1]);
+  check(b30[0] === 3 && b31[0] === 1 && b32[0] === 0 && b20[0] === 2 && b21[0] === 0 && [b30, b31, b32, b20, b21].every(x => x[1] === 0),
+    `series score bonus: 3-0 +${b30[0]}, 3-1 +${b31[0]}, 3-2 +${b32[0]}, 2-0 +${b20[0]}, 2-1 +${b21[0]}; site and server agree`);
 }
 
 let totalWeeks = 0, totalVp = 0;

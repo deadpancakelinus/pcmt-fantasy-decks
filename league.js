@@ -40,7 +40,7 @@
   var BUDGET = 100, TEAM_LIMIT = 2, TRANSFERS = 2, LOCK_LEAD_H = 12;
   var ROLES = ['duelist', 'controller', 'initiator', 'sentinel'];
   // Scoring (same as the Guide and setup/vp-setup.sql vp_series_points). toxic = places 1-3 by PCMT.gg's Toxic rating (RT).
-  var SCORING = { kill: 1, per5MapKills: 1, assist: 0.5, firstBlood: 0.5, toxic: [3, 2, 1], topKast: 1, topAcs: 2, sweep: 2, mapWin: 1,
+  var SCORING = { kill: 1, per5MapKills: 1, assist: 0.5, firstBlood: 0.5, toxic: [3, 2, 1], topKast: 1, topAcs: 2, seriesScore: { '2-0': 2, '3-0': 3, '3-1': 1 }, mapWin: 1,
                   fourK: 1, fiveK: 3, flawless: 7, shutout: -5, zeroKillMap: -5, winBy4: 1, winBy10: 2, per50Adr: 1 };
   // 4Ks and 5Ks (entered on the backend) count from this gameweek on.
   var MULTI_FROM = Date.parse('2026-10-19T09:00:00Z');
@@ -93,7 +93,8 @@
     var rts = ids.filter(function (k) { return has(st[k][7]); }).map(function (k) { return +st[k][7]; });
     var won = { a: 0, b: 0 };
     maps.forEach(function (m) { if (num(m.a) > num(m.b)) won.a++; else if (num(m.b) > num(m.a)) won.b++; });
-    var sweep = (r.winner === r.a && won.a > 0 && won.b === 0) || (r.winner === r.b && won.b > 0 && won.a === 0);
+    var ws = r.winner === r.a ? 'a' : r.winner === r.b ? 'b' : null;   // series score bonus for the winners: 2-0, 3-0, 3-1
+    var seriesBonus = ws ? S.seriesScore[won[ws] + '-' + won[ws === 'a' ? 'b' : 'a']] || 0 : 0;
     ids.forEach(function (k) {
       var x = st[k], p = BY_ID[k];
       if (!p) return; // not in the store
@@ -113,7 +114,7 @@
           if (theirs === 0) pts += S.flawless; else if (diff >= 10) pts += S.winBy10; else if (diff >= 4) pts += S.winBy4;
         } else if (diff < 0 && mine === 0) pts += S.shutout;
       });
-      if (side && sweep && p.team === r.winner) pts += S.sweep;
+      if (side && p.team === r.winner) pts += seriesBonus;
       var c = mk[k];
       if (c) pts += num(c[0]) * S.fourK + num(c[1]) * S.fiveK;
       out[k] = pts;
