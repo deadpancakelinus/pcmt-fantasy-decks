@@ -104,8 +104,6 @@
   .gate-win { width: min(560px, 100%); max-height: calc(100vh - 32px); overflow: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 24px 80px rgba(0, 0, 0, .6); }
   .gate-film { position: relative; aspect-ratio: 16 / 9; background: #f7ecdc; border-radius: 15px 15px 0 0; overflow: hidden; }
   .gate-film video { display: block; width: 100%; height: 100%; object-fit: cover; }
-  .gate-film button { position: absolute; right: 10px; bottom: 10px; font: 500 12px/1 'JetBrains Mono', monospace; color: #2a1a12; background: rgba(247, 236, 220, .85); border: 1px solid rgba(42, 26, 18, .3); border-radius: 999px; padding: 8px 12px; cursor: pointer; }
-  .gate-film button:focus-visible { outline: 2px solid #2a1a12; outline-offset: 2px; }
   .gate-body { padding: 22px; display: flex; flex-direction: column; gap: 14px; }
   .gate-body h2 { margin: 0; font: 700 30px/1.05 'Cabin Sketch', cursive; }
   .gate-body form { display: flex; flex-wrap: wrap; gap: 10px; }
@@ -117,8 +115,7 @@
 <div class="gate" id="gate" role="dialog" aria-modal="true" aria-labelledby="gate-title">
   <div class="gate-win">
     <div class="gate-film">
-      <video id="gate-video" src="media/freshbatch-intro.mp4" playsinline preload="auto" aria-label="Freshbatch intro"></video>
-      <button type="button" id="gate-sound" hidden>Sound on</button>
+      <video id="gate-video" src="media/freshbatch-intro.mp4" muted loop playsinline preload="auto" aria-label="Freshbatch intro"></video>
     </div>
     <div class="gate-body" id="gate-pw">
       <h2 id="gate-title">Freshbatch backend</h2>
@@ -522,17 +519,17 @@
     (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { b.textContent = 'Copied'; }, function () { b.textContent = 'Select the text and copy it'; });
   });
 
-  var gate = $('gate'), film = $('gate-video'), snd = $('gate-sound'), behind = document.querySelectorAll('header, main');
+  var gate = $('gate'), film = $('gate-video'), behind = document.querySelectorAll('header, main');
   function lockPage(on) { behind.forEach(function (el) { if (on) el.setAttribute('inert', ''); else el.removeAttribute('inert'); }); }
   function playFilm() {
     if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) {   // no motion: show the logo frame
       film.addEventListener('loadedmetadata', function () { film.currentTime = Math.max(0, film.duration - 0.05); }, { once: true });
       return;
     }
+    film.muted = true;   // no sound; it loops while the window is open
     var p = film.play();
-    if (p && p.catch) p.catch(function () { film.muted = true; snd.hidden = false; film.play().catch(function () {}); });  // sound blocked: play muted
+    if (p && p.catch) p.catch(function () {});
   }
-  snd.addEventListener('click', function () { film.muted = false; snd.hidden = true; if (film.ended) { film.currentTime = 0; film.play(); } });
   function openGate(step) {
     gate.hidden = false; lockPage(true);
     $('gate-pw').hidden = step !== 'pw'; $('gate-login').hidden = step !== 'login';
