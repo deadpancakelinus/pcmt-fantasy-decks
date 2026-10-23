@@ -11,14 +11,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cabin+Sketch:wght@400;700&amp;family=JetBrains+Mono:wght@400;600&amp;family=Space+Grotesk:wght@400;500;700&amp;display=swap" rel="stylesheet">
 <style>
-body{margin:0;background:#000}
+body{margin:0;background:#0d1416}
 html{color-scheme:dark}
-*{scrollbar-color:#2c3d40 #050808}
+*{scrollbar-color:#3a4f53 #111a1c}
 ::-webkit-scrollbar{width:12px;height:12px}
-::-webkit-scrollbar-track{background:#050808}
-::-webkit-scrollbar-thumb{background:#2c3d40;border-radius:999px;border:3px solid #050808}
-::-webkit-scrollbar-thumb:hover{background:#3d5457}
-::-webkit-scrollbar-corner{background:#050808}
+::-webkit-scrollbar-track{background:#111a1c}
+::-webkit-scrollbar-thumb{background:#3a4f53;border-radius:999px;border:3px solid #111a1c}
+::-webkit-scrollbar-thumb:hover{background:#4a6266}
+::-webkit-scrollbar-corner{background:#111a1c}
 a{color:#a5dcdd}a:hover{color:#d4f0f0}
 .pcmt-loader{--radius:78px;--speed:2.4s;position:relative;width:calc(var(--radius)*2 + 60px);height:calc(var(--radius)*2 + 60px)}
 .pcmt-loader span{position:absolute;left:50%;top:50%;width:34px;height:48px;margin:-24px 0 0 -17px;border-radius:5px;background:url("/_blob/38f3fa3227d68bf879b50c6927b7ab1f") center/90% no-repeat,#000;border:1.5px solid #a5dcdd;box-shadow:0 2px 6px rgba(0,0,0,.35);animation:pcmt-card-splay var(--speed) cubic-bezier(.65,0,.35,1) infinite;animation-delay:calc(var(--i)*0.035s)}
@@ -26,7 +26,7 @@ a{color:#a5dcdd}a:hover{color:#d4f0f0}
 @media (prefers-reduced-motion: reduce){.pcmt-loader span{animation-duration:calc(var(--speed)*3)}}
 .pcmt-loading{transition:opacity .4s ease}
 input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !important;box-shadow:0 0 0 3px rgba(165,220,221,.3)}
-.st-card{position:relative;box-sizing:border-box;width:300px;zoom:.75;aspect-ratio:5/7;background:#0b1011;border:1px solid #1e2b2d;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 10px 24px rgba(0,0,0,.55)}
+.st-card{position:relative;box-sizing:border-box;width:300px;zoom:.75;aspect-ratio:5/7;background:#172124;border:1px solid #2a3a3e;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 10px 24px rgba(0,0,0,.55)}
 .st-art{position:absolute;inset:0;z-index:0;pointer-events:none}
 .st-art img.st-art-full{left:0;top:0;right:auto;bottom:auto;width:100%;height:100%;object-fit:cover;opacity:.32;-webkit-mask-image:radial-gradient(120% 90% at 55% 45%,#000 45%,transparent 100%);mask-image:radial-gradient(120% 90% at 55% 45%,#000 45%,transparent 100%)}
 .st-art img.st-art-center{left:50%;top:50%;right:auto;bottom:auto;height:86%;width:auto;transform:translate(-50%,-46%);opacity:.24;-webkit-mask-image:none;mask-image:none}
@@ -37,7 +37,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 .lib-slot:last-child{margin-right:0}
 .lib-slot:hover,.lib-slot:focus{z-index:200 !important;transform:translateY(-22px) rotate(0deg) scale(1.05);filter:drop-shadow(0 16px 22px rgba(0,0,0,.7))}
 .lib-slot:focus-visible .st-card{box-shadow:0 0 0 3px #a5dcdd}
-.lib-title{position:absolute;left:50%;top:-16px;z-index:4;max-width:200px;padding:5px 10px;border-radius:6px;border:1.5px solid var(--ink,#7cc2ff);background:#0b1011;color:#eaf4f4;font-family:'Cabin Sketch',cursive;font-weight:700;font-size:16px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none;opacity:0;transform:translate(-50%,6px);transition:opacity .18s ease,transform .18s ease;box-shadow:0 0 12px var(--glow,rgba(124,194,255,.35)),0 4px 10px rgba(0,0,0,.6)}
+.lib-title{position:absolute;left:50%;top:-16px;z-index:4;max-width:200px;padding:5px 10px;border-radius:6px;border:1.5px solid var(--ink,#7cc2ff);background:#172124;color:#eaf4f4;font-family:'Cabin Sketch',cursive;font-weight:700;font-size:16px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none;opacity:0;transform:translate(-50%,6px);transition:opacity .18s ease,transform .18s ease;box-shadow:0 0 12px var(--glow,rgba(124,194,255,.35)),0 4px 10px rgba(0,0,0,.6)}
 .lib-slot:hover .lib-title,.lib-slot:focus .lib-title{opacity:1;transform:translate(-50%,0)}
 .lib-count{position:absolute;left:-6px;top:-10px;z-index:3;padding:3px 8px;border-radius:6px;background:#a5dcdd;color:#000;font:600 11px/1 'JetBrains Mono',monospace;box-shadow:0 2px 6px rgba(0,0,0,.5)}
 @media (max-width:520px){.lib-slot{margin-right:-170px}.lib-stack{flex-wrap:nowrap;overflow-x:auto;padding:46px 8px 14px 10px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}.lib-slot{scroll-snap-align:start}}  /* phones: one stack per row that you swipe sideways */
@@ -54,9 +54,9 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 .st-stat{box-sizing:border-box;display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:40px;padding:6px 12px;border-radius:8px;background:rgba(0,0,0,.5)}
 </style>
 </helmet>
-<div data-pcmt-root="Library" style="position: relative; min-height: 100vh; background: #000; color: #eaf4f4; font-family: 'Space Grotesk', system-ui, sans-serif">
+<div data-pcmt-root="Library" style="position: relative; min-height: 100vh; background: #0d1416; color: #eaf4f4; font-family: 'Space Grotesk', system-ui, sans-serif">
 <sc-if value="{{loaderOn}}" hint-placeholder-val="{{ false }}">
-<div class="pcmt-loading" role="status" aria-live="polite" style="position: absolute; inset: 0; z-index: 9999; background: #000; opacity: {{loaderOpacity}}; pointer-events: {{loaderPointer}}">
+<div class="pcmt-loading" role="status" aria-live="polite" style="position: absolute; inset: 0; z-index: 9999; background: #0d1416; opacity: {{loaderOpacity}}; pointer-events: {{loaderPointer}}">
 <div style="position: sticky; top: 0; height: 100vh; max-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px">
 <div class="pcmt-loader" aria-hidden="true"><span style="--i:0"></span><span style="--i:1"></span><span style="--i:2"></span><span style="--i:3"></span><span style="--i:4"></span><span style="--i:5"></span><span style="--i:6"></span><span style="--i:7"></span><span style="--i:8"></span><span style="--i:9"></span><span style="--i:10"></span><span style="--i:11"></span><span style="--i:12"></span><span style="--i:13"></span><span style="--i:14"></span></div>
 <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.12em; color: #a5dcdd">{{loaderLabel}}</span>
@@ -65,7 +65,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </sc-if>
 
 
-<header style="border-bottom: 1px solid #1e2b2d; background: #050808">
+<header style="border-bottom: 1px solid #2a3a3e; background: #111a1c">
 <div style="max-width: 1280px; margin: 0 auto; padding: 14px 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 32px">
 <a href="Main.dc.html" style="display: flex; align-items: baseline; gap: 10px; text-decoration: none">
 <span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 32px; color: #a5dcdd; line-height: 1">fantasy.pcmt.gg</span>
@@ -103,7 +103,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </div>
 <div style="display: flex; gap: 10px; flex-wrap: wrap">
 <sc-for list="{{totals}}" as="tt" hint-placeholder-count="3">
-<div style="display: flex; align-items: baseline; gap: 8px; padding: 12px 16px; border: 1px solid #1e2b2d; border-radius: 12px; background: #0b1011">
+<div style="display: flex; align-items: baseline; gap: 8px; padding: 12px 16px; border: 1px solid #2a3a3e; border-radius: 12px; background: #172124">
 <span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 28px; line-height: 1; color: #a5dcdd">{{tt.value}}</span>
 <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.08em; text-transform: uppercase">{{tt.label}}</span>
 </div>
@@ -118,7 +118,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </div>
 
 <sc-if value="{{empty}}" hint-placeholder-val="{{ false }}">
-<div style="background: #0b1011; border: 1px solid #1e2b2d; border-radius: 12px; padding: 40px 24px; display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center">
+<div style="background: #172124; border: 1px solid #2a3a3e; border-radius: 12px; padding: 40px 24px; display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center">
 <p style="margin: 0; font-size: 17px; color: #c4d4d4">{{emptyText}}</p>
 <a href="Store.dc.html" style="min-height: 44px; display: inline-flex; align-items: center; padding: 0 18px; border-radius: 8px; background: #a5dcdd; color: #000; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; text-decoration: none">Go to the Store</a>
 </div>
@@ -157,7 +157,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <sc-if value="{{it.hasRole}}" hint-placeholder-val="{{ true }}"><img src="{{it.roleIcon}}" alt="{{it.roleLabel}}" title="{{it.roleLabel}}" style="width: 24px; height: 24px; display: block"></sc-if>
 <sc-if value="{{it.noRole}}" hint-placeholder-val="{{ false }}"><span></span></sc-if>
 <sc-if value="{{it.shiny}}" hint-placeholder-val="{{ false }}">
-<span class="st-stamp" title="{{it.rarityLabel}} card" style="border: 1.5px solid {{it.color}}; box-shadow: inset 0 0 0 2px #0b1011, inset 0 0 0 3px {{it.color}}, 0 0 12px {{it.glow}}; color: {{it.color}}">
+<span class="st-stamp" title="{{it.rarityLabel}} card" style="border: 1.5px solid {{it.color}}; box-shadow: inset 0 0 0 2px #172124, inset 0 0 0 3px {{it.color}}, 0 0 12px {{it.glow}}; color: {{it.color}}">
 <svg aria-hidden="true" width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 20.9l1.6-7L2 9.2l7.1-.6z"></path></svg>
 <span class="st-shine" style="background-image: {{it.shine}}">{{it.rarityTag}}</span>
 </span>
@@ -176,7 +176,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </sc-if>
 </main>
 
-<footer style="border-top: 1px solid #1e2b2d">
+<footer style="border-top: 1px solid #2a3a3e">
 <div style="max-width: 1280px; margin: 0 auto; padding: 22px 24px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">
 <span>fantasy.pcmt.gg · Plat Chat Members Tourney</span>
 <span>Version 1.5 BETA</span>
@@ -429,7 +429,7 @@ class Component extends DCLogic {
                    ['EMEA', 'EMEA', count(function (c) { return c.region === 'EMEA'; })], ['RARE', 'Rare and up', count(function (c) { return c.rarity !== 'common'; })]]
       .map(function (f) {
         var on = show === f[0];
-        return { label: f[1], count: String(f[2]), pressed: on ? 'true' : 'false', bg: on ? '#a5dcdd' : 'transparent', ink: on ? '#000' : '#eaf4f4', border: on ? '#a5dcdd' : '#2c3d40',
+        return { label: f[1], count: String(f[2]), pressed: on ? 'true' : 'false', bg: on ? '#a5dcdd' : 'transparent', ink: on ? '#000' : '#eaf4f4', border: on ? '#a5dcdd' : '#3a4f53',
                  pick: function () { self.setState({ show: f[0] }); } };
       });
     var total = all.reduce(function (n, c) { return n + (+c.count); }, 0);

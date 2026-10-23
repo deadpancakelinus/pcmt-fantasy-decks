@@ -255,7 +255,7 @@
     var el = document.getElementById('pcmt-toast');
     if (!el) {
       el = document.createElement('div'); el.id = 'pcmt-toast'; el.setAttribute('role', 'status');
-      el.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:2147483600;max-width:min(560px,calc(100% - 32px));padding:14px 18px;border-radius:10px;background:#0b1011;border:1px solid #a5dcdd;color:#eaf4f4;font:500 14px/1.45 "Space Grotesk",system-ui,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.6);transition:opacity .3s;';
+      el.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:2147483600;max-width:min(560px,calc(100% - 32px));padding:14px 18px;border-radius:10px;background:#172124;border:1px solid #a5dcdd;color:#eaf4f4;font:500 14px/1.45 "Space Grotesk",system-ui,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.6);transition:opacity .3s;';
       document.body.appendChild(el);
     }
     el.textContent = msg; el.style.opacity = '1';

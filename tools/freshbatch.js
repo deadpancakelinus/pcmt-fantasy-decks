@@ -8,16 +8,22 @@
   function build() {
     var css = document.createElement('style');
     css.textContent =
-      '.fb-dlg{width:min(520px,calc(100vw - 32px));max-height:calc(100vh - 32px);padding:0;border:1px solid #1e2b2d;border-radius:16px;background:#0b1011;color:#eaf4f4;box-shadow:0 24px 80px rgba(0,0,0,.6);overflow:auto}' +
-      '.fb-dlg::backdrop{background:rgba(0,0,0,.72);backdrop-filter:blur(6px)}' +
+      // Frosted glass: the page shows through, blurred.
+      '.fb-dlg{width:min(520px,calc(100vw - 32px));max-height:calc(100vh - 32px);padding:0;border:1px solid rgba(255,255,255,.18);border-radius:20px;color:#eaf4f4;overflow:auto;' +
+      'background:linear-gradient(145deg,rgba(255,255,255,.14),rgba(255,255,255,.04) 45%,rgba(165,220,221,.08));' +
+      '-webkit-backdrop-filter:blur(22px) saturate(160%);backdrop-filter:blur(22px) saturate(160%);' +
+      'box-shadow:0 24px 80px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.22)}' +
+      '.fb-dlg::backdrop{background:rgba(5,10,12,.25)}' +
+      '@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.fb-dlg{background:rgba(23,33,36,.96)}}' +
+      '.fb-film{margin:12px 12px 0;border-radius:12px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.25)}' +
       '.fb-film{aspect-ratio:16/9;background:#f7ecdc}' +
       '.fb-film video{display:block;width:100%;height:100%;object-fit:cover}' +
       '.fb-body{padding:22px;display:flex;flex-direction:column;gap:12px;font-family:"Space Grotesk",system-ui,sans-serif}' +
-      '.fb-k{font:400 12px/1 "JetBrains Mono",monospace;letter-spacing:.08em;text-transform:uppercase;color:#93a9aa;margin:0}' +
+      '.fb-k{font:400 12px/1 "JetBrains Mono",monospace;letter-spacing:.08em;text-transform:uppercase;color:#c4d4d4;margin:0}' +
       '.fb-names{margin:0;font:700 28px/1.15 "Cabin Sketch",cursive;color:#eaf4f4}' +
       '.fb-thanks{margin:6px 0 0;font-size:16px;line-height:1.5;color:#c4d4d4}' +
       '.fb-thanks b{color:#a5dcdd;font-weight:600}' +
-      '.fb-close{align-self:flex-start;margin-top:6px;min-height:44px;padding:0 18px;border-radius:8px;border:1px solid #2c3d40;background:transparent;color:#eaf4f4;font:600 13px/1 "JetBrains Mono",monospace;cursor:pointer}' +
+      '.fb-close{align-self:flex-start;margin-top:6px;min-height:44px;padding:0 18px;border-radius:999px;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.08);color:#eaf4f4;font:600 13px/1 "JetBrains Mono",monospace;cursor:pointer}' +
       '.fb-close:hover{border-color:#a5dcdd}.fb-close:focus-visible{outline:none;border-color:#a5dcdd;box-shadow:0 0 0 3px rgba(165,220,221,.3)}' +
       '[data-freshbatch]{font:inherit;font-weight:700;color:#eaf4f4;background:none;border:0;padding:0;cursor:pointer;text-decoration:underline;text-decoration-color:rgba(165,220,221,.5);text-underline-offset:3px}' +
       '[data-freshbatch]:hover{color:#a5dcdd}[data-freshbatch]:focus-visible{outline:2px solid #a5dcdd;outline-offset:2px;border-radius:2px}';

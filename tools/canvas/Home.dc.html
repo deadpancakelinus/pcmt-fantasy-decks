@@ -11,14 +11,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cabin+Sketch:wght@400;700&amp;family=JetBrains+Mono:wght@400;600&amp;family=Space+Grotesk:wght@400;500;700&amp;display=swap" rel="stylesheet">
 <style>
-body{margin:0;background:#000}
+body{margin:0;background:#0d1416}
 html{color-scheme:dark}
-*{scrollbar-color:#2c3d40 #050808}
+*{scrollbar-color:#3a4f53 #111a1c}
 ::-webkit-scrollbar{width:12px;height:12px}
-::-webkit-scrollbar-track{background:#050808}
-::-webkit-scrollbar-thumb{background:#2c3d40;border-radius:999px;border:3px solid #050808}
-::-webkit-scrollbar-thumb:hover{background:#3d5457}
-::-webkit-scrollbar-corner{background:#050808}
+::-webkit-scrollbar-track{background:#111a1c}
+::-webkit-scrollbar-thumb{background:#3a4f53;border-radius:999px;border:3px solid #111a1c}
+::-webkit-scrollbar-thumb:hover{background:#4a6266}
+::-webkit-scrollbar-corner{background:#111a1c}
 a{color:#a5dcdd}a:hover{color:#d4f0f0}
 .pcmt-loader{--radius:78px;--speed:2.4s;position:relative;width:calc(var(--radius)*2 + 60px);height:calc(var(--radius)*2 + 60px)}
 .pcmt-loader span{position:absolute;left:50%;top:50%;width:34px;height:48px;margin:-24px 0 0 -17px;border-radius:5px;background:url("/_blob/38f3fa3227d68bf879b50c6927b7ab1f") center/90% no-repeat,#000;border:1.5px solid #a5dcdd;box-shadow:0 2px 6px rgba(0,0,0,.35);animation:pcmt-card-splay var(--speed) cubic-bezier(.65,0,.35,1) infinite;animation-delay:calc(var(--i)*0.035s)}
@@ -29,21 +29,21 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 a.hm-tile{color:inherit}
 .hm-hero{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(280px,1fr);gap:28px;align-items:start}
 @media (max-width:860px){.hm-hero{grid-template-columns:1fr}}
-.hm-panel{background:#0b1011;border:1px solid #1e2b2d;border-radius:12px;padding:20px}
-.hm-cc textarea{display:block;width:100%;box-sizing:border-box;min-height:150px;resize:vertical;padding:12px 14px;border-radius:8px;border:1px solid #2c3d40;background:#000;color:#eaf4f4;font:16px/1.55 'Space Grotesk',system-ui,sans-serif}
+.hm-panel{background:#172124;border:1px solid #2a3a3e;border-radius:12px;padding:20px}
+.hm-cc textarea{display:block;width:100%;box-sizing:border-box;min-height:150px;resize:vertical;padding:12px 14px;border-radius:8px;border:1px solid #3a4f53;background:#0d1416;color:#eaf4f4;font:16px/1.55 'Space Grotesk',system-ui,sans-serif}
 .hm-cc button{min-height:44px;padding:0 18px;border-radius:8px;border:1px solid #a5dcdd;background:#a5dcdd;color:#000;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600}
 .hm-cc button:disabled{opacity:.45;cursor:not-allowed}
 .hm-cc button:focus-visible{outline:2px solid #a5dcdd;outline-offset:2px}
 .hm-menu{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,270px),1fr));gap:12px}
-.hm-tile{display:flex;gap:14px;align-items:flex-start;padding:18px;border-radius:12px;background:#0b1011;border:1px solid #1e2b2d;text-decoration:none;transition:border-color .15s ease,transform .15s ease}
+.hm-tile{display:flex;gap:14px;align-items:flex-start;padding:18px;border-radius:12px;background:#172124;border:1px solid #2a3a3e;text-decoration:none;transition:border-color .15s ease,transform .15s ease}
 .hm-tile:hover,.hm-tile:focus-visible{border-color:#a5dcdd;transform:translateY(-2px)}
 .hm-tile:focus-visible{outline:2px solid #a5dcdd;outline-offset:2px}
 @media (prefers-reduced-motion: reduce){.hm-tile{transition:none}}
 </style>
 </helmet>
-<div data-pcmt-root="Home" style="position: relative; min-height: 100vh; background: #000; color: #eaf4f4; font-family: 'Space Grotesk', system-ui, sans-serif">
+<div data-pcmt-root="Home" style="position: relative; min-height: 100vh; background: #0d1416; color: #eaf4f4; font-family: 'Space Grotesk', system-ui, sans-serif">
 <sc-if value="{{loaderOn}}" hint-placeholder-val="{{ false }}">
-<div class="pcmt-loading" role="status" aria-live="polite" style="position: absolute; inset: 0; z-index: 9999; background: #000; opacity: {{loaderOpacity}}; pointer-events: {{loaderPointer}}">
+<div class="pcmt-loading" role="status" aria-live="polite" style="position: absolute; inset: 0; z-index: 9999; background: #0d1416; opacity: {{loaderOpacity}}; pointer-events: {{loaderPointer}}">
 <div style="position: sticky; top: 0; height: 100vh; max-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px">
 <div class="pcmt-loader" aria-hidden="true"><span style="--i:0"></span><span style="--i:1"></span><span style="--i:2"></span><span style="--i:3"></span><span style="--i:4"></span><span style="--i:5"></span><span style="--i:6"></span><span style="--i:7"></span><span style="--i:8"></span><span style="--i:9"></span><span style="--i:10"></span><span style="--i:11"></span><span style="--i:12"></span><span style="--i:13"></span><span style="--i:14"></span></div>
 <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.12em; color: #a5dcdd">{{loaderLabel}}</span>
@@ -52,7 +52,7 @@ a.hm-tile{color:inherit}
 </sc-if>
 
 
-<header style="border-bottom: 1px solid #1e2b2d; background: #050808">
+<header style="border-bottom: 1px solid #2a3a3e; background: #111a1c">
 <div style="max-width: 1280px; margin: 0 auto; padding: 14px 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 32px">
 <a href="Main.dc.html" style="display: flex; align-items: baseline; gap: 10px; text-decoration: none">
 <span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 32px; color: #a5dcdd; line-height: 1">fantasy.pcmt.gg</span>
@@ -90,7 +90,7 @@ a.hm-tile{color:inherit}
 <p style="margin: 0; max-width: 620px; font-size: 18px; line-height: 1.55; color: #c4d4d4">Build a deck of PCMT players, open card packs and play MVP VS. Everything new on fantasy.pcmt.gg starts here.</p>
 <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px">
 <a href="Main.dc.html" style="min-height: 44px; display: inline-flex; align-items: center; padding: 0 18px; border-radius: 8px; background: #a5dcdd; color: #000; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; text-decoration: none">Build your deck</a>
-<a href="Store.dc.html" style="min-height: 44px; display: inline-flex; align-items: center; padding: 0 18px; border-radius: 8px; border: 1px solid #2c3d40; color: #eaf4f4; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; text-decoration: none">Open card packs</a>
+<a href="Store.dc.html" style="min-height: 44px; display: inline-flex; align-items: center; padding: 0 18px; border-radius: 8px; border: 1px solid #3a4f53; color: #eaf4f4; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; text-decoration: none">Open card packs</a>
 </div>
 </div>
 <div class="hm-panel" style="display: flex; flex-direction: column; gap: 14px">
@@ -101,7 +101,7 @@ a.hm-tile{color:inherit}
 <sc-if value="{{hasMatches}}" hint-placeholder-val="{{ true }}">
 <ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px">
 <sc-for list="{{matches}}" as="m" hint-placeholder-count="2">
-<li style="display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border-radius: 10px; background: #050808; border: 1px solid #1e2b2d">
+<li style="display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border-radius: 10px; background: #111a1c; border: 1px solid #2a3a3e">
 <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px">
 <span style="display: inline-flex; align-items: center; gap: 8px; min-width: 0"><img src="{{m.aLogo}}" alt="" style="width: 28px; height: 28px; object-fit: contain"><span style="font-weight: 600; color: {{m.aColor}}">{{m.a}}</span></span>
 <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">vs</span>
@@ -163,7 +163,7 @@ a.hm-tile{color:inherit}
 </sc-if>
 </main>
 
-<footer style="border-top: 1px solid #1e2b2d">
+<footer style="border-top: 1px solid #2a3a3e">
 <div style="max-width: 1280px; margin: 0 auto; padding: 22px 24px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">
 <span>fantasy.pcmt.gg · Plat Chat Members Tourney</span>
 <span>Version 1.5 BETA</span>

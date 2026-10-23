@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cabin+Sketch:wght@400;700&family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-  :root { color-scheme: dark; --bg: #000; --panel: #0b1011; --panel2: #101718; --line: #1d2a2c; --ink: #eaf4f4; --dim: #8a9a9b; --accent: #a5dcdd; --win: #55ff8f; --lose: #ff5a5a; --tie: #ffe94d; }
+  :root { color-scheme: dark; --bg: #0d1416; --panel: #172124; --panel2: #1d2a2d; --line: #1d2a2c; --ink: #eaf4f4; --dim: #8a9a9b; --accent: #a5dcdd; --win: #55ff8f; --lose: #ff5a5a; --tie: #ffe94d; }
   * { box-sizing: border-box; }
   html, body { margin: 0; background: var(--bg); color: var(--ink); }
   body { font: 400 15px/1.5 'Space Grotesk', system-ui, sans-serif; min-height: 100vh; }
@@ -52,7 +52,7 @@
   .tt-join { margin-top: 18px; }
   .tt-join label { display: block; font: 600 11px/1 'JetBrains Mono', monospace; letter-spacing: .12em; color: var(--dim); text-transform: uppercase; margin-bottom: 8px; }
   .tt-join div { display: flex; gap: 8px; }
-  .tt-join input { flex: 1; min-width: 0; height: 44px; padding: 0 14px; border-radius: 8px; border: 1px solid var(--line); background: #000; font-family: 'JetBrains Mono', monospace; letter-spacing: .3em; text-transform: uppercase; }
+  .tt-join input { flex: 1; min-width: 0; height: 44px; padding: 0 14px; border-radius: 8px; border: 1px solid var(--line); background: #0d1416; font-family: 'JetBrains Mono', monospace; letter-spacing: .3em; text-transform: uppercase; }
   .tt-join input:focus, .tt-btn:focus-visible, .tt-stat:focus-visible, .tt-region button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .tt-error { color: var(--lose); text-align: center; margin: 18px 0 0; }
   .tt-dim { color: var(--dim); }
@@ -78,7 +78,7 @@
   .tt-table > div > .tt-card { flex: 1; }
   .tt-seat { font-size: 11px; letter-spacing: .12em; color: var(--dim); text-transform: uppercase; margin-bottom: 8px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-  .tt-card { --team: var(--accent); position: relative; width: 100%; aspect-ratio: 5 / 7; background: #0b1011; border: 1px solid #1e2b2d; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+  .tt-card { --team: var(--accent); position: relative; width: 100%; aspect-ratio: 5 / 7; background: #172124; border: 1px solid #2a3a3e; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
   .tt-card.win { box-shadow: 0 0 0 2px var(--win); }
   .tt-card.lose { box-shadow: 0 0 0 2px var(--lose); opacity: .85; }
   .tt-card.tie { box-shadow: 0 0 0 2px var(--tie); }
@@ -100,7 +100,7 @@
   .tt-stat-l { font-size: 14px; }
   .tt-stat-l i { font-style: normal; color: var(--dim); margin-left: 6px; font: 600 9px/1 'JetBrains Mono', monospace; letter-spacing: .08em; text-transform: uppercase; }
   .tt-stat-v { font-size: 17px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
-  button.tt-stat { cursor: pointer; border-color: #1e2b2d; }
+  button.tt-stat { cursor: pointer; border-color: #2a3a3e; }
   button.tt-stat:hover { border-color: var(--team); background: rgba(165, 220, 221, .08); }
   .tt-stat.is-picked { border-color: var(--accent); background: rgba(165, 220, 221, .14); }
   .tt-stat.is-picked.win { border-color: var(--win); background: rgba(85, 255, 143, .16); }
@@ -112,13 +112,13 @@
   .tt-card-foot img { width: 24px; height: 24px; display: block; }
   .tt-hint { font: 600 11px/1 'JetBrains Mono', monospace; letter-spacing: .12em; color: var(--accent); text-transform: uppercase; }
   .tt-back { position: relative; border: 1px solid #1f3a3b; display: grid; place-items: center;
-    background: radial-gradient(circle at 50% 50%, #0b1011 0 28%, rgba(11,16,17,0) 50%), repeating-linear-gradient(45deg, rgba(165,220,221,0.22) 0 1px, transparent 1px 11px), repeating-linear-gradient(-45deg, rgba(165,220,221,0.22) 0 1px, transparent 1px 11px), radial-gradient(circle at 50% 50%, #12191a 0%, #080b0c 100%); }
+    background: radial-gradient(circle at 50% 50%, #172124 0 28%, rgba(11,16,17,0) 50%), repeating-linear-gradient(45deg, rgba(165,220,221,0.22) 0 1px, transparent 1px 11px), repeating-linear-gradient(-45deg, rgba(165,220,221,0.22) 0 1px, transparent 1px 11px), radial-gradient(circle at 50% 50%, #12191a 0%, #080b0c 100%); }
   .tt-back-in1 { position: absolute; inset: 7px; border: 1px solid rgba(165,220,221,0.75); border-radius: 8px; }
   .tt-back-in2 { position: absolute; inset: 11px; border: 1px solid rgba(165,220,221,0.35); border-radius: 6px; }
   .tt-gem { position: absolute; width: 9px; height: 9px; transform: rotate(45deg); background: var(--accent); }
   .tt-gem.t { top: 3px; left: 50%; margin-left: -4.5px; } .tt-gem.b { bottom: 3px; left: 50%; margin-left: -4.5px; }
   .tt-gem.l { left: 3px; top: 50%; margin-top: -4.5px; } .tt-gem.r { right: 3px; top: 50%; margin-top: -4.5px; }
-  .tt-back-emblem { position: relative; width: 56%; aspect-ratio: 1; border-radius: 50%; border: 2px solid rgba(165,220,221,.75); box-shadow: 0 0 0 4px #0b1011, 0 0 0 5px rgba(165,220,221,.35); background: #050808; display: grid; place-items: center; }
+  .tt-back-emblem { position: relative; width: 56%; aspect-ratio: 1; border-radius: 50%; border: 2px solid rgba(165,220,221,.75); box-shadow: 0 0 0 4px #172124, 0 0 0 5px rgba(165,220,221,.35); background: #111a1c; display: grid; place-items: center; }
   .tt-back-emblem img { width: 72%; height: 72%; object-fit: contain; }
 
 
@@ -209,7 +209,7 @@
 </style>
 </head>
 <body>
-<header style="border-bottom: 1px solid #1e2b2d; background: #050808">
+<header style="border-bottom: 1px solid #2a3a3e; background: #111a1c">
 <div class="tt-top-in" style="max-width: 1280px; margin: 0 auto; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 32px">
 <a href="index.html" style="display: flex; align-items: baseline; gap: 10px; text-decoration: none">
 <span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 32px; color: #a5dcdd; line-height: 1">fantasy.pcmt.gg</span>
@@ -256,7 +256,7 @@
     </ul>
   </section>
 </main>
-<footer style="border-top: 1px solid #1e2b2d">
+<footer style="border-top: 1px solid #2a3a3e">
 <div class="tt-foot-in" style="max-width: 1280px; margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">
 <span>fantasy.pcmt.gg · Plat Chat Members Tourney</span>
 <span>Version 1.5 BETA</span>
