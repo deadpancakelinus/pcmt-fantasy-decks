@@ -84,6 +84,15 @@
   .tt-card.tie { box-shadow: 0 0 0 2px var(--tie); }
   .tt-wm { position: absolute; inset: 0; z-index: 0; pointer-events: none; display: grid; place-items: center; }
   .tt-wm img { width: 78%; max-width: 230px; aspect-ratio: 1; object-fit: contain; opacity: .12; transform: translateY(10px); }
+  /* Your Rares (picked on the Library page): their art behind the card, a sheen, a glow in the rarity colour and a stamp */
+  .tt-card.tt-rare { border-color: var(--rare); box-shadow: 0 0 0 1px var(--rare), 0 0 22px color-mix(in srgb, var(--rare) 45%, transparent); }
+  .tt-rare-art { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+  .tt-rare-art img { position: absolute; right: -8%; bottom: 0; height: 92%; width: auto; max-width: none; opacity: .5; }
+  .tt-rare-art.is-center img { right: 50%; transform: translateX(50%); bottom: 18%; height: 58%; opacity: .32; }
+  .tt-rare-sheen { position: absolute; inset: 0; z-index: 0; pointer-events: none; background: linear-gradient(115deg, transparent 42%, color-mix(in srgb, var(--rare) 22%, transparent) 50%, transparent 58%); background-size: 250% 100%; animation: tt-sheen 5s ease-in-out infinite; }
+  @keyframes tt-sheen { 0%, 60% { background-position: 120% 0; } 100% { background-position: -120% 0; } }
+  .tt-rare-stamp { font: 700 10px/1 'JetBrains Mono', monospace; letter-spacing: .14em; color: var(--rare); border: 1.5px solid var(--rare); border-radius: 4px; padding: 3px 7px; transform: rotate(-9deg); white-space: nowrap; }
+  @media (prefers-reduced-motion: reduce) { .tt-rare-sheen { animation: none; } }
   .tt-edge { display: block; height: 5px; background: var(--team); flex: none; position: relative; z-index: 1; }
   .tt-card-body { position: relative; z-index: 1; flex: 1; padding: 14px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
   .tt-card-top { display: flex; justify-content: space-between; align-items: center; height: 30px; flex: none; }
@@ -265,6 +274,7 @@
 <p class="tt-foot-note" style="max-width: 1280px; margin: 0 auto; font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.6; color: #93a9aa"><span style="display: block; margin-bottom: 6px; font-size: 12px; color: #c4d4d4">A <button type="button" data-freshbatch="1" aria-haspopup="dialog" style="font: inherit; font-weight: 700; color: #eaf4f4; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px">Freshbatch</button> product</span>fantasy.pcmt.gg was created under Riot Games' <a href="https://www.riotgames.com/en/legal" target="_blank" rel="noopener" style="color: #a5dcdd">&quot;Legal Jibber Jabber&quot;</a> policy using assets owned by Riot Games. Riot Games does not endorse or sponsor this project.</p>
 </footer>
 <script src="trumps-cards.js"></script>
+<script src="variant-art.js"></script>
 <script src="trumps.js"></script>
 <script src="freshbatch.js"></script>
 </body>

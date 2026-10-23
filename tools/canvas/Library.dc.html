@@ -117,6 +117,22 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </sc-for>
 </div>
 
+<sc-if value="{{hasRares}}" hint-placeholder-val="{{ true }}">
+<section aria-labelledby="mvp-h" style="background: #172124; border: 1px solid #2a3a3e; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+<h2 id="mvp-h" style="margin: 0; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 28px; line-height: 1.1">Rares in your MVP VS deck</h2>
+<p style="margin: 0; max-width: 760px; font-size: 15px; line-height: 1.55; color: #c4d4d4">Pick the Rares MVP VS uses. When one of your cards is dealt and you've picked Rares of that player, you get one of them at random instead of the Common. Nothing picked for a player: you get the Common. Stats stay the same.</p>
+<div role="group" aria-label="Rares in your MVP VS deck" style="display: flex; flex-wrap: wrap; gap: 8px">
+<sc-for list="{{rareChips}}" as="r" hint-placeholder-count="3">
+<button type="button" onClick="{{r.toggle}}" aria-pressed="{{r.pressed}}" disabled="{{r.busy}}" style="min-height: 44px; display: inline-flex; align-items: center; gap: 10px; padding: 0 16px 0 12px; border-radius: 999px; border: 1px solid {{r.border}}; background: {{r.bg}}; color: #eaf4f4; font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 15px; cursor: pointer">
+<span aria-hidden="true" style="width: 18px; height: 18px; border-radius: 5px; border: 1.5px solid {{r.ink}}; background: {{r.box}}; display: grid; place-items: center; color: #0d1416; font-size: 13px; font-weight: 700; line-height: 1">{{r.tick}}</span>
+<span style="font-weight: 600; color: {{r.ink}}">{{r.title}}</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">{{r.who}}</span>
+</button>
+</sc-for>
+</div>
+<p role="status" aria-live="polite" style="margin: 0; font-size: 14px; color: {{rareMsgInk}}">{{rareMsg}}</p>
+</section>
+</sc-if>
+
 <sc-if value="{{empty}}" hint-placeholder-val="{{ false }}">
 <div style="background: #172124; border: 1px solid #2a3a3e; border-radius: 12px; padding: 40px 24px; display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center">
 <p style="margin: 0; font-size: 17px; color: #c4d4d4">{{emptyText}}</p>
@@ -352,6 +368,19 @@ class Component extends DCLogic {
     });
   }
 
+  toggleRare(id, on, title) {
+    var self = this, W = typeof window !== 'undefined' ? window : {}, L = W.PCMT_LEAGUE;
+    if (!L || !L.setInDeck) {   // the canvas just pretends
+      var d = Object.assign({}, (this.state || {}).sampleDeck || {}); if (on) d[id] = true; else delete d[id];
+      this.setState({ sampleDeck: d, rareMsg: title + (on ? ' is in your MVP VS deck.' : ' is out of your MVP VS deck.'), rareOk: true });
+      return;
+    }
+    this.setState({ rareBusy: id, rareMsg: '' });
+    L.setInDeck(id, on).then(function (r) {
+      self.setState({ rareBusy: null, rareOk: true, rareMsg: title + (r ? ' is in your MVP VS deck.' : ' is out of your MVP VS deck.') });
+    }, function (e) { self.setState({ rareBusy: null, rareOk: false, rareMsg: (e && e.message) || 'Couldn\'t change that.' }); });
+  }
+
   _pageVals() {
     var self = this, s = this.state || {};
     var W = typeof window !== 'undefined' ? window : {};
@@ -408,6 +437,14 @@ class Component extends DCLogic {
     }).sort(function (a, b) {
       return (PCMT_RARITY_ORDER[a.rarity] - PCMT_RARITY_ORDER[b.rarity]) || (a.region === b.region ? 0 : a.region === 'NA' ? -1 : 1) || a.sortName.localeCompare(b.sortName);
     });
+    // Rares for the MVP VS deck (one chip per owned Rare-or-up card)
+    var inDeck = live ? (W.PCMT_MY_IN_DECK || {}) : (s.sampleDeck || {});
+    var rareChips = all.filter(function (c) { return c.rarity !== 'common'; }).map(function (c) {
+      var on = !!inDeck[c.id], ink = c.titleInk, busy = s.rareBusy === c.id;
+      return { id: c.id, title: c.title, who: c.name + ' · ' + c.season, pressed: on ? 'true' : 'false', busy: busy, ink: ink, tick: on ? '✓' : '',
+               box: on ? ink : 'transparent', border: on ? ink : '#3a4f53', bg: on ? pcmtRgba(ink, 0.14) : 'transparent',
+               toggle: function () { self.toggleRare(c.id, !on, c.title); } };
+    });
     var show = s.show || 'ALL';
     var cards = all.filter(function (c) { return show === 'ALL' || (show === 'RARE' ? c.rarity !== 'common' : c.region === show); });
     // One row per rarity (Rare, Common, ...), rarest first; cards in a row are stacked and fanned.
@@ -443,6 +480,8 @@ class Component extends DCLogic {
       filters: filters,
       groups: groups,
       empty: !cards.length,
+      hasRares: signedIn && rareChips.length > 0, rareChips: rareChips,
+      rareMsg: s.rareMsg || '', rareMsgInk: s.rareOk ? '#8be4b7' : '#ff8a80',
       emptyText: !signedIn ? 'Log in with Discord to see your cards.' : all.length ? 'No cards here yet.' : 'No cards yet. Open card packs in the Store and every card you pull shows up here.'
     };
   }

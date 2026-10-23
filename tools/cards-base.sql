@@ -69,6 +69,8 @@ create table if not exists public.user_cards (
 alter table public.user_cards enable row level security;
 drop policy if exists "read own cards" on public.user_cards;
 create policy "read own cards" on public.user_cards for select using (auth.uid() = user_id);
+-- in_deck: a Rare (or up) the player picked on the Library page for their MVP VS deck. Set only with set_card_in_deck().
+alter table public.user_cards add column if not exists in_deck boolean not null default false;
 
 create table if not exists public.pack_openings (
   id bigserial primary key,
@@ -149,3 +151,18 @@ begin
 end $$;
 revoke all on function public.fb_release_card(text, boolean) from public, anon;
 grant execute on function public.fb_release_card(text, boolean) to authenticated;
+
+-- Put an owned Rare-or-up card in (or take it out of) your MVP VS deck, from the Library page.
+create or replace function public.set_card_in_deck(p_card text, p_on boolean) returns boolean
+language plpgsql security definer set search_path = public as $$
+declare u uuid := auth.uid(); r text;
+begin
+  if u is null then raise exception 'Log in with Discord first.'; end if;
+  select c.rarity into r from public.user_cards uc join public.cards c on c.id = uc.card_id where uc.user_id = u and uc.card_id = p_card;
+  if r is null then raise exception 'You don''t own that card.'; end if;
+  if r = 'common' then raise exception 'Only Rare cards (or rarer) go in your MVP VS deck.'; end if;
+  update public.user_cards set in_deck = coalesce(p_on, false) where user_id = u and card_id = p_card;
+  return coalesce(p_on, false);
+end $$;
+revoke all on function public.set_card_in_deck(text, boolean) from public, anon;
+grant execute on function public.set_card_in_deck(text, boolean) to authenticated;

@@ -53,6 +53,13 @@ check(sql(`select string_agg(price::text, ',') from public.card_packs`).trim() =
   sql(as(STAFF, `select public.fb_release_card('v:teklo-variant', true);`));
   check(sql(`select released from public.cards where id = 'v:teklo-variant';`).trim() === 't', 'staff can release a Rare card');
   sql(as(STAFF, `select public.fb_release_card(id, true) from public.cards where rarity <> 'common';`));   // release them all so the odds checks below can run
+  // MVP VS deck: owned Rares can be picked; Commons and cards you don't own can't
+  sql(`insert into public.user_cards (user_id, card_id, count) values ('${P1}', 'v:teklo-variant', 1), ('${P1}', 'c:claps', 2) on conflict do nothing;`);
+  check(sql(as(P1, `select public.set_card_in_deck('v:teklo-variant', true);`)).trim() === 't' && sql(`select in_deck from public.user_cards where user_id = '${P1}' and card_id = 'v:teklo-variant';`).trim() === 't', 'a player can put an owned Rare in their MVP VS deck');
+  check(fails(as(P1, `select public.set_card_in_deck('c:claps', true);`), /Only Rare/), 'Commons cannot be picked for the MVP VS deck');
+  check(fails(as(P1, `select public.set_card_in_deck('v:claps-variant', true);`), /don't own/) && fails(`set role anon; select public.set_card_in_deck('v:teklo-variant', true);`), 'cards you do not own (or logged out) cannot be picked');
+  check(sql(as(P1, `select public.set_card_in_deck('v:teklo-variant', false);`)).trim() === 'f', 'a picked Rare can be taken out again');
+  sql(`delete from public.user_cards where user_id = '${P1}';`);
   sql(`delete from public.user_cards where user_id = '${STAFF}'; delete from public.pack_openings where user_id = '${STAFF}';`);
 }
 let r = buy(ADMIN);

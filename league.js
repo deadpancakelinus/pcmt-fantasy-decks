@@ -269,6 +269,15 @@
     get signedIn() { return !!me; },
     get myId() { return me ? me.id : null; },
     api: function (path, opts) { return refreshIfNeeded().then(function () { return api(path, opts); }); },
+    // Puts an owned Rare (or rarer) card in your MVP VS deck, or takes it out (Library page).
+    setInDeck: function (cardId, on) {
+      if (!me) return Promise.reject(new Error('Log in with Discord first.'));
+      return refreshIfNeeded().then(function () { return api('/rest/v1/rpc/set_card_in_deck', { method: 'POST', body: { p_card: cardId, p_on: !!on } }); }).then(function (r) {
+        window.PCMT_MY_IN_DECK = window.PCMT_MY_IN_DECK || {};
+        if (r) window.PCMT_MY_IN_DECK[cardId] = true; else delete window.PCMT_MY_IN_DECK[cardId];
+        return r;
+      });
+    },
     // Buys a card pack on the server (it checks the price and your VP, then draws the cards).
     // Resolves to { pack, price, balance, cards: [{ id, player, variant, rarity, region, count, new }] }.
     buyPack: function (packId) {
@@ -434,7 +443,7 @@
       // (season: throwback packs and past-season cards; falls back to the older columns until setup/cards-setup.sql is re-run)
       var packs = api('/rest/v1/card_packs?select=id,name,region,season,cards,odds,price,active,open_to_all&active=is.true&order=id')
         .catch(function () { return api('/rest/v1/card_packs?select=id,name,region,cards,odds,price,active,open_to_all&active=is.true&order=id'); }).catch(function () { return []; });
-      var mine = me ? api('/rest/v1/user_cards?select=card_id,count&limit=5000').catch(function () { return []; }) : Promise.resolve([]);
+      var mine = me ? api('/rest/v1/user_cards?select=card_id,count,in_deck&limit=5000').catch(function () { return api('/rest/v1/user_cards?select=card_id,count&limit=5000'); }).catch(function () { return []; }) : Promise.resolve([]);
       var onLibrary = /"data-pcmt-root":"Library"/.test((document.getElementById('dc-tree') || {}).textContent || ''); // not the address: the site serves /library as well as /library.html
       var catalog = onLibrary ? api('/rest/v1/cards?select=id,player,variant,rarity,region,season,title&limit=5000')
         .catch(function () { return api('/rest/v1/cards?select=id,player,variant,rarity,region,title&limit=5000'); }).catch(function () { return []; }) : Promise.resolve([]);
@@ -454,7 +463,8 @@
       window.PCMT_MY_CARDS = {};
       window.PCMT_CARD_CATALOG = res[8] || [];
       window.PCMT_RELEASED_RARES = res[10] || null;
-      (res[7] || []).forEach(function (c) { window.PCMT_MY_CARDS[c.card_id] = c.count; });
+      window.PCMT_MY_IN_DECK = {};   // Rares picked for the MVP VS deck (Library page)
+      (res[7] || []).forEach(function (c) { window.PCMT_MY_CARDS[c.card_id] = c.count; if (c.in_deck) window.PCMT_MY_IN_DECK[c.card_id] = true; });
       var decks = res[0] || [], profiles = res[1] || [], unlocks = res[2] || [];
       window.PCMT_SERVER_UNLOCKS = unlocks.map(function (u) { return u.unlock; });
       var names = {};

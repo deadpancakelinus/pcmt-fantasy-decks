@@ -159,6 +159,40 @@
                     sentinel: '006daf34642009c6f6749139f80a613e.png', controller: '783fdcc50fe04d2622938ee185d4ed32.png' };
   var CHAMP_ICON = 'assets/7dd283457b69773e4aa58012ed89ad9a.png', EMBLEM = 'assets/3bf9d529cabff94109b561693539029f.png';
 
+  // ---------- your Rares (picked on the Library page) ----------
+  // MY_RARES[MVP VS card id] = [{ variant, title, rarity }]. When one of your cards is dealt and you picked Rares of that
+  // player, it shows as one of them (picked at random, the same one for the whole game). Nothing picked: the Common.
+  // Only the look changes; stats stay the same. Only your own cards: the bot's and your opponent's stay Common.
+  var MY_RARES = {}, RARE_INK = { rare: '#7cc2ff', epic: '#c99bff', legendary: '#f5d76e' };
+  function loadMyRares() {
+    return api('/rest/v1/user_cards?select=card_id&in_deck=is.true&limit=500').then(function (rows) {
+      var ids = (rows || []).map(function (r) { return r.card_id; });
+      if (!ids.length) return [];
+      return api('/rest/v1/cards?select=id,player,variant,rarity,title,season&id=in.(' + ids.map(function (i) { return '"' + i.replace(/"/g, '') + '"'; }).join(',') + ')');
+    }).then(function (cards) {
+      MY_RARES = {};
+      (cards || []).forEach(function (c) {
+        if (!c.variant || c.rarity === 'common') return;
+        var key = c.season ? c.player : null;   // past seasons: player is the MVP VS card id
+        if (!key) ['na', 'emea'].some(function (r) { return (CARDS[r] || []).some(function (x) { if (x.deck === c.player) { key = x.id; return true; } }); });
+        if (!key || !BY_ID[key]) return;
+        (MY_RARES[key] = MY_RARES[key] || []).push({ variant: c.variant, title: c.title, rarity: c.rarity });
+      });
+    }).catch(function () { MY_RARES = {}; });
+  }
+  function rareFor(id, s) {
+    var list = id && MY_RARES[id];
+    if (!list || !list.length || !s) return null;
+    var h = 2166136261; for (var i = 0; i < id.length; i++) h = Math.imul(h ^ id.charCodeAt(i), 16777619);
+    return list[Math.floor(rng((s.seed ^ h) >>> 0)() * list.length)];
+  }
+  function rareArt(v) {
+    var m = window.PCMT_VARIANT_ART_MAP || {}, ch = window.PCMT_VARIANT_ART_CHAMP || {};
+    if (m[v]) return m[v];
+    if (v.indexOf('champ-') === 0) { var k = Object.keys(ch)[0]; return k ? ch[k] : ''; }
+    return '';
+  }
+
   // Same build as the player cards in The Deck: team-colour edges, team logo, name, full team name,
   // role icon, and the region logo as a faint watermark behind everything.
   function cardHTML(id, o) {
@@ -174,8 +208,11 @@
       return o.pick ? '<button type="button" class="' + cls + '" data-stat="' + s.k + '">' + inner + '</button>' : '<div class="' + cls + '">' + inner + '</div>';
     }).join('');
     var nameSize = Math.max(18, Math.min(34, Math.floor(230 / Math.max(4, c.name.length * 0.62))));
-    return '<div class="tt-card' + (o.result ? ' ' + o.result : '') + '" style="--team:' + c.color + '">' +
+    var rv = o.rare, art = rv ? rareArt(rv.variant) : '', ink = rv ? (RARE_INK[rv.rarity] || RARE_INK.rare) : '';
+    return '<div class="tt-card' + (o.result ? ' ' + o.result : '') + (rv ? ' tt-rare' : '') + '" style="--team:' + c.color + (rv ? ';--rare:' + ink : '') + '"' + (rv ? ' title="' + esc(rv.title) + '"' : '') + '>' +
       '<span class="tt-wm" aria-hidden="true"><img src="' + REGIONS[region].logo + '" alt=""></span>' +
+      (art ? '<span class="tt-rare-art' + (rv.variant.indexOf('champ-') === 0 ? ' is-center' : '') + '" aria-hidden="true"><img src="' + art + '" alt=""></span>' : '') +
+      (rv ? '<span class="tt-rare-sheen" aria-hidden="true"></span>' : '') +
       '<span class="tt-edge"></span><div class="tt-card-body">' +
       '<div class="tt-card-top">' + (logo ? '<img class="tt-team" src="assets/' + logo + '" alt="' + esc(c.teamName) + '" title="' + esc(c.teamName) + '">' : '<span class="tt-nologo">SUB</span>') +
       '<span class="tt-maps" title="' + c.maps + ' maps played in ' + REGIONS[region].season + '">' + c.maps + '<small>MAPS</small></span></div>' +
@@ -184,7 +221,7 @@
       '<div class="tt-teamname">' + esc(c.teamName) + ' · ' + REGIONS[region].season + '</div>' +
       '<div class="tt-stats">' + rows + '</div>' +
       '<div class="tt-card-foot">' + (c.role ? '<img src="assets/' + ROLE_ICONS[c.role] + '" alt="' + c.role + '" title="' + c.role.charAt(0).toUpperCase() + c.role.slice(1) + '">' : '<span></span>') +
-      (o.pick ? '<span class="tt-hint">Pick a stat</span>' : '') + '</div>' +
+      (o.pick ? '<span class="tt-hint">Pick a stat</span>' : '') + (rv ? '<span class="tt-rare-stamp" title="' + esc(rv.title) + '">' + esc(rv.rarity.toUpperCase()) + '</span>' : '') + '</div>' +
       '</div><span class="tt-edge"></span></div>';
   }
 
@@ -244,7 +281,7 @@
       if (last.winner < 0) { d[0] -= 1; d[1] -= 1; } else d[last.winner] -= 2;
       html += '<div class="tt-status">' + round + '<div class="tt-result ' + res + '"><span>' + who + ' picked <b>' + st.label + '</b></span><strong>' + msg + '</strong></div></div>';
       html += tableHTML(s, d[ui.me], d[them],
-        slotHTML('me', ui.names[ui.me], flipHTML(cardHTML(mine, { stat: last.stat, result: res === 'tie' ? 'tie' : res }), ui.me, false)) +
+        slotHTML('me', ui.names[ui.me], flipHTML(cardHTML(mine, { stat: last.stat, result: res === 'tie' ? 'tie' : res, rare: rareFor(mine, s) }), ui.me, false)) +
         slotHTML('them', ui.names[them], flipHTML(cardHTML(theirs, { stat: last.stat, result: res === 'tie' ? 'tie' : res === 'win' ? 'lose' : 'win' }), them, ui.revealed !== last.round)));
       html += '<div class="tt-actions"><button type="button" class="tt-btn" data-act="next"' + (ui.collecting ? ' disabled' : '') + '>' + (s.over ? 'See result' : 'Next round') + '</button></div>';
     } else if (s.over) {
@@ -262,7 +299,7 @@
       html += '<div class="tt-status">' + round + '<div class="tt-result neutral"><span>' + (myTurn ? 'Your pick' : esc(ui.names[them]) + '’s pick') + '</span><strong>' +
         (myTurn ? 'Choose the stat you think beats their card.' : esc(ui.names[them]) + ' is picking a stat…') + '</strong></div></div>';
       html += tableHTML(s, s.hands[ui.me].length - 1, s.hands[them].length - 1,
-        slotHTML('me', ui.names[ui.me], flipHTML(cardHTML(s.hands[ui.me][0], { pick: myTurn && !ui.busy }), ui.me, ui.dealt !== s.round)) +
+        slotHTML('me', ui.names[ui.me], flipHTML(cardHTML(s.hands[ui.me][0], { pick: myTurn && !ui.busy, rare: rareFor(s.hands[ui.me][0], s) }), ui.me, ui.dealt !== s.round)) +
         slotHTML('them', ui.names[them], flipHTML('<div class="tt-card tt-blank"></div>', them, true)));
       html += '<div class="tt-actions"><button type="button" class="tt-btn ghost" data-act="leave">' + (ui.mode === 'online' ? 'Leave room' : 'Quit game') + '</button></div>';
     }
@@ -429,6 +466,7 @@
         var md = user.user_metadata || {};
         var name = pickName(md);
         var lab = $('tt-auth-label'); if (lab) lab.textContent = name;
+        loadMyRares().then(render);
         api('/rest/v1/profiles', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: { id: user.id, name: name, avatar_url: md.avatar_url || '', updated_at: new Date().toISOString() } }).catch(function () {});
       }).catch(function () { writeSession(null); }).then(render);
     });
