@@ -185,12 +185,13 @@ for board, outname in PAGES.items():
 <script type="application/json" id="dc-props">{json.dumps(props)}</script>
 <script type="text/plain" id="dc-logic">{logic}</script>
 {data_tag}<script src="dc-lite.js"></script>
+<script src="freshbatch.js"></script>
 </body>
 </html>
 '''
     open(os.path.join(OUT, outname), 'w', encoding='utf-8').write(page)
     print(board, '->', outname, len(page))
-for f in ('dc-lite.js', 'league.js'):
+for f in ('dc-lite.js', 'league.js', 'freshbatch.js'):
     shutil.copy(os.path.join(os.path.dirname(os.path.abspath(__file__)), f), os.path.join(OUT, f))
 open(os.path.join(OUT, '_headers'), 'w').write('/*.js\n  Cache-Control: no-cache\n/*.html\n  Cache-Control: no-cache\n')
 print('done')
