@@ -196,11 +196,11 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 // Packs come from Supabase (card_packs, see setup/cards-setup.sql); the canvas shows these samples.
 // Buying runs on the server (buy_pack): it takes the VP and draws the cards; the opening below only shows them.
 var PCMT_PACK_SAMPLE = [
-  { id: 'na-pack', name: 'NA Card Pack', region: 'NA', cards: 5, price: null, open_to_all: false, odds: { common: 70, rare: 22, epic: 7, legendary: 1 } },
-  { id: 'emea-pack', name: 'EMEA Card Pack', region: 'EMEA', cards: 5, price: null, open_to_all: false, odds: { common: 70, rare: 22, epic: 7, legendary: 1 } },
-  { id: 'nas1-pack', name: 'NA S1 Throwback Pack', region: 'NA', season: 'S1 NA', cards: 5, price: null, open_to_all: false, odds: { common: 70, rare: 22, epic: 7, legendary: 1 } },
-  { id: 'nas2-pack', name: 'NA S2 Throwback Pack', region: 'NA', season: 'S2 NA', cards: 5, price: null, open_to_all: false, odds: { common: 70, rare: 22, epic: 7, legendary: 1 } },
-  { id: 'emeas1-pack', name: 'EMEA S1 Throwback Pack', region: 'EMEA', season: 'S1 EMEA', cards: 5, price: null, open_to_all: false, odds: { common: 70, rare: 22, epic: 7, legendary: 1 } }
+  { id: 'na-pack', name: 'NA Card Pack', region: 'NA', cards: 5, price: null, open_to_all: false, odds: { common: 80, rare: 20, epic: 0, legendary: 0 } },
+  { id: 'emea-pack', name: 'EMEA Card Pack', region: 'EMEA', cards: 5, price: null, open_to_all: false, odds: { common: 80, rare: 20, epic: 0, legendary: 0 } },
+  { id: 'nas1-pack', name: 'NA S1 Throwback Pack', region: 'NA', season: 'S1 NA', cards: 5, price: null, open_to_all: false, odds: { common: 80, rare: 20, epic: 0, legendary: 0 } },
+  { id: 'nas2-pack', name: 'NA S2 Throwback Pack', region: 'NA', season: 'S2 NA', cards: 5, price: null, open_to_all: false, odds: { common: 80, rare: 20, epic: 0, legendary: 0 } },
+  { id: 'emeas1-pack', name: 'EMEA S1 Throwback Pack', region: 'EMEA', season: 'S1 EMEA', cards: 5, price: null, open_to_all: false, odds: { common: 80, rare: 20, epic: 0, legendary: 0 } }
 ];
 // Pack art: the same foil pack as the opening animation, drawn once into an image per region.
 var PCMT_PACK_ART = { NA: '/_blob/1ebfc850b10de6e909e96751b32a0977', EMEA: '/_blob/87166e6bb2de15f385a04e2962058989' };
@@ -1093,7 +1093,7 @@ class Component extends DCLogic {
         id: p.id, name: p.name, art: PCMT_PACK_ART[p.region] || PCMT_PACK_ART.NA,
         desc: p.season ? (p.cards || 5) + ' cards from ' + p.season + ', with that season\'s teams and stats. Not used on The Deck.'
                        : (p.cards || 5) + ' cards, all ' + p.region + ' players (' + (PCMT_SEASON[p.region] || p.region) + ').',
-        odds: 'Each card: Common ' + (o.common || 0) + '% · Rare ' + (o.rare || 0) + '% · Epic ' + (o.epic || 0) + '% · Legendary ' + (o.legendary || 0) + '%',
+        odds: 'Each card: ' + [['Common', o.common], ['Rare', o.rare], ['Epic', o.epic], ['Legendary', o.legendary]].filter(function (t) { return +t[1] > 0; }).map(function (t) { return t[0] + ' ' + t[1] + '%'; }).join(' · '),   // tiers at 0% aren't listed
         price: priced ? String(p.price) : '', priceLabel: priced ? String(p.price) : '—',
         disabled: disabled, btnBg: disabled ? 'transparent' : '#a5dcdd', btnInk: disabled ? '#93a9aa' : '#000', btnBorder: disabled ? '#3a4f53' : '#a5dcdd', cursor: disabled ? 'not-allowed' : 'pointer',
         buyLabel: label, confirming: s.confirming === p.id, notConfirming: s.confirming !== p.id,

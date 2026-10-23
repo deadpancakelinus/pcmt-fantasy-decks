@@ -93,7 +93,7 @@ begin
   end if;
   if pk.price is null then raise exception 'This pack doesn''t have a price yet.'; end if;
   select coalesce(sum(amount), 0)::int into bal from public.vp_ledger where user_id = u;
-  if bal < pk.price then raise exception 'Not enough VP: this pack costs % VP and you have %.', pk.price, bal; end if;
+  if bal < pk.price then raise exception 'Not enough Credits: this pack costs % Credits and you have %.', pk.price, bal; end if;
   if pk.price > 0 then
     insert into public.vp_ledger (user_id, kind, amount, detail) values (u, 'pack', -pk.price, jsonb_build_object('pack', pk.name));
   end if;
@@ -396,11 +396,11 @@ update public.cards set active = false where id not in ('c:crocman', 'c:pi', 'c:
 
 -- Packs: a new pack starts at 0 VP (change it on admin.html). Odds and size come from tools/cards.py.
 insert into public.card_packs (id, name, region, cards, odds, price, season) values
-('na-pack', 'NA Card Pack', 'NA', 5, '{"common": 70, "rare": 22, "epic": 7, "legendary": 1}'::jsonb, 0, null),
-('emea-pack', 'EMEA Card Pack', 'EMEA', 5, '{"common": 70, "rare": 22, "epic": 7, "legendary": 1}'::jsonb, 0, null),
-('nas1-pack', 'NA S1 Throwback Pack', 'NA', 5, '{"common": 70, "rare": 22, "epic": 7, "legendary": 1}'::jsonb, 0, 'S1 NA'),
-('nas2-pack', 'NA S2 Throwback Pack', 'NA', 5, '{"common": 70, "rare": 22, "epic": 7, "legendary": 1}'::jsonb, 0, 'S2 NA'),
-('emeas1-pack', 'EMEA S1 Throwback Pack', 'EMEA', 5, '{"common": 70, "rare": 22, "epic": 7, "legendary": 1}'::jsonb, 0, 'S1 EMEA')
+('na-pack', 'NA Card Pack', 'NA', 5, '{"common": 80, "rare": 20, "epic": 0, "legendary": 0}'::jsonb, 0, null),
+('emea-pack', 'EMEA Card Pack', 'EMEA', 5, '{"common": 80, "rare": 20, "epic": 0, "legendary": 0}'::jsonb, 0, null),
+('nas1-pack', 'NA S1 Throwback Pack', 'NA', 5, '{"common": 80, "rare": 20, "epic": 0, "legendary": 0}'::jsonb, 0, 'S1 NA'),
+('nas2-pack', 'NA S2 Throwback Pack', 'NA', 5, '{"common": 80, "rare": 20, "epic": 0, "legendary": 0}'::jsonb, 0, 'S2 NA'),
+('emeas1-pack', 'EMEA S1 Throwback Pack', 'EMEA', 5, '{"common": 80, "rare": 20, "epic": 0, "legendary": 0}'::jsonb, 0, 'S1 EMEA')
 on conflict (id) do update set name = excluded.name, region = excluded.region, cards = excluded.cards, odds = excluded.odds, season = excluded.season;
 -- Packs no longer listed in tools/cards.py stop being sold (they stay in the table for history).
 update public.card_packs set active = false where id not in ('na-pack', 'emea-pack', 'nas1-pack', 'nas2-pack', 'emeas1-pack');

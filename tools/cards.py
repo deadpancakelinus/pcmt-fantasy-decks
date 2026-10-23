@@ -21,7 +21,9 @@ VARIANTS = [
     # (see PAST below). Nobody has won NA S3 or EMEA S2 yet; when one ends, add that season's winners here
     # as ('champ-<player id>', '<player id>', 'rare', '<name> Champion') and their art in the Store and Library boards.
 ]
-ODDS = {'common': 70, 'rare': 22, 'epic': 7, 'legendary': 1}
+# Rares drop 20% of the time. Epic and Legendary stay at 0 until cards of those rarities exist (a roll for a rarity
+# with no cards drops to the tier below, so non-zero odds there would quietly add to the Rare chance).
+ODDS = {'common': 80, 'rare': 20, 'epic': 0, 'legendary': 0}
 PACKS = [
     # id, name, region it draws from, cards per pack, odds per card (percent), season (None = this season)
     ('na-pack', 'NA Card Pack', 'NA', 5, ODDS, None),

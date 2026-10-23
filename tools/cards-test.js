@@ -38,15 +38,15 @@ let r = buy(ADMIN);
 check(r.cards.length === 5 && r.cards.every(c => c.id && c.player && c.rarity), 'a pack gives 5 cards');
 check(bal(ADMIN) === 0 && +sql(`select count(*) from public.vp_ledger where user_id = '${ADMIN}'`).trim() === 0, 'a free pack takes no VP and writes no ledger line');
 
-// odds: 70 common / 22 rare / 7 epic / 1 legendary, with no epic/legendary cards they drop to rare
+// odds: 80 common / 20 rare (epic and legendary at 0 until those cards exist)
 const N = 1200; const tally = { common: 0, rare: 0, epic: 0, legendary: 0 };
 const many = sql(as(ADMIN, `select string_agg((c ->> 'rarity') || ':' || coalesce(c ->> 'season', '') || (c ->> 'region'), ',') from generate_series(1, ${N}) g, lateral jsonb_array_elements(public.buy_pack('na-pack' || left(g::text, 0)) -> 'cards') c;`)).trim().split(',');
 check(many.every(x => x.endsWith(':NA')), 'the NA pack only gives NA players, and never a past-season card');
 many.forEach(x => tally[x.split(':')[0]]++);
 const share = k => tally[k] / many.length;
 check(many.length === N * 5, `${N} packs gave ${N * 5} cards`);
-check(Math.abs(share('common') - 0.70) < 0.025 && Math.abs(share('rare') - 0.30) < 0.025 && !tally.epic && !tally.legendary,
-  `odds hold: common ${(share('common') * 100).toFixed(1)}%, rare ${(share('rare') * 100).toFixed(1)}% (22% + epic/legendary dropping down), epic 0, legendary 0`);
+check(Math.abs(share('common') - 0.80) < 0.025 && Math.abs(share('rare') - 0.20) < 0.025 && !tally.epic && !tally.legendary,
+  `odds hold: common ${(share('common') * 100).toFixed(1)}%, rare ${(share('rare') * 100).toFixed(1)}%, epic 0, legendary 0`);
 const owned = +sql(`select sum(count) from public.user_cards where user_id = '${ADMIN}';`).trim();
 check(owned === (N + 1) * 5, 'duplicates are kept as a count (' + owned + ' cards owned)');
 check(+sql(`select count from public.user_cards where user_id = '${ADMIN}' and card_id = 'v:teklo-variant';`).trim() > 20, 'the The Role of Yoru gets pulled');
