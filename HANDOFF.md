@@ -18,7 +18,7 @@ Start here. It covers what exists, how changes are made and shipped, and what's 
 
 | Design board | Site file | Shown as |
 |---|---|---|
-| Home.dc.html | home.html | **Home** (first in the menu): a menu tile for every page, the next series and deck lock, the latest Batch Note (`PCMT_HOME_NOTE`, keep in step with the Guide), News (`PCMT_HOME_NEWS`, newest first) and the card packs (live from `card_packs`). Open to everyone. It's at home.html; it can become the front page later. |
+| Home.dc.html | home.html | **Home** (first in the menu): a text tile for every page (no icons), the next series and deck lock (links to pcmt.gg) and the latest Batch Note (`PCMT_HOME_NOTE`, keep in step with the Guide). Open to everyone. It's at home.html; it can become the front page later. |
 | Main.dc.html | index.html | **The Deck** (deck building, player store, next match, lock countdown) |
 | Customization.dc.html | customization.html | Card backs, auras, favorites, codes, card packs |
 | Leaderboard.dc.html | leaderboard.html | This gameweek / overall standings |
