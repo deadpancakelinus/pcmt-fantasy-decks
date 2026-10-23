@@ -18,7 +18,7 @@ Start here. It covers what exists, how changes are made and shipped, and what's 
 
 | Design board | Site file | Shown as |
 |---|---|---|
-| Home.dc.html | home.html | **Home** (first in the menu): a text tile for every page (no icons), the next two series and the deck lock (each series card links to its own PCMT.gg page, from its `url` in data.js, so every series the match check adds gets its link automatically) the latest Batch Note (`PCMT_HOME_NOTE`, keep in step with the Guide) and the "Comments or complaints always welcome :)" box (50 words maximum; `submit_complaint()` in setup/backend-setup.sql; staff read them in backend.html's Complaints tab). Open to everyone. It's at home.html; it can become the front page later. |
+| Home.dc.html | home.html | **Home** (first in the menu): a text tile for every page (no icons), the next two series and the deck lock (each series card links to its own PCMT.gg page, from its `url` in data.js, so every series the match check adds gets its link automatically) the latest Batch Note (`PCMT_HOME_NOTE`, keep in step with the Guide) and the "comments and complaints always welcome :)" box (50 words maximum; `submit_complaint()` in setup/backend-setup.sql; staff read them in backend.html's Complaints tab). Open to everyone. It's at home.html; it can become the front page later. |
 | Main.dc.html | index.html | **The Deck** (deck building, player store, next match, lock countdown) |
 | Customization.dc.html | customization.html | Card backs, auras, favorites, codes, card packs |
 | Leaderboard.dc.html | leaderboard.html | This gameweek / overall standings |
