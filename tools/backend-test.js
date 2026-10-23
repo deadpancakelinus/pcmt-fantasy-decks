@@ -26,7 +26,7 @@ grant usage on schema public to anon, authenticated;
 grant usage on schema auth to anon, authenticated;   -- as on Supabase: auth.uid() works for everyone
 grant select on all tables in schema public to anon, authenticated;
 grant insert, update, delete on public.player_price_changes, public.multikills, public.freshbatch_staff, public.complaints to authenticated;
-grant insert on public.complaints to anon;
+grant insert, update, delete on public.complaints to anon;   -- as on Supabase: row rules decide
 grant usage on all sequences in schema public to authenticated;`);
 
 // ---- who is staff ----
@@ -115,11 +115,15 @@ check(fails(`set role anon; select public.submit_complaint('${words(51)}');`, /5
 sql(`set role anon; select public.submit_complaint('  ${words(50)}  ');`);
 sql(as(P1, `select public.submit_complaint('${words(12)}');`));
 check(sql(`select count(*) || '|' || count(user_id) || '|' || min(words) from public.complaints;`).trim() === '2|1|12', 'anyone can send up to 50 words (logged out or in); the server counts words and records who');
-check(fails(`set role anon; insert into public.complaints (body, words) values ('x', 99);`) && sql(as(P1, `update public.complaints set body = 'x'; delete from public.complaints;`)) !== null &&
-      sql(`select count(*) from public.complaints where body = 'x';`).trim() === '0' && sql(`select count(*) from public.complaints;`).trim() === '2', 'nobody can add, edit or delete complaints directly');
+check(fails(`set role anon; insert into public.complaints (body, words) values ('x', 99);`) && sql(as(STAFF, `update public.complaints set body = 'x';`)) !== null &&
+      sql(`select count(*) from public.complaints where body = 'x';`).trim() === '0', 'nobody can add or edit complaints directly, not even staff');
 check(sql(as(P1, 'select count(*) from public.complaints;')).trim() === '0' && sql(`set role anon; select count(*) from public.complaints;`).trim() === '0', 'players cannot read the complaints log');
 check(sql(as(STAFF, 'select count(*) from public.complaints;')).trim() === '2', 'staff can read the complaints log');
-for (let i = 0; i < 4; i++) sql(as(P1, `select public.submit_complaint('${words(50)}');`));
+sql(`set role anon; delete from public.complaints;`); sql(as(P1, `delete from public.complaints;`)); sql(as(ADMIN, `delete from public.complaints;`));
+check(sql('select count(*) from public.complaints;').trim() === '2', 'players and non-staff admins cannot settle (delete) complaints');
+sql(as(STAFF, `delete from public.complaints where words = 12;`));
+check(sql('select count(*) from public.complaints;').trim() === '1', 'staff can settle (delete) a complaint');
+for (let i = 0; i < 5; i++) sql(as(P1, `select public.submit_complaint('${words(50)}');`));
 check(fails(as(P1, `select public.submit_complaint('${words(50)}');`), /a lot this hour/), 'a player is limited to 5 an hour');
 check(fails(`set role anon; select public.submit_complaint('${'x'.repeat(400) + ' ' + 'y'.repeat(700)}');`, /too long/), 'very long words are refused too (1,000 characters max)');
 

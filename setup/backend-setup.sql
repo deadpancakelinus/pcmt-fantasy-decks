@@ -85,7 +85,7 @@ grant execute on function public.fb_page_unlock(text) to anon, authenticated;
 
 -- ===================== Comments and complaints =====================
 -- Written on the Home page (up to 50 words), read by staff in the backend's Complaints log.
--- Sent only through submit_complaint(); nobody can insert, edit or delete rows directly.
+-- Sent only through submit_complaint(); nobody can insert or edit rows directly. Staff delete one with "Settled" in the backend.
 create table if not exists public.complaints (
   id bigserial primary key,
   body text not null check (char_length(body) between 1 and 1000),
@@ -97,6 +97,8 @@ create index if not exists complaints_created on public.complaints (created_at d
 alter table public.complaints enable row level security;
 drop policy if exists "staff read complaints" on public.complaints;
 create policy "staff read complaints" on public.complaints for select using (public.is_freshbatch());
+drop policy if exists "staff settle complaints" on public.complaints;
+create policy "staff settle complaints" on public.complaints for delete using (public.is_freshbatch());
 
 -- Words are counted the same way as on the Home page: runs of non-space characters.
 create or replace function public.submit_complaint(p_body text) returns bigint
