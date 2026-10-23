@@ -88,11 +88,11 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
 <div style="display: flex; flex-direction: column; gap: 6px">
 <h1 style="margin: 0; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 60px; line-height: 1">Store</h1>
-<p style="margin: 8px 0 0; max-width: 640px; font-size: 18px; line-height: 1.55; color: #c4d4d4">Spend your VP on card packs. Every pack has 5 cards from its region, and some cards are rare variants.</p>
+<p style="margin: 8px 0 0; max-width: 640px; font-size: 18px; line-height: 1.55; color: #c4d4d4">Spend your Credits on card packs. Every pack has 5 cards from its region, and some cards are rare variants.</p>
 </div>
 <div style="display: flex; align-items: baseline; gap: 10px; padding: 12px 18px; border: 1px solid #1e2b2d; border-radius: 12px; background: #0b1011">
 <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.08em; text-transform: uppercase">The Bank</span>
-<span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 32px; line-height: 1; color: #a5dcdd">{{bank}}</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; color: #a5dcdd">VP</span>
+<span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 32px; line-height: 1; color: #a5dcdd">{{bank}}</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; color: #a5dcdd">Credits</span>
 </div>
 </div>
 
@@ -107,10 +107,10 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <span style="color: #c4d4d4; font-size: 15px; line-height: 1.45">{{pk.desc}}</span>
 <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; line-height: 1.6">{{pk.odds}}</span>
 <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 4px">
-<span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 30px; line-height: 1; color: #a5dcdd">{{pk.priceLabel}} <small style="font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600">VP</small></span>
+<span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 30px; line-height: 1; color: #a5dcdd">{{pk.priceLabel}} <small style="font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600">Credits</small></span>
 <sc-if value="{{pk.confirming}}" hint-placeholder-val="{{ false }}">
 <span style="display: inline-flex; gap: 8px; flex-wrap: wrap">
-<button onClick="{{pk.confirm}}" style="min-height: 44px; padding: 0 16px; border-radius: 8px; border: 1px solid #a5dcdd; background: #a5dcdd; color: #000; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; cursor: pointer">Spend {{pk.price}} VP</button>
+<button onClick="{{pk.confirm}}" style="min-height: 44px; padding: 0 16px; border-radius: 8px; border: 1px solid #a5dcdd; background: #a5dcdd; color: #000; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; cursor: pointer">Spend {{pk.price}} Credits</button>
 <button onClick="{{cancelBuy}}" style="min-height: 44px; padding: 0 14px; border-radius: 8px; border: 1px solid #2c3d40; background: transparent; color: #eaf4f4; font-family: 'JetBrains Mono', monospace; font-size: 13px; cursor: pointer">Cancel</button>
 </span>
 </sc-if>
@@ -1086,7 +1086,7 @@ class Component extends DCLogic {
       var o = p.odds || {}, priced = p.price != null, canBuy = !live || W.PCMT_IS_ADMIN || p.open_to_all;
       var short = live && priced && bankNum < p.price;
       var disabled = !signedIn || !canBuy || !priced || short || !!s.buying;
-      var label = !signedIn ? 'Log in to buy' : !canBuy ? 'Coming soon' : !priced ? 'Price coming soon' : s.buying === p.id ? 'Opening…' : short ? 'Not enough VP' : 'Buy pack';
+      var label = !signedIn ? 'Log in to buy' : !canBuy ? 'Coming soon' : !priced ? 'Price coming soon' : s.buying === p.id ? 'Opening…' : short ? 'Not enough Credits' : 'Buy pack';
       if (!live && !priced) { disabled = !!s.buying; label = s.buying === p.id ? 'Opening…' : 'Preview opening'; }
       var note = s.note && s.note.id === p.id ? s.note : null;
       return {
@@ -1144,7 +1144,7 @@ class Component extends DCLogic {
       lockHidden: locked ? 'true' : 'false',
       lockBlur: locked ? 'blur(8px)' : 'none',
       lockPointer: locked ? 'none' : 'auto',
-      bank: live ? String(bankNum) : '[VP]',
+      bank: live ? String(bankNum) : '[Credits]',
       packs: packs,
       groups: groups,
       cancelBuy: function () { self.setState({ confirming: null }); },

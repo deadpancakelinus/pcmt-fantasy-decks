@@ -252,6 +252,9 @@
         (r.cards || []).forEach(function (c) { window.PCMT_MY_CARDS[c.id] = c.count; });
         if (window.PCMT_VP) window.PCMT_VP.balance = String(r.balance);
         return r;
+      }, function (e) {
+        if (e && e.message) e.message = e.message.replace(/\bVP\b/g, 'Credits');   // older server wording
+        throw e;
       });
     },
     signIn: function (page) {
@@ -345,7 +348,7 @@
       return { label: 'Week of ' + fmtDay(k), deck: h.deck || '—', vp: String(h.vp) };
     });
     var cw = weeks.filter(function (w) { return w.b === curB; })[0], week = { vp: '0', state: 'nomatch', note: 'No matches are scheduled this gameweek yet.' };
-    if (cw && !cw.locked) week = { vp: '0', state: 'open', note: 'Your deck locks ' + fmtWhen(cw.lockAt) + '. VP starts counting from then.' };
+    if (cw && !cw.locked) week = { vp: '0', state: 'open', note: 'Your deck locks ' + fmtWhen(cw.lockAt) + '. Credits start counting from then.' };
     else if (cw) {
       var mine = scored.filter(function (x) { return x.week.b === cw.b; })[0];
       week = mine

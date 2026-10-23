@@ -75,7 +75,7 @@
 <main>
   <div>
     <h1>Admin</h1>
-    <p class="sub">Enter each player's 4Ks and 5Ks for a series, and set card pack prices below. 4K = +1, 5K (ace) = +3, and an ace counts as a 5K only. The new points show on the site the next time a page loads, and VP pays out with them.</p>
+    <p class="sub">Enter each player's 4Ks and 5Ks for a series, and set card pack prices below. 4K = +1, 5K (ace) = +3, and an ace counts as a 5K only. The new points show on the site the next time a page loads, and Credits pay out with them.</p>
   </div>
 
   <section class="panel" id="st-loading" role="status"><p class="msg">Loading…</p></section>
@@ -108,8 +108,8 @@
 
   <section class="panel" id="packs-admin" hidden aria-labelledby="packs-h">
     <span class="kicker" id="packs-h">Card packs</span>
-    <p class="note">Set each pack's price in VP. While "Open to everyone" is off, only admins can buy, so you can test (a price of 0 is free). Odds and pack contents come from <span class="mono">tools/cards.py</span>.</p>
-    <table><thead><tr><th>Pack</th><th class="n">Price (VP)</th><th class="n" style="width:120px">Open to everyone</th></tr></thead><tbody id="packs-rows"></tbody></table>
+    <p class="note">Set each pack's price in Credits. While "Open to everyone" is off, only admins can buy, so you can test (a price of 0 is free). Odds and pack contents come from <span class="mono">tools/cards.py</span>.</p>
+    <table><thead><tr><th>Pack</th><th class="n">Price (Credits)</th><th class="n" style="width:120px">Open to everyone</th></tr></thead><tbody id="packs-rows"></tbody></table>
     <div class="bar"><button class="btn" id="packs-save" type="button">Save packs</button><p class="msg" id="packs-msg" role="status" aria-live="polite"></p></div>
   </section>
 </main>
@@ -215,7 +215,7 @@
     if (!packs.length) { $('packs-admin').hidden = false; $('packs-rows').innerHTML = '<tr><td colspan="3">No packs yet. Run <span class="mono">setup/cards-setup.sql</span> in Supabase.</td></tr>'; $('packs-save').hidden = true; return; }
     $('packs-rows').innerHTML = packs.map(function (p) {
       return '<tr data-pack="' + esc(p.id) + '"><td class="name">' + esc(p.name) + '<small>' + esc(p.region) + ' players · ' + esc(p.cards) + ' cards</small></td>' +
-        '<td class="n"><input type="number" inputmode="numeric" min="0" step="1" value="' + (p.price == null ? '' : p.price) + '" placeholder="—" aria-label="' + esc(p.name) + ' price in VP" style="width:90px"></td>' +
+        '<td class="n"><input type="number" inputmode="numeric" min="0" step="1" value="' + (p.price == null ? '' : p.price) + '" placeholder="—" aria-label="' + esc(p.name) + ' price in Credits" style="width:90px"></td>' +
         '<td class="n"><input type="checkbox"' + (p.open_to_all ? ' checked' : '') + ' aria-label="' + esc(p.name) + ' open to everyone" style="width:22px;height:22px;accent-color:#a5dcdd"></td></tr>';
     }).join('');
     $('packs-admin').hidden = false;
@@ -223,7 +223,7 @@
   $('packs-save').addEventListener('click', function () {
     var rows = Array.prototype.slice.call(document.querySelectorAll('#packs-rows tr[data-pack]'));
     var bad = rows.filter(function (tr) { var v = tr.querySelector('input[type=number]').value.trim(); return v !== '' && !(/^\d+$/.test(v)); });
-    if (bad.length) return packsSay('Prices must be whole numbers of VP (or empty for no price).', 'err');
+    if (bad.length) return packsSay('Prices must be whole numbers of Credits (or empty for no price).', 'err');
     $('packs-save').disabled = true; packsSay('Saving…');
     Promise.all(rows.map(function (tr) {
       var v = tr.querySelector('input[type=number]').value.trim(), id = tr.getAttribute('data-pack');

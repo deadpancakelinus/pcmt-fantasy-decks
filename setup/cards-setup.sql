@@ -93,7 +93,7 @@ begin
   end if;
   if pk.price is null then raise exception 'This pack doesn''t have a price yet.'; end if;
   select coalesce(sum(amount), 0)::int into bal from public.vp_ledger where user_id = u;
-  if bal < pk.price then raise exception 'Not enough VP: this pack costs % VP and you have %.', pk.price, bal; end if;
+  if bal < pk.price then raise exception 'Not enough Credits: this pack costs % Credits and you have %.', pk.price, bal; end if;
   if pk.price > 0 then
     insert into public.vp_ledger (user_id, kind, amount, detail) values (u, 'pack', -pk.price, jsonb_build_object('pack', pk.name));
   end if;
