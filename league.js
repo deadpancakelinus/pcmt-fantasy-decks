@@ -78,7 +78,8 @@
   }
   window.PCMT_CENSOR_NAME = pcmtCensorName;
   var TOKEN_KEY = 'pcmt-auth';
-  var BUDGET = 100, TEAM_LIMIT = 2, TRANSFERS = 2, LOCK_LEAD_H = 12;
+  // Transfers are unlimited while the deck is unlocked (Oct 24 2026): change any players until the gameweek locks.
+  var BUDGET = 100, TEAM_LIMIT = 2, TRANSFERS = Infinity, LOCK_LEAD_H = 12;
   var ROLES = ['duelist', 'controller', 'initiator', 'sentinel'];
   // Scoring (same as the Guide and setup/vp-setup.sql vp_series_points). toxic = places 1-3 by PCMT.gg's Toxic rating (RT).
   var SCORING = { kill: 1, per5MapKills: 1, assist: 0.5, firstBlood: 0.5, toxic: [3, 2, 1], topKast: 1, topAcs: 2, seriesScore: { '2-0': 2, '3-0': 3, '3-1': 1 }, mapWin: 1,
@@ -383,15 +384,13 @@
     transfersUsed: function (slots) { var base = L.lastLockedDeck(); return base ? transfersBetween(base.slots, slots) : 0; },
     canLockIn: function (s) {
       if (!me) { toast('Log in with Discord to enter your deck in the league. Your deck is kept on this device until then.'); return true; }
-      var used = L.transfersUsed(s.slots);
-      if (used > TRANSFERS) { toast('That\'s ' + used + ' transfers. You get ' + TRANSFERS + ' per gameweek: swap some players back to last week\'s deck.'); return false; }
       return true;
     },
     statusNote: function (slots, text, locked) {
       if (!me || locked) return text;
       var base = L.lastLockedDeck();
       if (!base) return text;
-      return text + ' Transfers this gameweek: ' + Math.min(L.transfersUsed(slots), 99) + '/' + TRANSFERS + '.';
+      return text;   // transfers are unlimited, so there's no count to show
     },
     // Called whenever The Deck saves; sends a locked-in deck to the league.
     // Waits until edits (like typing the deck name) settle, then always sends the latest version.

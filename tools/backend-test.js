@@ -63,7 +63,7 @@ vm.runInNewContext(PLAYERS_JS.replace(/var (PCMT_SITE_\w+)/g, 'window.$1'), ctx)
 const P = ctx.window.PCMT_SITE_PLAYERS, TW = ctx.window.PCMT_SITE_TWIN || {};
 const LEAGUE = fs.readFileSync(__dirname + '/league.js', 'utf8');
 const core = LEAGUE.slice(LEAGUE.indexOf('  function weekStart(t)'), LEAGUE.indexOf('  // ---------- Supabase over plain fetch'));
-vm.runInNewContext('var DAY = 86400000, BUDGET = 100, TEAM_LIMIT = 2, TRANSFERS = 2, LOCK_LEAD_H = 12, ROLES = ["duelist","controller","initiator","sentinel"],' +
+vm.runInNewContext('var DAY = 86400000, BUDGET = 100, TEAM_LIMIT = 2, TRANSFERS = Infinity, LOCK_LEAD_H = 12, ROLES = ["duelist","controller","initiator","sentinel"],' +
   ' SCORING = {}, MULTI_FROM = 0;\n' + core + '\nthis.api = { validDeck: validDeck, setLog: function (l) { PRICE_LOG = l; } };', ctx);
 // a valid deck close to the budget
 const role = p => { const r = p.role.split('/')[0]; return r === 'yoru' ? 'duelist' : r; };

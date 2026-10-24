@@ -257,7 +257,7 @@ begin
       if p_now < w.lock_at then continue; end if;              -- gameweek not locked yet
       use_slots := null;
       for d in select slots, name, created_at from public.deck_history where user_id = u and created_at < w.lock_at order by created_at desc, id desc loop
-        if public.vp_valid_deck(d.slots, public.vp_players_at(players, d.created_at), p_twin) and (prev is null or public.vp_transfers(prev, d.slots) <= 2) then
+        if public.vp_valid_deck(d.slots, public.vp_players_at(players, d.created_at), p_twin) then   -- transfers are unlimited while the deck is unlocked (Oct 24 2026)
           use_slots := d.slots; use_name := d.name; exit;
         end if;
       end loop;
