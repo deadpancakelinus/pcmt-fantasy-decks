@@ -163,3 +163,7 @@ Tables: `profiles`, `deck_history` (insert-only, server timestamps, 60/hour limi
 - Where: the top of `tools/league.js` (`STAFF_PAGES`, `staffPagesDecide()`, run after the league loads) and a small script in the `<head>` of `mvp-vs.html` (it doesn't load league.js; a staff member whose sign-in has expired is sent to Home, which refreshes it, then MVP VS opens from the menu).
 - Card packs: `open_to_all` was set to false on all five packs, so only staff and admins can buy them (the server checks this in `buy_pack`).
 - To open them again: remove the staff-only block from league.js and mvp-vs.html, and turn packs back on in backend.html (Card packs tab) or `update public.card_packs set open_to_all = true;`.
+
+## 14. Link previews (Oct 24 2026)
+
+- Every page shares (Discord, texts) as title **fantasy.pcmt.gg** with the description **"Pickems, Fantasy League and more. Built by Freshbatch"**: `description`, `og:*` and `twitter:*` tags written by `tools/build.py` into each built page, and the same tags by hand in mvp-vs.html. No share image yet.

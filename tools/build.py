@@ -177,7 +177,13 @@ for board, outname in PAGES.items():
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
-<meta name="description" content="PCMT Fantasy Decks: build a deck of Plat Chat Members Tourney players and score points every match.">
+<meta name="description" content="Pickems, Fantasy League and more. Built by Freshbatch">
+<meta property="og:title" content="fantasy.pcmt.gg">
+<meta property="og:site_name" content="fantasy.pcmt.gg">
+<meta property="og:description" content="Pickems, Fantasy League and more. Built by Freshbatch">
+<meta property="og:type" content="website">
+<meta name="twitter:title" content="fantasy.pcmt.gg">
+<meta name="twitter:description" content="Pickems, Fantasy League and more. Built by Freshbatch">
 <link rel="icon" href="assets/{os.path.basename(blob_map['3bf9d529cabff94109b561693539029f'])}">
 {fix_refs(helmet).strip()}
 </head>
