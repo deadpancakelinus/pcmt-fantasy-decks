@@ -26,6 +26,8 @@ button,input{font:inherit}
 @keyframes pcmt-card-splay{0%,8%{transform:rotate(0deg) translateY(0)}40%,58%{transform:rotate(calc(var(--i)*24deg)) translateY(calc(var(--radius)*-1))}92%,100%{transform:rotate(360deg) translateY(0)}}
 @media (prefers-reduced-motion: reduce){.pcmt-loader span{animation-duration:calc(var(--speed)*3)}}
 .pcmt-loading{transition:opacity .4s ease}
+.pk-swipe{display:none}
+@media (max-width: 1300px){.pk-swipe{display:block}}
 input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !important;box-shadow:0 0 0 3px rgba(165,220,221,.3)}
 </style>
 </helmet>
@@ -47,6 +49,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </a>
 <nav aria-label="Main" style="display: flex; flex-wrap: wrap; gap: 4px; flex: 1 0 100%; order: 3">
 <a href="Home.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Home</a>
+<a href="Pickems.dc.html" aria-current="page" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #000; background: #a5dcdd; font-weight: 600">Pick'ems</a>
 <a href="Leaderboard.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Leaderboard</a>
 <a href="Main.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">The Deck</a>
 <a href="Customization.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Customization</a>
@@ -54,7 +57,6 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <a href="MvpVs.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">MVP VS</a>
 <a href="Store.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Store</a>
 <a href="Library.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Library</a>
-<a href="Pickems.dc.html" aria-current="page" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #000; background: #a5dcdd; font-weight: 600">Pick'ems</a>
 </nav>
 <a href="Login.dc.html" style="margin-left: auto; order: 2; min-height: 44px; display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; border-radius: 8px; background: #4752C4; color: #fff; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; text-decoration: none"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><path d="M10 17l5-5-5-5"></path><path d="M15 12H3"></path></svg>Log in with Discord</a>
 <span style="order: -1; flex: 1 0 100%; margin-bottom: -4px; text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.08em; white-space: nowrap">NA S3 · EMEA S2</span>
@@ -69,83 +71,79 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </div>
 </sc-if>
 <sc-if value="{{unlocked}}" hint-placeholder-val="{{ true }}">
-<div style="display: flex; flex-direction: column; gap: 28px">
+<div style="display: flex; flex-direction: column; gap: 24px">
 
 <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
 <div style="display: flex; flex-direction: column; gap: 6px">
 <h1 style="margin: 0; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 60px; line-height: 1">Pick'ems</h1>
 <span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #a5dcdd; letter-spacing: 0.08em; text-transform: uppercase">{{eventName}}</span>
 </div>
-<sc-if value="{{staffNote}}" hint-placeholder-val="{{ true }}">
+<sc-if value="{{staffNote}}" hint-placeholder-val="{{ false }}">
 <span style="padding: 8px 12px; border-radius: 999px; border: 1px solid #3a4f53; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">Staff only: players see "Coming soon"</span>
 </sc-if>
 </div>
 
-<div style="display: flex; flex-wrap: wrap; gap: 12px 28px; padding: 16px 20px; border: 1px solid #2a3a3e; border-radius: 12px; background: #111a1c; font-size: 15px; line-height: 1.5; color: #c4d4d4">
-<span style="flex: 1 1 320px">Pick the winner and the map score of every series. Your winners move on through the bracket, so you can call it all the way to the grand final. Each pick locks when its series starts.</span>
-<span style="flex: 0 1 auto; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #eaf4f4">Right winner <b style="color: #a5dcdd">+1 pt · {{creditsWin}} Credits</b><br>Exact score <b style="color: #a5dcdd">+1 pt · {{creditsExact}} more</b></span>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px 28px; padding: 16px 20px; border: 1px solid #2a3a3e; border-radius: 12px; background: #111a1c; font-size: 15px; line-height: 1.5; color: #c4d4d4">
+<span style="flex: 1 1 320px">Tap who wins each series. Your winners move on through the bracket, and each pick locks when its series starts.</span>
+<span style="flex: 0 1 auto; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #eaf4f4">Right winner <b style="color: #a5dcdd">+1 pt · {{creditsWin}} Credits</b><sc-if value="{{hasNextLock}}" hint-placeholder-val="{{ true }}"><br>Next lock <b style="color: #a5dcdd">{{nextLock}}</b></sc-if></span>
 </div>
 
-<div style="display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start">
+<span class="pk-swipe" style="margin-bottom: -14px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">Swipe the bracket sideways to see all of it.</span>
+<section aria-label="Bracket" style="overflow-x: auto; border: 1px solid #2a3a3e; border-radius: 12px; background: #111a1c">
+<div style="position: relative; width: 1230px; height: 690px; margin: 0 auto">
+<svg aria-hidden="true" width="1230" height="690" viewBox="0 0 1230 690" style="position: absolute; left: 0; top: 0">
+<sc-for list="{{lines}}" as="ln" hint-placeholder-count="4"><path d="{{ln.d}}" fill="none" stroke="{{ln.color}}" stroke-width="3" stroke-linejoin="round"></path></sc-for>
+<path d="M1112 300 L1104 266 L1122 280 L1135 258 L1148 280 L1166 266 L1158 300 Z" fill="#f5d76e" stroke="#c9a93c" stroke-width="2" stroke-linejoin="round"></path>
+</svg>
 
-<div style="flex: 1 1 100%; min-width: 0; display: flex; flex-direction: column; gap: 28px">
-<sc-for list="{{brackets}}" as="br" hint-placeholder-count="2">
-<section aria-label="{{br.title}}" style="display: flex; flex-direction: column; gap: 12px">
-<h2 style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">[ {{br.title}} ]</h2>
-<div style="display: flex; gap: 16px; overflow-x: auto; padding-bottom: 6px">
-<sc-for list="{{br.cols}}" as="col" hint-placeholder-count="3">
-<div style="flex: 0 0 230px; width: 230px; min-width: 0; display: flex; flex-direction: column; justify-content: space-around; gap: 14px">
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.06em; text-transform: uppercase">{{col.title}}</span>
-<sc-for list="{{col.series}}" as="s" hint-placeholder-count="2">
-<article aria-label="{{s.aria}}" style="border: 1px solid {{s.border}}; border-radius: 10px; background: #172124; padding: 10px 10px 12px; display: flex; flex-direction: column; gap: 6px; box-shadow: {{s.glow}}">
-<div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 8px; padding: 0 4px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.04em">
-<span style="color: #93a9aa">{{s.label}}</span>
-<span style="color: {{s.statusColor}}">{{s.status}}</span>
-</div>
-<sc-for list="{{s.teams}}" as="t" hint-placeholder-count="2">
+<table style="position: absolute; left: 24px; top: 36px; width: 330px; border-collapse: collapse; background: #172124; border: 2px solid #3a4f53; font-size: 15px">
+<thead>
+<tr>
+<th scope="col" style="width: 50%; height: 40px; border: 2px solid #3a4f53; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; color: #ef8f8f">GROUP A</th>
+<th scope="col" style="width: 50%; height: 40px; border: 2px solid #3a4f53; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; color: #8be4b7">GROUP B</th>
+</tr>
+</thead>
+<tbody>
+<sc-for list="{{groupRows}}" as="gr" hint-placeholder-count="5">
+<tr>
+<sc-for list="{{gr.cells}}" as="gc" hint-placeholder-count="2">
+<td title="{{gc.full}}" style="height: 40px; padding: 0 12px; border: 2px solid #3a4f53">
+<span style="display: flex; align-items: center; gap: 8px">
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: {{gc.seedColor}}; min-width: 20px">{{gc.seed}}</span>
+<img src="{{gc.logo}}" alt="" style="width: 22px; height: 22px; object-fit: contain; border-radius: 50%; background: #0d1416; padding: {{gc.logoPad}}; box-sizing: border-box">
+<span style="font-weight: 600">{{gc.code}}</span>
+</span>
+</td>
+</sc-for>
+</tr>
+</sc-for>
+</tbody>
+</table>
+
+<sc-for list="{{boxes}}" as="bx" hint-placeholder-count="14">
+<div role="group" aria-label="{{bx.aria}}" style="position: absolute; left: {{bx.x}}px; top: {{bx.y}}px; width: 150px; box-sizing: border-box; border: 2px solid {{bx.border}}; border-radius: 6px; background: #172124; overflow: visible">
+<span aria-hidden="true" style="position: absolute; left: {{bx.lx}}px; top: {{bx.ly}}px; width: 32px; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 700; color: #a5dcdd">{{bx.n}}</span>
+<sc-for list="{{bx.rows}}" as="t" hint-placeholder-count="2">
 <sc-if value="{{t.canPick}}" hint-placeholder-val="{{ true }}">
-<button type="button" onClick="{{t.pick}}" aria-pressed="{{t.picked}}" aria-label="{{t.aria}}" style="display: flex; align-items: center; gap: 8px; width: 100%; min-height: 44px; padding: 0 8px; box-sizing: border-box; border-radius: 8px; background: {{t.bg}}; border: 1px solid {{t.ring}}; color: inherit; text-align: left; font: inherit; cursor: pointer">
-<sc-if value="{{t.hasLogo}}" hint-placeholder-val="{{ true }}"><img src="{{t.logo}}" alt="" style="width: 26px; height: 26px; object-fit: contain; flex: 0 0 26px; border-radius: 50%; padding: {{t.logoPad}}; box-sizing: border-box; background: #0d1416"></sc-if>
-<sc-if value="{{t.noLogo}}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="width: 26px; height: 26px; flex: 0 0 26px; border-radius: 50%; border: 1px dashed #3a4f53; box-sizing: border-box"></span></sc-if>
-<span title="{{t.full}}" style="flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: {{t.weight}}; color: {{t.color}}; font-style: {{t.italic}}">{{t.name}}</span>
-<sc-if value="{{t.hasScore}}" hint-placeholder-val="{{ false }}"><span style="font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 700; color: {{t.scoreColor}}">{{t.score}}</span></sc-if>
-<sc-if value="{{t.picked}}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.06em; color: #a5dcdd">PICK</span></sc-if>
+<button type="button" onClick="{{t.pick}}" aria-pressed="{{t.picked}}" aria-label="{{t.aria}}" title="{{t.full}}" style="display: flex; align-items: center; gap: 8px; width: 100%; height: 40px; padding: 0 10px; box-sizing: border-box; border: 0; border-top: {{t.divider}}; border-radius: {{t.radius}}; background: {{t.bg}}; color: {{t.color}}; font: inherit; font-size: 15px; font-weight: {{t.weight}}; text-align: left; cursor: pointer">
+<sc-if value="{{t.hasLogo}}" hint-placeholder-val="{{ true }}"><img src="{{t.logo}}" alt="" style="width: 22px; height: 22px; flex: 0 0 22px; object-fit: contain; border-radius: 50%; background: #0d1416; padding: {{t.logoPad}}; box-sizing: border-box"></sc-if>
+<span style="flex: 1 1 auto; font-style: {{t.italic}}">{{t.label}}</span>
 </button>
 </sc-if>
 <sc-if value="{{t.fixed}}" hint-placeholder-val="{{ false }}">
-<div style="display: flex; align-items: center; gap: 8px; width: 100%; min-height: 44px; padding: 0 8px; box-sizing: border-box; border-radius: 8px; background: {{t.bg}}; border: 1px solid {{t.ring}}; color: inherit; text-align: left; font: inherit">
-<sc-if value="{{t.hasLogo}}" hint-placeholder-val="{{ true }}"><img src="{{t.logo}}" alt="" style="width: 26px; height: 26px; object-fit: contain; flex: 0 0 26px; border-radius: 50%; padding: {{t.logoPad}}; box-sizing: border-box; background: #0d1416"></sc-if>
-<sc-if value="{{t.noLogo}}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="width: 26px; height: 26px; flex: 0 0 26px; border-radius: 50%; border: 1px dashed #3a4f53; box-sizing: border-box"></span></sc-if>
-<span title="{{t.full}}" style="flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: {{t.weight}}; color: {{t.color}}; font-style: {{t.italic}}">{{t.name}}</span>
-<sc-if value="{{t.hasScore}}" hint-placeholder-val="{{ false }}"><span style="font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 700; color: {{t.scoreColor}}">{{t.score}}</span></sc-if>
-<sc-if value="{{t.picked}}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.06em; color: #a5dcdd">PICK</span></sc-if>
+<div aria-label="{{t.aria}}" title="{{t.full}}" style="display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 10px; box-sizing: border-box; border-top: {{t.divider}}; border-radius: {{t.radius}}; background: {{t.bg}}; color: {{t.color}}; font-size: 15px; font-weight: {{t.weight}}">
+<sc-if value="{{t.hasLogo}}" hint-placeholder-val="{{ true }}"><img src="{{t.logo}}" alt="" style="width: 22px; height: 22px; flex: 0 0 22px; object-fit: contain; border-radius: 50%; background: #0d1416; padding: {{t.logoPad}}; box-sizing: border-box; opacity: {{t.logoOpacity}}"></sc-if>
+<span style="flex: 1 1 auto; font-style: {{t.italic}}">{{t.label}}</span>
+<sc-if value="{{t.hasScore}}" hint-placeholder-val="{{ false }}"><span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 700">{{t.score}}</span></sc-if>
 </div>
 </sc-if>
-</sc-for>
-<sc-if value="{{s.hasScores}}" hint-placeholder-val="{{ true }}">
-<div role="group" aria-label="Map score" style="display: flex; align-items: center; gap: 6px; padding: 2px 4px 0">
-<span style="flex: 1 1 auto; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">Score</span>
-<sc-for list="{{s.scores}}" as="o" hint-placeholder-count="2">
-<button type="button" onClick="{{o.pick}}" aria-pressed="{{o.on}}" aria-label="{{o.aria}}" disabled="{{o.off}}" style="min-width: 44px; height: 34px; padding: 0 6px; border-radius: 6px; border: 1px solid {{o.border}}; background: {{o.bg}}; color: {{o.color}}; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: {{o.weight}}; cursor: {{o.cursor}}; opacity: {{o.opacity}}">{{o.label}}</button>
-</sc-for>
-</div>
-</sc-if>
-<sc-if value="{{s.hasNote}}" hint-placeholder-val="{{ true }}">
-<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 2px 4px 0; font-family: 'JetBrains Mono', monospace; font-size: 12px">
-<span style="color: {{s.noteColor}}">{{s.note}}</span>
-<sc-if value="{{s.canClear}}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{s.clear}}" style="background: none; border: 0; padding: 6px 0; color: #93a9aa; font: inherit; text-decoration: underline; text-underline-offset: 3px; cursor: pointer">Clear</button></sc-if>
-</div>
-</sc-if>
-<sc-if value="{{s.hasLink}}" hint-placeholder-val="{{ false }}"><a href="{{s.url}}" target="_blank" rel="noopener" style="padding: 0 4px; font-family: 'JetBrains Mono', monospace; font-size: 12px">Series on PCMT.gg</a></sc-if>
-</article>
 </sc-for>
 </div>
 </sc-for>
 </div>
 </section>
-</sc-for>
-</div>
-<div style="flex: 1 1 100%; display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+
+<div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
 <section aria-labelledby="you-h" style="flex: 1 1 280px; border: 1px solid #2a3a3e; border-radius: 12px; background: #172124; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px">
 <h2 id="you-h" style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">[ YOUR PICKS ]</h2>
 <div style="display: flex; gap: 24px">
@@ -164,7 +162,6 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <tr style="text-align: left; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.06em; text-transform: uppercase">
 <th scope="col" style="padding: 12px 14px; border-bottom: 1px solid #2a3a3e; width: 40px">#</th>
 <th scope="col" style="padding: 12px 14px; border-bottom: 1px solid #2a3a3e">Manager</th>
-<th scope="col" style="padding: 12px 14px; border-bottom: 1px solid #2a3a3e; text-align: right">Exact</th>
 <th scope="col" style="padding: 12px 14px; border-bottom: 1px solid #2a3a3e; text-align: right">Pts</th>
 </tr>
 </thead>
@@ -173,12 +170,11 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <tr style="background: {{r.bg}}">
 <td style="padding: 12px 14px; border-bottom: 1px solid #2a3a3e; font-family: 'JetBrains Mono', monospace; color: {{r.rankColor}}; font-weight: 700">{{r.rank}}</td>
 <td style="padding: 12px 14px; border-bottom: 1px solid #2a3a3e; font-weight: 600; color: {{r.nameColor}}; overflow-wrap: anywhere">{{r.name}}</td>
-<td style="padding: 12px 14px; border-bottom: 1px solid #2a3a3e; text-align: right; font-family: 'JetBrains Mono', monospace; color: #93a9aa">{{r.exact}}</td>
 <td style="padding: 12px 14px; border-bottom: 1px solid #2a3a3e; text-align: right; font-family: 'JetBrains Mono', monospace; font-weight: 600">{{r.points}}</td>
 </tr>
 </sc-for>
 <sc-if value="{{noStandings}}" hint-placeholder-val="{{ false }}">
-<tr><td colspan="4" style="padding: 24px 14px; text-align: center; color: #93a9aa">Standings appear once a picked series is finished.</td></tr>
+<tr><td colspan="3" style="padding: 24px 14px; text-align: center; color: #93a9aa">Standings appear once a picked series is finished.</td></tr>
 </sc-if>
 </tbody>
 </table>
@@ -186,7 +182,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">Results come from PCMT.gg. Points and Credits are added within a few hours of each series.</span>
 </section>
 </div>
-</div>
+
 </div>
 </sc-if>
 </main>
@@ -202,7 +198,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"previewOpen":{"editor":"boolean","default":false,"section":"Preview"},"samplePicks":{"editor":"boolean","default":false,"section":"Preview"},"$preview":{"width":1440,"height":1600}}'>
+<script type="text/x-dc" data-dc-script data-props='{"previewOpen":{"editor":"boolean","default":false,"section":"Preview"},"samplePicks":{"editor":"boolean","default":false,"section":"Preview"},"$preview":{"width":1440,"height":1500}}'>
 // Pick'ems brackets. The live site loads pickems.js (window.PCMT_PICKEMS), which the match check keeps up to date;
 // this copy is only for the canvas preview. Format: see pickems.js.
 var PCMT_PICKEMS_DATA = window.PCMT_PICKEMS || [{
@@ -225,11 +221,24 @@ var PCMT_PICKEMS_DATA = window.PCMT_PICKEMS || [{
     { n: 14, round: 'Grand final', a: 'W5', b: 'W13', bo: 5, start: null, score: null, url: null }
   ]
 }];
-// Which series go in which column (upper, lower, grand final).
+// Where each series sits in the bracket (same layout as the PCMT bracket picture): box top-left x, y and
+// where its number goes (lx, ly, relative to the box). Boxes are 150 x 84.
 var PCMT_PICKEM_LAYOUT = [
-  { title: 'UPPER BRACKET', cols: [{ title: 'Round 1', series: [1, 2] }, { title: 'Semifinals', series: [3, 4] }, { title: 'Upper final', series: [5] }] },
-  { title: 'LOWER BRACKET', cols: [{ title: 'Round 1', series: [6, 7] }, { title: 'Round 2', series: [8, 9] }, { title: 'Round 3', series: [10, 11] }, { title: 'Semifinal', series: [12] }, { title: 'Lower final', series: [13] }] },
-  { title: 'GRAND FINAL', cols: [{ title: 'Best of 5', series: [14] }] }
+  { n: 1, x: 430, y: 120, lx: -38, ly: 28 }, { n: 3, x: 620, y: 120, lx: 154, ly: -26 },
+  { n: 2, x: 430, y: 250, lx: -38, ly: 28 }, { n: 4, x: 620, y: 250, lx: 154, ly: 88 },
+  { n: 5, x: 830, y: 185, lx: 154, ly: -26 },
+  { n: 6, x: 60, y: 430, lx: -38, ly: 28 }, { n: 8, x: 245, y: 430, lx: 59, ly: -28 }, { n: 10, x: 430, y: 430, lx: 154, ly: -26 },
+  { n: 7, x: 60, y: 555, lx: -38, ly: 28 }, { n: 9, x: 245, y: 555, lx: 59, ly: 88 }, { n: 11, x: 430, y: 555, lx: 154, ly: 88 },
+  { n: 12, x: 640, y: 490, lx: 59, ly: -28 }, { n: 13, x: 830, y: 490, lx: 59, ly: -28 },
+  { n: 14, x: 1060, y: 330, lx: 0, ly: 0, label: false }
+];
+// The lines between boxes (box middles are y + 42).
+var PCMT_PICKEM_LINES = [
+  'M580 162 H620', 'M580 292 H620',
+  'M770 162 H800 V292 H770', 'M800 227 H830',
+  'M210 472 H245', 'M395 472 H430', 'M210 597 H245', 'M395 597 H430',
+  'M580 472 H610 V597 H580', 'M610 532 H640', 'M790 532 H830',
+  'M980 227 H1020 V532 H980', 'M1020 372 H1060'
 ];
 var PCMT_PICKEM_TEAMS = {
   FaZe: { name: 'Fabulous and Zesty', logo: '/_blob/9da6e0491a922186cad6bc5daf699626' },
@@ -263,7 +272,6 @@ function pcmtPickemResolve(b, picks, now) {
   });
   return out;
 }
-function pcmtRange(n) { var a = []; for (var i = 0; i < n; i++) a.push(i); return a; }
 function pcmtPickemWhen(iso) {
   try {
     var d = new Date(iso);
@@ -271,7 +279,7 @@ function pcmtPickemWhen(iso) {
   } catch (e) { return iso; }
 }
 function pcmtSamplePicks() {
-  return { 2: { winner: 'NATS', win: 2, lose: 1 }, 3: { winner: 'XTC', win: 2, lose: 0 }, 4: { winner: 'NIP', win: 2, lose: 1 }, 5: { winner: 'XTC', win: 2, lose: 1 }, 8: { winner: 'SEAL', win: 2, lose: 1 }, 14: { winner: 'XTC', win: 3, lose: 1 } };
+  return { 2: { winner: 'NATS' }, 3: { winner: 'XTC' }, 4: { winner: 'NIP' }, 5: { winner: 'XTC' }, 8: { winner: 'SEAL' }, 14: { winner: 'XTC' } };
 }
 
 class Component extends DCLogic {
@@ -348,15 +356,15 @@ class Component extends DCLogic {
   }
 
   // Saves one pick (winner null = clear it). Shows it straight away and puts it back if the server says no.
-  choose(eventId, n, winner, win, lose) {
+  choose(eventId, n, winner) {
     var self = this, before = this.state.picks[n];
     var picks = Object.assign({}, this.state.picks);
-    if (winner) picks[n] = { winner: winner, win: win, lose: lose }; else delete picks[n];
+    if (winner) picks[n] = { winner: winner }; else delete picks[n];
     this.setState({ picks: picks });
     var L = window.PCMT_LEAGUE;
     if (!L) return;   // canvas preview: picks stay on the page
     if (!L.signedIn) { this.message('Log in with Discord to make picks.'); var back0 = Object.assign({}, this.state.picks); if (before) back0[n] = before; else delete back0[n]; this.setState({ picks: back0 }); return; }
-    L.savePick(eventId, n, winner, win, lose).catch(function (e) {
+    L.savePick(eventId, n, winner, null, null).catch(function (e) {
       var back = Object.assign({}, self.state.picks);
       if (before) back[n] = before; else delete back[n];
       self.setState({ picks: back });
@@ -368,102 +376,79 @@ class Component extends DCLogic {
     var self = this, W = window, now = Date.now();
     var b = PCMT_PICKEMS_DATA[0];
     var allowed = !!(W.PCMT_IS_ADMIN || W.PCMT_IS_STAFF || this.props.previewOpen);
-    var ev = (W.PCMT_PICKEM_EVENTS || {})[b.id] || { open: true, credits_win: 20, credits_exact: 10 };
+    var ev = (W.PCMT_PICKEM_EVENTS || {})[b.id] || { open: true, credits_win: 20 };
     // open = false in pickem_events closes it again: then only Freshbatch staff and site admins see the page.
     var locked = !ev.open && !allowed;
     var R = pcmtPickemResolve(b, this.state.picks, now);
-    var totals = { points: 0, credits: 0, correct: 0, exact: 0, made: 0, open: 0 };
-    function teamView(code, real, info, side) {
-      var t = code ? PCMT_PICKEM_TEAMS[code] : null;
-      var ref = side === 'a' ? info.s.a : info.s.b;
-      var placeholder = /^W\d+$/.test(ref) ? 'Winner of series ' + ref.slice(1) : /^L\d+$/.test(ref) ? 'Loser of series ' + ref.slice(1) : ref;
+    var totals = { points: 0, credits: 0, correct: 0, made: 0, open: 0 };
+    var nextLock = null;
+    function row(code, real, info, side, first) {
+      var t = code ? PCMT_PICKEM_TEAMS[code] : null, ref = side === 'a' ? info.s.a : info.s.b;
       var p = info.pick, picked = !!(p && code && p.winner === code), isWinner = info.done && info.winner === code;
       var sc = info.s.score;
-      return {
-        name: t ? t.name : (code || placeholder), full: t ? t.name + ' (' + code + ')' : placeholder,
-        hasLogo: !!t, noLogo: !t, logo: t ? t.logo : '', logoPad: t && t.small ? '3px' : '0',
-        weight: isWinner || picked ? 700 : 500,
-        color: !code ? '#93a9aa' : info.done && !isWinner ? '#93a9aa' : '#eaf4f4',
-        italic: real ? 'normal' : 'italic',   // italic = only there because of your own picks
-        bg: picked ? 'rgba(165,220,221,.1)' : 'transparent',
-        ring: picked ? 'rgba(165,220,221,.45)' : code && !info.locked ? '#2a3a3e' : 'transparent',
-        canPick: !info.locked && !!code, fixed: info.locked || !code, picked: picked,
-        aria: 'Pick ' + (t ? t.name : code) + ' to win',
-        // Tapping a team picks it (keeping your score, else the closest one); the score row below changes it.
-        pick: function () { if (picked) return; self.choose(b.id, info.s.n, code, info.need, p && p.winner ? p.lose : info.need - 1); },
-        hasScore: !!sc, score: sc ? String(side === 'a' ? sc[0] : sc[1]) : '', scoreColor: isWinner ? '#a5dcdd' : '#93a9aa'
-      };
-    }
-    function seriesView(n) {
-      var info = R[n], s = info.s, p = info.pick;
-      var status, statusColor = '#93a9aa', note = '', noteColor = '#93a9aa', border = '#2a3a3e', glow = 'none';
-      var pickName = p ? (PCMT_PICKEM_TEAMS[p.winner] ? p.winner : p.winner) + ' ' + p.win + '-' + p.lose : '';
-      if (p) totals.made++;
+      var bg = 'transparent', color = '#eaf4f4', weight = 600;
+      if (!code) color = '#93a9aa';
       if (info.done) {
-        status = 'Final';
-        var wm = Math.max(s.score[0], s.score[1]), lm = Math.min(s.score[0], s.score[1]);
-        if (!p) { note = 'No pick'; }
-        else if (p.winner === info.winner) {
-          var exact = p.win === wm && p.lose === lm;
-          totals.points += exact ? 2 : 1; totals.correct++; if (exact) totals.exact++;
-          totals.credits += ev.credits_win + (exact ? ev.credits_exact : 0);
-          note = 'You picked ' + pickName + ' · +' + (exact ? 2 : 1) + (exact ? ' pts, exact' : ' pt');
-          noteColor = '#8be4b7'; border = 'rgba(139,228,183,.5)';
-        } else { note = 'You picked ' + pickName + ' · 0 pts'; noteColor = '#ef8f8f'; }
-      } else if (info.locked) {
-        status = 'Locked · live'; statusColor = '#f5d76e';
-        note = p ? 'You picked ' + pickName : 'No pick';
-      } else {
-        totals.open++;
-        status = s.start ? 'Locks ' + pcmtPickemWhen(s.start) : 'Time TBA';
-        if (s.start) statusColor = '#a5dcdd';
-        var out = p && p.winner !== info.ga && p.winner !== info.gb;
-        if (out) { note = p.winner + ' can\'t reach this series now. Pick again.'; noteColor = '#f5d76e'; border = 'rgba(245,215,110,.5)'; }
-        else if (p) { note = 'Your pick: ' + pickName; noteColor = '#a5dcdd'; border = 'rgba(165,220,221,.45)'; glow = '0 0 18px rgba(165,220,221,.08)'; }
-        else if (info.ga || info.gb) note = 'Tap a team, then the score';
-        else note = 'Pick earlier series first';
-      }
+        if (!isWinner) { color = '#7f9597'; weight = 500; }
+        if (picked) bg = isWinner ? 'rgba(139,228,183,.22)' : 'rgba(239,143,143,.2)';
+      } else if (picked) { bg = '#a5dcdd'; color = '#000'; weight = 700; }
+      var name = t ? t.name : code;
+      var state = !code ? '' : info.done ? (isWinner ? ', won' : ', lost') + (picked ? ', your pick' : '') : picked ? ', your pick' : '';
       return {
-        label: s.round + ' · Bo' + (s.bo || 3), aria: s.round + ', series ' + s.n,
-        status: status, statusColor: statusColor, border: border, glow: glow,
-        teams: [teamView(info.ga, !!info.a, info, 'a'), teamView(info.gb, !!info.b, info, 'b')],
-        hasScores: !info.locked && !!(info.ga || info.gb),
-        scores: pcmtRange(info.need).map(function (lose) {
-          var valid = !!p && (p.winner === info.ga || p.winner === info.gb), on = valid && p.lose === lose;
-          return {
-            label: info.need + '-' + lose, on: on, off: !valid,
-            aria: valid ? p.winner + ' wins ' + info.need + '-' + lose : 'Pick a team first',
-            border: on ? '#a5dcdd' : '#3a4f53', bg: on ? '#a5dcdd' : 'transparent', color: on ? '#000' : '#eaf4f4', weight: on ? 700 : 400,
-            cursor: valid ? 'pointer' : 'default', opacity: valid ? 1 : 0.4,
-            pick: function () { if (!valid || on) return; self.choose(b.id, s.n, p.winner, info.need, lose); }
-          };
-        }),
-        hasNote: !!note, note: note, noteColor: noteColor,
-        canClear: !!p && !info.locked,
-        clear: function () { self.choose(b.id, s.n, null, null, null); },
-        hasLink: !!s.url, url: s.url || ''
+        label: code || ref, full: t ? t.name + ' (' + code + ')' : (/^W/.test(ref) ? 'Winner of series ' : 'Loser of series ') + ref.slice(1),
+        hasLogo: !!t, logo: t ? t.logo : '', logoPad: t && t.small ? '3px' : '0', logoOpacity: info.done && !isWinner ? 0.6 : 1,
+        italic: code && !real ? 'italic' : 'normal',   // italic = there because of your own picks
+        canPick: !info.locked && !!code, fixed: info.locked || !code, picked: picked,
+        aria: code ? name + state : (/^W/.test(ref) ? 'Winner of series ' : 'Loser of series ') + ref.slice(1),
+        bg: bg, color: color, weight: weight,
+        divider: first ? '0' : '2px solid #3a4f53', radius: first ? '4px 4px 0 0' : '0 0 4px 4px',
+        hasScore: !!sc && !!code, score: sc ? String(side === 'a' ? sc[0] : sc[1]) : '',
+        pick: function () { if (picked) return; self.choose(b.id, info.s.n, code); }
       };
     }
-    var brackets = PCMT_PICKEM_LAYOUT.map(function (blk) {
-      return { title: blk.title, cols: blk.cols.map(function (c) { return { title: c.title, series: c.series.filter(function (n) { return R[n]; }).map(seriesView) }; }) };
+    var boxes = PCMT_PICKEM_LAYOUT.map(function (L) {
+      var info = R[L.n], p = info.pick;
+      if (p) totals.made++;
+      if (info.done && p && p.winner === info.winner) { totals.points++; totals.correct++; totals.credits += ev.credits_win; }
+      if (!info.locked) {
+        totals.open++;
+        if (info.s.start && (!nextLock || Date.parse(info.s.start) < Date.parse(nextLock.s.start))) nextLock = info;
+      }
+      var border = '#3a4f53';
+      if (!info.locked && p && p.winner !== info.ga && p.winner !== info.gb) border = '#f5d76e';   // your pick can't reach this series any more
+      return {
+        n: L.label === false ? '' : String(L.n), x: L.x, y: L.y, lx: L.lx, ly: L.ly, border: border,
+        aria: info.s.round + ', series ' + info.s.n + (info.locked && !info.done ? ', locked' : ''),
+        rows: [row(info.ga, !!info.a, info, 'a', true), row(info.gb, !!info.b, info, 'b', false)]
+      };
     });
-    var rows = ((W.PCMT_PICKEM_STANDINGS || {})[b.id] || []).slice().sort(function (x, y) { return y.points - x.points || y.exact - x.exact || String(x.name).localeCompare(String(y.name)); });
+    var groupRows = [1, 2, 3, 4, 5].map(function (i) {
+      return { cells: ['A', 'B'].map(function (g) {
+        var code = b.seeds[g + i], t = PCMT_PICKEM_TEAMS[code] || {};
+        return { seed: g + i, code: code, full: t.name || code, logo: t.logo || '', logoPad: t.small ? '3px' : '0', seedColor: g === 'A' ? '#ef8f8f' : '#8be4b7' };
+      }) };
+    });
+    var rows = ((W.PCMT_PICKEM_STANDINGS || {})[b.id] || []).slice().sort(function (x, y) { return y.points - x.points || String(x.name).localeCompare(String(y.name)); });
     var rank = 0, prev = null;
     var standings = rows.map(function (r, i) {
       if (prev === null || r.points !== prev) { rank = i + 1; prev = r.points; }
-      return { rank: rank, name: r.name, exact: r.exact, points: r.points, bg: r.me ? '#13292b' : 'transparent', nameColor: r.me ? '#a5dcdd' : '#eaf4f4', rankColor: rank === 1 ? '#f5d76e' : '#93a9aa' };
+      return { rank: rank, name: r.name, points: r.points, bg: r.me ? '#13292b' : 'transparent', nameColor: r.me ? '#a5dcdd' : '#eaf4f4', rankColor: rank === 1 ? '#f5d76e' : '#93a9aa' };
     });
     var signedIn = !!(W.PCMT_LEAGUE ? W.PCMT_LEAGUE.signedIn : true);
     var line = !signedIn ? 'Log in with Discord to save your picks.'
       : totals.open === 0 ? 'Every series is locked.'
       : totals.made === 0 ? 'No picks yet. ' + totals.open + ' series open to pick.'
-      : totals.made + ' pick' + (totals.made === 1 ? '' : 's') + ' made · ' + totals.correct + ' right so far' + (totals.exact ? ', ' + totals.exact + ' exact' : '') + '.';
+      : totals.made + ' pick' + (totals.made === 1 ? '' : 's') + ' made · ' + totals.correct + ' right so far.';
     return {
       locked: locked, unlocked: !locked,
       staffNote: !ev.open && allowed,
       eventName: b.name,
-      creditsWin: ev.credits_win, creditsExact: ev.credits_exact,
-      brackets: brackets,
+      creditsWin: ev.credits_win,
+      hasNextLock: !!nextLock,
+      nextLock: nextLock ? (nextLock.ga || nextLock.s.a) + ' vs ' + (nextLock.gb || nextLock.s.b) + ' · ' + pcmtPickemWhen(nextLock.s.start) : '',
+      lines: PCMT_PICKEM_LINES.map(function (d) { return { d: d, color: '#3a4f53' }; }),
+      groupRows: groupRows,
+      boxes: boxes,
       you: { points: String(totals.points), credits: String(totals.credits), line: line, loginNeeded: !signedIn },
       standings: standings, noStandings: standings.length === 0
     };

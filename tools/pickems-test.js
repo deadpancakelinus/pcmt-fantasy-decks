@@ -51,9 +51,8 @@ check(fails(as(STAFF, `select public.save_pick('emea-s2', 1, 'XTC', 2, 0);`), /l
 check(fails(as(STAFF, `select public.save_pick('emea-s2', 3, 'NIP', 2, 0);`), /isn't playing/), 'a known series only takes its two teams');
 check(pick(STAFF, 5, 'NIP', 2, 1) === 't', 'a series with teams not known yet takes any team in the bracket');
 check(fails(as(STAFF, `select public.save_pick('emea-s2', 5, 'T1', 2, 1);`), /isn't in this bracket/), 'teams from outside the bracket are refused');
-check(fails(as(STAFF, `select public.save_pick('emea-s2', 2, 'NATS', 2, 2);`), /score/) && fails(as(STAFF, `select public.save_pick('emea-s2', 2, 'NATS', 3, 0);`), /score/), 'impossible Bo3 scores are refused');
-check(pick(STAFF, 14, 'SOG', 3, 2) === 't' && fails(as(STAFF, `select public.save_pick('emea-s2', 14, 'SOG', 2, 1);`), /score/), 'the Bo5 grand final takes 3-x scores only');
-check(pick(STAFF, 5, 'XTC', 2, 0) === 't' && sql(`select winner || win_maps || lose_maps from public.pickem_picks where user_id = '${STAFF}' and series = 5;`).trim() === 'XTC20', 'a pick can be changed before it locks');
+check(pick(STAFF, 14, 'SOG', 'null', 'null') === 't' && sql(`select count(*) from public.pickem_picks where win_maps is not null or lose_maps is not null;`).trim() === '0', 'picks are the winner only (any score sent is ignored)');
+check(pick(STAFF, 5, 'XTC', 'null', 'null') === 't' && sql(`select winner from public.pickem_picks where user_id = '${STAFF}' and series = 5;`).trim() === 'XTC', 'a pick can be changed before it locks');
 check(pick(STAFF, 5, null, 'null', 'null') === 'f' && sql(`select count(*) from public.pickem_picks where user_id = '${STAFF}' and series = 5;`).trim() === '0', 'a pick can be cleared');
 
 sql(`update public.pickem_events set open = true where id = 'emea-s2';`);
@@ -72,13 +71,13 @@ check(fails(as(P1, `select public.save_pick('emea-s2', 2, 'NATS', 2, 1);`), /loc
 // It finishes NATS 2-1: payout.
 js2 = edit(js2, 2, { score: [2, 1] });
 const pay = JSON.parse(ingest(js2));
-check(pay.payouts === 2 && pay.credits === 50, 'right winners are paid: 20 + 10 for the exact score, 20 for the winner only');
+check(pay.payouts === 2 && pay.credits === 40, 'right winners are paid 20 Credits each');
 const led = sql(`select user_id || ':' || amount from public.vp_ledger where kind = 'pickem' order by user_id;`).trim().split('\n');
-check(led.join(',') === `${P2}:20,${STAFF}:30`, 'exact score gets 30, right winner only gets 20, wrong winners get nothing');
+check(led.join(',') === `${P2}:20,${STAFF}:20`, 'right winners get 20, wrong winners get nothing');
 check(JSON.parse(ingest(js2)).payouts === 0 && sql(`select count(*) from public.vp_ledger where kind = 'pickem';`).trim() === '2', 'running the sync again never pays twice');
 check(sql(as(P1, `select count(*) from public.vp_ledger;`)).trim() === '0' && sql(as(STAFF, `select count(*) from public.vp_ledger;`)).trim() === '1', 'each player sees only their own Credits lines');
 const st = sql(`set role anon; select user_id || ':' || points || ':' || correct || ':' || exact from public.pickem_standings('emea-s2') order by points desc, user_id;`).trim().split('\n');
-check(st.join(',') === `${STAFF}:2:1:1,${P2}:1:1:0,${P1}:0:0:0,${ADMIN}:0:0:0`, 'standings: 1 for the winner, 1 more for the exact score');
+check(st.join(',') === `${P2}:1:1:0,${STAFF}:1:1:0,${ADMIN}:0:0:0,${P1}:0:0:0`.split(',').sort((a, b) => b.split(':')[1] - a.split(':')[1] || a.localeCompare(b)).join(','), 'standings: 1 point for each right winner');
 const r2 = JSON.parse(sql(`select public.pickem_resolve(data) from public.pickem_state;`).trim());
 check(r2.find(x => x.n === 4).b === 'NATS' && r2.find(x => x.n === 9).a === 'ATLC', 'the result moves teams on through the bracket');
 

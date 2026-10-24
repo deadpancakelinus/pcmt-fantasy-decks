@@ -4,24 +4,26 @@
 --
 --   * The brackets live in pickems.js on the site. pickem_sync() fetches it every hour (minute 37), keeps a copy
 --     in pickem_state, and pays Credits for every finished series.
---   * A pick is a series winner plus the map score. Each series locks when it starts (its "start" in pickems.js)
+--   * A pick is the series winner (no score since Oct 24 2026). Each series locks when it starts (its "start" in pickems.js)
 --     or once it has a score. Picks are only made through save_pick(); everyone reads only their own.
 --   * pickem_events: one row per bracket. open = false keeps it to Freshbatch staff and site admins.
---     credits_win / credits_exact = Credits for the right winner / extra for the exact score.
+--     credits_win = Credits for the right winner. credits_exact (extra for an exact score) is 0: picks have no score.
 --       update public.pickem_events set open = true where id = 'emea-s2';            -- open it to everyone
---       update public.pickem_events set credits_win = 20, credits_exact = 10 where id = 'emea-s2';
+--       update public.pickem_events set credits_win = 20 where id = 'emea-s2';
 
 -- ===================== Tables =====================
 create table if not exists public.pickem_events (
   id text primary key,
   open boolean not null default false,
   credits_win integer not null default 20 check (credits_win >= 0),
-  credits_exact integer not null default 10 check (credits_exact >= 0)
+  credits_exact integer not null default 0 check (credits_exact >= 0)
 );
 alter table public.pickem_events enable row level security;
 drop policy if exists "read pickem events" on public.pickem_events;
 create policy "read pickem events" on public.pickem_events for select using (true);
 insert into public.pickem_events (id) values ('emea-s2') on conflict do nothing;
+alter table public.pickem_events alter column credits_exact set default 0;
+update public.pickem_events set credits_exact = 0 where credits_exact <> 0;
 
 create table if not exists public.pickem_state (
   event text primary key,
@@ -35,11 +37,13 @@ create table if not exists public.pickem_picks (
   event text not null,
   series integer not null,
   winner text not null,          -- team code
-  win_maps integer not null,     -- the winner's maps (2 in a Bo3, 3 in a Bo5)
-  lose_maps integer not null,    -- the loser's maps
+  win_maps integer,              -- old score picks (no longer used): the winner's maps
+  lose_maps integer,             -- and the loser's maps
   updated_at timestamptz not null default now(),
   primary key (user_id, event, series)
 );
+alter table public.pickem_picks alter column win_maps drop not null;
+alter table public.pickem_picks alter column lose_maps drop not null;
 alter table public.pickem_picks enable row level security;
 drop policy if exists "read own picks" on public.pickem_picks;
 create policy "read own picks" on public.pickem_picks for select using (auth.uid() = user_id);
@@ -92,7 +96,7 @@ end $$;
 create or replace function public.save_pick(p_event text, p_series integer, p_winner text, p_win integer, p_lose integer)
 returns boolean
 language plpgsql volatile security definer set search_path = public as $$
-declare u uuid := auth.uid(); ev public.pickem_events; st jsonb; s jsonb; teams jsonb; need int;
+declare u uuid := auth.uid(); ev public.pickem_events; st jsonb; s jsonb; teams jsonb;
 begin
   if u is null then raise exception 'Log in with Discord to make picks.'; end if;
   select * into ev from public.pickem_events where id = p_event;
@@ -114,12 +118,9 @@ begin
   if s ->> 'a' is not null and s ->> 'b' is not null and p_winner not in (s ->> 'a', s ->> 'b') then
     raise exception 'That team isn''t playing in this series.';
   end if;
-  need := ((s ->> 'bo')::int + 1) / 2;
-  if p_win is distinct from need or p_lose is null or p_lose < 0 or p_lose >= need then
-    raise exception 'Pick a score this series can end on.';
-  end if;
+  -- Winner only: p_win and p_lose are kept for older pages and ignored.
   insert into public.pickem_picks (user_id, event, series, winner, win_maps, lose_maps, updated_at)
-    values (u, p_event, p_series, p_winner, p_win, p_lose, now())
+    values (u, p_event, p_series, p_winner, null, null, now())
     on conflict (user_id, event, series) do update set winner = excluded.winner, win_maps = excluded.win_maps, lose_maps = excluded.lose_maps, updated_at = now();
   return true;
 end $$;
@@ -127,7 +128,7 @@ revoke all on function public.save_pick(text, integer, text, integer, integer) f
 grant execute on function public.save_pick(text, integer, text, integer, integer) to authenticated;
 
 -- ===================== Standings =====================
--- Points per manager from finished series: 1 for the right winner, 1 more for the exact score.
+-- Points per manager from finished series: 1 for the right winner (exact stays 0: picks have no score).
 create or replace function public.pickem_standings(p_event text)
 returns table (user_id uuid, name text, points integer, correct integer, exact integer, picked integer)
 language sql stable security definer set search_path = public as $$
