@@ -181,4 +181,4 @@ Tables: `profiles`, `deck_history` (insert-only, server timestamps, 60/hour limi
 
 - **fantasy.pcmt.gg is the site's address.** pcmt.gg's DNS is on Cloudflare in a different account from the Pages project, so it was added as a Pages custom domain with a CNAME `fantasy` → `pcmt-fantasy.pages.dev` in the pcmt.gg account. Never "transfer DNS" for pcmt.gg; that would move the whole domain.
 - Supabase: Site URL `https://fantasy.pcmt.gg`, Redirect URLs include `https://fantasy.pcmt.gg/**` (pages.dev kept so both addresses log in). Discord login confirmed working on the new address.
-- Hourly jobs: `vp_sync()` and `pickem_sync()` read data.js, players.js and pickems.js from fantasy.pcmt.gg once `setup/domain-switch.sql` has been run in the Supabase SQL editor (the database can already reach fantasy.pcmt.gg). Until then they read from pcmt-fantasy.pages.dev, which serves the same files.
+- Hourly jobs: `vp_sync()` and `pickem_sync()` read data.js, players.js and pickems.js from fantasy.pcmt.gg (switched Oct 24 2026 with `setup/domain-switch.sql`; both ran ok on the new address).
