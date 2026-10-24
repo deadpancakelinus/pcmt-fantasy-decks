@@ -127,6 +127,7 @@ a.hm-tile{color:inherit}
 </nav>
 </section>
 
+<sc-if value="{{hasNote}}" hint-placeholder-val="{{ false }}">
 <section aria-labelledby="notes-h" style="display: flex; flex-direction: column; gap: 16px; min-width: 0">
 <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px">
 <h2 id="notes-h" style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">Latest Batch Notes</h2>
@@ -140,6 +141,7 @@ a.hm-tile{color:inherit}
 <p style="margin: 0; color: #c4d4d4; line-height: 1.55; font-size: 16px">{{note.text}}</p>
 </article>
 </section>
+</sc-if>
 
 <section aria-labelledby="cc-h" class="hm-panel hm-cc" style="display: flex; flex-direction: column; gap: 14px">
 <h2 id="cc-h" style="margin: 0; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 32px; line-height: 1.1; color: #eaf4f4">comments and complaints always welcome :)</h2>
@@ -174,8 +176,8 @@ a.hm-tile{color:inherit}
 // Open to everyone.
 // Live data: PCMT_MATCHES / PCMT_RESULTS (data.js). The canvas shows the sample below.
 
-// The newest Batch Note. Keep it in step with the first entry in the Guide's Batch Notes.
-var PCMT_HOME_NOTE = { version: 'Version 1.5 BETA', date: 'October 2026', text: 'New: MVP VS. A card game with every S3 NA and S2 EMEA player. Pick a stat, beat their card, and take the deck. Play the bot or a friend.' };
+// The newest Batch Note: { version, date, text }, or null for none. Keep it in step with the Guide's Batch Notes.
+var PCMT_HOME_NOTE = null;   // no Batch Notes yet: the section is hidden until one is written
 
 // Every page, for the menu.
 var PCMT_HOME_MENU = [
@@ -356,7 +358,7 @@ class Component extends DCLogic {
       lockLabel: lockLabel,
       hasResult: !!last, resultLabel: last ? last.a + ' vs ' + last.b + ', ' + last.winner + ' won' : '',
       menu: PCMT_HOME_MENU,
-      note: PCMT_HOME_NOTE,
+      note: PCMT_HOME_NOTE || {}, hasNote: !!PCMT_HOME_NOTE,
       ccText: cc.ccText || '',
       ccInput: function (e) { self.setState({ ccText: e && e.target ? e.target.value : '', ccMsg: '' }); },
       ccSend: function () { self.ccSend(); },

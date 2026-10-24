@@ -134,7 +134,6 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 
 <sc-for list="{{boxes}}" as="bx" hint-placeholder-count="14">
 <div role="group" aria-label="{{bx.aria}}" style="position: absolute; left: {{bx.x}}px; top: {{bx.y}}px; width: 150px; box-sizing: border-box; border: 2px solid {{bx.border}}; border-radius: 6px; background: #172124; overflow: visible">
-<span aria-hidden="true" style="position: absolute; left: {{bx.lx}}px; top: {{bx.ly}}px; width: 32px; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 700; color: #a5dcdd">{{bx.n}}</span>
 <sc-for list="{{bx.rows}}" as="t" hint-placeholder-count="2">
 <sc-if value="{{t.canPick}}" hint-placeholder-val="{{ true }}">
 <button type="button" onClick="{{t.pick}}" aria-pressed="{{t.picked}}" aria-label="{{t.aria}}" title="{{t.full}}" style="display: flex; align-items: center; gap: 8px; width: 100%; height: 40px; padding: 0 10px; box-sizing: border-box; border: 0; border-top: {{t.divider}}; border-radius: {{t.radius}}; background: {{t.bg}}; color: {{t.color}}; font: inherit; font-size: 15px; font-weight: {{t.weight}}; text-align: left; cursor: pointer">
