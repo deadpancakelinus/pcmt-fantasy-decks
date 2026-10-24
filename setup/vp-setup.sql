@@ -318,8 +318,8 @@ create or replace function public.vp_sync() returns text
 language plpgsql security definer set search_path = public, extensions as $$
 declare st_d int; st_p int; data_js text; players_js text; res jsonb; msg text; bust text := extract(epoch from now())::bigint::text;
 begin
-  select status, content into st_d, data_js from extensions.http_get('https://pcmt-fantasy.pages.dev/data.js?v=' || bust);
-  select status, content into st_p, players_js from extensions.http_get('https://pcmt-fantasy.pages.dev/players.js?v=' || bust);
+  select status, content into st_d, data_js from extensions.http_get('https://fantasy.pcmt.gg/data.js?v=' || bust);
+  select status, content into st_p, players_js from extensions.http_get('https://fantasy.pcmt.gg/players.js?v=' || bust);
   if st_d <> 200 or st_p <> 200 then raise exception 'site files not reachable (data.js %, players.js %)', st_d, st_p; end if;
   res := public.vp_ingest(data_js, players_js, now(), true);
   msg := format('ok: %s payout(s), %s VP', res ->> 'payouts', res ->> 'vp');

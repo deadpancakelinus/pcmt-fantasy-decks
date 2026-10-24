@@ -6,7 +6,7 @@ Start here. It covers what exists, how changes are made and shipped, and what's 
 
 | What | Where |
 |---|---|
-| Live site | https://pcmt-fantasy.pages.dev (custom domain fantasy.pcmt.gg not connected yet) |
+| Live site | **https://fantasy.pcmt.gg** (connected Oct 24 2026; the Cloudflare Pages address https://pcmt-fantasy.pages.dev still works) |
 | GitHub repo | `deadpancakelinus/pcmt-fantasy-decks` (Cloudflare Pages redeploys on every push to `main`) |
 | Designs | The page boards in the design canvas; the current copy is in `tools/canvas/` |
 | Supabase | https://wwrsavqipkxvdsxcemos.supabase.co, publishable key `sb_publishable_e8v-uyAo4fnvwJCHUVA5FQ_LXR6yYM7` (public, already in league.js) |
@@ -79,9 +79,8 @@ Tables: `profiles`, `deck_history` (insert-only, server timestamps, 60/hour limi
 - Run `setup/cards-setup.sql` in the Supabase SQL Editor (after vp-setup.sql) to switch on card packs; then set prices on backend.html (Card packs tab).
 - Run `setup/vp-setup.sql` in the Supabase SQL Editor to switch on VP (until then, the Store's paychecks panel shows "VP isn't switched on yet" to admins).
 - Run `setup/fix-display-names.sql` in the Supabase SQL Editor if not done yet.
-- Connect fantasy.pcmt.gg: Cloudflare Pages → Custom domains, then add it to Supabase Redirect URLs.
 - Run `setup/trumps-setup.sql` in the Supabase SQL Editor to switch on MVP VS online rooms (until then, online shows "not switched on yet" and the bot game works). Re-run it after 2026-10-21 so online rooms accept the past seasons.
-- If Supabase Redirect URLs are not a wildcard, add `https://pcmt-fantasy.pages.dev/mvp-vs.html` so logging in from MVP VS returns there.
+- If Supabase Redirect URLs are not a wildcard, add `https://fantasy.pcmt.gg/mvp-vs.html` (and the pages.dev one) so logging in from MVP VS returns there.
 
 ## 9. MVP VS (mvp-vs.html, public since 2026-10-19)
 
@@ -177,3 +176,9 @@ Tables: `profiles`, `deck_history` (insert-only, server timestamps, 60/hour limi
 - Checked: all test suites pass (vp, backend, cards, pickems, MVP VS on an ungated copy, smoke test); both hourly jobs run with no failures; no secrets in the repo; data files are strict JSON; Supabase security advisories are only expected items (functions check the caller themselves).
 - trumps/test.js now meets the staff-only gate on mvp-vs.html: run it against a copy with the gate script removed.
 - Watch as it grows: Supabase free plan data allowance (each visit to the four scoring pages downloads every saved deck). If it gets close, move the scoring to a database function that returns only each manager's counted decks.
+
+## 16. Custom domain fantasy.pcmt.gg (Oct 24 2026)
+
+- **fantasy.pcmt.gg is the site's address.** pcmt.gg's DNS is on Cloudflare in a different account from the Pages project, so it was added as a Pages custom domain with a CNAME `fantasy` → `pcmt-fantasy.pages.dev` in the pcmt.gg account. Never "transfer DNS" for pcmt.gg; that would move the whole domain.
+- Supabase: Site URL `https://fantasy.pcmt.gg`, Redirect URLs include `https://fantasy.pcmt.gg/**` (pages.dev kept so both addresses log in). Discord login confirmed working on the new address.
+- Hourly jobs: `vp_sync()` and `pickem_sync()` read data.js, players.js and pickems.js from fantasy.pcmt.gg once `setup/domain-switch.sql` has been run in the Supabase SQL editor (the database can already reach fantasy.pcmt.gg). Until then they read from pcmt-fantasy.pages.dev, which serves the same files.

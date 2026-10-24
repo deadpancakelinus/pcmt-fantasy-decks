@@ -237,7 +237,7 @@ create or replace function public.pickem_sync() returns text
 language plpgsql security definer set search_path = public, extensions as $$
 declare st int; js text; res jsonb; msg text;
 begin
-  select status, content into st, js from extensions.http_get('https://pcmt-fantasy.pages.dev/pickems.js?v=' || extract(epoch from now())::bigint::text);
+  select status, content into st, js from extensions.http_get('https://fantasy.pcmt.gg/pickems.js?v=' || extract(epoch from now())::bigint::text);
   if st <> 200 then raise exception 'pickems.js not reachable (%)', st; end if;
   res := public.pickem_ingest(js, now());
   msg := format('pickems ok: %s payout(s), %s Credits', res ->> 'payouts', res ->> 'credits');

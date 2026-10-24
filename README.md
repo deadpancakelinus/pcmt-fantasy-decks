@@ -4,7 +4,7 @@
 
 Fantasy game for the Plat Chat Members Tourney (NA Season 3, EMEA Season 2).
 
-Live at https://pcmt-fantasy.pages.dev. Every push to `main` redeploys it through Cloudflare Pages.
+Live at https://fantasy.pcmt.gg (also https://pcmt-fantasy.pages.dev). Every push to `main` redeploys it through Cloudflare Pages.
 
 ## What's in this repo
 
