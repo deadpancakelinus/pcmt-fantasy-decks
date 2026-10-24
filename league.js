@@ -6,6 +6,23 @@
   'use strict';
   var SB_URL = 'https://wwrsavqipkxvdsxcemos.supabase.co';
   var SB_KEY = 'sb_publishable_e8v-uyAo4fnvwJCHUVA5FQ_LXR6yYM7';
+
+  // ---------- staff-only pages (Oct 24 2026) ----------
+  // MVP VS, Store and Library are hidden from the public: links to them are hidden for everyone until this page knows
+  // you are a site admin or Freshbatch staff, and anyone else who opens one is sent to Home. (mvp-vs.html has its own copy.)
+  var STAFF_PAGES = /(^|\/)(store|library|mvp-vs|transactions|collection)(\.html)?$/;
+  (function () {
+    var css = document.createElement('style');
+    css.textContent = 'html.pcmt-public a[href^="store.html"],html.pcmt-public a[href^="library.html"],html.pcmt-public a[href^="mvp-vs.html"],' +
+      'html.pcmt-public a[href^="transactions.html"],html.pcmt-public a[href^="collection.html"]{display:none!important}html.pcmt-gate body{visibility:hidden}';
+    (document.head || document.documentElement).appendChild(css);
+    document.documentElement.classList.add('pcmt-public');
+    if (STAFF_PAGES.test(location.pathname)) document.documentElement.classList.add('pcmt-gate');
+  })();
+  function staffPagesDecide() {
+    if (window.PCMT_IS_ADMIN || window.PCMT_IS_STAFF) { document.documentElement.classList.remove('pcmt-public', 'pcmt-gate'); return; }
+    if (STAFF_PAGES.test(location.pathname)) location.replace('home.html');
+  }
   // Deck names: words that aren't allowed. Returns { bad, text } where text has each blocked word replaced by *.
   // Look-alike characters count (0=o, 1=i, 3=e, 4=a, 5=s, $=s, @=a ...), and spacing or dots between letters doesn't hide a word.
   // "ass" and "pee" only count as whole words (or a few common compounds), so class, pass, speed, assassin are fine.
@@ -477,7 +494,7 @@
       var released = onStore ? api('/rest/v1/cards?select=region,season,rarity&active=is.true&released=is.true&rarity=neq.common&limit=5000').catch(function () { return null; }) : Promise.resolve(null);
       // Pick'ems page: who may see it while it's closed, your picks, the standings and each bracket's settings
       var onPickems = /"data-pcmt-root":"Pickems"/.test((document.getElementById('dc-tree') || {}).textContent || '');
-      var staff = me && onPickems ? api('/rest/v1/rpc/is_freshbatch', { method: 'POST', body: {} }).catch(function () { return false; }) : Promise.resolve(false);
+      var staff = me ? api('/rest/v1/rpc/is_freshbatch', { method: 'POST', body: {} }).catch(function () { return false; }) : Promise.resolve(false);
       var picks = me && onPickems ? api('/rest/v1/pickem_picks?select=event,series,winner,win_maps,lose_maps&limit=1000').catch(function () { return []; }) : Promise.resolve([]);
       var pkEvents = onPickems ? api('/rest/v1/pickem_events?select=id,open,credits_win,credits_exact,lock_at').catch(function () { return api('/rest/v1/pickem_events?select=id,open,credits_win,credits_exact'); }).catch(function () { return []; }) : Promise.resolve([]);
       var pkBoard = onPickems ? Promise.all((window.PCMT_PICKEMS || []).map(function (b) {
@@ -559,7 +576,7 @@
         if (last) { window.PCMT_MY_REMOTE_DECK = { slots: last.slots, igl: last.igl, name: pcmtCensorName(last.name).bad ? '' : last.name, uid: me.id }; lastSubmitted = JSON.stringify({ slots: last.slots || {}, igl: last.igl || null, name: last.name || '' }); }
       }
       if (window.PCMT_LOGIN_ERROR) setTimeout(function () { toast('Discord sign-in didn\'t finish: ' + window.PCMT_LOGIN_ERROR); }, 600);
-    }).catch(function (e) { console.warn('league load failed', e); });
+    }).catch(function (e) { console.warn('league load failed', e); }).then(staffPagesDecide);
   }
   window.PCMT_LEAGUE_READY = load();
 })();

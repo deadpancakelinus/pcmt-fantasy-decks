@@ -156,3 +156,10 @@ Tables: `profiles`, `deck_history` (insert-only, server timestamps, 60/hour limi
 - Server: `setup/pickems-setup.sql` (after vp-setup.sql). `pickem_sync()` runs every hour at minute 37, fetches the live pickems.js into `pickem_state` and pays. `save_pick()` is the only way to write a pick (checks the lock, the teams, the score, and that the bracket is open or you are staff/admin). Players read only their own picks; standings come from `pickem_standings()`.
 - Closed to the public (`open = false` in `pickem_events`): players see "Coming soon" and can't save picks; Freshbatch staff and site admins see and use it. Open it with `update public.pickem_events set open = true where id = 'emea-s2';` (and `open = false` to close it again).
 - Test: `node tools/pickems-test.js "psql -h /tmp/pg -p 5499 -U postgres"`.
+
+## 13. Staff-only pages (Oct 24 2026)
+
+- **MVP VS, Store and Library are hidden from the public**, for the site going live. Links to them (menu and Home tiles, any page) are hidden for everyone until the page knows you are a site admin (`pcmt_admins`) or Freshbatch staff (`freshbatch_staff`); anyone else who opens store.html, library.html, mvp-vs.html, transactions.html or collection.html is sent to home.html. Staff and admins see and use everything as before.
+- Where: the top of `tools/league.js` (`STAFF_PAGES`, `staffPagesDecide()`, run after the league loads) and a small script in the `<head>` of `mvp-vs.html` (it doesn't load league.js; a staff member whose sign-in has expired is sent to Home, which refreshes it, then MVP VS opens from the menu).
+- Card packs: `open_to_all` was set to false on all five packs, so only staff and admins can buy them (the server checks this in `buy_pack`).
+- To open them again: remove the staff-only block from league.js and mvp-vs.html, and turn packs back on in backend.html (Card packs tab) or `update public.card_packs set open_to_all = true;`.

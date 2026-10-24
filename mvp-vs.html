@@ -216,6 +216,30 @@
     .tt-code { font-size: 36px; }
   }
 </style>
+<script>
+// Staff-only page (Oct 24 2026): only site admins and Freshbatch staff can see MVP VS; everyone else goes to Home.
+(function () {
+  var d = document.documentElement, css = document.createElement('style');
+  css.textContent = 'html.pcmt-public a[href^="store.html"],html.pcmt-public a[href^="library.html"],html.pcmt-public a[href^="mvp-vs.html"]{display:none!important}html.pcmt-gate body{visibility:hidden}';
+  document.head.appendChild(css);
+  d.classList.add('pcmt-public', 'pcmt-gate');
+  var URL0 = 'https://wwrsavqipkxvdsxcemos.supabase.co', KEY = 'sb_publishable_e8v-uyAo4fnvwJCHUVA5FQ_LXR6yYM7';
+  function home() { location.replace('home.html'); }
+  var s = null;
+  try { s = JSON.parse(localStorage.getItem('pcmt-auth') || 'null'); } catch (e) {}
+  if (!s || !s.access_token || !(s.expires_at > Date.now() + 5000)) return home();
+  var h = { apikey: KEY, Authorization: 'Bearer ' + s.access_token, 'Content-Type': 'application/json' };
+  fetch(URL0 + '/auth/v1/user', { headers: h }).then(function (r) { return r.ok ? r.json() : null; }).then(function (u) {
+    if (!u || !u.id) return home();
+    return Promise.all([
+      fetch(URL0 + '/rest/v1/pcmt_admins?select=user_id&user_id=eq.' + u.id, { headers: h }).then(function (r) { return r.ok ? r.json() : []; }),
+      fetch(URL0 + '/rest/v1/rpc/is_freshbatch', { method: 'POST', headers: h, body: '{}' }).then(function (r) { return r.ok ? r.json() : false; })
+    ]).then(function (x) {
+      if ((x[0] && x[0].length) || x[1] === true) d.classList.remove('pcmt-public', 'pcmt-gate'); else home();
+    });
+  }).catch(home);
+})();
+</script>
 </head>
 <body>
 <header style="border-bottom: 1px solid #2a3a3e; background: #111a1c">
