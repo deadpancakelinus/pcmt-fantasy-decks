@@ -39,12 +39,13 @@ create policy "insert own deck" on public.deck_history for insert with check (au
 create or replace function public.pcmt_bad_name(p_name text) returns boolean
 language sql immutable as $$
   with n as (select translate(lower(coalesce(p_name, '')), '01!|34@5$78', 'oiiieaasstb') as t)
-  select regexp_replace(t, '[^a-z]', '', 'g') ~ 'f+u+c+k+|s+h+i+t+(?!ake)|p+o{2,}p+|p+i+s{2,}|f+a+g{2,}|i+s+r+a+e+l+'
+  select regexp_replace(t, '[^a-z]', '', 'g') ~ 'f+u+c+k+|s+h+i+t+(?!ake)|p+o{2,}p+|p+i+s{2,}|f+a+g{2,}|i+s+r+a+e+l+|p+e+n+i+s+|p+u+s{2,}y+|v+a+g+i+n+a+|d+i+l+d+o+|p+o+r+n+|b+l+o+w+j+o+b+|h+a+n+d+j+o+b+|j+i+z{2,}|c+u+n+t+(?!horpe)|w+h+o+r+e+|s+l+u+t+|n+i+g{2,}(e+r+|a+)|b+o{2,}b+|t+i+t{2,}(y+|i+e+s+)|t+i+t+s+|h+e+n+t+a+i+|m+a+s+t+u+r+b+a+t+|o+r+g+a+s+m+|b+i+t+c+h+|r+e+t+a+r+d+|n+s+f+w+|x{3,}|m+i+l+f+|n+i+p{2,}l+e+|t+e+s+t+i+c+l+e+|c+o+c+k+s+u+c+k+|c+u+m+s+h+o+t+|b+a+l{2,}s+a+c+k+|s+c+r+o+t+u+m+|c+l+i+t+o+r+i+s+'
       or regexp_replace(t, '[^a-z]', '', 'g') ~ '^(a+s{2,}|p+e{2,})$'
       or exists (select 1 from regexp_split_to_table(regexp_replace(t, '[^a-z]+', ' ', 'g'), ' ') w
                  where w ~ '^a+s{2,}(e?s|holes?|hats?|wipes?|clowns?|face)?$'
                     or w ~ '^(dumb|bad|jack|smart|fat|kick|lame|big|half|hard|wise|dick|stupid)a+s{2,}(e?s)?$'
-                    or w ~ '^p+e{2,}(s|d|ing|pee)?$')
+                    or w ~ '^p+e{2,}(s|d|ing|pee)?$'
+                    or w ~ '^(c+o+c+k+s?|d+i+c+k+(s|h+e+a+d+s?)?|c+u+m+(s|m+i+n+g+)?|s+e+x+(y+|u+a+l+)?|a+n+a+l+|a+n+u+s+|h+o+r+n+y+|s+e+m+e+n+|r+a+p+e+(s|d)?|r+a+p+i+s+t+s?|n+u+d+e+s?|n+a+k+e+d+|b+o+n+e+r+s?|e+r+e+c+t+i+o+n+s?|t+h+o+t+s?|f+a+p+|h+o+e+s?|c+l+i+t+s?)$')
   from n
 $$;
 

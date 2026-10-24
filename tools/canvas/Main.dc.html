@@ -906,10 +906,11 @@ function pcmtReadStoreOpen() {
 }
 // Deck names: words that aren't allowed. Returns { bad, text } where text has each blocked word replaced by *.
 // Look-alike characters count (0=o, 1=i, 3=e, 4=a, 5=s, $=s, @=a ...), and spacing or dots between letters doesn't hide a word.
-// "ass" and "pee" only count as whole words (or a few common compounds), so class, pass, speed, assassin are fine.
+// "ass", "pee" and short NSFW words (cum, sex, anal, dick, cock, rape ...) only count as whole words (or a few common compounds),
+  // so class, pass, speed, assassin, document, sussex, canal, peacock, grape are fine. Oct 24 2026: penis and other NSFW words added.
 var PCMT_NAME_LEET = { '0': 'o', '1': 'i', '!': 'i', '|': 'i', '3': 'e', '4': 'a', '@': 'a', '5': 's', '$': 's', '7': 't', '8': 'b' };
-var PCMT_NAME_ANYWHERE = /f+u+c+k+|s+h+i+t+(?!ake)|p+o{2,}p+|p+i+s{2,}|f+a+g{2,}(?:o+t+)?|i+s+r+a+e+l+/g;
-var PCMT_NAME_WORDS = [/^a+s{2,}(?:e?s|holes?|hats?|wipes?|clowns?|face)?$/, /^(?:dumb|bad|jack|smart|fat|kick|lame|big|half|hard|wise|dick|stupid)a+s{2,}(?:e?s)?$/, /^p+e{2,}(?:s|d|ing|pee)?$/];
+var PCMT_NAME_ANYWHERE = /f+u+c+k+|s+h+i+t+(?!ake)|p+o{2,}p+|p+i+s{2,}|f+a+g{2,}(?:o+t+)?|i+s+r+a+e+l+|p+e+n+i+s+|p+u+s{2,}y+|v+a+g+i+n+a+|d+i+l+d+o+|p+o+r+n+|b+l+o+w+j+o+b+|h+a+n+d+j+o+b+|j+i+z{2,}|c+u+n+t+(?!horpe)|w+h+o+r+e+|s+l+u+t+|n+i+g{2,}(?:e+r+|a+)|b+o{2,}b+|t+i+t{2,}(?:y+|i+e+s+)|t+i+t+s+|h+e+n+t+a+i+|m+a+s+t+u+r+b+a+t+|o+r+g+a+s+m+|b+i+t+c+h+|r+e+t+a+r+d+|n+s+f+w+|x{3,}|m+i+l+f+|n+i+p{2,}l+e+|t+e+s+t+i+c+l+e+|c+o+c+k+s+u+c+k+|c+u+m+s+h+o+t+|b+a+l{2,}s+a+c+k+|s+c+r+o+t+u+m+|c+l+i+t+o+r+i+s+/g;
+var PCMT_NAME_WORDS = [/^a+s{2,}(?:e?s|holes?|hats?|wipes?|clowns?|face)?$/, /^(?:dumb|bad|jack|smart|fat|kick|lame|big|half|hard|wise|dick|stupid)a+s{2,}(?:e?s)?$/, /^p+e{2,}(?:s|d|ing|pee)?$/, /^(?:c+o+c+k+s?|d+i+c+k+(?:s|h+e+a+d+s?)?|c+u+m+(?:s|m+i+n+g+)?|s+e+x+(?:y+|u+a+l+)?|a+n+a+l+|a+n+u+s+|h+o+r+n+y+|s+e+m+e+n+|r+a+p+e+(?:s|d)?|r+a+p+i+s+t+s?|n+u+d+e+s?|n+a+k+e+d+|b+o+n+e+r+s?|e+r+e+c+t+i+o+n+s?|t+h+o+t+s?|f+a+p+|h+o+e+s?|c+l+i+t+s?)$/];
 function pcmtCensorName(name) {
   name = String(name == null ? '' : name);
   var letters = '', at = [], spaced = '', hit = {};
