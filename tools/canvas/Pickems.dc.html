@@ -29,6 +29,13 @@ button,input{font:inherit}
 .pk-swipe{display:none}
 @media (max-width: 1300px){.pk-swipe{display:block}}
 input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !important;box-shadow:0 0 0 3px rgba(165,220,221,.3)}
+.lb-gold{position:relative;box-shadow:0 0 28px rgba(245,215,110,.22),inset 0 0 0 1px rgba(245,215,110,.55)}
+.lb-gold td{background:linear-gradient(180deg,rgba(245,215,110,.12),rgba(245,215,110,.04));padding-top:22px !important;padding-bottom:22px !important;font-size:17px;border-bottom-color:rgba(245,215,110,.45) !important}
+.lb-gold td:first-child{font-size:34px !important;color:#f5d76e !important;text-shadow:0 0 12px rgba(245,215,110,.7)}
+.lb-gold td:nth-child(2){color:#f5d76e}
+@keyframes lb-aura{0%,100%{box-shadow:0 0 22px rgba(245,215,110,.18),inset 0 0 0 1px rgba(245,215,110,.5)}50%{box-shadow:0 0 34px rgba(245,215,110,.32),inset 0 0 0 1px rgba(245,215,110,.7)}}
+.lb-gold{animation:lb-aura 3.2s ease-in-out infinite}
+@media (prefers-reduced-motion: reduce){.lb-gold{animation:none}}
 </style>
 </helmet>
 <div data-pcmt-root="Pickems" style="position: relative; min-height: 100vh; background: #0d1416; color: #eaf4f4; font-family: 'Space Grotesk', system-ui, sans-serif">
@@ -143,45 +150,50 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </div>
 </section>
 
-<div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
-<section aria-labelledby="you-h" style="flex: 1 1 280px; border: 1px solid #2a3a3e; border-radius: 12px; background: #172124; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px">
-<h2 id="you-h" style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">[ YOUR PICKS ]</h2>
-<div style="display: flex; gap: 24px">
-<div style="display: flex; flex-direction: column; gap: 2px"><span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 40px; line-height: 1">{{you.points}}</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">Points</span></div>
-<div style="display: flex; flex-direction: column; gap: 2px"><span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 40px; line-height: 1; color: #a5dcdd">{{you.credits}}</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">Credits won</span></div>
-</div>
-<span style="font-size: 14px; color: #c4d4d4">{{you.line}}</span>
-<sc-if value="{{you.loginNeeded}}" hint-placeholder-val="{{ false }}"><a href="Login.dc.html" style="align-self: flex-start; min-height: 44px; display: inline-flex; align-items: center; padding: 0 16px; border-radius: 8px; background: #4752C4; color: #fff; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; text-decoration: none">Log in to pick</a></sc-if>
-</section>
-
-<section aria-labelledby="st-h" style="flex: 2 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 12px">
+<section aria-labelledby="st-h" style="width: 100%; max-width: 760px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px">
 <h2 id="st-h" style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">[ STANDINGS ]</h2>
-<div style="border: 1px solid #2a3a3e; border-radius: 12px; background: #172124; overflow: hidden">
-<table style="width: 100%; border-collapse: collapse; font-size: 14px">
+<div style="display: flex; flex-direction: column; gap: 4px; flex: 0 1 300px">
+<label for="pk-search" style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; text-transform: uppercase; letter-spacing: 0.06em">Find a manager</label>
+<input id="pk-search" type="search" value="{{search}}" onChange="{{setSearch}}" autocomplete="off" placeholder="Name" style="height: 44px; box-sizing: border-box; padding: 0 14px; border-radius: 8px; border: 1px solid #3a4f53; background: #172124; color: #eaf4f4; font-size: 15px">
+</div>
+</div>
+
+<div style="overflow-x: auto; border: 1px solid #2a3a3e; border-radius: 12px; background: #172124">
+<table style="width: 100%; border-collapse: collapse; font-size: 15px">
 <thead>
 <tr style="text-align: left; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.06em; text-transform: uppercase">
-<th scope="col" style="padding: 12px 14px; border-bottom: 1px solid #2a3a3e; width: 40px">#</th>
-<th scope="col" style="padding: 12px 14px; border-bottom: 1px solid #2a3a3e">Manager</th>
-<th scope="col" style="padding: 12px 14px; border-bottom: 1px solid #2a3a3e; text-align: right">Pts</th>
+<th scope="col" style="padding: 14px 18px; border-bottom: 1px solid #2a3a3e; width: 56px">#</th>
+<th scope="col" style="padding: 14px 18px; border-bottom: 1px solid #2a3a3e">Manager</th>
+<th scope="col" style="padding: 14px 18px; border-bottom: 1px solid #2a3a3e; text-align: right">Picked</th>
+<th scope="col" aria-sort="descending" style="padding: 14px 18px; border-bottom: 1px solid #2a3a3e; text-align: right; color: #a5dcdd">Points</th>
 </tr>
 </thead>
 <tbody>
-<sc-for list="{{standings}}" as="r" hint-placeholder-count="5">
-<tr style="background: {{r.bg}}">
-<td style="padding: 12px 14px; border-bottom: 1px solid #2a3a3e; font-family: 'JetBrains Mono', monospace; color: {{r.rankColor}}; font-weight: 700">{{r.rank}}</td>
-<td style="padding: 12px 14px; border-bottom: 1px solid #2a3a3e; font-weight: 600; color: {{r.nameColor}}; overflow-wrap: anywhere">{{r.name}}</td>
-<td style="padding: 12px 14px; border-bottom: 1px solid #2a3a3e; text-align: right; font-family: 'JetBrains Mono', monospace; font-weight: 600">{{r.points}}</td>
+<sc-for list="{{standings}}" as="r" hint-placeholder-count="6">
+<tr class="{{r.cls}}" style="background: {{r.bg}}">
+<td style="padding: 16px 18px; border-bottom: 1px solid #2a3a3e; font-family: {{r.rankFont}}; font-weight: 700; font-size: {{r.rankSize}}; color: {{r.rankColor}}; text-shadow: {{r.rankShadow}}">{{r.rank}}</td>
+<td style="padding: 16px 18px; border-bottom: 1px solid #2a3a3e; font-weight: 600; color: {{r.nameColor}}; overflow-wrap: anywhere">{{r.name}}</td>
+<td style="padding: 16px 18px; border-bottom: 1px solid #2a3a3e; text-align: right; font-family: 'JetBrains Mono', monospace; color: #93a9aa">{{r.picked}}</td>
+<td style="padding: 16px 18px; border-bottom: 1px solid #2a3a3e; text-align: right; font-family: 'JetBrains Mono', monospace; font-weight: 600">{{r.points}}</td>
 </tr>
 </sc-for>
-<sc-if value="{{noStandings}}" hint-placeholder-val="{{ false }}">
-<tr><td colspan="3" style="padding: 24px 14px; text-align: center; color: #93a9aa">Standings appear once a picked series is finished.</td></tr>
+<sc-if value="{{noRows}}" hint-placeholder-val="{{ false }}">
+<tr><td colspan="4" style="padding: 28px 18px; border-bottom: 1px solid #2a3a3e; text-align: center; color: #93a9aa">{{emptyText}}</td></tr>
+</sc-if>
+<sc-if value="{{hasMe}}" hint-placeholder-val="{{ false }}">
+<tr style="background: #13292b">
+<td style="padding: 16px 18px; font-family: 'JetBrains Mono', monospace; color: #a5dcdd; font-weight: 600">{{me.rank}}</td>
+<td style="padding: 16px 18px; font-weight: 700; color: #a5dcdd">You</td>
+<td style="padding: 16px 18px; text-align: right; font-family: 'JetBrains Mono', monospace; color: #93a9aa">{{me.picked}}</td>
+<td style="padding: 16px 18px; text-align: right; font-family: 'JetBrains Mono', monospace; font-weight: 600">{{me.points}}</td>
+</tr>
 </sc-if>
 </tbody>
 </table>
 </div>
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">Results come from PCMT.gg. Points and Credits are added within a few hours of each series.</span>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">Standings update after each series is scored. Results come from PCMT.gg.</span>
 </section>
-</div>
 
 </div>
 </sc-if>
@@ -428,17 +440,29 @@ class Component extends DCLogic {
         return { seed: g + i, code: code, full: t.name || code, logo: t.logo || '', logoPad: t.small ? '3px' : '0', seedColor: g === 'A' ? '#ef8f8f' : '#8be4b7' };
       }) };
     });
-    var rows = ((W.PCMT_PICKEM_STANDINGS || {})[b.id] || []).slice().sort(function (x, y) { return y.points - x.points || String(x.name).localeCompare(String(y.name)); });
+    // Standings, styled like the Leaderboard: gold #1, silver and bronze ranks, your row pinned when a search hides it.
+    var data = ((W.PCMT_PICKEM_STANDINGS || {})[b.id] || []).slice().sort(function (x, y) { return y.points - x.points || String(x.name).localeCompare(String(y.name)); });
     var rank = 0, prev = null;
-    var standings = rows.map(function (r, i) {
+    var ranked = data.map(function (r, i) {
       if (prev === null || r.points !== prev) { rank = i + 1; prev = r.points; }
-      return { rank: rank, name: r.name, points: r.points, bg: r.me ? '#13292b' : 'transparent', nameColor: r.me ? '#a5dcdd' : '#eaf4f4', rankColor: rank === 1 ? '#f5d76e' : '#93a9aa' };
+      return { m: r, rank: rank };
     });
-    var signedIn = !!(W.PCMT_LEAGUE ? W.PCMT_LEAGUE.signedIn : true);
-    var line = !signedIn ? 'Log in with Discord to save your picks.'
-      : totals.open === 0 ? 'Every series is locked.'
-      : totals.made === 0 ? 'No picks yet. ' + totals.open + ' series open to pick.'
-      : totals.made + ' pick' + (totals.made === 1 ? '' : 's') + ' made · ' + totals.correct + ' right so far.';
+    var q = String(this.state.search || '').trim().toLowerCase();
+    var shown = ranked.filter(function (x) { return !q || String(x.m.name || '').toLowerCase().indexOf(q) >= 0; });
+    var standings = shown.map(function (x) {
+      var r = x.rank, top = r <= 3;
+      return {
+        rank: r, name: x.m.name, points: x.m.points, picked: x.m.picked == null ? '—' : x.m.picked,
+        cls: r === 1 ? 'lb-gold' : '',
+        bg: x.m.me ? '#0f1d1e' : 'transparent',
+        nameColor: x.m.me ? '#a5dcdd' : '#eaf4f4',
+        rankFont: top ? "'Cabin Sketch', cursive" : "'JetBrains Mono', monospace",
+        rankSize: top ? '24px' : '15px',
+        rankColor: r === 1 ? '#a5dcdd' : r === 2 ? '#c9d1d6' : r === 3 ? '#d08a4f' : '#93a9aa',
+        rankShadow: r === 2 ? '0 0 8px rgba(201,209,214,.35)' : r === 3 ? '0 0 8px rgba(208,138,79,.35)' : 'none'
+      };
+    });
+    var mine = shown.some(function (x) { return x.m.me; }) ? null : ranked.find(function (x) { return x.m.me; });
     return {
       locked: locked, unlocked: !locked,
       staffNote: !ev.open && allowed,
@@ -449,8 +473,11 @@ class Component extends DCLogic {
       lines: PCMT_PICKEM_LINES.map(function (d) { return { d: d, color: '#3a4f53' }; }),
       groupRows: groupRows,
       boxes: boxes,
-      you: { points: String(totals.points), credits: String(totals.credits), line: line, loginNeeded: !signedIn },
-      standings: standings, noStandings: standings.length === 0
+      standings: standings, noRows: standings.length === 0,
+      emptyText: data.length === 0 ? 'Standings appear once a picked series is finished.' : 'No managers match that search.',
+      hasMe: !!mine, me: mine ? { rank: mine.rank, points: mine.m.points, picked: mine.m.picked == null ? '—' : mine.m.picked } : {},
+      search: this.state.search || '',
+      setSearch: function (e) { self.setState({ search: e && e.target ? e.target.value : '' }); }
     };
   }
 }
