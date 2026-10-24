@@ -166,4 +166,4 @@ Tables: `profiles`, `deck_history` (insert-only, server timestamps, 60/hour limi
 
 ## 14. Link previews (Oct 24 2026)
 
-- Every page shares (Discord, texts) as title **fantasy.pcmt.gg** with the description **"Pickems, Fantasy League and more. Built by Freshbatch"**: `description`, `og:*` and `twitter:*` tags written by `tools/build.py` into each built page, and the same tags by hand in mvp-vs.html. No share image yet.
+- Every page shares (Discord, texts) as title **fantasy.pcmt.gg** with the description **"Pickems, Fantasy League and more. Built by Freshbatch"**: `description`, `og:title`, `og:description`, `og:type` and `twitter:*` tags (no `og:site_name`, so Discord shows the name once) written by `tools/build.py` into each built page, and the same tags by hand in mvp-vs.html. No share image yet.

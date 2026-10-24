@@ -179,7 +179,6 @@ for board, outname in PAGES.items():
 <title>{title}</title>
 <meta name="description" content="Pickems, Fantasy League and more. Built by Freshbatch">
 <meta property="og:title" content="fantasy.pcmt.gg">
-<meta property="og:site_name" content="fantasy.pcmt.gg">
 <meta property="og:description" content="Pickems, Fantasy League and more. Built by Freshbatch">
 <meta property="og:type" content="website">
 <meta name="twitter:title" content="fantasy.pcmt.gg">
