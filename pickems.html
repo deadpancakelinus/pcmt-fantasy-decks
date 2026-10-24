@@ -120,7 +120,7 @@ function pcmtPickMap(picks) {
   Object.keys(picks || {}).sort(function (x, y) { return x - y; }).forEach(function (n) { if (picks[n] && picks[n].winner) out[n] = picks[n].winner; });
   return out;
 }
-// Drops picks for played series and picks whose team can't be in that series any more (after an earlier pick changed).
+// Drops picks whose team can't be in that series any more (after an earlier pick changed).
 function pcmtPrunePicks(b, picks) {
   var out = Object.assign({}, picks), changed = true;
   while (changed) {
@@ -128,7 +128,7 @@ function pcmtPrunePicks(b, picks) {
     var R = pcmtPickemResolve(b, out, 0);
     Object.keys(out).forEach(function (n) {
       var i = R[n];
-      if (!i || i.done || (out[n].winner !== i.ga && out[n].winner !== i.gb)) { delete out[n]; changed = true; }
+      if (!i || (!i.done && out[n].winner !== i.ga && out[n].winner !== i.gb)) { delete out[n]; changed = true; }   // picks on played series stay (shown green or red)
     });
   }
   return out;
@@ -235,7 +235,8 @@ class Component extends DCLogic {
 
   save() {
     var self = this, L = window.PCMT_LEAGUE, b = PCMT_PICKEMS_DATA[0];
-    var map = pcmtPickMap(this.state.picks);
+    var map = pcmtPickMap(this.state.picks), played = pcmtPickemResolve(b, {}, 0);
+    Object.keys(map).forEach(function (n) { if (played[n] && played[n].done) delete map[n]; });   // played series are never sent
     if (!L) { this.setState({ saved: JSON.stringify(map) }); return; }   // canvas preview
     if (!L.signedIn) { this.message('Log in with Discord to save your picks.'); return; }
     this.setState({ saving: true });
@@ -267,7 +268,8 @@ class Component extends DCLogic {
       if (!code) color = '#93a9aa';
       if (info.done) {
         if (!isWinner) { color = '#7f9597'; weight = 500; }
-        if (picked) bg = isWinner ? 'rgba(139,228,183,.22)' : 'rgba(239,143,143,.2)';
+        // Your pick once the series is played: green when right, red when wrong.
+        if (picked) { bg = isWinner ? '#8be4b7' : '#ef8f8f'; color = '#000'; weight = 700; }
       } else if (picked) { bg = '#a5dcdd'; color = '#000'; weight = 700; }
       var name = t ? t.name : code;
       var state = !code ? '' : info.done ? (isWinner ? ', won' : ', lost') + (picked ? ', your pick' : '') : picked ? ', your pick' : '';
