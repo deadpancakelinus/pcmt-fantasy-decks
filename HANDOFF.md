@@ -27,7 +27,7 @@ Start here. It covers what exists, how changes are made and shipped, and what's 
 | (removed) | transactions.html | Redirects to store.html#credits. Paychecks and spending now live at the bottom of the Store. |
 | Store.dc.html | store.html | **Store**: The Bank, NA and EMEA card packs (buy with VP, then the pack opening plays with the cards you pulled), and the variants found in packs (The Role of Yoru: Rare, NA). Everyone except admins sees an empty page with only the card animation and "Coming Soon..." (nothing of the page is drawn). |
 | Library.dc.html | library.html | **Library** (right after Store): every card the player owns from packs, MVP VS-size with their MVP VS stats (from trumps-cards.js), one row per rarity (Rare, Common, ...), rarest first; each row is a fanned stack with faces showing, and hovering or tapping a card lifts it out (phones: one stack per row you swipe sideways); ×count on each card; All / NA / EMEA / Rare filters. Everyone except admins sees an empty page with only the card animation and "Coming Soon..." (nothing of the page is drawn). |
-| Pickems.dc.html | pickems.html | **Pick'ems** (EMEA S2 playoffs bracket), right after Home in the menu and the first Home tile. Closed to the public again (Oct 24 2026): players see "Coming soon", staff and admins see the page. See section 12. |
+| Pickems.dc.html | pickems.html | **Pick'ems** (EMEA S2 playoffs bracket), right after Home in the menu and the first Home tile. Open to the public (Oct 24 2026). See section 12. |
 | (hand-written) | admin.html | Old admin page: now just sends people to backend.html (4Ks and 5Ks and card pack prices moved there). |
 | (hand-written) | mvp-vs.html | **MVP VS** card game (see section 9). Its board MvpVs.dc.html is only the old "Coming soon" design and is not built. |
 
@@ -143,7 +143,7 @@ Tables: `profiles`, `deck_history` (insert-only, server timestamps, 60/hour limi
 - MVP VS subs (cards with no team logo) show the NA or EMEA logo of the region they sub for.
 - Header: the Discord button sits top right on every page (same spot at every width); the page links have their own row underneath.
 
-## 12. Pick'ems (pickems.html, added Oct 23 2026, closed to the public)
+## 12. Pick'ems (pickems.html, added Oct 23 2026, open to the public)
 
 - Bracket: EMEA S2 playoffs, double elimination, 14 series (upper R1 1-2, semis 3-4, upper final 5; lower R1 6-7, R2 8-9, R3 10-11, semi 12, lower final 13; grand final 14, Bo5; the rest Bo3). Seeds from the PCMT.gg group tables: Group Alpha NIP, XTC, ATLC, FaZe, HOT; Group Omega SOG, NATS, NOOT, LARP, SEAL. NA S3 has no pick'ems.
 - Data: `pickems.js` (strict JSON like data.js; hand-written, never overwritten by a build). Each series has `a`/`b` (a seed like `A2`, or `W1` / `L1` = winner / loser of series 1), `bo`, `start` (when picks lock; null = not announced), `score` ([a maps, b maps] once finished) and `url`. Keep it up to date from PCMT.gg: add each series' `start` and `url` as soon as it is listed, and its `score` when it ends. The match check does this too.
@@ -154,7 +154,7 @@ Tables: `profiles`, `deck_history` (insert-only, server timestamps, 60/hour limi
 - Under the bracket: the Save picks row, then Standings (no heading, just the manager search), as wide as the bracket, styled like the Leaderboard's rankings (gold #1, your row pinned). Columns: Picked (picks made) and Points.
 - Scoring: 1 point and 20 Credits for the right winner (`credits_win` in `pickem_events`; `credits_exact` is 0). Paid into `vp_ledger` as kind `pickem` (shown in the Store's "Paychecks and spending" panel), once per pick, never taken back.
 - Server: `setup/pickems-setup.sql` (after vp-setup.sql). `pickem_sync()` runs every hour at minute 37, fetches the live pickems.js into `pickem_state` and pays. `save_pick()` is the only way to write a pick (checks the lock, the teams, the score, and that the bracket is open or you are staff/admin). Players read only their own picks; standings come from `pickem_standings()`.
-- Closed to the public (`open = false` in `pickem_events`): players see "Coming soon" and can't save picks; Freshbatch staff and site admins see and use it. Open it with `update public.pickem_events set open = true where id = 'emea-s2';` (and `open = false` to close it again).
+- Open to the public (`open = true` in `pickem_events`, Oct 24 2026). `update public.pickem_events set open = false where id = 'emea-s2';` closes it again (players then see "Coming soon"; staff and admins still see and use it).
 - Test: `node tools/pickems-test.js "psql -h /tmp/pg -p 5499 -U postgres"`.
 
 ## 13. Staff-only pages (Oct 24 2026)
