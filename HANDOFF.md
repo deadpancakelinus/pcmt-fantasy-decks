@@ -157,12 +157,14 @@ Tables: `profiles`, `deck_history` (insert-only, server timestamps, 60/hour limi
 - Open to the public (`open = true` in `pickem_events`, Oct 24 2026). `update public.pickem_events set open = false where id = 'emea-s2';` closes it again (players then see "Coming soon"; staff and admins still see and use it).
 - Test: `node tools/pickems-test.js "psql -h /tmp/pg -p 5499 -U postgres"`.
 
-## 13. Staff-only pages (Oct 24 2026)
+## 13. Pages waiting for launch (Oct 24 2026)
 
-- **MVP VS, Store and Library are hidden from the public**, for the site going live. Links to them (menu and Home tiles, any page) are hidden for everyone until the page knows you are a site admin (`pcmt_admins`) or Freshbatch staff (`freshbatch_staff`); anyone else who opens store.html, library.html, mvp-vs.html, transactions.html or collection.html is sent to home.html. Staff and admins see and use everything as before.
-- Where: the top of `tools/league.js` (`STAFF_PAGES`, `staffPagesDecide()`, run after the league loads) and a small script in the `<head>` of `mvp-vs.html` (it doesn't load league.js; a staff member whose sign-in has expired is sent to Home, which refreshes it, then MVP VS opens from the menu).
-- Card packs: `open_to_all` was set to false on all five packs, so only staff and admins can buy them (the server checks this in `buy_pack`).
-- To open them again: remove the staff-only block from league.js and mvp-vs.html, and turn packs back on in backend.html (Card packs tab) or `update public.card_packs set open_to_all = true;`.
+- **MVP VS, Store and Library wait for launch on backend.html (Pages tab, the first tab).** Each has an Open link (staff can open it) and a Launch button (press twice). Launching makes the page live for everyone: it shows in the menu and the Home tiles and leaves the list. Launching the Store also opens every card pack to everyone.
+- Until a page is launched, links to it are hidden for everyone, staff included (staff use the backend's Open link), and anyone but staff and site admins who opens it is sent to home.html (transactions.html and collection.html count as the Store).
+- Server: `setup/pages-setup.sql`: the `site_pages` table (everyone reads it) and `fb_launch_page(page)` (staff only). Test: `node tools/pages-test.js "psql -h /tmp/pg -p 5499 -U postgres"`.
+- Site: `LAUNCH_PAGES` / `launchDecide()` at the top of tools/league.js, and the same check in the `<head>` of mvp-vs.html (it doesn't load league.js). A link with `data-pcmt-keep` is never hidden (the backend's Open links).
+- To hide a launched page again: `update public.site_pages set launched = false, launched_at = null, launched_by = null where id = '<page>';` (for the Store, also close packs in the Card packs tab if needed).
+- New pages can be added to the list: insert a `site_pages` row and add the page to `LAUNCH_PAGES` (league.js and mvp-vs.html).
 
 ## 14. Link previews (Oct 24 2026)
 

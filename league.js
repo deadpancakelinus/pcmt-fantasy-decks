@@ -7,21 +7,43 @@
   var SB_URL = 'https://wwrsavqipkxvdsxcemos.supabase.co';
   var SB_KEY = 'sb_publishable_e8v-uyAo4fnvwJCHUVA5FQ_LXR6yYM7';
 
-  // ---------- staff-only pages (Oct 24 2026) ----------
-  // MVP VS, Store and Library are hidden from the public: links to them are hidden for everyone until this page knows
-  // you are a site admin or Freshbatch staff, and anyone else who opens one is sent to Home. (mvp-vs.html has its own copy.)
-  var STAFF_PAGES = /(^|\/)(store|library|mvp-vs|transactions|collection)(\.html)?$/;
+  // ---------- pages waiting for launch (Oct 24 2026) ----------
+  // MVP VS, Store and Library stay hidden until staff press Launch on backend.html (Pages tab), which marks them
+  // launched in the site_pages table. Until then links to them are hidden for everyone (staff open them from the
+  // backend), and anyone but staff and site admins who opens one is sent to Home. (mvp-vs.html has its own copy.)
+  var LAUNCH_PAGES = { 'mvp-vs': ['mvp-vs'], store: ['store', 'transactions', 'collection'], library: ['library'] };
+  function launchId(path) {
+    var f = String(path || '').split('/').pop().replace(/\.html$/, '');
+    for (var id in LAUNCH_PAGES) if (LAUNCH_PAGES[id].indexOf(f) >= 0) return id;
+    return null;
+  }
   (function () {
+    var rules = [], d = document.documentElement;
+    Object.keys(LAUNCH_PAGES).forEach(function (id) {
+      LAUNCH_PAGES[id].forEach(function (f) { rules.push('html.pcmt-hide-' + id + ' a[href^="' + f + '.html"]:not([data-pcmt-keep])'); });
+      d.classList.add('pcmt-hide-' + id);
+    });
     var css = document.createElement('style');
-    css.textContent = 'html.pcmt-public a[href^="store.html"],html.pcmt-public a[href^="library.html"],html.pcmt-public a[href^="mvp-vs.html"],' +
-      'html.pcmt-public a[href^="transactions.html"],html.pcmt-public a[href^="collection.html"]{display:none!important}html.pcmt-gate body{visibility:hidden}';
-    (document.head || document.documentElement).appendChild(css);
-    document.documentElement.classList.add('pcmt-public');
-    if (STAFF_PAGES.test(location.pathname)) document.documentElement.classList.add('pcmt-gate');
+    css.textContent = rules.join(',') + '{display:none!important}html.pcmt-gate body{visibility:hidden}';
+    (document.head || d).appendChild(css);
+    if (launchId(location.pathname)) d.classList.add('pcmt-gate');
   })();
-  function staffPagesDecide() {
-    if (window.PCMT_IS_ADMIN || window.PCMT_IS_STAFF) { document.documentElement.classList.remove('pcmt-public', 'pcmt-gate'); return; }
-    if (STAFF_PAGES.test(location.pathname)) location.replace('home.html');
+  var pagesReq = null;   // the launch list, read once per page
+  function launchList() {
+    if (!pagesReq) pagesReq = fetch(SB_URL + '/rest/v1/site_pages?select=id,launched', { headers: { apikey: SB_KEY } })
+      .then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
+    return pagesReq;
+  }
+  function launchDecide() {
+    return launchList().then(function (rows) {
+      var d = document.documentElement, live = {};
+      (rows || []).forEach(function (r) { if (r.launched) live[r.id] = true; });   // can't read it: everything stays hidden
+      window.PCMT_LAUNCHED = live;
+      Object.keys(LAUNCH_PAGES).forEach(function (id) { if (live[id]) d.classList.remove('pcmt-hide-' + id); });
+      var here = launchId(location.pathname);
+      if (!here || live[here] || window.PCMT_IS_ADMIN || window.PCMT_IS_STAFF) d.classList.remove('pcmt-gate');
+      else location.replace('home.html');
+    });
   }
   // Deck names: words that aren't allowed. Returns { bad, text } where text has each blocked word replaced by *.
   // Look-alike characters count (0=o, 1=i, 3=e, 4=a, 5=s, $=s, @=a ...), and spacing or dots between letters doesn't hide a word.
@@ -474,6 +496,7 @@
 
   // ---------- load everything, then let the page draw ----------
   function load() {
+    launchList();
     takeRedirectTokens();
     session = readSession();
     var now = Date.now();
@@ -596,7 +619,7 @@
         if (last) { window.PCMT_MY_REMOTE_DECK = { slots: last.slots, igl: last.igl, name: pcmtCensorName(last.name).bad ? '' : last.name, uid: me.id }; lastSubmitted = JSON.stringify({ slots: last.slots || {}, igl: last.igl || null, name: last.name || '' }); }
       }
       if (window.PCMT_LOGIN_ERROR) setTimeout(function () { toast('Discord sign-in didn\'t finish: ' + window.PCMT_LOGIN_ERROR); }, 600);
-    }).catch(function (e) { console.warn('league load failed', e); }).then(staffPagesDecide);
+    }).catch(function (e) { console.warn('league load failed', e); }).then(launchDecide);
   }
   window.PCMT_LEAGUE_READY = load();
 })();

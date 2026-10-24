@@ -100,6 +100,10 @@
   .stats { display: flex; flex-wrap: wrap; gap: 10px; }
   .stat { display: flex; align-items: baseline; gap: 8px; padding: 12px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
   .stat b { font: 700 28px/1 'Cabin Sketch', cursive; color: var(--accent); }
+  .pg-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+  .pg-item { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; padding: 18px 20px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
+  .pg-item h3 { margin: 0; font: 700 26px/1 'Cabin Sketch', cursive; color: var(--ink); }
+  .pg-item .btn.armed { background: #f5d76e; border-color: #f5d76e; }
   .stat span { font: 400 12px/1 'JetBrains Mono', monospace; color: var(--dim); letter-spacing: .08em; text-transform: uppercase; }
   .count { font-weight: 400; color: var(--dim); }
   .rc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); gap: 16px; }
@@ -173,7 +177,7 @@
 <main>
   <div>
     <h1>Backend</h1>
-    <p class="sub">For Freshbatch staff only. Player prices, every card and who owns it, the Rare cards waiting to be released, card pack prices, the 4Ks and 5Ks for each series, and the comments and complaints sent from the Home page.</p>
+    <p class="sub">For Freshbatch staff only. Pages waiting for launch, player prices, every card and who owns it, the Rare cards waiting to be released, card pack prices, the 4Ks and 5Ks for each series, and the comments and complaints sent from the Home page.</p>
   </div>
 
   <section class="panel" id="st-loading" role="status"><p class="msg">Locked. Enter the page password to continue.</p></section>
@@ -187,7 +191,8 @@
 
   <div id="st-staff" hidden>
     <div class="tabs" role="tablist" aria-label="Backend sheets">
-      <button type="button" role="tab" id="tab-prices" aria-controls="pane-prices" aria-selected="true">Player prices</button>
+      <button type="button" role="tab" id="tab-pages" aria-controls="pane-pages" aria-selected="true">Pages <span class="count" id="pg-badge"></span></button>
+      <button type="button" role="tab" id="tab-prices" aria-controls="pane-prices" aria-selected="false" tabindex="-1">Player prices</button>
       <button type="button" role="tab" id="tab-cards" aria-controls="pane-cards" aria-selected="false" tabindex="-1">Cards</button>
       <button type="button" role="tab" id="tab-rares" aria-controls="pane-rares" aria-selected="false" tabindex="-1">Rare cards</button>
       <button type="button" role="tab" id="tab-packs" aria-controls="pane-packs" aria-selected="false" tabindex="-1">Card packs</button>
@@ -195,8 +200,15 @@
       <button type="button" role="tab" id="tab-complaints" aria-controls="pane-complaints" aria-selected="false" tabindex="-1">Complaints <span class="count" id="cx-badge"></span></button>
     </div>
 
+    <!-- ===== Pages waiting for launch ===== -->
+    <section class="pane" role="tabpanel" id="pane-pages" aria-labelledby="tab-pages">
+      <p class="note">Pages that aren't public yet. Players can't see them or open them; you can, with Open. Press Launch (then press again to make sure) to make a page live for everyone: it goes into the menu and the Home tiles and leaves this list. Launching the Store also opens every card pack to everyone.</p>
+      <ul class="pg-list" id="pg-list"></ul>
+      <p class="msg" id="pg-msg" role="status" aria-live="polite"></p>
+    </section>
+
     <!-- ===== Player prices ===== -->
-    <section class="pane" role="tabpanel" id="pane-prices" aria-labelledby="tab-prices">
+    <section class="pane" role="tabpanel" id="pane-prices" aria-labelledby="tab-prices" hidden>
       <p class="note">Change a price and press Save. The site uses the new price the next time a page loads: The Deck's prices and budget, and the cards in packs. Decks already saved keep counting with the prices from when they were saved, so a price rise never breaks someone's deck; it only applies to new changes. Prices go from 0 to 30 in steps of 0.5.</p>
       <div class="toolbar">
         <label class="field"><span class="kicker">Search</span><input type="search" id="p-search" placeholder="Player or team" autocomplete="off"></label>
@@ -359,7 +371,7 @@
   })();
 
   // ---------- tabs ----------
-  var TABS = ['prices', 'cards', 'rares', 'packs', 'multi', 'complaints'];
+  var TABS = ['pages', 'prices', 'cards', 'rares', 'packs', 'multi', 'complaints'];
   function openTab(name, focus) {
     TABS.forEach(function (t) {
       var on = t === name, tab = $('tab-' + t);
@@ -662,6 +674,43 @@
 
   // ---------- Complaints (from the Home page) ----------
   var CX = [], cxErr = '';
+  // ---------- pages waiting for launch ----------
+  var PAGES = [], pgErr = '', pgArmed = null, pgBusy = false;
+  function loadPages() {
+    return L.api('/rest/v1/site_pages?select=id,name,path,sort,launched&order=sort')
+      .then(function (r) { PAGES = r || []; pgErr = ''; })
+      .catch(function (e) { PAGES = []; pgErr = 'Couldn\'t load the list (' + e.message + '). Has setup/pages-setup.sql been run?'; });
+  }
+  function drawPages() {
+    var waiting = PAGES.filter(function (p) { return !p.launched; });
+    $('pg-badge').textContent = waiting.length ? '(' + waiting.length + ')' : '';
+    $('pg-list').innerHTML = waiting.map(function (p) {
+      var armed = pgArmed === p.id;
+      return '<li class="pg-item"><h3>' + esc(p.name) + '</h3><span class="spacer"></span>' +
+        '<a class="btn ghost" data-pcmt-keep href="' + esc(p.path) + '" target="_blank" rel="noopener">Open</a>' +
+        '<button class="btn' + (armed ? ' armed' : '') + '" type="button" data-launch="' + esc(p.id) + '"' + (pgBusy ? ' disabled' : '') + '>' +
+        (armed ? 'Press again to launch' : 'Launch') + '</button></li>';
+    }).join('');
+    $('pg-msg').className = 'msg' + (pgErr ? ' err' : '');
+    if (pgErr || !waiting.length) $('pg-msg').textContent = pgErr || 'Every page is live.';
+  }
+  $('pg-list').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-launch]');
+    if (!b || pgBusy) return;
+    var id = b.getAttribute('data-launch'), page = PAGES.filter(function (p) { return p.id === id; })[0];
+    if (pgArmed !== id) { pgArmed = id; $('pg-msg').className = 'msg'; $('pg-msg').textContent = 'Press again to launch ' + page.name + ' for everyone.'; return drawPages(); }
+    pgBusy = true; drawPages();
+    L.api('/rest/v1/rpc/fb_launch_page', { method: 'POST', body: { p_page: id } }).then(function (msg) {
+      page.launched = true; pgArmed = null; pgBusy = false;
+      $('pg-msg').className = 'msg ok'; $('pg-msg').textContent = String(msg || page.name + ' is live for everyone.');
+      drawPages();
+      if (PAGES.every(function (p) { return p.launched; })) { $('pg-msg').textContent += ' Every page is live.'; }
+    }, function (err) {
+      pgArmed = null; pgBusy = false; drawPages();
+      $('pg-msg').className = 'msg err'; $('pg-msg').textContent = err && err.message ? err.message : 'That didn\'t work. Try again.';
+    });
+  });
+
   function loadComplaints() {
     return L.apiAll('/rest/v1/complaints?select=id,body,words,user_id,created_at&order=created_at.desc,id.desc')
       .then(function (r) { CX = r || []; cxErr = ''; })
@@ -774,12 +823,12 @@
       if (ok !== true) return show('st-nostaff');
       return Promise.all([
         L.apiAll('/rest/v1/profiles?select=id,name&order=id').then(function (r) { (r || []).forEach(function (p) { NAMES[p.id] = p.name; }); }).catch(function () {}),
-        loadPrices(), loadCards(), loadComplaints()
+        loadPrices(), loadCards(), loadComplaints(), loadPages()
       ]).then(function () {
         show('st-staff');
         var h = (location.hash || '').slice(1);
-        openTab(TABS.indexOf(h) >= 0 ? h : 'prices');
-        drawPrices(); drawCards(); drawRares(); drawPacks(); setupMulti(); drawComplaints();
+        openTab(TABS.indexOf(h) >= 0 ? h : 'pages');
+        drawPages(); drawPrices(); drawCards(); drawRares(); drawPacks(); setupMulti(); drawComplaints();
       });
     }).catch(function (e) { show('st-staff'); $('p-msg').textContent = 'Something went wrong loading the backend: ' + e.message; $('p-msg').className = 'msg err'; });
   }

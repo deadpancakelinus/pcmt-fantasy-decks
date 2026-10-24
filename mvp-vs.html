@@ -222,27 +222,37 @@
   }
 </style>
 <script>
-// Staff-only page (Oct 24 2026): only site admins and Freshbatch staff can see MVP VS; everyone else goes to Home.
+// Pages waiting for launch (Oct 24 2026): same rules as league.js. Links to pages staff haven't launched yet are hidden;
+// until MVP VS is launched (backend.html, Pages tab) only site admins and Freshbatch staff can open it, everyone else goes to Home.
 (function () {
   var d = document.documentElement, css = document.createElement('style');
-  css.textContent = 'html.pcmt-public a[href^="store.html"],html.pcmt-public a[href^="library.html"],html.pcmt-public a[href^="mvp-vs.html"]{display:none!important}html.pcmt-gate body{visibility:hidden}';
+  var PAGES = { 'mvp-vs': ['mvp-vs'], store: ['store', 'transactions', 'collection'], library: ['library'] }, rules = [];
+  Object.keys(PAGES).forEach(function (id) { PAGES[id].forEach(function (f) { rules.push('html.pcmt-hide-' + id + ' a[href^="' + f + '.html"]:not([data-pcmt-keep])'); }); d.classList.add('pcmt-hide-' + id); });
+  css.textContent = rules.join(',') + '{display:none!important}html.pcmt-gate body{visibility:hidden}';
   document.head.appendChild(css);
-  d.classList.add('pcmt-public', 'pcmt-gate');
+  d.classList.add('pcmt-gate');
   var URL0 = 'https://wwrsavqipkxvdsxcemos.supabase.co', KEY = 'sb_publishable_e8v-uyAo4fnvwJCHUVA5FQ_LXR6yYM7';
   function home() { location.replace('home.html'); }
-  var s = null;
-  try { s = JSON.parse(localStorage.getItem('pcmt-auth') || 'null'); } catch (e) {}
-  if (!s || !s.access_token || !(s.expires_at > Date.now() + 5000)) return home();
-  var h = { apikey: KEY, Authorization: 'Bearer ' + s.access_token, 'Content-Type': 'application/json' };
-  fetch(URL0 + '/auth/v1/user', { headers: h }).then(function (r) { return r.ok ? r.json() : null; }).then(function (u) {
-    if (!u || !u.id) return home();
-    return Promise.all([
-      fetch(URL0 + '/rest/v1/pcmt_admins?select=user_id&user_id=eq.' + u.id, { headers: h }).then(function (r) { return r.ok ? r.json() : []; }),
-      fetch(URL0 + '/rest/v1/rpc/is_freshbatch', { method: 'POST', headers: h, body: '{}' }).then(function (r) { return r.ok ? r.json() : false; })
-    ]).then(function (x) {
-      if ((x[0] && x[0].length) || x[1] === true) d.classList.remove('pcmt-public', 'pcmt-gate'); else home();
-    });
-  }).catch(home);
+  function open() { d.classList.remove('pcmt-gate'); }
+  function staffCheck() {
+    var s = null;
+    try { s = JSON.parse(localStorage.getItem('pcmt-auth') || 'null'); } catch (e) {}
+    if (!s || !s.access_token || !(s.expires_at > Date.now() + 5000)) return home();
+    var h = { apikey: KEY, Authorization: 'Bearer ' + s.access_token, 'Content-Type': 'application/json' };
+    fetch(URL0 + '/auth/v1/user', { headers: h }).then(function (r) { return r.ok ? r.json() : null; }).then(function (u) {
+      if (!u || !u.id) return home();
+      return Promise.all([
+        fetch(URL0 + '/rest/v1/pcmt_admins?select=user_id&user_id=eq.' + u.id, { headers: h }).then(function (r) { return r.ok ? r.json() : []; }),
+        fetch(URL0 + '/rest/v1/rpc/is_freshbatch', { method: 'POST', headers: h, body: '{}' }).then(function (r) { return r.ok ? r.json() : false; })
+      ]).then(function (x) { if ((x[0] && x[0].length) || x[1] === true) open(); else home(); });
+    }).catch(home);
+  }
+  fetch(URL0 + '/rest/v1/site_pages?select=id,launched', { headers: { apikey: KEY } }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }).then(function (rows) {
+    var live = {};
+    (rows || []).forEach(function (r) { if (r.launched) live[r.id] = true; });
+    Object.keys(PAGES).forEach(function (id) { if (live[id]) d.classList.remove('pcmt-hide-' + id); });
+    if (live['mvp-vs']) open(); else staffCheck();
+  });
 })();
 </script>
 </head>
