@@ -167,3 +167,11 @@ Tables: `profiles`, `deck_history` (insert-only, server timestamps, 60/hour limi
 ## 14. Link previews (Oct 24 2026)
 
 - Every page shares (Discord, texts) as title **fantasy.pcmt.gg** with the description **"Pickems, Fantasy League and more. Built by Freshbatch"**: `description`, `og:title`, `og:description`, `og:type` and `twitter:*` tags (no `og:site_name`, so Discord shows the name once) written by `tools/build.py` into each built page, and the same tags by hand in mvp-vs.html. No share image yet.
+
+## 15. Launch check (Oct 24 2026)
+
+- **Lists are read in pages.** The Supabase API returns at most 1,000 rows per request. `apiAll()` in tools/league.js (also `PCMT_LEAGUE.apiAll`, used by backend.html) reads a list 1,000 rows at a time until a page comes back empty, so saved decks, names, 4Ks/5Ks, price changes, Credits lines, cards and complaints are never cut off. Every list it reads has an `order=` so pages don't overlap. Tested with 1,500 managers and 4,500 saved decks: everyone loads, about 3 s.
+- **Only pages that score decks load them.** The Deck, The Deck Leaderboard, Customization and the Store load every saved deck, name, 4K/5K and Credits line; Home, Pick'ems, Library, the Guide and Login skip them (`needDecks` in league.js).
+- Checked: all test suites pass (vp, backend, cards, pickems, MVP VS on an ungated copy, smoke test); both hourly jobs run with no failures; no secrets in the repo; data files are strict JSON; Supabase security advisories are only expected items (functions check the caller themselves).
+- trumps/test.js now meets the staff-only gate on mvp-vs.html: run it against a copy with the gate script removed.
+- Watch as it grows: Supabase free plan data allowance (each visit to the four scoring pages downloads every saved deck). If it gets close, move the scoring to a database function that returns only each manager's counted decks.

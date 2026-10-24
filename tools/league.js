@@ -231,6 +231,19 @@
     if (session && session.access_token) h.Authorization = 'Bearer ' + session.access_token;
     return Object.assign(h, extra || {});
   }
+  // Lists: the API returns at most 1,000 rows per request, so read them in pages until a page comes back empty.
+  // Each list needs a stable order (an order= in the path) so pages don't overlap.
+  function apiAll(path) {
+    var base = path.replace(/([?&])limit=\d+(&|$)/, '$1').replace(/[?&]$/, ''), sep = base.indexOf('?') >= 0 ? '&' : '?', out = [];
+    function next(off, n) {
+      return api(base + sep + 'limit=1000&offset=' + off).then(function (rows) {
+        rows = Array.isArray(rows) ? rows : [];
+        out = out.concat(rows);
+        return rows.length && n < 200 ? next(off + rows.length, n + 1) : out;
+      });
+    }
+    return next(0, 0);
+  }
   function api(path, opts) {
     opts = opts || {};
     return fetch(SB_URL + path, { method: opts.method || 'GET', headers: headers(opts.headers), body: opts.body ? JSON.stringify(opts.body) : undefined, keepalive: !!opts.keepalive })
@@ -288,6 +301,7 @@
     get signedIn() { return !!me; },
     get myId() { return me ? me.id : null; },
     api: function (path, opts) { return refreshIfNeeded().then(function () { return api(path, opts); }); },
+    apiAll: function (path) { return refreshIfNeeded().then(function () { return apiAll(path); }); },
     // Puts an owned Rare (or rarer) card in your MVP VS deck, or takes it out (Library page).
     setInDeck: function (cardId, on) {
       if (!me) return Promise.reject(new Error('Log in with Discord first.'));
@@ -474,26 +488,30 @@
         window.PCMT_AUTH = { signedIn: true, name: name, initial: name.charAt(0).toUpperCase(), label: name, href: 'login.html', avatar: me.avatar };
         api('/rest/v1/profiles', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: { id: me.id, name: name, avatar_url: me.avatar, updated_at: new Date().toISOString() } }).catch(function () {});
       }
-      var decks = api('/rest/v1/deck_history?select=user_id,name,slots,igl,created_at&order=created_at.asc&limit=20000').catch(function () { return []; });
-      var profiles = api('/rest/v1/profiles?select=id,name').catch(function () { return []; });
+      // Every saved deck, names, 4Ks/5Ks and Credits are only needed where decks are scored (The Deck, the Leaderboard,
+      // Customization's unlocks, the Store's paychecks). Other pages skip them so they load fast and use less data.
+      var tree = (document.getElementById('dc-tree') || {}).textContent || '';
+      var needDecks = /"data-pcmt-root":"(Main|Leaderboard|Customization|Store)"/.test(tree);
+      var decks = !needDecks ? Promise.resolve([]) : apiAll('/rest/v1/deck_history?select=user_id,name,slots,igl,created_at&order=created_at.asc,id.asc').catch(function () { return []; });
+      var profiles = !needDecks ? Promise.resolve([]) : apiAll('/rest/v1/profiles?select=id,name&order=id').catch(function () { return []; });
       var unlocks = me ? api('/rest/v1/user_unlocks?select=unlock').catch(function () { return []; }) : Promise.resolve([]);
       // null = the VP table isn't set up yet (setup/vp-setup.sql not run)
       // 4Ks and 5Ks per series (public; empty until setup/vp-setup.sql has been run)
-      var multi = api('/rest/v1/multikills?select=series,player,k4,k5&limit=20000').catch(function () { return []; });
-      var prices = api('/rest/v1/player_price_changes?select=player,price,changed_at&order=changed_at.asc,id.asc&limit=20000').catch(function () { return []; });
-      var vp = me ? api('/rest/v1/vp_ledger?select=kind,week,amount,detail,created_at&order=created_at.desc&limit=5000').catch(function () { return null; }) : Promise.resolve([]);
+      var multi = !needDecks ? Promise.resolve([]) : apiAll('/rest/v1/multikills?select=series,player,k4,k5&order=series,player').catch(function () { return []; });
+      var prices = apiAll('/rest/v1/player_price_changes?select=player,price,changed_at&order=changed_at.asc,id.asc').catch(function () { return []; });
+      var vp = me && needDecks ? apiAll('/rest/v1/vp_ledger?select=kind,week,amount,detail,created_at&order=created_at.desc,id.desc').catch(function () { return null; }) : Promise.resolve([]);
       var admin = me ? api('/rest/v1/pcmt_admins?select=user_id&user_id=eq.' + me.id).catch(function () { return []; }) : Promise.resolve([]);
       // Card packs for sale (public) and the cards you own (empty until setup/cards-setup.sql has been run)
       // (season: throwback packs and past-season cards; falls back to the older columns until setup/cards-setup.sql is re-run)
       var packs = api('/rest/v1/card_packs?select=id,name,region,season,cards,odds,price,active,open_to_all&active=is.true&order=id')
         .catch(function () { return api('/rest/v1/card_packs?select=id,name,region,cards,odds,price,active,open_to_all&active=is.true&order=id'); }).catch(function () { return []; });
-      var mine = me ? api('/rest/v1/user_cards?select=card_id,count,in_deck&limit=5000').catch(function () { return api('/rest/v1/user_cards?select=card_id,count&limit=5000'); }).catch(function () { return []; }) : Promise.resolve([]);
+      var mine = me ? apiAll('/rest/v1/user_cards?select=card_id,count,in_deck&order=card_id').catch(function () { return apiAll('/rest/v1/user_cards?select=card_id,count&order=card_id'); }).catch(function () { return []; }) : Promise.resolve([]);
       var onLibrary = /"data-pcmt-root":"Library"/.test((document.getElementById('dc-tree') || {}).textContent || ''); // not the address: the site serves /library as well as /library.html
-      var catalog = onLibrary ? api('/rest/v1/cards?select=id,player,variant,rarity,region,season,title&limit=5000')
-        .catch(function () { return api('/rest/v1/cards?select=id,player,variant,rarity,region,title&limit=5000'); }).catch(function () { return []; }) : Promise.resolve([]);
+      var catalog = onLibrary ? apiAll('/rest/v1/cards?select=id,player,variant,rarity,region,season,title&order=id')
+        .catch(function () { return apiAll('/rest/v1/cards?select=id,player,variant,rarity,region,title&order=id'); }).catch(function () { return []; }) : Promise.resolve([]);
       // Released Rare-and-up cards, so the Store shows the odds a pack can really drop (null = not known yet)
       var onStore = /"data-pcmt-root":"Store"/.test((document.getElementById('dc-tree') || {}).textContent || '');
-      var released = onStore ? api('/rest/v1/cards?select=region,season,rarity&active=is.true&released=is.true&rarity=neq.common&limit=5000').catch(function () { return null; }) : Promise.resolve(null);
+      var released = onStore ? apiAll('/rest/v1/cards?select=region,season,rarity&active=is.true&released=is.true&rarity=neq.common&order=id').catch(function () { return null; }) : Promise.resolve(null);
       // Pick'ems page: who may see it while it's closed, your picks, the standings and each bracket's settings
       var onPickems = /"data-pcmt-root":"Pickems"/.test((document.getElementById('dc-tree') || {}).textContent || '');
       var staff = me ? api('/rest/v1/rpc/is_freshbatch', { method: 'POST', body: {} }).catch(function () { return false; }) : Promise.resolve(false);

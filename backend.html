@@ -439,7 +439,7 @@
       sortBy(priceRows(), pSort.key, pSort.dir).map(function (r) { return [r.name, r.id, r.team, r.region, r.role, r.base, r.price, r.when ? new Date(r.when).toISOString() : '', r.by]; }));
   });
   function loadPrices() {
-    return L.api('/rest/v1/player_price_changes?select=player,price,changed_at,changed_by&order=changed_at.asc,id.asc&limit=20000')
+    return L.apiAll('/rest/v1/player_price_changes?select=player,price,changed_at,changed_by&order=changed_at.asc,id.asc')
       .then(function (r) { LOG = r || []; });
   }
   window.addEventListener('beforeunload', function (e) { if (Object.keys(edits).length || multiDirty) { e.preventDefault(); e.returnValue = ''; } });
@@ -486,7 +486,7 @@
   });
   function loadCards() {
     return Promise.all([
-      L.api('/rest/v1/cards?select=id,player,variant,rarity,region,season,title,active,released&limit=5000').catch(function () { return L.api('/rest/v1/cards?select=id,player,variant,rarity,region,season,title,active&limit=5000'); }),
+      L.apiAll('/rest/v1/cards?select=id,player,variant,rarity,region,season,title,active,released&order=id').catch(function () { return L.apiAll('/rest/v1/cards?select=id,player,variant,rarity,region,season,title,active&order=id'); }),
       L.api('/rest/v1/card_packs?select=id,name,region,season,active&order=id'),
       L.api('/rest/v1/rpc/fb_card_counts', { method: 'POST', body: {} })
     ]).then(function (r) {
@@ -663,7 +663,7 @@
   // ---------- Complaints (from the Home page) ----------
   var CX = [], cxErr = '';
   function loadComplaints() {
-    return L.api('/rest/v1/complaints?select=id,body,words,user_id,created_at&order=created_at.desc&limit=2000')
+    return L.apiAll('/rest/v1/complaints?select=id,body,words,user_id,created_at&order=created_at.desc,id.desc')
       .then(function (r) { CX = r || []; cxErr = ''; })
       .catch(function (e) { CX = []; cxErr = 'Couldn\'t load the log (' + e.message + '). Has setup/backend-setup.sql been run?'; });
   }
@@ -773,7 +773,7 @@
       if (ok === 'error') return;
       if (ok !== true) return show('st-nostaff');
       return Promise.all([
-        L.api('/rest/v1/profiles?select=id,name&limit=5000').then(function (r) { (r || []).forEach(function (p) { NAMES[p.id] = p.name; }); }).catch(function () {}),
+        L.apiAll('/rest/v1/profiles?select=id,name&order=id').then(function (r) { (r || []).forEach(function (p) { NAMES[p.id] = p.name; }); }).catch(function () {}),
         loadPrices(), loadCards(), loadComplaints()
       ]).then(function () {
         show('st-staff');
