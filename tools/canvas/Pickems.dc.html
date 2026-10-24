@@ -54,6 +54,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <a href="MvpVs.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">MVP VS</a>
 <a href="Store.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Store</a>
 <a href="Library.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Library</a>
+<a href="Pickems.dc.html" aria-current="page" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #000; background: #a5dcdd; font-weight: 600">Pick'ems</a>
 </nav>
 <a href="Login.dc.html" style="margin-left: auto; order: 2; min-height: 44px; display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; border-radius: 8px; background: #4752C4; color: #fff; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; text-decoration: none"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><path d="M10 17l5-5-5-5"></path><path d="M15 12H3"></path></svg>Log in with Discord</a>
 <span style="order: -1; flex: 1 0 100%; margin-bottom: -4px; text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.08em; white-space: nowrap">NA S3 · EMEA S2</span>
@@ -367,8 +368,8 @@ class Component extends DCLogic {
     var self = this, W = window, now = Date.now();
     var b = PCMT_PICKEMS_DATA[0];
     var allowed = !!(W.PCMT_IS_ADMIN || W.PCMT_IS_STAFF || this.props.previewOpen);
-    var ev = (W.PCMT_PICKEM_EVENTS || {})[b.id] || { open: false, credits_win: 20, credits_exact: 10 };
-    // Closed to the public: only Freshbatch staff and site admins see the page until it is opened in the database.
+    var ev = (W.PCMT_PICKEM_EVENTS || {})[b.id] || { open: true, credits_win: 20, credits_exact: 10 };
+    // open = false in pickem_events closes it again: then only Freshbatch staff and site admins see the page.
     var locked = !ev.open && !allowed;
     var R = pcmtPickemResolve(b, this.state.picks, now);
     var totals = { points: 0, credits: 0, correct: 0, exact: 0, made: 0, open: 0 };
