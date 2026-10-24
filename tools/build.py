@@ -16,6 +16,7 @@ PAGES = {  # board -> output file
     'Login.dc.html': 'login.html',
     'Store.dc.html': 'store.html',
     'Library.dc.html': 'library.html',
+    'Pickems.dc.html': 'pickems.html',
 }
 VOID = {'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source', 'track', 'wbr'}
 RAW = {'script', 'style'}
@@ -168,6 +169,8 @@ for board, outname in PAGES.items():
     data_tag = '<script src="data.js"></script>\n<script src="players.js"></script>\n<script src="league.js"></script>\n'
     if board in ('Library.dc.html', 'Store.dc.html'):  # Library and Store show each card's MVP VS stats
         data_tag += '<script src="trumps-cards.js"></script>\n'
+    if board == 'Pickems.dc.html':  # brackets, kept up to date by the match check like data.js
+        data_tag = '<script src="pickems.js"></script>\n' + data_tag
     page = f'''<!doctype html>
 <html lang="en">
 <head>

@@ -27,6 +27,7 @@ Start here. It covers what exists, how changes are made and shipped, and what's 
 | (removed) | transactions.html | Redirects to store.html#credits. Paychecks and spending now live at the bottom of the Store. |
 | Store.dc.html | store.html | **Store**: The Bank, NA and EMEA card packs (buy with VP, then the pack opening plays with the cards you pulled), and the variants found in packs (The Role of Yoru: Rare, NA). Everyone except admins sees an empty page with only the card animation and "Coming Soon..." (nothing of the page is drawn). |
 | Library.dc.html | library.html | **Library** (right after Store): every card the player owns from packs, MVP VS-size with their MVP VS stats (from trumps-cards.js), one row per rarity (Rare, Common, ...), rarest first; each row is a fanned stack with faces showing, and hovering or tapping a card lifts it out (phones: one stack per row you swipe sideways); ×count on each card; All / NA / EMEA / Rare filters. Everyone except admins sees an empty page with only the card animation and "Coming Soon..." (nothing of the page is drawn). |
+| Pickems.dc.html | pickems.html | **Pick'ems** (EMEA S2 playoffs bracket). Closed to the public: everyone except site admins and Freshbatch staff sees "Coming soon", and it is not in the menu (go to /pickems.html). See section 12. |
 | (hand-written) | admin.html | Old admin page: now just sends people to backend.html (4Ks and 5Ks and card pack prices moved there). |
 | (hand-written) | mvp-vs.html | **MVP VS** card game (see section 9). Its board MvpVs.dc.html is only the old "Coming soon" design and is not built. |
 
@@ -44,8 +45,8 @@ Branding: header and titles say **fantasy.pcmt.gg**. The site is a Freshbatch pr
 
 1. Edit the board(s) in `tools/canvas/*.dc.html`.
 2. Build: `python3 -I tools/build.py tools/canvas assets <out>`
-3. Test: copy the repo `data.js` into `<out>`, serve it (`python3 -m http.server 8766 --directory <out>`, in the background) and run `NODE_PATH=$(npm root -g) node tools/smoke-test.js http://localhost:8766 <out>/shots`. It mocks Supabase and checks every page on desktop and phone. Look at the screenshots for visual changes.
-4. Copy `home.html index.html customization.html leaderboard.html guide.html login.html store.html library.html players.js league.js dc-lite.js freshbatch.js variant-art.js _headers` from `<out>` into the repo root (**not** `data.js`, **not** `assets/`, **not** `mvp-vs.html` or `admin.html`, which are hand-written). Copy changed boards into `tools/canvas/`.
+3. Test: copy the repo `data.js` and `pickems.js` into `<out>`, serve it (`python3 -m http.server 8766 --directory <out>`, in the background) and run `NODE_PATH=$(npm root -g) node tools/smoke-test.js http://localhost:8766 <out>/shots`. It mocks Supabase and checks every page on desktop and phone. Look at the screenshots for visual changes.
+4. Copy `home.html index.html customization.html leaderboard.html guide.html login.html store.html library.html pickems.html players.js league.js dc-lite.js freshbatch.js variant-art.js _headers` from `<out>` into the repo root (**not** `data.js` or `pickems.js`, **not** `assets/`, **not** `mvp-vs.html` or `admin.html`, which are hand-written). Copy changed boards into `tools/canvas/`.
 5. Update the design canvas with the changed boards so it stays in step with `tools/canvas/`.
 6. Commit, then `git fetch && git stash && git rebase origin/main && git stash pop && git push` (the scheduled check also pushes to `main`).
 
@@ -141,3 +142,13 @@ Tables: `profiles`, `deck_history` (insert-only, server timestamps, 60/hour limi
 - Library MVP VS panel (Oct 23 2026): titled "MVP VS", "Display your wealth in MVP VS". Players drag Rare cards from the stacks below into it (mouse: drag; phone: press and hold, then drag; keyboard: focus a Rare card and press Enter); × takes one out. Same `set_card_in_deck()` underneath.
 - MVP VS subs (cards with no team logo) show the NA or EMEA logo of the region they sub for.
 - Header: the Discord button sits top right on every page (same spot at every width); the page links have their own row underneath.
+
+## 12. Pick'ems (pickems.html, Oct 23 2026, closed to the public)
+
+- Bracket: EMEA S2 playoffs, double elimination, 14 series (upper R1 1-2, semis 3-4, upper final 5; lower R1 6-7, R2 8-9, R3 10-11, semi 12, lower final 13; grand final 14, Bo5; the rest Bo3). Seeds from the PCMT.gg group tables: Group Alpha NIP, XTC, ATLC, FaZe, HOT; Group Omega SOG, NATS, NOOT, LARP, SEAL. NA S3 has no pick'ems.
+- Data: `pickems.js` (strict JSON like data.js; hand-written, never overwritten by a build). Each series has `a`/`b` (a seed like `A2`, or `W1` / `L1` = winner / loser of series 1), `bo`, `start` (when picks lock; null = not announced), `score` ([a maps, b maps] once finished) and `url`. Keep it up to date from PCMT.gg: add each series' `start` and `url` as soon as it is listed, and its `score` when it ends. The match check does this too.
+- Picks: winner + map score for every series. Your winners move on through the bracket on the page (italic = only there because of your picks), so the whole bracket can be called ahead. Each series locks at its `start` or once it has a score; open series can be re-picked when the real teams are known. Tap a team to pick it, then the score row.
+- Scoring: 1 point for the right winner, 1 more for the exact score. Credits: 20 for the right winner, 10 more for the exact score (`credits_win` / `credits_exact` in `pickem_events`). Paid into `vp_ledger` as kind `pickem` (shown in the Store's "Paychecks and spending" panel), once per pick, never taken back.
+- Server: `setup/pickems-setup.sql` (after vp-setup.sql). `pickem_sync()` runs every hour at minute 37, fetches the live pickems.js into `pickem_state` and pays. `save_pick()` is the only way to write a pick (checks the lock, the teams, the score, and that the bracket is open or you are staff/admin). Players read only their own picks; standings come from `pickem_standings()`.
+- Open it to everyone: `update public.pickem_events set open = true where id = 'emea-s2';` in the SQL editor (the page then shows for everyone; add it to the menu in the boards too).
+- Test: `node tools/pickems-test.js "psql -h /tmp/pg -p 5499 -U postgres"`.

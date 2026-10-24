@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>fantasy.pcmt.gg Pick'ems</title>
+<meta name="description" content="PCMT Fantasy Decks: build a deck of Plat Chat Members Tourney players and score points every match.">
+<link rel="icon" href="assets/3bf9d529cabff94109b561693539029f.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cabin+Sketch:wght@400;700&amp;family=JetBrains+Mono:wght@400;600&amp;family=Space+Grotesk:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0d1416}
+html{color-scheme:dark}
+*{scrollbar-color:#3a4f53 #111a1c}
+::-webkit-scrollbar{width:12px;height:12px}
+::-webkit-scrollbar-track{background:#111a1c}
+::-webkit-scrollbar-thumb{background:#3a4f53;border-radius:999px;border:3px solid #111a1c}
+::-webkit-scrollbar-thumb:hover{background:#4a6266}
+::-webkit-scrollbar-corner{background:#111a1c}
+a{color:#a5dcdd}a:hover{color:#d4f0f0}
+button,input{font:inherit}
+.pcmt-loader{--radius:78px;--speed:2.4s;position:relative;width:calc(var(--radius)*2 + 60px);height:calc(var(--radius)*2 + 60px)}
+.pcmt-loader span{position:absolute;left:50%;top:50%;width:34px;height:48px;margin:-24px 0 0 -17px;border-radius:5px;background:url("assets/38f3fa3227d68bf879b50c6927b7ab1f.png") center/90% no-repeat,#000;border:1.5px solid #a5dcdd;box-shadow:0 2px 6px rgba(0,0,0,.35);animation:pcmt-card-splay var(--speed) cubic-bezier(.65,0,.35,1) infinite;animation-delay:calc(var(--i)*0.035s)}
+@keyframes pcmt-card-splay{0%,8%{transform:rotate(0deg) translateY(0)}40%,58%{transform:rotate(calc(var(--i)*24deg)) translateY(calc(var(--radius)*-1))}92%,100%{transform:rotate(360deg) translateY(0)}}
+@media (prefers-reduced-motion: reduce){.pcmt-loader span{animation-duration:calc(var(--speed)*3)}}
+.pcmt-loading{transition:opacity .4s ease}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !important;box-shadow:0 0 0 3px rgba(165,220,221,.3)}
+</style>
+</head>
+<body>
+<div id="dc-root"></div>
+<script type="application/json" id="dc-tree">[["div",{"data-pcmt-root":"Pickems","style":"position: relative; min-height: 100vh; background: #0d1416; color: #eaf4f4; font-family: 'Space Grotesk', system-ui, sans-serif"},[["sc-if",{"value":"{{loaderOn}}","hint-placeholder-val":"{{ false }}"},[["div",{"class":"pcmt-loading","role":"status","aria-live":"polite","style":"position: absolute; inset: 0; z-index: 9999; background: #0d1416; opacity: {{loaderOpacity}}; pointer-events: {{loaderPointer}}"},[["div",{"style":"position: sticky; top: 0; height: 100vh; max-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px"},[["div",{"class":"pcmt-loader","aria-hidden":"true"},[["span",{"style":"--i:0"},[]],["span",{"style":"--i:1"},[]],["span",{"style":"--i:2"},[]],["span",{"style":"--i:3"},[]],["span",{"style":"--i:4"},[]],["span",{"style":"--i:5"},[]],["span",{"style":"--i:6"},[]],["span",{"style":"--i:7"},[]],["span",{"style":"--i:8"},[]],["span",{"style":"--i:9"},[]],["span",{"style":"--i:10"},[]],["span",{"style":"--i:11"},[]],["span",{"style":"--i:12"},[]],["span",{"style":"--i:13"},[]],["span",{"style":"--i:14"},[]]]],["span",{"style":"font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.12em; color: #a5dcdd"},["{{loaderLabel}}"]]]]]]]],["header",{"style":"border-bottom: 1px solid #2a3a3e; background: #111a1c"},[["div",{"style":"max-width: 1280px; margin: 0 auto; padding: 14px 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 32px"},[["a",{"href":"index.html","style":"display: flex; align-items: baseline; gap: 10px; text-decoration: none"},[["span",{"style":"font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 32px; color: #a5dcdd; line-height: 1"},["fantasy.pcmt.gg"]]]],["nav",{"aria-label":"Main","style":"display: flex; flex-wrap: wrap; gap: 4px; flex: 1 0 100%; order: 3"},[["a",{"href":"home.html","style":"padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4"},["Home"]],["a",{"href":"leaderboard.html","style":"padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4"},["Leaderboard"]],["a",{"href":"index.html","style":"padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4"},["The Deck"]],["a",{"href":"customization.html","style":"padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4"},["Customization"]],["a",{"href":"guide.html","style":"padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4"},["Guide"]],["a",{"href":"mvp-vs.html","style":"padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4"},["MVP VS"]],["a",{"href":"store.html","style":"padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4"},["Store"]],["a",{"href":"library.html","style":"padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4"},["Library"]]]],["a",{"href":"login.html","style":"margin-left: auto; order: 2; min-height: 44px; display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; border-radius: 8px; background: #4752C4; color: #fff; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; text-decoration: none"},[["svg",{"aria-hidden":"true","width":"16","height":"16","viewBox":"0 0 24 24","fill":"none","stroke":"currentColor","stroke-width":"2.2","stroke-linecap":"round","stroke-linejoin":"round"},[["path",{"d":"M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"},[]],["path",{"d":"M10 17l5-5-5-5"},[]],["path",{"d":"M15 12H3"},[]]]],"{{auth.label}}"]],["span",{"style":"order: -1; flex: 1 0 100%; margin-bottom: -4px; text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.08em; white-space: nowrap"},["NA S3 · EMEA S2"]]]]]],["main",{"style":"position: relative; max-width: 1280px; margin: 0 auto; padding: 36px 24px 64px"},[["sc-if",{"value":"{{locked}}","hint-placeholder-val":"{{ false }}"},[["div",{"role":"status","style":"position: relative; min-height: 62vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; padding: 24px; text-align: center; "},[["div",{"class":"pcmt-loader","aria-hidden":"true"},[["span",{"style":"--i:0"},[]],["span",{"style":"--i:1"},[]],["span",{"style":"--i:2"},[]],["span",{"style":"--i:3"},[]],["span",{"style":"--i:4"},[]],["span",{"style":"--i:5"},[]],["span",{"style":"--i:6"},[]],["span",{"style":"--i:7"},[]],["span",{"style":"--i:8"},[]],["span",{"style":"--i:9"},[]],["span",{"style":"--i:10"},[]],["span",{"style":"--i:11"},[]],["span",{"style":"--i:12"},[]],["span",{"style":"--i:13"},[]],["span",{"style":"--i:14"},[]]]],["p",{"style":"margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; letter-spacing: 0.18em; color: #a5dcdd"},["COMING SOON..."]]]]]],["sc-if",{"value":"{{unlocked}}","hint-placeholder-val":"{{ true }}"},[["div",{"style":"display: flex; flex-direction: column; gap: 28px"},[["div",{"style":"display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px"},[["div",{"style":"display: flex; flex-direction: column; gap: 6px"},[["h1",{"style":"margin: 0; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 60px; line-height: 1"},["Pick'ems"]],["span",{"style":"font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #a5dcdd; letter-spacing: 0.08em; text-transform: uppercase"},["{{eventName}}"]]]],["sc-if",{"value":"{{staffNote}}","hint-placeholder-val":"{{ true }}"},[["span",{"style":"padding: 8px 12px; border-radius: 999px; border: 1px solid #3a4f53; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa"},["Staff only: players see \"Coming soon\""]]]]]],["div",{"style":"display: flex; flex-wrap: wrap; gap: 12px 28px; padding: 16px 20px; border: 1px solid #2a3a3e; border-radius: 12px; background: #111a1c; font-size: 15px; line-height: 1.5; color: #c4d4d4"},[["span",{"style":"flex: 1 1 320px"},["Pick the winner and the map score of every series. Your winners move on through the bracket, so you can call it all the way to the grand final. Each pick locks when its series starts."]],["span",{"style":"flex: 0 1 auto; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #eaf4f4"},["Right winner ",["b",{"style":"color: #a5dcdd"},["+1 pt · {{creditsWin}} Credits"]],["br",{},[]],"Exact score ",["b",{"style":"color: #a5dcdd"},["+1 pt · {{creditsExact}} more"]]]]]],["div",{"style":"display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start"},[["div",{"style":"flex: 1 1 100%; min-width: 0; display: flex; flex-direction: column; gap: 28px"},[["sc-for",{"list":"{{brackets}}","as":"br","hint-placeholder-count":"2"},[["section",{"aria-label":"{{br.title}}","style":"display: flex; flex-direction: column; gap: 12px"},[["h2",{"style":"margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em"},["[ {{br.title}} ]"]],["div",{"style":"display: flex; gap: 16px; overflow-x: auto; padding-bottom: 6px"},[["sc-for",{"list":"{{br.cols}}","as":"col","hint-placeholder-count":"3"},[["div",{"style":"flex: 0 0 230px; width: 230px; min-width: 0; display: flex; flex-direction: column; justify-content: space-around; gap: 14px"},[["span",{"style":"font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.06em; text-transform: uppercase"},["{{col.title}}"]],["sc-for",{"list":"{{col.series}}","as":"s","hint-placeholder-count":"2"},[["article",{"aria-label":"{{s.aria}}","style":"border: 1px solid {{s.border}}; border-radius: 10px; background: #172124; padding: 10px 10px 12px; display: flex; flex-direction: column; gap: 6px; box-shadow: {{s.glow}}"},[["div",{"style":"display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 8px; padding: 0 4px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.04em"},[["span",{"style":"color: #93a9aa"},["{{s.label}}"]],["span",{"style":"color: {{s.statusColor}}"},["{{s.status}}"]]]],["sc-for",{"list":"{{s.teams}}","as":"t","hint-placeholder-count":"2"},[["sc-if",{"value":"{{t.canPick}}","hint-placeholder-val":"{{ true }}"},[["button",{"type":"button","onClick":"{{t.pick}}","aria-pressed":"{{t.picked}}","aria-label":"{{t.aria}}","style":"display: flex; align-items: center; gap: 8px; width: 100%; min-height: 44px; padding: 0 8px; box-sizing: border-box; border-radius: 8px; background: {{t.bg}}; border: 1px solid {{t.ring}}; color: inherit; text-align: left; font: inherit; cursor: pointer"},[["sc-if",{"value":"{{t.hasLogo}}","hint-placeholder-val":"{{ true }}"},[["img",{"src":"{{t.logo}}","alt":"","style":"width: 26px; height: 26px; object-fit: contain; flex: 0 0 26px; border-radius: 50%; padding: {{t.logoPad}}; box-sizing: border-box; background: #0d1416"},[]]]],["sc-if",{"value":"{{t.noLogo}}","hint-placeholder-val":"{{ false }}"},[["span",{"aria-hidden":"true","style":"width: 26px; height: 26px; flex: 0 0 26px; border-radius: 50%; border: 1px dashed #3a4f53; box-sizing: border-box"},[]]]],["span",{"title":"{{t.full}}","style":"flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: {{t.weight}}; color: {{t.color}}; font-style: {{t.italic}}"},["{{t.name}}"]],["sc-if",{"value":"{{t.hasScore}}","hint-placeholder-val":"{{ false }}"},[["span",{"style":"font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 700; color: {{t.scoreColor}}"},["{{t.score}}"]]]],["sc-if",{"value":"{{t.picked}}","hint-placeholder-val":"{{ false }}"},[["span",{"aria-hidden":"true","style":"font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.06em; color: #a5dcdd"},["PICK"]]]]]]]],["sc-if",{"value":"{{t.fixed}}","hint-placeholder-val":"{{ false }}"},[["div",{"style":"display: flex; align-items: center; gap: 8px; width: 100%; min-height: 44px; padding: 0 8px; box-sizing: border-box; border-radius: 8px; background: {{t.bg}}; border: 1px solid {{t.ring}}; color: inherit; text-align: left; font: inherit"},[["sc-if",{"value":"{{t.hasLogo}}","hint-placeholder-val":"{{ true }}"},[["img",{"src":"{{t.logo}}","alt":"","style":"width: 26px; height: 26px; object-fit: contain; flex: 0 0 26px; border-radius: 50%; padding: {{t.logoPad}}; box-sizing: border-box; background: #0d1416"},[]]]],["sc-if",{"value":"{{t.noLogo}}","hint-placeholder-val":"{{ false }}"},[["span",{"aria-hidden":"true","style":"width: 26px; height: 26px; flex: 0 0 26px; border-radius: 50%; border: 1px dashed #3a4f53; box-sizing: border-box"},[]]]],["span",{"title":"{{t.full}}","style":"flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: {{t.weight}}; color: {{t.color}}; font-style: {{t.italic}}"},["{{t.name}}"]],["sc-if",{"value":"{{t.hasScore}}","hint-placeholder-val":"{{ false }}"},[["span",{"style":"font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 700; color: {{t.scoreColor}}"},["{{t.score}}"]]]],["sc-if",{"value":"{{t.picked}}","hint-placeholder-val":"{{ false }}"},[["span",{"aria-hidden":"true","style":"font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.06em; color: #a5dcdd"},["PICK"]]]]]]]]]],["sc-if",{"value":"{{s.hasScores}}","hint-placeholder-val":"{{ true }}"},[["div",{"role":"group","aria-label":"Map score","style":"display: flex; align-items: center; gap: 6px; padding: 2px 4px 0"},[["span",{"style":"flex: 1 1 auto; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa"},["Score"]],["sc-for",{"list":"{{s.scores}}","as":"o","hint-placeholder-count":"2"},[["button",{"type":"button","onClick":"{{o.pick}}","aria-pressed":"{{o.on}}","aria-label":"{{o.aria}}","disabled":"{{o.off}}","style":"min-width: 44px; height: 34px; padding: 0 6px; border-radius: 6px; border: 1px solid {{o.border}}; background: {{o.bg}}; color: {{o.color}}; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: {{o.weight}}; cursor: {{o.cursor}}; opacity: {{o.opacity}}"},["{{o.label}}"]]]]]]]],["sc-if",{"value":"{{s.hasNote}}","hint-placeholder-val":"{{ true }}"},[["div",{"style":"display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 2px 4px 0; font-family: 'JetBrains Mono', monospace; font-size: 12px"},[["span",{"style":"color: {{s.noteColor}}"},["{{s.note}}"]],["sc-if",{"value":"{{s.canClear}}","hint-placeholder-val":"{{ false }}"},[["button",{"type":"button","onClick":"{{s.clear}}","style":"background: none; border: 0; padding: 6px 0; color: #93a9aa; font: inherit; text-decoration: underline; text-underline-offset: 3px; cursor: pointer"},["Clear"]]]]]]]],["sc-if",{"value":"{{s.hasLink}}","hint-placeholder-val":"{{ false }}"},[["a",{"href":"{{s.url}}","target":"_blank","rel":"noopener","style":"padding: 0 4px; font-family: 'JetBrains Mono', monospace; font-size: 12px"},["Series on PCMT.gg"]]]]]]]]]]]]]]]]]]]],["div",{"style":"flex: 1 1 100%; display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start"},[["section",{"aria-labelledby":"you-h","style":"flex: 1 1 280px; border: 1px solid #2a3a3e; border-radius: 12px; background: #172124; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px"},[["h2",{"id":"you-h","style":"margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em"},["[ YOUR PICKS ]"]],["div",{"style":"display: flex; gap: 24px"},[["div",{"style":"display: flex; flex-direction: column; gap: 2px"},[["span",{"style":"font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 40px; line-height: 1"},["{{you.points}}"]],["span",{"style":"font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa"},["Points"]]]],["div",{"style":"display: flex; flex-direction: column; gap: 2px"},[["span",{"style":"font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 40px; line-height: 1; color: #a5dcdd"},["{{you.credits}}"]],["span",{"style":"font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa"},["Credits won"]]]]]],["span",{"style":"font-size: 14px; color: #c4d4d4"},["{{you.line}}"]],["sc-if",{"value":"{{you.loginNeeded}}","hint-placeholder-val":"{{ false }}"},[["a",{"href":"login.html","style":"align-self: flex-start; min-height: 44px; display: inline-flex; align-items: center; padding: 0 16px; border-radius: 8px; background: #4752C4; color: #fff; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; text-decoration: none"},["Log in to pick"]]]]]],["section",{"aria-labelledby":"st-h","style":"flex: 2 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 12px"},[["h2",{"id":"st-h","style":"margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em"},["[ STANDINGS ]"]],["div",{"style":"border: 1px solid #2a3a3e; border-radius: 12px; background: #172124; overflow: hidden"},[["table",{"style":"width: 100%; border-collapse: collapse; font-size: 14px"},[["thead",{},[["tr",{"style":"text-align: left; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.06em; text-transform: uppercase"},[["th",{"scope":"col","style":"padding: 12px 14px; border-bottom: 1px solid #2a3a3e; width: 40px"},["#"]],["th",{"scope":"col","style":"padding: 12px 14px; border-bottom: 1px solid #2a3a3e"},["Manager"]],["th",{"scope":"col","style":"padding: 12px 14px; border-bottom: 1px solid #2a3a3e; text-align: right"},["Exact"]],["th",{"scope":"col","style":"padding: 12px 14px; border-bottom: 1px solid #2a3a3e; text-align: right"},["Pts"]]]]]],["tbody",{},[["sc-for",{"list":"{{standings}}","as":"r","hint-placeholder-count":"5"},[["tr",{"style":"background: {{r.bg}}"},[["td",{"style":"padding: 12px 14px; border-bottom: 1px solid #2a3a3e; font-family: 'JetBrains Mono', monospace; color: {{r.rankColor}}; font-weight: 700"},["{{r.rank}}"]],["td",{"style":"padding: 12px 14px; border-bottom: 1px solid #2a3a3e; font-weight: 600; color: {{r.nameColor}}; overflow-wrap: anywhere"},["{{r.name}}"]],["td",{"style":"padding: 12px 14px; border-bottom: 1px solid #2a3a3e; text-align: right; font-family: 'JetBrains Mono', monospace; color: #93a9aa"},["{{r.exact}}"]],["td",{"style":"padding: 12px 14px; border-bottom: 1px solid #2a3a3e; text-align: right; font-family: 'JetBrains Mono', monospace; font-weight: 600"},["{{r.points}}"]]]]]],["sc-if",{"value":"{{noStandings}}","hint-placeholder-val":"{{ false }}"},[["tr",{},[["td",{"colspan":"4","style":"padding: 24px 14px; text-align: center; color: #93a9aa"},["Standings appear once a picked series is finished."]]]]]]]]]]]],["span",{"style":"font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa"},["Results come from PCMT.gg. Points and Credits are added within a few hours of each series."]]]]]]]]]]]]]],["footer",{"style":"border-top: 1px solid #2a3a3e"},[["div",{"style":"max-width: 1280px; margin: 0 auto; padding: 22px 24px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa"},[["span",{},["fantasy.pcmt.gg · Plat Chat Members Tourney"]],["span",{},["Version 1.5 BETA"]],["a",{"href":"https://pcmt.gg","target":"_blank","rel":"noopener"},["Stats on PCMT.gg"]]]],["p",{"style":"max-width: 1280px; margin: 0 auto; padding: 0 24px 22px; font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.6; color: #93a9aa"},[["span",{"style":"display: block; margin-bottom: 6px; font-size: 12px; color: #c4d4d4"},["A ",["button",{"type":"button","data-freshbatch":"1","aria-haspopup":"dialog","style":"font: inherit; font-weight: 700; color: #eaf4f4; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px"},["Freshbatch"]]," product"]],"fantasy.pcmt.gg was created under Riot Games' ",["a",{"href":"https://www.riotgames.com/en/legal","target":"_blank","rel":"noopener","style":"color: #a5dcdd"},["\"Legal Jibber Jabber\""]]," policy using assets owned by Riot Games. Riot Games does not endorse or sponsor this project."]]]]]]]</script>
+<script type="application/json" id="dc-props">{"previewOpen": false, "samplePicks": false}</script>
+<script type="text/plain" id="dc-logic">
+// Pick'ems brackets. The live site loads pickems.js (window.PCMT_PICKEMS), which the match check keeps up to date;
+// this copy is only for the canvas preview. Format: see pickems.js.
+var PCMT_PICKEMS_DATA = window.PCMT_PICKEMS || [{
+  id: 'emea-s2', name: 'EMEA S2 Playoffs', region: 'EMEA',
+  seeds: { A1: 'NIP', A2: 'XTC', A3: 'ATLC', A4: 'FaZe', A5: 'HOT', B1: 'SOG', B2: 'NATS', B3: 'NOOT', B4: 'LARP', B5: 'SEAL' },
+  series: [
+    { n: 1, round: 'Upper round 1', a: 'A2', b: 'B3', bo: 3, start: '2026-10-17T18:00:00Z', score: [2, 0], url: 'https://pcmt.gg/events/s2-emea/noot-vs-xtc-s2-playoffs-2026-10-17' },
+    { n: 2, round: 'Upper round 1', a: 'B2', b: 'A3', bo: 3, start: '2026-10-24T17:00:00Z', score: null, url: 'https://pcmt.gg/events/s2-emea/nats-vs-atlc-s2-playoffs-2026-10-24' },
+    { n: 3, round: 'Upper semifinal', a: 'B1', b: 'W1', bo: 3, start: null, score: null, url: null },
+    { n: 4, round: 'Upper semifinal', a: 'A1', b: 'W2', bo: 3, start: null, score: null, url: null },
+    { n: 5, round: 'Upper final', a: 'W3', b: 'W4', bo: 3, start: null, score: null, url: null },
+    { n: 6, round: 'Lower round 1', a: 'A4', b: 'B5', bo: 3, start: '2026-10-11T18:00:00Z', score: [1, 2], url: 'https://pcmt.gg/events/s2-emea/faze-vs-seal-s2-playoffs-2026-10-11' },
+    { n: 7, round: 'Lower round 1', a: 'B4', b: 'A5', bo: 3, start: '2026-10-18T18:00:00Z', score: [0, 2], url: 'https://pcmt.gg/events/s2-emea/larp-vs-hot-s2-playoffs-2026-10-18' },
+    { n: 8, round: 'Lower round 2', a: 'L1', b: 'W6', bo: 3, start: null, score: null, url: null },
+    { n: 9, round: 'Lower round 2', a: 'L2', b: 'W7', bo: 3, start: null, score: null, url: null },
+    { n: 10, round: 'Lower round 3', a: 'L4', b: 'W8', bo: 3, start: null, score: null, url: null },
+    { n: 11, round: 'Lower round 3', a: 'L3', b: 'W9', bo: 3, start: null, score: null, url: null },
+    { n: 12, round: 'Lower semifinal', a: 'W10', b: 'W11', bo: 3, start: null, score: null, url: null },
+    { n: 13, round: 'Lower final', a: 'L5', b: 'W12', bo: 3, start: null, score: null, url: null },
+    { n: 14, round: 'Grand final', a: 'W5', b: 'W13', bo: 5, start: null, score: null, url: null }
+  ]
+}];
+// Which series go in which column (upper, lower, grand final).
+var PCMT_PICKEM_LAYOUT = [
+  { title: 'UPPER BRACKET', cols: [{ title: 'Round 1', series: [1, 2] }, { title: 'Semifinals', series: [3, 4] }, { title: 'Upper final', series: [5] }] },
+  { title: 'LOWER BRACKET', cols: [{ title: 'Round 1', series: [6, 7] }, { title: 'Round 2', series: [8, 9] }, { title: 'Round 3', series: [10, 11] }, { title: 'Semifinal', series: [12] }, { title: 'Lower final', series: [13] }] },
+  { title: 'GRAND FINAL', cols: [{ title: 'Best of 5', series: [14] }] }
+];
+var PCMT_PICKEM_TEAMS = {
+  FaZe: { name: 'Fabulous and Zesty', logo: 'assets/9da6e0491a922186cad6bc5daf699626.png' },
+  ATLC: { name: 'ATLNTIC Esports', logo: 'assets/086abe908c829ddcb51bee4b1db16b83.png' },
+  SEAL: { name: 'Stay Seally', logo: 'assets/7f2055fcc7e78ae7d1510fe56608fd83.png' },
+  HOT: { name: 'Honestly Outrageous Temperatures', logo: 'assets/e078dfeeea5c9d916197f71d8b7ea80a.jpg', small: true },
+  NIP: { name: 'Name in Progress', logo: 'assets/f953d56be563808b39dbb961891fae8e.png' },
+  LARP: { name: 'Larpiatán', logo: 'assets/f06cf372e21c32dbf3754b8bd506e0b5.jpg', small: true },
+  XTC: { name: 'Xually Terribly Cursed', logo: 'assets/570eadcaf88a4d369017946bff2b0356.png' },
+  SOG: { name: 'The SOG', logo: 'assets/85e0857300495ee3133b6acf79e286c0.png' },
+  NOOT: { name: 'Penguin Patrol', logo: 'assets/195da1efa2549707b6737764479c066c.png' },
+  NATS: { name: 'Never Available To Scrim', logo: 'assets/8cbc4258cff847c1db533f124fd9addf.jpg', small: true }
+};
+
+// Works out every series: the real teams and winner where known, and the teams your own picks send there.
+// Same rules as pickem_resolve() in setup/pickems-setup.sql (a series locks when it starts or has a score).
+function pcmtPickemResolve(b, picks, now) {
+  var won = {}, lost = {}, guessW = {}, guessL = {}, out = {};
+  function real(ref) { return /^W\d+$/.test(ref) ? won[ref.slice(1)] || null : /^L\d+$/.test(ref) ? lost[ref.slice(1)] || null : b.seeds[ref] || null; }
+  function guess(ref) { return /^W\d+$/.test(ref) ? guessW[ref.slice(1)] || null : /^L\d+$/.test(ref) ? guessL[ref.slice(1)] || null : null; }
+  b.series.slice().sort(function (x, y) { return x.n - y.n; }).forEach(function (s) {
+    var a = real(s.a), bb = real(s.b), done = !!(s.score && a && bb && s.score[0] !== s.score[1]);
+    var w = done ? (s.score[0] > s.score[1] ? a : bb) : null;
+    if (done) { won[s.n] = w; lost[s.n] = w === a ? bb : a; }
+    var ga = a || guess(s.a), gb = bb || guess(s.b), p = picks[s.n];
+    // Your pick carries on only if that team can be in this series.
+    if (w) { guessW[s.n] = w; guessL[s.n] = lost[s.n]; }
+    else if (p && (p.winner === ga || p.winner === gb)) { guessW[s.n] = p.winner; guessL[s.n] = p.winner === ga ? gb : ga; }
+    var started = s.start && Date.parse(s.start) <= now;
+    out[s.n] = { s: s, a: a, b: bb, ga: ga, gb: gb, winner: w, done: done, locked: done || !!s.score || !!started, pick: p || null, need: Math.floor(((s.bo || 3) + 1) / 2) };
+  });
+  return out;
+}
+function pcmtRange(n) { var a = []; for (var i = 0; i < n; i++) a.push(i); return a; }
+function pcmtPickemWhen(iso) {
+  try {
+    var d = new Date(iso);
+    return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }) + ' · ' + d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', timeZoneName: 'short' });
+  } catch (e) { return iso; }
+}
+function pcmtSamplePicks() {
+  return { 2: { winner: 'NATS', win: 2, lose: 1 }, 3: { winner: 'XTC', win: 2, lose: 0 }, 4: { winner: 'NIP', win: 2, lose: 1 }, 5: { winner: 'XTC', win: 2, lose: 1 }, 8: { winner: 'SEAL', win: 2, lose: 1 }, 14: { winner: 'XTC', win: 3, lose: 1 } };
+}
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    var b = PCMT_PICKEMS_DATA[0], mine = (window.PCMT_MY_PICKS || {})[b.id];
+    this.state = { picks: Object.assign({}, mine || (props.samplePicks ? pcmtSamplePicks() : {})), saving: {} };
+  }
+  componentDidMount() {
+    var self = this, start = Date.now();
+    if (this._pageDidMount) this._pageDidMount();
+    this._navClick = function (e) {
+      if (e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+      if (!a || a.target === '_blank') return;
+      var root = a.closest('[data-pcmt-root]');
+      if (!root || root.getAttribute('data-pcmt-root') !== 'Pickems') return;
+      if (!/\.html(#|$|\?)/.test(a.getAttribute('href'))) return;
+      try { window.sessionStorage.setItem('pcmt-nav', String(Date.now())); } catch (err) {}
+    };
+    document.addEventListener('click', this._navClick, true);
+    function imagesReady() {
+      var imgs = Array.prototype.slice.call(document.images || []);
+      return Promise.all(imgs.map(function (im) {
+        return im.complete ? null : new Promise(function (res) { im.addEventListener('load', res, { once: true }); im.addEventListener('error', res, { once: true }); });
+      }));
+    }
+    var fonts = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+    var cap = new Promise(function (res) { self._loaderCap = setTimeout(res, 5000); });
+    Promise.race([Promise.all([fonts, imagesReady()]), cap]).then(function () {
+      self._loaderMin = setTimeout(function () { self.hideLoader(); }, Math.max(0, 1200 - (Date.now() - start)));
+    });
+  }
+
+  componentWillUnmount() {
+    clearTimeout(this._loaderCap); clearTimeout(this._loaderMin); clearTimeout(this._loaderFade); clearTimeout(this._loaderBuf); clearTimeout(this._loaderNav); clearTimeout(this._navHide);
+    if (this._navClick) document.removeEventListener('click', this._navClick, true);
+    if (this._pageWillUnmount) this._pageWillUnmount();
+  }
+
+  showLoader(label) {
+    clearTimeout(this._loaderFade);
+    this.setState({ loaderPhase: 'on', loaderLabel: label || 'Loading' });
+  }
+
+  hideLoader() {
+    var self = this;
+    if ((this.state && this.state.loaderPhase) === 'gone') return;
+    this.setState({ loaderPhase: 'fade' });
+    clearTimeout(this._loaderFade);
+    this._loaderFade = setTimeout(function () { self.setState({ loaderPhase: 'gone' }); }, 420);
+  }
+
+  renderVals() {
+    if (this._arrived === undefined) {
+      this._arrived = false;
+      try {
+        var t = Number(window.sessionStorage.getItem('pcmt-nav') || 0);
+        if (t && Date.now() - t < 4000) { this._arrived = true; window.sessionStorage.removeItem('pcmt-nav'); }
+      } catch (err) {}
+    }
+    var phase = (this.state && this.state.loaderPhase) || (this._arrived ? 'gone' : 'on');
+    return Object.assign(this._pageVals(), {
+      loaderOn: phase !== 'gone',
+      loaderOpacity: phase === 'on' ? 1 : 0,
+      loaderPointer: phase === 'on' ? 'auto' : 'none',
+      loaderLabel: ((this.state && this.state.loaderLabel) || 'Loading').toUpperCase()
+    });
+  }
+
+  message(text) {
+    if (window.PCMT_LEAGUE && window.PCMT_LEAGUE.toast) window.PCMT_LEAGUE.toast(text);
+    else this.setState({ note: text });
+  }
+
+  // Saves one pick (winner null = clear it). Shows it straight away and puts it back if the server says no.
+  choose(eventId, n, winner, win, lose) {
+    var self = this, before = this.state.picks[n];
+    var picks = Object.assign({}, this.state.picks);
+    if (winner) picks[n] = { winner: winner, win: win, lose: lose }; else delete picks[n];
+    this.setState({ picks: picks });
+    var L = window.PCMT_LEAGUE;
+    if (!L) return;   // canvas preview: picks stay on the page
+    if (!L.signedIn) { this.message('Log in with Discord to make picks.'); var back0 = Object.assign({}, this.state.picks); if (before) back0[n] = before; else delete back0[n]; this.setState({ picks: back0 }); return; }
+    L.savePick(eventId, n, winner, win, lose).catch(function (e) {
+      var back = Object.assign({}, self.state.picks);
+      if (before) back[n] = before; else delete back[n];
+      self.setState({ picks: back });
+      self.message(e && e.message ? e.message : 'That pick didn\'t save. Try again.');
+    });
+  }
+
+  _pageVals() {
+    var self = this, W = window, now = Date.now();
+    var b = PCMT_PICKEMS_DATA[0];
+    var allowed = !!(W.PCMT_IS_ADMIN || W.PCMT_IS_STAFF || this.props.previewOpen);
+    var ev = (W.PCMT_PICKEM_EVENTS || {})[b.id] || { open: false, credits_win: 20, credits_exact: 10 };
+    // Closed to the public: only Freshbatch staff and site admins see the page until it is opened in the database.
+    var locked = !ev.open && !allowed;
+    var R = pcmtPickemResolve(b, this.state.picks, now);
+    var totals = { points: 0, credits: 0, correct: 0, exact: 0, made: 0, open: 0 };
+    function teamView(code, real, info, side) {
+      var t = code ? PCMT_PICKEM_TEAMS[code] : null;
+      var ref = side === 'a' ? info.s.a : info.s.b;
+      var placeholder = /^W\d+$/.test(ref) ? 'Winner of series ' + ref.slice(1) : /^L\d+$/.test(ref) ? 'Loser of series ' + ref.slice(1) : ref;
+      var p = info.pick, picked = !!(p && code && p.winner === code), isWinner = info.done && info.winner === code;
+      var sc = info.s.score;
+      return {
+        name: t ? t.name : (code || placeholder), full: t ? t.name + ' (' + code + ')' : placeholder,
+        hasLogo: !!t, noLogo: !t, logo: t ? t.logo : '', logoPad: t && t.small ? '3px' : '0',
+        weight: isWinner || picked ? 700 : 500,
+        color: !code ? '#93a9aa' : info.done && !isWinner ? '#93a9aa' : '#eaf4f4',
+        italic: real ? 'normal' : 'italic',   // italic = only there because of your own picks
+        bg: picked ? 'rgba(165,220,221,.1)' : 'transparent',
+        ring: picked ? 'rgba(165,220,221,.45)' : code && !info.locked ? '#2a3a3e' : 'transparent',
+        canPick: !info.locked && !!code, fixed: info.locked || !code, picked: picked,
+        aria: 'Pick ' + (t ? t.name : code) + ' to win',
+        // Tapping a team picks it (keeping your score, else the closest one); the score row below changes it.
+        pick: function () { if (picked) return; self.choose(b.id, info.s.n, code, info.need, p && p.winner ? p.lose : info.need - 1); },
+        hasScore: !!sc, score: sc ? String(side === 'a' ? sc[0] : sc[1]) : '', scoreColor: isWinner ? '#a5dcdd' : '#93a9aa'
+      };
+    }
+    function seriesView(n) {
+      var info = R[n], s = info.s, p = info.pick;
+      var status, statusColor = '#93a9aa', note = '', noteColor = '#93a9aa', border = '#2a3a3e', glow = 'none';
+      var pickName = p ? (PCMT_PICKEM_TEAMS[p.winner] ? p.winner : p.winner) + ' ' + p.win + '-' + p.lose : '';
+      if (p) totals.made++;
+      if (info.done) {
+        status = 'Final';
+        var wm = Math.max(s.score[0], s.score[1]), lm = Math.min(s.score[0], s.score[1]);
+        if (!p) { note = 'No pick'; }
+        else if (p.winner === info.winner) {
+          var exact = p.win === wm && p.lose === lm;
+          totals.points += exact ? 2 : 1; totals.correct++; if (exact) totals.exact++;
+          totals.credits += ev.credits_win + (exact ? ev.credits_exact : 0);
+          note = 'You picked ' + pickName + ' · +' + (exact ? 2 : 1) + (exact ? ' pts, exact' : ' pt');
+          noteColor = '#8be4b7'; border = 'rgba(139,228,183,.5)';
+        } else { note = 'You picked ' + pickName + ' · 0 pts'; noteColor = '#ef8f8f'; }
+      } else if (info.locked) {
+        status = 'Locked · live'; statusColor = '#f5d76e';
+        note = p ? 'You picked ' + pickName : 'No pick';
+      } else {
+        totals.open++;
+        status = s.start ? 'Locks ' + pcmtPickemWhen(s.start) : 'Time TBA';
+        if (s.start) statusColor = '#a5dcdd';
+        var out = p && p.winner !== info.ga && p.winner !== info.gb;
+        if (out) { note = p.winner + ' can\'t reach this series now. Pick again.'; noteColor = '#f5d76e'; border = 'rgba(245,215,110,.5)'; }
+        else if (p) { note = 'Your pick: ' + pickName; noteColor = '#a5dcdd'; border = 'rgba(165,220,221,.45)'; glow = '0 0 18px rgba(165,220,221,.08)'; }
+        else if (info.ga || info.gb) note = 'Tap a team, then the score';
+        else note = 'Pick earlier series first';
+      }
+      return {
+        label: s.round + ' · Bo' + (s.bo || 3), aria: s.round + ', series ' + s.n,
+        status: status, statusColor: statusColor, border: border, glow: glow,
+        teams: [teamView(info.ga, !!info.a, info, 'a'), teamView(info.gb, !!info.b, info, 'b')],
+        hasScores: !info.locked && !!(info.ga || info.gb),
+        scores: pcmtRange(info.need).map(function (lose) {
+          var valid = !!p && (p.winner === info.ga || p.winner === info.gb), on = valid && p.lose === lose;
+          return {
+            label: info.need + '-' + lose, on: on, off: !valid,
+            aria: valid ? p.winner + ' wins ' + info.need + '-' + lose : 'Pick a team first',
+            border: on ? '#a5dcdd' : '#3a4f53', bg: on ? '#a5dcdd' : 'transparent', color: on ? '#000' : '#eaf4f4', weight: on ? 700 : 400,
+            cursor: valid ? 'pointer' : 'default', opacity: valid ? 1 : 0.4,
+            pick: function () { if (!valid || on) return; self.choose(b.id, s.n, p.winner, info.need, lose); }
+          };
+        }),
+        hasNote: !!note, note: note, noteColor: noteColor,
+        canClear: !!p && !info.locked,
+        clear: function () { self.choose(b.id, s.n, null, null, null); },
+        hasLink: !!s.url, url: s.url || ''
+      };
+    }
+    var brackets = PCMT_PICKEM_LAYOUT.map(function (blk) {
+      return { title: blk.title, cols: blk.cols.map(function (c) { return { title: c.title, series: c.series.filter(function (n) { return R[n]; }).map(seriesView) }; }) };
+    });
+    var rows = ((W.PCMT_PICKEM_STANDINGS || {})[b.id] || []).slice().sort(function (x, y) { return y.points - x.points || y.exact - x.exact || String(x.name).localeCompare(String(y.name)); });
+    var rank = 0, prev = null;
+    var standings = rows.map(function (r, i) {
+      if (prev === null || r.points !== prev) { rank = i + 1; prev = r.points; }
+      return { rank: rank, name: r.name, exact: r.exact, points: r.points, bg: r.me ? '#13292b' : 'transparent', nameColor: r.me ? '#a5dcdd' : '#eaf4f4', rankColor: rank === 1 ? '#f5d76e' : '#93a9aa' };
+    });
+    var signedIn = !!(W.PCMT_LEAGUE ? W.PCMT_LEAGUE.signedIn : true);
+    var line = !signedIn ? 'Log in with Discord to save your picks.'
+      : totals.open === 0 ? 'Every series is locked.'
+      : totals.made === 0 ? 'No picks yet. ' + totals.open + ' series open to pick.'
+      : totals.made + ' pick' + (totals.made === 1 ? '' : 's') + ' made · ' + totals.correct + ' right so far' + (totals.exact ? ', ' + totals.exact + ' exact' : '') + '.';
+    return {
+      locked: locked, unlocked: !locked,
+      staffNote: !ev.open && allowed,
+      eventName: b.name,
+      creditsWin: ev.credits_win, creditsExact: ev.credits_exact,
+      brackets: brackets,
+      you: { points: String(totals.points), credits: String(totals.credits), line: line, loginNeeded: !signedIn },
+      standings: standings, noStandings: standings.length === 0
+    };
+  }
+}
+</script>
+<script src="pickems.js"></script>
+<script src="data.js"></script>
+<script src="players.js"></script>
+<script src="league.js"></script>
+<script src="dc-lite.js"></script>
+<script src="freshbatch.js"></script>
+</body>
+</html>

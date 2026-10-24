@@ -1,0 +1,203 @@
+-- PCMT Fantasy Decks: Pick'ems (pickems.html).
+-- Paste this whole file into Supabase → SQL Editor → New query → Run. Safe to run more than once.
+-- Needs setup/vp-setup.sql (staff list, Credits ledger, vp_extract) first.
+--
+--   * The brackets live in pickems.js on the site. pickem_sync() fetches it every hour (minute 37), keeps a copy
+--     in pickem_state, and pays Credits for every finished series.
+--   * A pick is a series winner plus the map score. Each series locks when it starts (its "start" in pickems.js)
+--     or once it has a score. Picks are only made through save_pick(); everyone reads only their own.
+--   * pickem_events: one row per bracket. open = false keeps it to Freshbatch staff and site admins.
+--     credits_win / credits_exact = Credits for the right winner / extra for the exact score.
+--       update public.pickem_events set open = true where id = 'emea-s2';            -- open it to everyone
+--       update public.pickem_events set credits_win = 20, credits_exact = 10 where id = 'emea-s2';
+
+-- ===================== Tables =====================
+create table if not exists public.pickem_events (
+  id text primary key,
+  open boolean not null default false,
+  credits_win integer not null default 20 check (credits_win >= 0),
+  credits_exact integer not null default 10 check (credits_exact >= 0)
+);
+alter table public.pickem_events enable row level security;
+drop policy if exists "read pickem events" on public.pickem_events;
+create policy "read pickem events" on public.pickem_events for select using (true);
+insert into public.pickem_events (id) values ('emea-s2') on conflict do nothing;
+
+create table if not exists public.pickem_state (
+  event text primary key,
+  data jsonb not null,
+  synced_at timestamptz not null default now()
+);
+alter table public.pickem_state enable row level security;   -- no policies: only the functions below read it
+
+create table if not exists public.pickem_picks (
+  user_id uuid not null references auth.users (id) on delete cascade,
+  event text not null,
+  series integer not null,
+  winner text not null,          -- team code
+  win_maps integer not null,     -- the winner's maps (2 in a Bo3, 3 in a Bo5)
+  lose_maps integer not null,    -- the loser's maps
+  updated_at timestamptz not null default now(),
+  primary key (user_id, event, series)
+);
+alter table public.pickem_picks enable row level security;
+drop policy if exists "read own picks" on public.pickem_picks;
+create policy "read own picks" on public.pickem_picks for select using (auth.uid() = user_id);
+
+-- Credits ledger: 'pickem' lines are Pick'ems winnings (positive), detail = {event, series, label}.
+alter table public.vp_ledger drop constraint if exists vp_ledger_kind_ok;
+alter table public.vp_ledger add constraint vp_ledger_kind_ok check (
+  (kind = 'week' and amount > 0) or (kind = 'pack' and amount < 0) or (kind = 'pickem' and amount > 0));
+create unique index if not exists vp_ledger_pickem_once on public.vp_ledger (user_id, (detail ->> 'event'), (detail ->> 'series')) where kind = 'pickem';
+
+-- ===================== Bracket =====================
+-- Every series of one bracket with its real teams filled in where known:
+-- [{n, round, bo, start, score, a, b (team codes or null), winner, loser, locked}]
+create or replace function public.pickem_resolve(p_bracket jsonb, p_now timestamptz default now()) returns jsonb
+language plpgsql stable set search_path = public as $$
+declare
+  seeds jsonb := p_bracket -> 'seeds'; won jsonb := '{}'::jsonb; lost jsonb := '{}'::jsonb; out jsonb := '[]'::jsonb;
+  s jsonb; ta text; tb text; w text; l text; pass int; changed boolean;
+begin
+  -- Results can point at later-numbered series' winners, so go round until nothing new is learned.
+  for pass in 1 .. 20 loop
+    changed := false;
+    for s in select * from jsonb_array_elements(p_bracket -> 'series') loop
+      if won ? (s ->> 'n') then continue; end if;
+      ta := case when s ->> 'a' ~ '^W\d+$' then won ->> substr(s ->> 'a', 2) when s ->> 'a' ~ '^L\d+$' then lost ->> substr(s ->> 'a', 2) else seeds ->> (s ->> 'a') end;
+      tb := case when s ->> 'b' ~ '^W\d+$' then won ->> substr(s ->> 'b', 2) when s ->> 'b' ~ '^L\d+$' then lost ->> substr(s ->> 'b', 2) else seeds ->> (s ->> 'b') end;
+      if ta is not null and tb is not null and jsonb_typeof(s -> 'score') = 'array'
+         and (s -> 'score' ->> 0)::int <> (s -> 'score' ->> 1)::int then
+        if (s -> 'score' ->> 0)::int > (s -> 'score' ->> 1)::int then w := ta; l := tb; else w := tb; l := ta; end if;
+        won := won || jsonb_build_object(s ->> 'n', w);
+        lost := lost || jsonb_build_object(s ->> 'n', l);
+        changed := true;
+      end if;
+    end loop;
+    exit when not changed;
+  end loop;
+  for s in select * from jsonb_array_elements(p_bracket -> 'series') order by (value ->> 'n')::int loop
+    ta := case when s ->> 'a' ~ '^W\d+$' then won ->> substr(s ->> 'a', 2) when s ->> 'a' ~ '^L\d+$' then lost ->> substr(s ->> 'a', 2) else seeds ->> (s ->> 'a') end;
+    tb := case when s ->> 'b' ~ '^W\d+$' then won ->> substr(s ->> 'b', 2) when s ->> 'b' ~ '^L\d+$' then lost ->> substr(s ->> 'b', 2) else seeds ->> (s ->> 'b') end;
+    out := out || jsonb_build_array(jsonb_build_object(
+      'n', (s ->> 'n')::int, 'round', s ->> 'round', 'bo', coalesce((s ->> 'bo')::int, 3), 'start', s -> 'start', 'score', s -> 'score',
+      'a', ta, 'b', tb, 'winner', won ->> (s ->> 'n'), 'loser', lost ->> (s ->> 'n'),
+      'locked', (won ? (s ->> 'n')) or jsonb_typeof(s -> 'score') = 'array'
+                or (jsonb_typeof(s -> 'start') = 'string' and (s ->> 'start')::timestamptz <= p_now)));
+  end loop;
+  return out;
+end $$;
+
+-- ===================== Making picks =====================
+create or replace function public.save_pick(p_event text, p_series integer, p_winner text, p_win integer, p_lose integer)
+returns boolean
+language plpgsql volatile security definer set search_path = public as $$
+declare u uuid := auth.uid(); ev public.pickem_events; st jsonb; s jsonb; teams jsonb; need int;
+begin
+  if u is null then raise exception 'Log in with Discord to make picks.'; end if;
+  select * into ev from public.pickem_events where id = p_event;
+  if not found then raise exception 'That bracket doesn''t exist.'; end if;
+  if not ev.open and not public.is_freshbatch() and not exists (select 1 from public.pcmt_admins where user_id = u) then
+    raise exception 'Pick''ems isn''t open yet.';
+  end if;
+  select data into st from public.pickem_state where event = p_event;
+  if st is null then raise exception 'The bracket hasn''t loaded on the server yet. Try again in an hour.'; end if;
+  select x into s from jsonb_array_elements(public.pickem_resolve(st)) x where (x ->> 'n')::int = p_series;
+  if s is null then raise exception 'That series isn''t in the bracket.'; end if;
+  if (s ->> 'locked')::boolean then raise exception 'That series has started, so its pick is locked.'; end if;
+  if p_winner is null then
+    delete from public.pickem_picks where user_id = u and event = p_event and series = p_series;
+    return false;
+  end if;
+  select jsonb_agg(value) into teams from jsonb_each_text(st -> 'seeds');
+  if not teams ? p_winner then raise exception 'That team isn''t in this bracket.'; end if;
+  if s ->> 'a' is not null and s ->> 'b' is not null and p_winner not in (s ->> 'a', s ->> 'b') then
+    raise exception 'That team isn''t playing in this series.';
+  end if;
+  need := ((s ->> 'bo')::int + 1) / 2;
+  if p_win is distinct from need or p_lose is null or p_lose < 0 or p_lose >= need then
+    raise exception 'Pick a score this series can end on.';
+  end if;
+  insert into public.pickem_picks (user_id, event, series, winner, win_maps, lose_maps, updated_at)
+    values (u, p_event, p_series, p_winner, p_win, p_lose, now())
+    on conflict (user_id, event, series) do update set winner = excluded.winner, win_maps = excluded.win_maps, lose_maps = excluded.lose_maps, updated_at = now();
+  return true;
+end $$;
+revoke all on function public.save_pick(text, integer, text, integer, integer) from public, anon;
+grant execute on function public.save_pick(text, integer, text, integer, integer) to authenticated;
+
+-- ===================== Standings =====================
+-- Points per manager from finished series: 1 for the right winner, 1 more for the exact score.
+create or replace function public.pickem_standings(p_event text)
+returns table (user_id uuid, name text, points integer, correct integer, exact integer, picked integer)
+language sql stable security definer set search_path = public as $$
+  with r as (
+    select (x ->> 'n')::int n, x ->> 'winner' winner, greatest((x -> 'score' ->> 0)::int, (x -> 'score' ->> 1)::int) wm,
+           least((x -> 'score' ->> 0)::int, (x -> 'score' ->> 1)::int) lm
+    from public.pickem_state st, jsonb_array_elements(public.pickem_resolve(st.data)) x
+    where st.event = p_event and x ->> 'winner' is not null)
+  select p.user_id, coalesce(pr.name, 'Manager'),
+         (count(*) filter (where p.winner = r.winner) + count(*) filter (where p.winner = r.winner and p.win_maps = r.wm and p.lose_maps = r.lm))::int,
+         count(*) filter (where p.winner = r.winner)::int,
+         count(*) filter (where p.winner = r.winner and p.win_maps = r.wm and p.lose_maps = r.lm)::int,
+         count(*)::int
+  from public.pickem_picks p join r on r.n = p.series
+  left join public.profiles pr on pr.id = p.user_id
+  where p.event = p_event
+  group by p.user_id, pr.name
+$$;
+revoke all on function public.pickem_standings(text) from public;
+grant execute on function public.pickem_standings(text) to anon, authenticated;
+
+-- ===================== Sync and payout =====================
+create or replace function public.pickem_ingest(p_js text, p_now timestamptz default now()) returns jsonb
+language plpgsql volatile security definer set search_path = public as $$
+declare b jsonb; ev public.pickem_events; x jsonb; p public.pickem_picks; amt int; wm int; lm int; paid int := 0; total int := 0; n int;
+begin
+  for b in select * from jsonb_array_elements(public.vp_extract(p_js, 'PCMT_PICKEMS')) loop
+    insert into public.pickem_state (event, data, synced_at) values (b ->> 'id', b, p_now)
+      on conflict (event) do update set data = excluded.data, synced_at = excluded.synced_at;
+    insert into public.pickem_events (id) values (b ->> 'id') on conflict do nothing;
+    select * into ev from public.pickem_events where id = b ->> 'id';
+    for x in select * from jsonb_array_elements(public.pickem_resolve(b, p_now)) loop
+      if x ->> 'winner' is null then continue; end if;
+      n := (x ->> 'n')::int;
+      wm := greatest((x -> 'score' ->> 0)::int, (x -> 'score' ->> 1)::int);
+      lm := least((x -> 'score' ->> 0)::int, (x -> 'score' ->> 1)::int);
+      for p in select * from public.pickem_picks where event = ev.id and series = n and winner = x ->> 'winner' loop
+        amt := ev.credits_win + case when p.win_maps = wm and p.lose_maps = lm then ev.credits_exact else 0 end;
+        if amt <= 0 then continue; end if;
+        insert into public.vp_ledger (user_id, kind, amount, detail, created_at)
+          values (p.user_id, 'pickem', amt, jsonb_build_object('event', ev.id, 'series', n::text, 'name', b ->> 'name',
+                  'label', (x ->> 'round') || ': ' || (x ->> 'a') || ' vs ' || (x ->> 'b'), 'exact', p.win_maps = wm and p.lose_maps = lm), p_now)
+          on conflict do nothing;
+        if found then paid := paid + 1; total := total + amt; end if;
+      end loop;
+    end loop;
+  end loop;
+  return jsonb_build_object('payouts', paid, 'credits', total);
+end $$;
+
+create or replace function public.pickem_sync() returns text
+language plpgsql security definer set search_path = public, extensions as $$
+declare st int; js text; res jsonb; msg text;
+begin
+  select status, content into st, js from extensions.http_get('https://pcmt-fantasy.pages.dev/pickems.js?v=' || extract(epoch from now())::bigint::text);
+  if st <> 200 then raise exception 'pickems.js not reachable (%)', st; end if;
+  res := public.pickem_ingest(js, now());
+  msg := format('pickems ok: %s payout(s), %s Credits', res ->> 'payouts', res ->> 'credits');
+  insert into public.vp_sync_log (ok, message) values (true, msg);
+  return msg;
+exception when others then
+  insert into public.vp_sync_log (ok, message) values (false, 'pickems: ' || sqlerrm);
+  return 'failed: ' || sqlerrm;
+end $$;
+
+revoke all on function public.pickem_resolve(jsonb, timestamptz) from public, anon, authenticated;
+revoke all on function public.pickem_ingest(text, timestamptz) from public, anon, authenticated;
+revoke all on function public.pickem_sync() from public, anon, authenticated;
+
+-- [supabase-only] ===================== Hourly job =====================
+select cron.schedule('pcmt-pickems', '37 * * * *', 'select public.pickem_sync()');
+-- Run once now. It fails until pickems.js is on the live site.
+select public.pickem_sync();

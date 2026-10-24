@@ -278,6 +278,16 @@
         return r;
       });
     },
+    // Saves a Pick'ems pick (winner = team code, null clears it). The server checks the lock, the teams and the score.
+    savePick: function (event, series, winner, win, lose) {
+      if (!me) return Promise.reject(new Error('Log in with Discord to make picks.'));
+      return refreshIfNeeded().then(function () {
+        return api('/rest/v1/rpc/save_pick', { method: 'POST', body: { p_event: event, p_series: series, p_winner: winner, p_win: win == null ? null : win, p_lose: lose == null ? null : lose } });
+      }).then(function () {
+        var mine = window.PCMT_MY_PICKS[event] = window.PCMT_MY_PICKS[event] || {};
+        if (winner) mine[series] = { winner: winner, win: win, lose: lose }; else delete mine[series];
+      });
+    },
     // Buys a card pack on the server (it checks the price and your VP, then draws the cards).
     // Resolves to { pack, price, balance, cards: [{ id, player, variant, rarity, region, count, new }] }.
     buyPack: function (packId) {
@@ -379,11 +389,15 @@
         h.vp += l.amount;
         if (!h.deck && l.detail && l.detail.deck) h.deck = l.detail.deck;
       }
+      if (l.kind === 'pickem') {
+        var pd = l.detail || {}, day = new Date(l.created_at).toISOString().slice(0, 10);
+        byWeek['p' + day + (pd.event || '') + (pd.series || '')] = { week: day, vp: l.amount, deck: (pd.label || 'Series') + (pd.exact ? ' (exact score)' : ''), label: 'Pick\u2019ems \u00b7 ' + fmtDay(day) };
+      }
       if (l.amount < 0) spent.push({ date: new Date(l.created_at).toLocaleDateString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric' }), pack: (l.detail && (l.detail.pack || l.detail.name)) || 'Card pack', vp: String(-l.amount) });
     });
-    var history = Object.keys(byWeek).sort().reverse().map(function (k) {
+    var history = Object.keys(byWeek).sort(function (a, b) { var x = byWeek[a].week, y = byWeek[b].week; return x < y ? 1 : x > y ? -1 : 0; }).map(function (k) {
       var h = byWeek[k];
-      return { label: 'Week of ' + fmtDay(k), deck: h.deck || '—', vp: String(h.vp) };
+      return { label: h.label || 'Week of ' + fmtDay(k), deck: h.deck || '—', vp: String(h.vp) };
     });
     var cw = weeks.filter(function (w) { return w.b === curB; })[0], week = { vp: '0', state: 'nomatch', note: 'No matches are scheduled this gameweek yet.' };
     if (cw && !cw.locked) week = { vp: '0', state: 'open', note: 'Your deck locks ' + fmtWhen(cw.lockAt) + '. Credits start counting from then.' };
@@ -400,6 +414,7 @@
     return { signedIn: true, ready: ready, balance: String(balance), lastPay: String(lastPay), earned: String(earned), history: history, spent: spent, week: week, arriving: arriving };
   }
   window.PCMT_PACKS = []; window.PCMT_MY_CARDS = {}; window.PCMT_CARD_CATALOG = [];
+  window.PCMT_IS_STAFF = false; window.PCMT_MY_PICKS = {}; window.PCMT_PICKEM_EVENTS = {}; window.PCMT_PICKEM_STANDINGS = {};
   window.PCMT_VP = { signedIn: false, ready: true, balance: '0', lastPay: '0', earned: '0', history: [], spent: [], week: { vp: '0', state: 'out', note: '' }, arriving: 0 };
 
   // Series key used by the multikills table: start|a|b, exactly as in data.js.
@@ -450,7 +465,15 @@
       // Released Rare-and-up cards, so the Store shows the odds a pack can really drop (null = not known yet)
       var onStore = /"data-pcmt-root":"Store"/.test((document.getElementById('dc-tree') || {}).textContent || '');
       var released = onStore ? api('/rest/v1/cards?select=region,season,rarity&active=is.true&released=is.true&rarity=neq.common&limit=5000').catch(function () { return null; }) : Promise.resolve(null);
-      return Promise.all([decks, profiles, unlocks, vp, multi, admin, packs, mine, catalog, prices, released]);
+      // Pick'ems page: who may see it while it's closed, your picks, the standings and each bracket's settings
+      var onPickems = /"data-pcmt-root":"Pickems"/.test((document.getElementById('dc-tree') || {}).textContent || '');
+      var staff = me && onPickems ? api('/rest/v1/rpc/is_freshbatch', { method: 'POST', body: {} }).catch(function () { return false; }) : Promise.resolve(false);
+      var picks = me && onPickems ? api('/rest/v1/pickem_picks?select=event,series,winner,win_maps,lose_maps&limit=1000').catch(function () { return []; }) : Promise.resolve([]);
+      var pkEvents = onPickems ? api('/rest/v1/pickem_events?select=id,open,credits_win,credits_exact').catch(function () { return []; }) : Promise.resolve([]);
+      var pkBoard = onPickems ? Promise.all((window.PCMT_PICKEMS || []).map(function (b) {
+        return api('/rest/v1/rpc/pickem_standings', { method: 'POST', body: { p_event: b.id } }).then(function (r) { return [b.id, r || []]; }, function () { return [b.id, []]; });
+      })) : Promise.resolve([]);
+      return Promise.all([decks, profiles, unlocks, vp, multi, admin, packs, mine, catalog, prices, released, staff, picks, pkEvents, pkBoard]);
     }).then(function (res) {
       attachMulti(res[4] || []);
       PRICE_LOG = (res[9] || []).map(function (c) { return { player: c.player, price: c.price == null ? null : +c.price, t: Date.parse(c.changed_at) }; });
@@ -463,6 +486,13 @@
       window.PCMT_MY_CARDS = {};
       window.PCMT_CARD_CATALOG = res[8] || [];
       window.PCMT_RELEASED_RARES = res[10] || null;
+      window.PCMT_IS_STAFF = res[11] === true;
+      window.PCMT_MY_PICKS = {};
+      (res[12] || []).forEach(function (p) { (window.PCMT_MY_PICKS[p.event] = window.PCMT_MY_PICKS[p.event] || {})[p.series] = { winner: p.winner, win: p.win_maps, lose: p.lose_maps }; });
+      window.PCMT_PICKEM_EVENTS = {};
+      (res[13] || []).forEach(function (e) { window.PCMT_PICKEM_EVENTS[e.id] = e; });
+      window.PCMT_PICKEM_STANDINGS = {};
+      (res[14] || []).forEach(function (x) { window.PCMT_PICKEM_STANDINGS[x[0]] = x[1].map(function (r) { return { id: r.user_id, name: r.name, points: r.points, correct: r.correct, exact: r.exact, picked: r.picked, me: !!me && r.user_id === me.id }; }); });
       window.PCMT_MY_IN_DECK = {};   // Rares picked for the MVP VS deck (Library page)
       (res[7] || []).forEach(function (c) { window.PCMT_MY_CARDS[c.card_id] = c.count; if (c.in_deck) window.PCMT_MY_IN_DECK[c.card_id] = true; });
       var decks = res[0] || [], profiles = res[1] || [], unlocks = res[2] || [];
