@@ -150,7 +150,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </div>
 </section>
 
-<section aria-labelledby="st-h" style="width: 100%; max-width: 760px; display: flex; flex-direction: column; gap: 14px">
+<section aria-labelledby="st-h" style="width: 100%; display: flex; flex-direction: column; gap: 14px">
 <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px">
 <h2 id="st-h" style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">[ STANDINGS ]</h2>
 <div style="display: flex; flex-direction: column; gap: 4px; flex: 0 1 300px">
@@ -192,7 +192,6 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </tbody>
 </table>
 </div>
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">Standings update after each series is scored. Results come from PCMT.gg.</span>
 </section>
 
 </div>
@@ -388,7 +387,7 @@ class Component extends DCLogic {
     var self = this, W = window, now = Date.now();
     var b = PCMT_PICKEMS_DATA[0];
     var allowed = !!(W.PCMT_IS_ADMIN || W.PCMT_IS_STAFF || this.props.previewOpen);
-    var ev = (W.PCMT_PICKEM_EVENTS || {})[b.id] || { open: true, credits_win: 20 };
+    var ev = (W.PCMT_PICKEM_EVENTS || {})[b.id] || { open: false, credits_win: 20 };
     // open = false in pickem_events closes it again: then only Freshbatch staff and site admins see the page.
     var locked = !ev.open && !allowed;
     var R = pcmtPickemResolve(b, this.state.picks, now);
