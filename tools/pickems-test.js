@@ -35,6 +35,7 @@ grant usage on schema auth to anon, authenticated;
 grant select on all tables in schema public to anon, authenticated;
 grant insert, update, delete on public.pickem_picks, public.vp_ledger, public.pickem_events to authenticated;`);
 
+sql(`update public.pickem_events set lock_at = null;`);   // tests below run with no bracket lock until it is tested
 check(fails(as(STAFF, `select public.save_pick('emea-s2', 2, 'NATS', 2, 1);`), /hasn't loaded/), 'no picks before the bracket is on the server');
 const first = JSON.parse(ingest(JS));
 check(first.payouts === 0, 'first sync pays nothing (no picks yet)');
@@ -63,6 +64,19 @@ check(fails(as(P1, `insert into public.pickem_picks values ('${P1}', 'emea-s2', 
 check(fails(as(P1, `update public.pickem_events set credits_win = 9999;`)) === false && sql(`select credits_win from public.pickem_events;`).trim() === '20', 'players cannot change the Credits amounts');
 check(fails(as(STAFF, `select public.pickem_ingest('x');`)) && fails(as(P1, `select public.pickem_sync();`)), 'nobody can run the sync or payout from the site');
 check(fails(as(P1, `insert into public.vp_ledger (user_id, kind, amount) values ('${P1}', 'pickem', 500);`)), 'players cannot pay themselves');
+
+// Whole bracket saved at once.
+const sb = (uid, obj) => sql(as(uid, `select public.save_bracket('emea-s2', ${lit(JSON.stringify(obj))}::jsonb);`)).trim();
+check(sb(P1, { 2: 'NATS', 4: 'NATS', 3: 'XTC', 5: 'XTC', 9: 'ATLC', 11: 'SOG', 8: 'SEAL', 10: 'NIP', 12: 'SOG', 13: 'SOG', 14: 'XTC' }) === '11', 'a full bracket saves in one go');
+check(sql(as(P1, `select string_agg(series || winner, ',' order by series) from public.pickem_picks;`)).trim() === '2NATS,3XTC,4NATS,5XTC,8SEAL,9ATLC,10NIP,11SOG,12SOG,13SOG,14XTC', 'saving replaces your earlier picks');
+check(fails(as(P1, `select public.save_bracket('emea-s2', '{"4": "ATLC", "2": "NATS"}'::jsonb);`), /series 4 isn't one of its teams/), 'a pick must follow your own earlier picks');
+check(fails(as(P1, `select public.save_bracket('emea-s2', '{"1": "XTC"}'::jsonb);`), /already played/), 'played series cannot be picked');
+check(fails(as(P1, `select public.save_bracket('emea-s2', '{"3": "NIP"}'::jsonb);`), /isn't one of its teams/), 'a known series only takes its two teams');
+check(sb(P1, {}) === '0' && sql(as(P1, `select count(*) from public.pickem_picks;`)).trim() === '0', 'saving an empty bracket clears your picks');
+sb(P1, { 2: 'ATLC' });
+sql(`update public.pickem_events set lock_at = now() - interval '1 minute';`);
+check(fails(as(P1, `select public.save_bracket('emea-s2', '{"2": "NATS"}'::jsonb);`), /locked until the end/) && fails(as(STAFF, `select public.save_pick('emea-s2', 2, 'NATS', null, null);`), /locked until the end/), 'the whole bracket locks at lock_at, staff included');
+sql(`update public.pickem_events set lock_at = null;`);
 
 // The series starts: picks lock.
 let js2 = edit(JS, 2, { start: '2020-01-01T00:00:00Z' });

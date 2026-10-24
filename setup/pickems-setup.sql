@@ -4,8 +4,8 @@
 --
 --   * The brackets live in pickems.js on the site. pickem_sync() fetches it every hour (minute 37), keeps a copy
 --     in pickem_state, and pays Credits for every finished series.
---   * A pick is the series winner (no score since Oct 24 2026). Each series locks when it starts (its "start" in pickems.js)
---     or once it has a score. Picks are only made through save_pick(); everyone reads only their own.
+--   * A pick is the series winner (no score). The whole bracket locks at pickem_events.lock_at (the start of the next game
+--     when it was set) and stays locked to the end. Picks are saved together with save_bracket(); everyone reads only their own.
 --   * pickem_events: one row per bracket. open = false keeps it to Freshbatch staff and site admins.
 --     credits_win = Credits for the right winner. credits_exact (extra for an exact score) is 0: picks have no score.
 --       update public.pickem_events set open = true where id = 'emea-s2';            -- open it to everyone
@@ -92,7 +92,61 @@ begin
   return out;
 end $$;
 
--- ===================== Making picks =====================
+
+-- ===================== Whole-bracket lock and save (Oct 24 2026) =====================
+-- lock_at: every pick in the bracket locks at this time (the start of the next EMEA game) and stays locked to the end.
+alter table public.pickem_events add column if not exists lock_at timestamptz;
+update public.pickem_events set lock_at = '2026-10-24T17:00:00Z' where id = 'emea-s2' and lock_at is null;
+
+-- Saves your whole bracket at once: p_picks = {"<series n>": "<team code>", ...}. Replaces your earlier picks.
+-- Each pick must be one of the two teams in that series, using the real results and your own earlier picks.
+create or replace function public.save_bracket(p_event text, p_picks jsonb) returns integer
+language plpgsql volatile security definer set search_path = public as $$
+declare
+  u uuid := auth.uid(); ev public.pickem_events; st jsonb; x jsonb; won jsonb := '{}'::jsonb; lost jsonb := '{}'::jsonb;
+  ref_a text; ref_b text; ta text; tb text; pk text; n int; saved int := 0;
+begin
+  if u is null then raise exception 'Log in with Discord to save your picks.'; end if;
+  select * into ev from public.pickem_events where id = p_event;
+  if not found then raise exception 'That bracket doesn''t exist.'; end if;
+  if not ev.open and not public.is_freshbatch() and not exists (select 1 from public.pcmt_admins where user_id = u) then
+    raise exception 'Pick''ems isn''t open yet.';
+  end if;
+  if ev.lock_at is not null and now() >= ev.lock_at then raise exception 'The bracket is locked until the end of the playoffs.'; end if;
+  select data into st from public.pickem_state where event = p_event;
+  if st is null then raise exception 'The bracket hasn''t loaded on the server yet. Try again in an hour.'; end if;
+  if p_picks is null or jsonb_typeof(p_picks) <> 'object' then raise exception 'Nothing to save.'; end if;
+  -- walk the series in order: the real teams where known, else the winners and losers of your own picks
+  for x in select value from jsonb_array_elements(public.pickem_resolve(st)) order by (value ->> 'n')::int loop
+    n := (x ->> 'n')::int;
+    select s ->> 'a', s ->> 'b' into ref_a, ref_b from jsonb_array_elements(st -> 'series') s where (s ->> 'n')::int = n;
+    ta := coalesce(x ->> 'a', case when ref_a ~ '^W\d+$' then won ->> substr(ref_a, 2) when ref_a ~ '^L\d+$' then lost ->> substr(ref_a, 2) end);
+    tb := coalesce(x ->> 'b', case when ref_b ~ '^W\d+$' then won ->> substr(ref_b, 2) when ref_b ~ '^L\d+$' then lost ->> substr(ref_b, 2) end);
+    if x ->> 'winner' is not null then
+      won := won || jsonb_build_object(n::text, x ->> 'winner'); lost := lost || jsonb_build_object(n::text, x ->> 'loser');
+      if p_picks ? n::text then raise exception 'Series % is already played.', n; end if;
+      continue;
+    end if;
+    pk := p_picks ->> n::text;
+    if pk is null then continue; end if;
+    if pk is distinct from ta and pk is distinct from tb then raise exception 'Your pick for series % isn''t one of its teams. Check the bracket and save again.', n; end if;
+    won := won || jsonb_build_object(n::text, pk);
+    if ta is not null and tb is not null then lost := lost || jsonb_build_object(n::text, case when pk = ta then tb else ta end); end if;
+  end loop;
+  if exists (select 1 from jsonb_object_keys(p_picks) k where k !~ '^\d+$' or not exists (
+      select 1 from jsonb_array_elements(st -> 'series') s where (s ->> 'n') = k)) then
+    raise exception 'That series isn''t in the bracket.';
+  end if;
+  delete from public.pickem_picks where user_id = u and event = p_event;
+  insert into public.pickem_picks (user_id, event, series, winner, updated_at)
+    select u, p_event, k::int, p_picks ->> k, now() from jsonb_object_keys(p_picks) k;
+  get diagnostics saved = row_count;
+  return saved;
+end $$;
+revoke all on function public.save_bracket(text, jsonb) from public, anon;
+grant execute on function public.save_bracket(text, jsonb) to authenticated;
+
+-- One pick at a time (older pages): same bracket lock.
 create or replace function public.save_pick(p_event text, p_series integer, p_winner text, p_win integer, p_lose integer)
 returns boolean
 language plpgsql volatile security definer set search_path = public as $$
@@ -104,6 +158,7 @@ begin
   if not ev.open and not public.is_freshbatch() and not exists (select 1 from public.pcmt_admins where user_id = u) then
     raise exception 'Pick''ems isn''t open yet.';
   end if;
+  if ev.lock_at is not null and now() >= ev.lock_at then raise exception 'The bracket is locked until the end of the playoffs.'; end if;
   select data into st from public.pickem_state where event = p_event;
   if st is null then raise exception 'The bracket hasn''t loaded on the server yet. Try again in an hour.'; end if;
   select x into s from jsonb_array_elements(public.pickem_resolve(st)) x where (x ->> 'n')::int = p_series;
@@ -118,10 +173,9 @@ begin
   if s ->> 'a' is not null and s ->> 'b' is not null and p_winner not in (s ->> 'a', s ->> 'b') then
     raise exception 'That team isn''t playing in this series.';
   end if;
-  -- Winner only: p_win and p_lose are kept for older pages and ignored.
   insert into public.pickem_picks (user_id, event, series, winner, win_maps, lose_maps, updated_at)
     values (u, p_event, p_series, p_winner, null, null, now())
-    on conflict (user_id, event, series) do update set winner = excluded.winner, win_maps = excluded.win_maps, lose_maps = excluded.lose_maps, updated_at = now();
+    on conflict (user_id, event, series) do update set winner = excluded.winner, win_maps = null, lose_maps = null, updated_at = now();
   return true;
 end $$;
 revoke all on function public.save_pick(text, integer, text, integer, integer) from public, anon;

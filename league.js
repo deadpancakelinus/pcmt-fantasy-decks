@@ -288,6 +288,16 @@
         if (winner) mine[series] = { winner: winner, win: win, lose: lose }; else delete mine[series];
       });
     },
+    // Saves your whole Pick'ems bracket at once: picks = { <series n>: <team code> }. Replaces your earlier picks.
+    saveBracket: function (event, picks) {
+      if (!me) return Promise.reject(new Error('Log in with Discord to save your picks.'));
+      return refreshIfNeeded().then(function () {
+        return api('/rest/v1/rpc/save_bracket', { method: 'POST', body: { p_event: event, p_picks: picks } });
+      }).then(function () {
+        var mine = window.PCMT_MY_PICKS[event] = {};
+        Object.keys(picks).forEach(function (n) { mine[n] = { winner: picks[n] }; });
+      });
+    },
     // Buys a card pack on the server (it checks the price and your VP, then draws the cards).
     // Resolves to { pack, price, balance, cards: [{ id, player, variant, rarity, region, count, new }] }.
     buyPack: function (packId) {
@@ -469,7 +479,7 @@
       var onPickems = /"data-pcmt-root":"Pickems"/.test((document.getElementById('dc-tree') || {}).textContent || '');
       var staff = me && onPickems ? api('/rest/v1/rpc/is_freshbatch', { method: 'POST', body: {} }).catch(function () { return false; }) : Promise.resolve(false);
       var picks = me && onPickems ? api('/rest/v1/pickem_picks?select=event,series,winner,win_maps,lose_maps&limit=1000').catch(function () { return []; }) : Promise.resolve([]);
-      var pkEvents = onPickems ? api('/rest/v1/pickem_events?select=id,open,credits_win,credits_exact').catch(function () { return []; }) : Promise.resolve([]);
+      var pkEvents = onPickems ? api('/rest/v1/pickem_events?select=id,open,credits_win,credits_exact,lock_at').catch(function () { return api('/rest/v1/pickem_events?select=id,open,credits_win,credits_exact'); }).catch(function () { return []; }) : Promise.resolve([]);
       var pkBoard = onPickems ? Promise.all((window.PCMT_PICKEMS || []).map(function (b) {
         return api('/rest/v1/rpc/pickem_standings', { method: 'POST', body: { p_event: b.id } }).then(function (r) { return [b.id, r || []]; }, function () { return [b.id, []]; });
       })) : Promise.resolve([]);
