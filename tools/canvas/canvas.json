@@ -80,6 +80,15 @@
       "w": 1440,
       "x": 12160,
       "y": 0
+    },
+    "Pickems.dc.html": {
+      "expand": "fill",
+      "h": 2200,
+      "is_interactive": true,
+      "title": "Pick'ems",
+      "w": 1440,
+      "x": 15200,
+      "y": 0
     }
   },
   "createdOnFiles": {
@@ -109,7 +118,8 @@
     "MvpVs.dc.html",
     "Transactions.dc.html",
     "Store.dc.html",
-    "Library.dc.html"
+    "Library.dc.html",
+    "Pickems.dc.html"
   ],
   "pages": [],
   "title": "PCMT Fantasy Decks"
