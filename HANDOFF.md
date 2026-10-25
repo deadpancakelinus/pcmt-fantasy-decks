@@ -73,6 +73,7 @@ Tables: `profiles`, `deck_history` (insert-only, server timestamps, 60/hour limi
 - Favorites, equipped card back and opened packs are stored per device.
 - Supabase free projects pause after a week with no activity.
 - Estimated prices for sovaraa, k9, luna, danaxa, sy.
+- Added Oct 25 2026 from PCMT.gg (stats as of Oct 21): jolly (EPY, 4.0), Ghrf6 (SEAL, 9.0), bi0 (HOT, 6.5), autumn (SOG, 10.5), alet (SOG, 8.5), denial (NATS, 10.0). Prices follow the toxic rating the same way the rest of each region's prices do; jolly's 0.28 over 4 maps puts him at the lowest price. Store cards added live; subs and TheNam3Less1 left out on purpose.
 
 ## 8. Open items
 

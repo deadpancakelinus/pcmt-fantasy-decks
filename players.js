@@ -55,6 +55,7 @@ var PCMT_SITE_PLAYERS = [
   {"id": "apple", "name": "apple", "team": "EPY", "role": "sentinel", "price": 12.5},
   {"id": "robohobo", "name": "robohobo", "team": "EPY", "role": "duelist", "price": 8.0},
   {"id": "latin", "name": "Latineao", "team": "EPY", "role": "initiator", "price": 4.5},
+  {"id": "jolly", "name": "jolly", "team": "EPY", "role": "initiator", "price": 4.0},
   {"id": "nik", "name": "nik", "team": "DFM", "role": "duelist", "price": 9.0},
   {"id": "masao", "name": "masao", "team": "DFM", "role": "initiator", "price": 9.5},
   {"id": "longclaw", "name": "longclaw", "team": "DFM", "role": "controller", "price": 8.5},
@@ -96,11 +97,13 @@ var PCMT_SITE_PLAYERS = [
   {"id": "dovie", "name": "Dovie", "team": "SEAL", "role": "duelist", "price": 7.0},
   {"id": "eva", "name": "Eva", "team": "SEAL", "role": "controller", "price": 6.5},
   {"id": "otaka", "name": "otaka", "team": "SEAL", "role": "duelist", "price": 5.0},
+  {"id": "ghrf6", "name": "Ghrf6", "team": "SEAL", "role": "initiator", "price": 9.0},
   {"id": "shipty", "name": "shipty", "team": "HOT", "role": "initiator", "price": 12.0},
   {"id": "tonnoman", "name": "Tonnoman", "team": "HOT", "role": "controller", "price": 8.5},
   {"id": "sovaraa", "name": "sovaraa", "team": "HOT", "role": "sentinel", "price": 7.0},
   {"id": "hioz", "name": "Hioz", "team": "HOT", "role": "controller", "price": 7.0},
   {"id": "duck", "name": "Duck", "team": "HOT", "role": "duelist", "price": 7.0},
+  {"id": "bi0", "name": "bi0", "team": "HOT", "role": "initiator", "price": 6.5},
   {"id": "kai", "name": "Kai", "team": "NIP", "role": "duelist", "price": 12.5},
   {"id": "pandyro", "name": "Pandyro", "team": "NIP", "role": "controller", "price": 10.0},
   {"id": "sb", "name": "SB", "team": "NIP", "role": "sentinel", "price": 7.5},
@@ -121,6 +124,8 @@ var PCMT_SITE_PLAYERS = [
   {"id": "faye", "name": "faye", "team": "SOG", "role": "controller", "price": 8.5},
   {"id": "magmoz", "name": "magmoz", "team": "SOG", "role": "initiator", "price": 7.0},
   {"id": "charlotte", "name": "Charlotte", "team": "SOG", "role": "sentinel", "price": 5.0},
+  {"id": "autumn", "name": "autumn", "team": "SOG", "role": "duelist", "price": 10.5},
+  {"id": "alet", "name": "alet", "team": "SOG", "role": "duelist", "price": 8.5},
   {"id": "jamit", "name": "Jamit", "team": "NOOT", "role": "sentinel", "price": 12.5},
   {"id": "king", "name": "King", "team": "NOOT", "role": "duelist", "price": 9.5},
   {"id": "taylorgzz", "name": "taylorgzz", "team": "NOOT", "role": "duelist", "price": 8.5},
@@ -130,7 +135,8 @@ var PCMT_SITE_PLAYERS = [
   {"id": "reoken", "name": "reoken", "team": "NATS", "role": "controller", "price": 7.0},
   {"id": "spolen", "name": "Spolen", "team": "NATS", "role": "sentinel", "price": 6.0},
   {"id": "danaxa", "name": "danaxa", "team": "NATS", "role": "initiator", "price": 7.0},
-  {"id": "sy", "name": "sy", "team": "NATS", "role": "duelist", "price": 7.0}
+  {"id": "sy", "name": "sy", "team": "NATS", "role": "duelist", "price": 7.0},
+  {"id": "denial", "name": "denial", "team": "NATS", "role": "initiator", "price": 10.0}
 ];
 var PCMT_SITE_TWIN = {"night": "night-emea", "night-emea": "night"};
 var PCMT_SITE_CHAMPS = {"longclaw": true, "devil": true, "platinum": true, "igneous": true, "james": true, "stingray": true, "faye": true, "charlotte": true, "mide": true, "king": true, "tonnoman": true};
