@@ -4,8 +4,8 @@
 --
 --   * The brackets live in pickems.js on the site. pickem_sync() fetches it every hour (minute 37), keeps a copy
 --     in pickem_state, and pays Credits for every finished series.
---   * A pick is the series winner (no score). The whole bracket locks at pickem_events.lock_at (the start of the next game
---     when it was set) and stays locked to the end. Picks are saved together with save_bracket(); everyone reads only their own.
+--   * A pick is the series winner (no score). The whole bracket locks 6 hours before the next game (pickem_events.lock_at,
+--     saved the first time it applies) and stays locked to the end. Picks are saved together with save_bracket(); everyone reads only their own.
 --   * pickem_events: one row per bracket. open = false keeps it to PCMT Team staff and site admins.
 --     credits_win = Credits for the right winner. credits_exact (extra for an exact score) is 0: picks have no score.
 --       update public.pickem_events set open = true where id = 'emea-s2';            -- open it to everyone
@@ -93,10 +93,39 @@ begin
 end $$;
 
 
+-- ===================== Lock 6 hours before the next game (Oct 25 2026) =====================
+-- The whole bracket locks 6 hours before the earliest series that has a start time and no score yet, and stays locked
+-- for good: the first time that moment is reached, it is saved in pickem_events.lock_at and never moves again.
+-- While no unplayed series has a time, picks stay open.
+create or replace function public.pickem_lock_time(p_bracket jsonb) returns timestamptz
+language sql immutable set search_path = public as $$
+  select min((s ->> 'start')::timestamptz) - interval '6 hours'
+  from jsonb_array_elements(p_bracket -> 'series') s
+  where jsonb_typeof(s -> 'start') = 'string' and jsonb_typeof(s -> 'score') <> 'array'
+$$;
+revoke all on function public.pickem_lock_time(jsonb) from public, anon, authenticated;
+
+-- Saves lock_at for good once the lock time has come (called by the hourly sync and before every save).
+create or replace function public.pickem_check_lock(p_event text) returns timestamptz
+language plpgsql volatile security definer set search_path = public as $$
+declare ev public.pickem_events; st jsonb; t timestamptz;
+begin
+  select * into ev from public.pickem_events where id = p_event for update;
+  if not found or ev.lock_at is not null then return ev.lock_at; end if;
+  select data into st from public.pickem_state where event = p_event;
+  t := public.pickem_lock_time(st);
+  if t is not null and now() >= t then
+    update public.pickem_events set lock_at = t where id = p_event;
+    return t;
+  end if;
+  return null;
+end $$;
+revoke all on function public.pickem_check_lock(text) from public, anon, authenticated;
+
 -- ===================== Whole-bracket lock and save (Oct 24 2026) =====================
--- lock_at: every pick in the bracket locks at this time (the start of the next EMEA game) and stays locked to the end.
+-- lock_at: every pick in the bracket locks at this time and stays locked to the end. Set by pickem_check_lock() (6 hours
+-- before the next game); null = open.
 alter table public.pickem_events add column if not exists lock_at timestamptz;
-update public.pickem_events set lock_at = '2026-10-24T17:00:00Z' where id = 'emea-s2' and lock_at is null;
 
 -- Saves your whole bracket at once: p_picks = {"<series n>": "<team code>", ...}. Replaces your earlier picks.
 -- Each pick must be one of the two teams in that series, using the real results and your own earlier picks.
@@ -112,6 +141,7 @@ begin
   if not ev.open and not public.is_freshbatch() and not exists (select 1 from public.pcmt_admins where user_id = u) then
     raise exception 'Pick''ems isn''t open yet.';
   end if;
+  ev.lock_at := coalesce(ev.lock_at, public.pickem_check_lock(p_event));
   if ev.lock_at is not null and now() >= ev.lock_at then raise exception 'The bracket is locked until the end of the playoffs.'; end if;
   select data into st from public.pickem_state where event = p_event;
   if st is null then raise exception 'The bracket hasn''t loaded on the server yet. Try again in an hour.'; end if;
@@ -158,6 +188,7 @@ begin
   if not ev.open and not public.is_freshbatch() and not exists (select 1 from public.pcmt_admins where user_id = u) then
     raise exception 'Pick''ems isn''t open yet.';
   end if;
+  ev.lock_at := coalesce(ev.lock_at, public.pickem_check_lock(p_event));
   if ev.lock_at is not null and now() >= ev.lock_at then raise exception 'The bracket is locked until the end of the playoffs.'; end if;
   select data into st from public.pickem_state where event = p_event;
   if st is null then raise exception 'The bracket hasn''t loaded on the server yet. Try again in an hour.'; end if;
@@ -213,6 +244,7 @@ begin
     insert into public.pickem_state (event, data, synced_at) values (b ->> 'id', b, p_now)
       on conflict (event) do update set data = excluded.data, synced_at = excluded.synced_at;
     insert into public.pickem_events (id) values (b ->> 'id') on conflict do nothing;
+    perform public.pickem_check_lock(b ->> 'id');
     select * into ev from public.pickem_events where id = b ->> 'id';
     for x in select * from jsonb_array_elements(public.pickem_resolve(b, p_now)) loop
       if x ->> 'winner' is null then continue; end if;

@@ -313,12 +313,13 @@ function pcmtPrunePicks(b, picks) {
   }
   return out;
 }
-// When the whole bracket locks: lock_at from the server, else the start of the next game not played yet.
+// When the whole bracket locks: lock_at from the server once it's set, else 6 hours before the earliest game that has a
+// time and no score yet (same as pickem_lock_time() in setup/pickems-setup.sql). Once locked it stays locked.
 function pcmtBracketLockAt(b, ev) {
   if (ev && ev.lock_at) return Date.parse(ev.lock_at);
   var t = null;
   b.series.forEach(function (s) { if (!s.score && s.start) { var v = Date.parse(s.start); if (t === null || v < t) t = v; } });
-  return t;
+  return t === null ? null : t - 6 * 3600000;
 }
 var PCMT_PICKEM_COLORS = { FaZe: '#f28bd8', ATLC: '#e04848', SEAL: '#8fd3e8', HOT: '#4f8ef7', NIP: '#c2478f', LARP: '#6f8fe0', XTC: '#f0913a', SOG: '#b8814a', NOOT: '#3fb6a8', NATS: '#ef8f8f' };
 function pcmtPickemWhen(iso) {

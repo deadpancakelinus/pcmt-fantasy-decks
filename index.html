@@ -639,7 +639,19 @@ function pcmtWeekLock(now) {
   });
   if (first === null) return { locked: false, until: null, lockAt: null };
   var lockAt = first - PCMT_LOCK_LEAD_H * 3600000;
-  if (now >= lockAt) return { locked: true, until: reopen, lockAt: lockAt };
+  if (now >= lockAt) {
+    // Locked only while the gameweek still has a game to play. Once every game posted for this week has been played
+    // (its result is in, or its time slot is over) and PCMT.gg hasn't posted another one, decks open again.
+    // The deck that counts for this week is still the one saved before the lock; changes made now count from next week.
+    var left = PCMT_NA_MATCHES.some(function (m) {
+      var st = Date.parse(m.start);
+      if (!(st >= b && st < next)) return false;
+      var played = PCMT_RESULTS.some(function (r) { return r.start === m.start && r.a === m.a && r.b === m.b; });
+      return !played && st + (m.hours || 3) * 3600000 > now;
+    });
+    if (!left) return { locked: false, until: null, lockAt: lockAt, weekDone: true };
+    return { locked: true, until: reopen, lockAt: lockAt };
+  }
   return { locked: false, until: null, lockAt: lockAt };
 }
 // Next time squads lock: 12h before the first NA match of whichever gameweek comes next.
@@ -1318,6 +1330,7 @@ class Component extends DCLogic {
     }).filter(Boolean);
     var openWildAll = PCMT_WILD - wildFilled;
     if (weekLocked) statusText = 'Gameweek locked. Deck changes reopen ' + pcmtWhen(wk.until) + '.';
+    else if (wk.weekDone) statusText = 'This gameweek\'s games are done, so decks are open again. Changes you save now count from next gameweek.';
     else if (s.saved) statusText = 'Deck locked in. Edits are open until ' + (wk.lockAt ? pcmtWhen(wk.lockAt) : 'the next match') + '.';
     else if (missing.length) statusText = 'No points until every role is filled. Still need: ' + missing.join(', ') + '.';
     else if (need > 0) statusText = 'Every role is filled. Pick ' + openWildAll + ' more wildcard' + (openWildAll === 1 ? '' : 's') + ' to complete your deck.';

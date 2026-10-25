@@ -346,7 +346,12 @@ class Component extends DCLogic {
     var lockLabel = 'Decks are open';
     if (inWeek.length) {
       var lockAt = Date.parse(inWeek[0].start) - 12 * 36e5;
-      lockLabel = now < lockAt ? 'Decks lock ' + when(new Date(lockAt).toISOString()).split(' · ')[0] : 'Decks locked until Monday';
+      var res = live ? (W.PCMT_RESULTS || []) : [];
+      var left = inWeek.some(function (m) {   // a game this week still to play (no result yet and its time slot not over)
+        var played = res.some(function (r) { return r.start === m.start && r.a === m.a && r.b === m.b; });
+        return !played && Date.parse(m.start) + (m.hours || 3) * 36e5 > now;
+      });
+      lockLabel = now < lockAt ? 'Decks lock ' + when(new Date(lockAt).toISOString()).split(' · ')[0] : left ? 'Decks locked until Monday' : 'Decks are open';
     }
     var results = live ? (W.PCMT_RESULTS || []) : [];
     var last = results.length ? results.slice().sort(function (a, b) { return Date.parse(b.start) - Date.parse(a.start); })[0] : null;

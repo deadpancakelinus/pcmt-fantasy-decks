@@ -10,7 +10,6 @@ const fails = (q, re) => { try { sql(q); return false; } catch (e) { return re ?
 const as = (uid, q) => `set role authenticated; set test.uid = '${uid}'; ${q}`;
 const STAFF = '00000000-0000-0000-0000-0000000000f1', ADMIN = '00000000-0000-0000-0000-00000000000a', P1 = '00000000-0000-0000-0000-000000000001', P2 = '00000000-0000-0000-0000-000000000002';
 const lit = s => "'" + s.replace(/'/g, "''") + "'";
-const JS = fs.readFileSync(__dirname + '/../pickems.js', 'utf8');
 const pick = (uid, n, team, w, l) => sql(as(uid, `select public.save_pick('emea-s2', ${n}, ${team === null ? 'null' : lit(team)}, ${w}, ${l});`)).trim();
 const ingest = js => sql(`select public.pickem_ingest(${lit(js)});`).trim();
 // Changes one series of the bracket file (start / score), like the match check does.
@@ -19,6 +18,9 @@ const edit = (js, n, patch) => {
   Object.assign(data[0].series.find(x => x.n === n), patch);
   return js.slice(0, s) + JSON.stringify(data, null, 2) + js.slice(e);
 };
+// The real bracket, with series 2 (NATS vs ATLC) unplayed and far in the future so the tests control every lock.
+const JS = edit(fs.readFileSync(__dirname + '/../pickems.js', 'utf8'), 2, { start: '2099-01-01T17:00:00Z', score: null });
+const iso = h => new Date(Date.now() + h * 3600000).toISOString();
 
 sql('drop database if exists pktest;', 'postgres'); sql('create database pktest;', 'postgres');
 sql(`create schema auth; create table auth.users (id uuid primary key, raw_user_meta_data jsonb);
@@ -77,6 +79,20 @@ sb(P1, { 2: 'ATLC' });
 sql(`update public.pickem_events set lock_at = now() - interval '1 minute';`);
 check(fails(as(P1, `select public.save_bracket('emea-s2', '{"2": "NATS"}'::jsonb);`), /locked until the end/) && fails(as(STAFF, `select public.save_pick('emea-s2', 2, 'NATS', null, null);`), /locked until the end/), 'the whole bracket locks at lock_at, staff included');
 sql(`update public.pickem_events set lock_at = null;`);
+
+// 6 hours before the next game the whole bracket locks for good.
+let js6 = edit(JS, 2, { start: iso(7) });
+ingest(js6);
+check(sb(P1, { 2: 'NATS' }) === '1' && sql(`select coalesce(lock_at::text, 'none') from public.pickem_events;`).trim() === 'none', 'more than 6 hours before the next game, picks are open');
+js6 = edit(JS, 2, { start: iso(5) });
+ingest(js6);
+check(fails(as(P1, `select public.save_bracket('emea-s2', '{"2": "ATLC"}'::jsonb);`), /locked until the end/), 'within 6 hours of the next game the bracket locks');
+const lockAt = sql(`select lock_at from public.pickem_events;`).trim();
+check(sql(`select abs(extract(epoch from lock_at - (now() - interval '1 hour'))) < 120 from public.pickem_events;`).trim() === 't', 'the lock time saved is 6 hours before the game');
+ingest(edit(JS, 2, { start: iso(72) }));
+check(sql(`select lock_at from public.pickem_events;`).trim() === lockAt && fails(as(STAFF, `select public.save_pick('emea-s2', 2, 'NATS', null, null);`), /locked until the end/), 'once locked it stays locked, even if the game moves later');
+sql(`update public.pickem_events set lock_at = null;`);
+sql(`delete from public.pickem_picks where user_id = '${P1}';`); sb(P1, { 2: 'ATLC' });
 
 // The series starts: picks lock.
 let js2 = edit(JS, 2, { start: '2020-01-01T00:00:00Z' });
