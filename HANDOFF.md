@@ -188,3 +188,6 @@ Tables: `profiles`, `deck_history` (insert-only, server timestamps, 60/hour limi
 - Freshbatch is no longer part of the site. Everything players and staff see says **PCMT Team** instead: page footers ("A PCMT product"), the link preview ("Pickems, Fantasy League and more. Built by PCMT Team"), the Home thank-you message, Batch Note signatures, the backend ("PCMT Team backend", "PCMT Team staff list") and the database's "PCMT Team staff only." messages.
 - Removed: the Freshbatch credits window (freshbatch.js) and media/freshbatch-intro.mp4 (the backend sign-in window no longer plays a video).
 - Internal names stay as they were so nothing breaks: the `freshbatch_staff` table, `is_freshbatch()`, `freshbatch_settings`, the `fb_*` functions and the `fb-unlocked` session key. They mean "PCMT Team staff".
+
+## 18. Credits window (Oct 25 2026)
+Clicking **PCMT** in the footer line "A PCMT product" opens a glass Credits panel (Esc, the × or a click outside closes it). It lives at the end of `tools/league.js` (copied to `league.js`), so it works on every page that loads league.js with no rebuild. Names are in the `NAMES` list there and sort A–Z on their own.

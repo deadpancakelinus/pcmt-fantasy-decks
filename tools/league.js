@@ -622,3 +622,75 @@
   }
   window.PCMT_LEAGUE_READY = load();
 })();
+
+/* Credits window: clicking "PCMT" in the footer's "A PCMT product" line opens a glass panel with the team. */
+(function () {
+  'use strict';
+  var NAMES = ['Night', 'Ronnie', 'Toxic', 'Sting', 'Linus', 'Clutch', 'Mark', 'Oddlqt']
+    .sort(function (a, b) { return a.toLowerCase() < b.toLowerCase() ? -1 : 1; });
+  var css = document.createElement('style');
+  css.textContent =
+    'footer b.pcmt-credits-link{cursor:pointer;border-bottom:1px dotted #a5dcdd;transition:color .15s}' +
+    'footer b.pcmt-credits-link:hover,footer b.pcmt-credits-link:focus-visible{color:#a5dcdd!important;outline:none}' +
+    '.pcmt-cr-back{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;' +
+    'background:rgba(6,10,12,.45);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);opacity:0;transition:opacity .2s}' +
+    '.pcmt-cr-back.on{opacity:1}' +
+    '.pcmt-cr{position:relative;width:100%;max-width:420px;box-sizing:border-box;padding:30px 28px 26px;border-radius:20px;color:#eaf4f4;' +
+    'background:linear-gradient(145deg,rgba(165,220,221,.16),rgba(255,255,255,.04) 45%,rgba(165,220,221,.07));' +
+    'border:1px solid rgba(255,255,255,.18);box-shadow:0 24px 60px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.22);' +
+    '-webkit-backdrop-filter:blur(22px) saturate(160%);backdrop-filter:blur(22px) saturate(160%);' +
+    'transform:translateY(10px) scale(.98);transition:transform .2s;font-family:"Space Grotesk",system-ui,sans-serif}' +
+    '.pcmt-cr-back.on .pcmt-cr{transform:none}' +
+    '.pcmt-cr-k{margin:0 0 6px;font:12px "JetBrains Mono",monospace;letter-spacing:.14em;text-transform:uppercase;color:#a5dcdd}' +
+    '.pcmt-cr h2{margin:0 0 20px;font:400 34px/1.05 "Cabin Sketch","Space Grotesk",sans-serif;color:#fff}' +
+    '.pcmt-cr ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:8px}' +
+    '.pcmt-cr li{padding:11px 14px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);font-size:16px;font-weight:600}' +
+    '.pcmt-cr-f{margin:20px 0 0;font:11px "JetBrains Mono",monospace;color:#93a9aa;text-align:center}' +
+    '.pcmt-cr-x{position:absolute;top:14px;right:14px;width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.18);' +
+    'background:rgba(255,255,255,.08);color:#eaf4f4;font-size:18px;line-height:1;cursor:pointer}' +
+    '.pcmt-cr-x:hover,.pcmt-cr-x:focus-visible{background:rgba(165,220,221,.25);outline:none}' +
+    '@media (prefers-reduced-motion:reduce){.pcmt-cr-back,.pcmt-cr{transition:none}}';
+  (document.head || document.documentElement).appendChild(css);
+
+  var open = null, back = null;
+  function isLink(el) { return el && el.tagName === 'B' && el.closest && el.closest('footer') && el.textContent.trim() === 'PCMT'; }
+  function mark() {
+    var bs = document.querySelectorAll('footer b');
+    for (var i = 0; i < bs.length; i++) if (isLink(bs[i]) && !bs[i].classList.contains('pcmt-credits-link')) {
+      bs[i].classList.add('pcmt-credits-link'); bs[i].setAttribute('role', 'button'); bs[i].setAttribute('tabindex', '0');
+      bs[i].setAttribute('aria-haspopup', 'dialog'); bs[i].title = 'Credits';
+    }
+  }
+  function close() {
+    if (!open) return;
+    var el = open, from = back; open = null; back = null;
+    el.classList.remove('on'); setTimeout(function () { el.remove(); }, 200);
+    document.removeEventListener('keydown', onKey, true);
+    if (from && from.focus) from.focus();
+  }
+  function onKey(e) {
+    if (e.key === 'Escape') { e.preventDefault(); close(); }
+    else if (e.key === 'Tab') { e.preventDefault(); open.querySelector('.pcmt-cr-x').focus(); }
+  }
+  function show(from) {
+    if (open) return;
+    back = from;
+    var wrap = document.createElement('div');
+    wrap.className = 'pcmt-cr-back';
+    wrap.innerHTML = '<div class="pcmt-cr" role="dialog" aria-modal="true" aria-labelledby="pcmt-cr-t">' +
+      '<button type="button" class="pcmt-cr-x" aria-label="Close">&times;</button>' +
+      '<p class="pcmt-cr-k">A PCMT product</p><h2 id="pcmt-cr-t">Credits</h2><ul></ul>' +
+      '<p class="pcmt-cr-f">fantasy.pcmt.gg · Plat Chat Members Tourney</p></div>';
+    var ul = wrap.querySelector('ul');
+    NAMES.forEach(function (n) { var li = document.createElement('li'); li.textContent = n; ul.appendChild(li); });
+    wrap.addEventListener('click', function (e) { if (e.target === wrap || e.target.closest('.pcmt-cr-x')) close(); });
+    document.body.appendChild(wrap);
+    open = wrap;
+    document.addEventListener('keydown', onKey, true);
+    requestAnimationFrame(function () { wrap.classList.add('on'); wrap.querySelector('.pcmt-cr-x').focus(); });
+  }
+  document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('b'); if (isLink(b)) { e.preventDefault(); show(b); } });
+  document.addEventListener('keydown', function (e) { if ((e.key === 'Enter' || e.key === ' ') && isLink(e.target)) { e.preventDefault(); show(e.target); } });
+  function watch() { mark(); new MutationObserver(mark).observe(document.body, { childList: true, subtree: true }); }
+  if (document.body) watch(); else document.addEventListener('DOMContentLoaded', watch);
+})();
