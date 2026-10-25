@@ -34,21 +34,21 @@ check(sql(`select string_agg(price::text, ',') from public.card_packs`).trim() =
 check(fails(as(P1, `update public.card_packs set price = 0;`)) || sql(`select string_agg(coalesce(price::text,'null'), ',') from public.card_packs`).trim() === 'null,null,null,null,null', 'a player cannot set the price');
 sql(as(ADMIN, `update public.card_packs set price = 0;`));
 check(sql(`select string_agg(price::text, ',') from public.card_packs`).trim() === '0,0,0,0,0', 'an admin can set the price');
-{ // Freshbatch staff price packs on the backend and can test-buy before launch, like admins
+{ // PCMT Team staff price packs on the backend and can test-buy before launch, like admins
   const STAFF = '00000000-0000-0000-0000-0000000000f1';
   sql(`insert into auth.users (id) values ('${STAFF}'); insert into public.freshbatch_staff (user_id) values ('${STAFF}');`);
   sql(as(STAFF, `update public.card_packs set price = 7 where id = 'na-pack';`));
-  check(sql(`select price from public.card_packs where id = 'na-pack';`).trim() === '7', 'Freshbatch staff can set a pack price');
+  check(sql(`select price from public.card_packs where id = 'na-pack';`).trim() === '7', 'PCMT Team staff can set a pack price');
   sql(as(P1, `update public.card_packs set price = 1 where id = 'na-pack';`));
   check(sql(`select price from public.card_packs where id = 'na-pack';`).trim() === '7', 'players cannot change pack prices');
   sql(as(STAFF, `update public.card_packs set price = 0 where id = 'na-pack';`));
-  check(sql(as(STAFF, `select jsonb_array_length(public.buy_pack('na-pack') -> 'cards');`)).trim() === '5', 'Freshbatch staff can test-buy a pack before it opens to everyone');
+  check(sql(as(STAFF, `select jsonb_array_length(public.buy_pack('na-pack') -> 'cards');`)).trim() === '5', 'PCMT Team staff can test-buy a pack before it opens to everyone');
   // Rare cards start unreleased: packs give only Commons until staff release them on the backend
   check(sql(`select count(*) from public.cards where rarity <> 'common' and released;`).trim() === '0' && sql(`select count(*) from public.cards where rarity = 'common' and not released;`).trim() === '0',
     'every Rare starts unreleased; every Common is released');
   const held = sql(as(STAFF, `select string_agg(distinct c ->> 'rarity', ',') from generate_series(1, 120) g, lateral jsonb_array_elements(public.buy_pack(case g % 4 when 0 then 'na-pack' when 1 then 'nas1-pack' when 2 then 'nas2-pack' else 'emeas1-pack' end) -> 'cards') c;`)).trim();
   check(held === 'common', 'unreleased Rares can never be pulled (600 cards from four packs: ' + held + ')');
-  check(fails(as(P1, `select public.fb_release_card('v:teklo-variant', true);`), /staff only/) && fails(`set role anon; select public.fb_release_card('v:teklo-variant', true);`), 'only Freshbatch staff can release a card');
+  check(fails(as(P1, `select public.fb_release_card('v:teklo-variant', true);`), /staff only/) && fails(`set role anon; select public.fb_release_card('v:teklo-variant', true);`), 'only PCMT Team staff can release a card');
   check(fails(as(STAFF, `select public.fb_release_card('c:claps', false);`), /always released/), 'Commons cannot be held back');
   sql(as(STAFF, `select public.fb_release_card('v:teklo-variant', true);`));
   check(sql(`select released from public.cards where id = 'v:teklo-variant';`).trim() === 't', 'staff can release a Rare card');

@@ -105,7 +105,7 @@
   var PLAYERS = window.PCMT_SITE_PLAYERS || [];
   var BY_ID = {};
   PLAYERS.forEach(function (p) { BY_ID[p.id] = p; });
-  // Prices: players.js has the starting price; price changes made on the Freshbatch backend (player_price_changes)
+  // Prices: players.js has the starting price; price changes made on the PCMT Team backend (player_price_changes)
   // are loaded below. A deck's budget is checked with the prices from when it was saved (same as the VP payout).
   var BASE_PRICE = {}, PRICE_LOG = [];   // PRICE_LOG: [{ player, price (null = back to players.js), t }], oldest first
   PLAYERS.forEach(function (p) { BASE_PRICE[p.id] = p.price; });

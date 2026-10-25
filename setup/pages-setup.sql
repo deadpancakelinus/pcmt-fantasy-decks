@@ -30,7 +30,7 @@ create or replace function public.fb_launch_page(p_page text) returns text
 language plpgsql volatile security definer set search_path = public as $$
 declare pg public.site_pages;
 begin
-  if not public.is_freshbatch() then raise exception 'Freshbatch staff only.'; end if;
+  if not public.is_freshbatch() then raise exception 'PCMT Team staff only.'; end if;
   select * into pg from public.site_pages where id = p_page for update;
   if not found then raise exception 'That page isn''t on the launch list.'; end if;
   if pg.launched then return pg.name || ' is already live.'; end if;

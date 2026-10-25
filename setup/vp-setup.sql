@@ -43,7 +43,7 @@ create policy "see own admin row" on public.pcmt_admins for select using (auth.u
 -- To make someone an admin, run (their account id is shown on admin.html):
 --   insert into public.pcmt_admins (user_id) values ('<account id>') on conflict do nothing;
 
--- Freshbatch staff (the people who run the site): they use backend.html. Add someone with
+-- PCMT Team staff (the people who run the site): they use backend.html. Add someone with
 --   insert into public.freshbatch_staff (user_id) values ('<account id>') on conflict do nothing;
 create table if not exists public.freshbatch_staff (
   user_id uuid primary key references auth.users (id) on delete cascade,

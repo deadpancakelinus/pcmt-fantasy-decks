@@ -1,4 +1,4 @@
-// Checks the Freshbatch backend's database rules (setup/backend-setup.sql) in a throwaway Postgres database:
+// Checks the PCMT Team backend's database rules (setup/backend-setup.sql) in a throwaway Postgres database:
 // staff-only price changes and card counts, 4Ks/5Ks for staff, and that a deck is checked against the prices
 // from when it was saved (the VP payout and league.js must agree).
 //   node tools/backend-test.js <psql command, e.g. "psql -h /tmp/pg -p 5499 -U postgres"> <built players.js>
@@ -105,9 +105,9 @@ check(+at(new Date(Date.now() + 60000).toISOString()) === cheapest.price, 'a res
 check(sql(`set role anon; select coalesce(public.fb_page_unlock('anything')::text, 'none');`).trim() === 'none', 'no page password set yet: the page says so');
 check(fails(`set role anon; select public.fb_set_page_password('hunter2hunter2');`) && fails(as(STAFF, `select public.fb_set_page_password('hunter2hunter2');`)), 'nobody can set the page password from the site');
 check(fails(`select public.fb_set_page_password('short');`, /8 characters/), 'the page password needs at least 8 characters');
-sql(`select public.fb_set_page_password('fresh batch 2026');`);
-check(sql(`set role anon; select public.fb_page_unlock('fresh batch 2026');`).trim() === 't' && sql(`set role anon; select public.fb_page_unlock('wrong one');`).trim() === 'f', 'the right page password unlocks, a wrong one does not');
-check(!/fresh batch 2026/.test(sql(`select value from public.freshbatch_settings;`)) && fails(`set role anon; select * from public.freshbatch_settings;`) === false && sql(`set role anon; select count(*) from public.freshbatch_settings;`).trim() === '0', 'only a hash is stored, and the site cannot read it');
+sql(`select public.fb_set_page_password('pcmt team 2026');`);
+check(sql(`set role anon; select public.fb_page_unlock('pcmt team 2026');`).trim() === 't' && sql(`set role anon; select public.fb_page_unlock('wrong one');`).trim() === 'f', 'the right page password unlocks, a wrong one does not');
+check(!/pcmt team 2026/.test(sql(`select value from public.freshbatch_settings;`)) && fails(`set role anon; select * from public.freshbatch_settings;`) === false && sql(`set role anon; select count(*) from public.freshbatch_settings;`).trim() === '0', 'only a hash is stored, and the site cannot read it');
 
 // ---- comments and complaints ----
 const words = n => Array.from({ length: n }, (_, i) => 'word' + i).join(' ');

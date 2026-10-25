@@ -11,7 +11,7 @@
 --     takes the VP, draws the cards with the odds, and saves them. Nothing in the browser can pick cards.
 --   * If a drawn rarity has no cards yet (e.g. no Legendary cards exist), the card drops to the next tier down.
 --   * Duplicates are kept: user_cards counts how many of each card a player owns.
---   * Until a pack is opened to everyone (open_to_all on backend.html), only admins and Freshbatch staff can buy it, to test.
+--   * Until a pack is opened to everyone (open_to_all on backend.html), only admins and PCMT Team staff can buy it, to test.
 
 -- ===================== Tables =====================
 create table if not exists public.cards (
@@ -27,7 +27,7 @@ create table if not exists public.cards (
 alter table public.cards add column if not exists region text not null default 'NA' check (region in ('NA', 'EMEA'));
 alter table public.cards add column if not exists season text;
 -- released: only released cards can be pulled from packs. Commons are always released; Rare (and up) cards start
--- unreleased and are released one by one by Freshbatch staff on backend.html (Rare cards tab).
+-- unreleased and are released one by one by PCMT Team staff on backend.html (Rare cards tab).
 do $$ begin
   if not exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'cards' and column_name = 'released') then
     alter table public.cards add column released boolean not null default false;
@@ -137,12 +137,12 @@ end $$;
 revoke all on function public.buy_pack(text) from public, anon;
 grant execute on function public.buy_pack(text) to authenticated;
 
--- Release (or hold back) a Rare-or-up card: Freshbatch staff only, from backend.html. Commons are always released.
+-- Release (or hold back) a Rare-or-up card: PCMT Team staff only, from backend.html. Commons are always released.
 create or replace function public.fb_release_card(p_card text, p_released boolean) returns boolean
 language plpgsql security definer set search_path = public as $$
 declare r text;
 begin
-  if not public.is_freshbatch() then raise exception 'Freshbatch staff only.'; end if;
+  if not public.is_freshbatch() then raise exception 'PCMT Team staff only.'; end if;
   select rarity into r from public.cards where id = p_card;
   if r is null then raise exception 'No card %.', p_card; end if;
   if r = 'common' then raise exception 'Common cards are always released.'; end if;

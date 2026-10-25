@@ -1,4 +1,4 @@
--- PCMT Fantasy Decks: the Freshbatch backend (backend.html).
+-- PCMT Fantasy Decks: the PCMT Team backend (backend.html).
 -- Paste this whole file into Supabase → SQL Editor → New query → Run. Safe to run more than once.
 -- Needs setup/vp-setup.sql (staff list, VP) and setup/cards-setup.sql (cards) first.
 --
@@ -40,7 +40,7 @@ create trigger player_price_stamp before insert on public.player_price_changes
 create or replace function public.fb_card_counts() returns table (card_id text, copies bigint, owners bigint)
 language plpgsql stable security definer set search_path = public as $$
 begin
-  if not public.is_freshbatch() then raise exception 'Freshbatch staff only.'; end if;
+  if not public.is_freshbatch() then raise exception 'PCMT Team staff only.'; end if;
   return query select uc.card_id, sum(uc.count)::bigint, count(distinct uc.user_id)::bigint from public.user_cards uc group by uc.card_id;
 end $$;
 revoke all on function public.fb_card_counts() from public, anon;

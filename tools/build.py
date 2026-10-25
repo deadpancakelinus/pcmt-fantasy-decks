@@ -177,12 +177,12 @@ for board, outname in PAGES.items():
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
-<meta name="description" content="Pickems, Fantasy League and more. Built by Freshbatch">
+<meta name="description" content="Pickems, Fantasy League and more. Built by PCMT Team">
 <meta property="og:title" content="fantasy.pcmt.gg">
-<meta property="og:description" content="Pickems, Fantasy League and more. Built by Freshbatch">
+<meta property="og:description" content="Pickems, Fantasy League and more. Built by PCMT Team">
 <meta property="og:type" content="website">
 <meta name="twitter:title" content="fantasy.pcmt.gg">
-<meta name="twitter:description" content="Pickems, Fantasy League and more. Built by Freshbatch">
+<meta name="twitter:description" content="Pickems, Fantasy League and more. Built by PCMT Team">
 <link rel="icon" href="assets/{os.path.basename(blob_map['3bf9d529cabff94109b561693539029f'])}">
 {fix_refs(helmet).strip()}
 </head>
@@ -192,7 +192,6 @@ for board, outname in PAGES.items():
 <script type="application/json" id="dc-props">{json.dumps(props)}</script>
 <script type="text/plain" id="dc-logic">{logic}</script>
 {data_tag}<script src="dc-lite.js"></script>
-<script src="freshbatch.js"></script>
 </body>
 </html>
 '''
@@ -209,7 +208,7 @@ open(os.path.join(OUT, 'variant-art.js'), 'w', encoding='utf-8').write(
     'var PCMT_VARIANT_ART_MAP = ' + fix_refs(_obj('PCMT_VARIANT_ART')) + ';\n'
     'var PCMT_VARIANT_ART_CHAMP = ' + fix_refs(_obj('PCMT_VARIANT_ART_CHAMPS')) + ';\n'
     'var PCMT_VARIANT_SERIES = ' + json.dumps(_series) + ';\n')
-for f in ('dc-lite.js', 'league.js', 'freshbatch.js'):
+for f in ('dc-lite.js', 'league.js'):
     shutil.copy(os.path.join(os.path.dirname(os.path.abspath(__file__)), f), os.path.join(OUT, f))
 open(os.path.join(OUT, '_headers'), 'w').write('/*.js\n  Cache-Control: no-cache\n/*.html\n  Cache-Control: no-cache\n')
 print('done')

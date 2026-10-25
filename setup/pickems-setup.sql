@@ -6,7 +6,7 @@
 --     in pickem_state, and pays Credits for every finished series.
 --   * A pick is the series winner (no score). The whole bracket locks at pickem_events.lock_at (the start of the next game
 --     when it was set) and stays locked to the end. Picks are saved together with save_bracket(); everyone reads only their own.
---   * pickem_events: one row per bracket. open = false keeps it to Freshbatch staff and site admins.
+--   * pickem_events: one row per bracket. open = false keeps it to PCMT Team staff and site admins.
 --     credits_win = Credits for the right winner. credits_exact (extra for an exact score) is 0: picks have no score.
 --       update public.pickem_events set open = true where id = 'emea-s2';            -- open it to everyone
 --       update public.pickem_events set credits_win = 20 where id = 'emea-s2';

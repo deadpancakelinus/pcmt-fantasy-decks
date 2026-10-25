@@ -130,11 +130,9 @@
   .cx-body { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.55; color: var(--soft); }
   .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   @media (max-width: 520px) { .field input, .field select { min-width: 0; width: 100%; } .field { flex: 1 1 100%; } }
-  /* Sign-in window: Freshbatch intro, page password, then Discord */
+  /* Sign-in window: page password, then Discord */
   .gate { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 16px; background: rgba(0, 0, 0, .72); backdrop-filter: blur(6px); }
   .gate-win { width: min(560px, 100%); max-height: calc(100vh - 32px); overflow: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 24px 80px rgba(0, 0, 0, .6); }
-  .gate-film { position: relative; aspect-ratio: 16 / 9; background: #f7ecdc; border-radius: 15px 15px 0 0; overflow: hidden; }
-  .gate-film video { display: block; width: 100%; height: 100%; object-fit: cover; }
   .gate-body { padding: 22px; display: flex; flex-direction: column; gap: 14px; }
   .gate-body h2 { margin: 0; font: 700 30px/1.05 'Cabin Sketch', cursive; }
   .gate-body form { display: flex; flex-wrap: wrap; gap: 10px; }
@@ -145,11 +143,8 @@
 <body>
 <div class="gate" id="gate" role="dialog" aria-modal="true" aria-labelledby="gate-title">
   <div class="gate-win">
-    <div class="gate-film">
-      <video id="gate-video" src="media/freshbatch-intro.mp4" muted loop playsinline preload="auto" aria-label="Freshbatch intro"></video>
-    </div>
     <div class="gate-body" id="gate-pw">
-      <h2 id="gate-title">Freshbatch backend</h2>
+      <h2 id="gate-title">PCMT Team backend</h2>
       <p class="msg">Staff only. Enter the page password to continue.</p>
       <form id="pw-form" autocomplete="off">
         <label class="sr" for="pw">Page password</label>
@@ -160,7 +155,7 @@
     </div>
     <div class="gate-body" id="gate-login" hidden>
       <h2>Log in</h2>
-      <p class="msg">Log in with your Discord account. Only accounts on the Freshbatch staff list get in.</p>
+      <p class="msg">Log in with your Discord account. Only accounts on the PCMT Team staff list get in.</p>
       <div><button class="btn discord" id="login" type="button">Log in with Discord</button></div>
     </div>
   </div>
@@ -168,7 +163,7 @@
 <header>
 <div class="top">
   <a class="brand" href="index.html">fantasy.pcmt.gg</a>
-  <span class="badge">Freshbatch backend</span>
+  <span class="badge">PCMT Team backend</span>
   <span class="spacer"></span>
   <span class="who mono" id="who" hidden></span>
 </div>
@@ -177,14 +172,14 @@
 <main>
   <div>
     <h1>Backend</h1>
-    <p class="sub">For Freshbatch staff only. Pages waiting for launch, player prices, every card and who owns it, the Rare cards waiting to be released, card pack prices, the 4Ks and 5Ks for each series, and the comments and complaints sent from the Home page.</p>
+    <p class="sub">For PCMT Team staff only. Pages waiting for launch, player prices, every card and who owns it, the Rare cards waiting to be released, card pack prices, the 4Ks and 5Ks for each series, and the comments and complaints sent from the Home page.</p>
   </div>
 
   <section class="panel" id="st-loading" role="status"><p class="msg">Locked. Enter the page password to continue.</p></section>
 
   <section class="panel" id="st-nostaff" hidden>
     <span class="kicker">Not on the staff list</span>
-    <p class="msg">This Discord account isn't on the Freshbatch staff list. Ask a Freshbatch admin to add it, using this account id:</p>
+    <p class="msg">This Discord account isn't on the PCMT Team staff list. Ask a PCMT Team admin to add it, using this account id:</p>
     <code id="staff-sql"></code>
     <div class="bar"><button class="btn ghost" id="copy-sql" type="button">Copy</button><button class="btn ghost" id="logout2" type="button">Log out</button></div>
   </section>
@@ -278,7 +273,7 @@
 
     <!-- ===== Card packs ===== -->
     <section class="pane" role="tabpanel" id="pane-packs" aria-labelledby="tab-packs" hidden>
-      <p class="note">Set each pack's price in Credits. While "Open to everyone" is off, only Freshbatch staff and site admins can buy it, so you can test (a price of 0 is free). Odds and what's in each pack come from <span class="mono">tools/cards.py</span>.</p>
+      <p class="note">Set each pack's price in Credits. While "Open to everyone" is off, only PCMT Team staff and site admins can buy it, so you can test (a price of 0 is free). Odds and what's in each pack come from <span class="mono">tools/cards.py</span>.</p>
       <div class="sheet"><table class="grid">
         <thead><tr><th class="plain">Pack</th><th class="plain">Odds per card</th><th class="plain num">Price (Credits)</th><th class="plain num">Open to everyone</th></tr></thead>
         <tbody id="pk-rows"></tbody>
@@ -316,7 +311,7 @@
   </div>
 </main>
 
-<footer><div><span>fantasy.pcmt.gg · Plat Chat Members Tourney</span><span>Freshbatch backend</span></div><p style="max-width: 1280px; margin: 0 auto; padding: 0 24px 22px; font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.6; color: #93a9aa"><span style="display: block; margin-bottom: 6px; font-size: 12px; color: #c4d4d4">A <button type="button" data-freshbatch="1" aria-haspopup="dialog" style="font: inherit; font-weight: 700; color: #eaf4f4; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px">Freshbatch</button> product</span>fantasy.pcmt.gg was created under Riot Games' <a href="https://www.riotgames.com/en/legal" target="_blank" rel="noopener" style="color: #a5dcdd">&quot;Legal Jibber Jabber&quot;</a> policy using assets owned by Riot Games. Riot Games does not endorse or sponsor this project.</p></footer>
+<footer><div><span>fantasy.pcmt.gg · Plat Chat Members Tourney</span><span>PCMT Team backend</span></div><p style="max-width: 1280px; margin: 0 auto; padding: 0 24px 22px; font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.6; color: #93a9aa"><span style="display: block; margin-bottom: 6px; font-size: 12px; color: #c4d4d4">A <b style="font-weight: 700; color: #eaf4f4">PCMT Team</b> product</span>fantasy.pcmt.gg was created under Riot Games' <a href="https://www.riotgames.com/en/legal" target="_blank" rel="noopener" style="color: #a5dcdd">&quot;Legal Jibber Jabber&quot;</a> policy using assets owned by Riot Games. Riot Games does not endorse or sponsor this project.</p></footer>
 
 <script src="data.js"></script>
 <script src="players.js"></script>
@@ -760,27 +755,18 @@
     (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { b.textContent = 'Copied'; }, function () { b.textContent = 'Select the text and copy it'; });
   });
 
-  var gate = $('gate'), film = $('gate-video'), behind = document.querySelectorAll('header, main');
+  var gate = $('gate'), behind = document.querySelectorAll('header, main');
   function lockPage(on) { behind.forEach(function (el) { if (on) el.setAttribute('inert', ''); else el.removeAttribute('inert'); }); }
-  function playFilm() {
-    if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) {   // no motion: show the logo frame
-      film.addEventListener('loadedmetadata', function () { film.currentTime = Math.max(0, film.duration - 0.05); }, { once: true });
-      return;
-    }
-    film.muted = true;   // no sound; it loops while the window is open
-    var p = film.play();
-    if (p && p.catch) p.catch(function () {});
-  }
   function openGate(step) {
     gate.hidden = false; lockPage(true);
     $('gate-pw').hidden = step !== 'pw'; $('gate-login').hidden = step !== 'login';
     (step === 'pw' ? $('pw') : $('login')).focus();
   }
-  function closeGate() { gate.hidden = true; lockPage(false); film.pause(); }
+  function closeGate() { gate.hidden = true; lockPage(false); }
   function unlocked() { try { return sessionStorage.getItem('fb-unlocked') === '1'; } catch (e) { return false; } }
 
   var ready = window.PCMT_LEAGUE_READY || Promise.resolve();
-  lockPage(true); playFilm();
+  lockPage(true);
   $('pw').focus();
   $('pw-form').addEventListener('submit', function (e) {
     e.preventDefault();
@@ -834,6 +820,5 @@
   }
 })();
 </script>
-<script src="freshbatch.js"></script>
 </body>
 </html>
