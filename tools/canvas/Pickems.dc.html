@@ -368,6 +368,7 @@ class Component extends DCLogic {
   componentWillUnmount() {
     clearTimeout(this._loaderCap); clearTimeout(this._loaderMin); clearTimeout(this._loaderFade); clearTimeout(this._loaderBuf); clearTimeout(this._loaderNav); clearTimeout(this._navHide);
     if (this._navClick) document.removeEventListener('click', this._navClick, true);
+    clearTimeout(this._draftT);
     if (this._pageWillUnmount) this._pageWillUnmount();
   }
 
@@ -407,21 +408,44 @@ class Component extends DCLogic {
   }
 
   // Tapping a team picks it (tapping your pick again clears it). Picks that can't happen any more are dropped.
-  // Nothing is sent until Save.
+  // Save needs a pick for every series still to play. Picks are also kept on the server as you tap (a draft,
+  // a moment after the last tap), so if you never press Save, the bracket locks as it is when picks close.
   choose(eventId, n, winner) {
     var picks = Object.assign({}, this.state.picks);
     if (!winner || (picks[n] && picks[n].winner === winner)) delete picks[n]; else picks[n] = { winner: winner };
-    this.setState({ picks: pcmtPrunePicks(PCMT_PICKEMS_DATA[0], picks) });
+    picks = pcmtPrunePicks(PCMT_PICKEMS_DATA[0], picks);
+    this.setState({ picks: picks });
+    this.draft(picks);
+  }
+
+  // Unplayed series sent to the server (played ones never are).
+  sendable(picks) {
+    var map = pcmtPickMap(picks), played = pcmtPickemResolve(PCMT_PICKEMS_DATA[0], {}, 0);
+    Object.keys(map).forEach(function (n) { if (played[n] && played[n].done) delete map[n]; });
+    return map;
+  }
+
+  draft(picks) {
+    var self = this, L = window.PCMT_LEAGUE;
+    clearTimeout(this._draftT);
+    if (!L || !L.signedIn) return;
+    this._draftT = setTimeout(function () {
+      var map = self.sendable(picks), key = JSON.stringify(map);
+      if (key === self._drafted) return;
+      L.saveBracket(PCMT_PICKEMS_DATA[0].id, map).then(function () { self._drafted = key; }, function () {});
+    }, 1200);
   }
 
   save() {
     var self = this, L = window.PCMT_LEAGUE, b = PCMT_PICKEMS_DATA[0];
-    var map = pcmtPickMap(this.state.picks), played = pcmtPickemResolve(b, {}, 0);
-    Object.keys(map).forEach(function (n) { if (played[n] && played[n].done) delete map[n]; });   // played series are never sent
+    var map = this.sendable(this.state.picks);
+    if (this._left > 0) { this.message('Pick every series before you save (' + this._left + ' left).'); return; }
+    clearTimeout(this._draftT);
     if (!L) { this.setState({ saved: JSON.stringify(map) }); return; }   // canvas preview
     if (!L.signedIn) { this.message('Log in with Discord to save your picks.'); return; }
     this.setState({ saving: true });
     L.saveBracket(b.id, map).then(function () {
+      self._drafted = JSON.stringify(map);
       self.setState({ saving: false, saved: JSON.stringify(map) });
     }, function (e) {
       self.setState({ saving: false });
@@ -440,7 +464,7 @@ class Component extends DCLogic {
     // The whole bracket locks when the next game starts and stays locked to the end of the playoffs.
     var lockAt = pcmtBracketLockAt(b, ev), bracketLocked = lockAt !== null && now >= lockAt;
     Object.keys(R).forEach(function (n) { R[n].locked = R[n].done || bracketLocked; });
-    var totals = { points: 0, credits: 0, correct: 0, made: 0, open: 0 };
+    var totals = { points: 0, credits: 0, correct: 0, made: 0, open: 0, left: 0 };
     function row(code, real, info, side, first) {
       var t = code ? PCMT_PICKEM_TEAMS[code] : null, ref = side === 'a' ? info.s.a : info.s.b;
       var p = info.pick, picked = !!(p && code && p.winner === code), isWinner = info.done && info.winner === code;
@@ -472,6 +496,7 @@ class Component extends DCLogic {
       if (info.done && p && p.winner === info.winner) { totals.points++; totals.correct++; totals.credits += ev.credits_win; }
       if (!info.locked) {
         totals.open++;
+        if (!p) totals.left++;
       }
       var border = '#3a4f53';
       return {
@@ -481,6 +506,8 @@ class Component extends DCLogic {
       };
     });
     var dirty = JSON.stringify(pcmtPickMap(this.state.picks)) !== this.state.saved;
+    var left = bracketLocked ? 0 : totals.left, ready = !bracketLocked && left === 0 && dirty;
+    this._left = left;
     // Next game: the earliest series with a time that hasn't been played (real teams only).
     var nx = null;
     b.series.forEach(function (s) { if (!s.score && s.start && (!nx || Date.parse(s.start) < Date.parse(nx.start))) nx = s; });
@@ -530,11 +557,13 @@ class Component extends DCLogic {
       lockLabel: bracketLocked ? 'Picks locked until the playoffs end' : lockAt ? 'Picks lock ' + pcmtPickemWhen(new Date(lockAt).toISOString()) : 'Picks open',
       lockColor: bracketLocked ? '#f5d76e' : '#93a9aa',
       saveLabel: bracketLocked ? 'Locked' : this.state.saving ? 'Saving…' : 'Save picks',
-      saveOff: bracketLocked || this.state.saving || !dirty,
-      saveBg: bracketLocked || !dirty ? '#2a3a3e' : '#a5dcdd', saveFg: bracketLocked || !dirty ? '#93a9aa' : '#000',
-      saveCursor: bracketLocked || !dirty ? 'default' : 'pointer',
-      saveText: bracketLocked ? 'The bracket is locked until the end of the playoffs.' : dirty ? 'You have picks that aren\u2019t saved yet.' : (totals.made ? 'Your picks are saved.' : 'Tap a team to pick who wins each series.'),
-      saveColor: dirty && !bracketLocked ? '#f5d76e' : '#93a9aa',
+      saveOff: !ready || this.state.saving,
+      saveBg: ready ? '#a5dcdd' : '#2a3a3e', saveFg: ready ? '#000' : '#93a9aa',
+      saveCursor: ready ? 'pointer' : 'default',
+      saveText: bracketLocked ? 'The bracket is locked until the end of the playoffs.'
+        : left > 0 ? (left === 1 ? '1 series' : left + ' series') + ' left to pick before you can save. Unsaved picks lock as they are when picks close.'
+        : dirty ? 'Every series is picked. Save to lock in your bracket.' : 'Your picks are saved.',
+      saveColor: !bracketLocked && (left > 0 || dirty) ? '#f5d76e' : '#93a9aa',
       save: function () { self.save(); },
       lines: PCMT_PICKEM_LINES.map(function (d) { return { d: d, color: '#3a4f53' }; }),
       groupRows: groupRows,
