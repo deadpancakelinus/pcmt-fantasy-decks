@@ -138,7 +138,7 @@ grant execute on function public.save_bracket(text, jsonb) to authenticated;
 revoke all on function public.save_pick(text, integer, text, integer, integer) from public, anon;
 grant execute on function public.save_pick(text, integer, text, integer, integer) to authenticated;
 revoke all on function public.pickem_ingest(text, timestamptz) from public, anon, authenticated;
-update public.pickem_events set lock_at = null where id = 'emea-s2';
+update public.pickem_events set lock_at = '2026-11-01 04:00:00+00' where id = 'emea-s2';  -- open until Oct 31, 11:59 PM ET
 
 -- Check: picks should be open (lock_at empty) and the sync should say ok.
 select public.pickem_sync() as sync, (select coalesce(lock_at::text, 'open') from public.pickem_events where id = 'emea-s2') as lock;
