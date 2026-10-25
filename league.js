@@ -542,7 +542,10 @@
       var pkBoard = onPickems ? Promise.all((window.PCMT_PICKEMS || []).map(function (b) {
         return api('/rest/v1/rpc/pickem_standings', { method: 'POST', body: { p_event: b.id } }).then(function (r) { return [b.id, r || []]; }, function () { return [b.id, []]; });
       })) : Promise.resolve([]);
-      return Promise.all([decks, profiles, unlocks, vp, multi, admin, packs, mine, catalog, prices, released, staff, picks, pkEvents, pkBoard]);
+      // Players taken out of The Deck's store on the backend
+      var onMain = /"data-pcmt-root":"Main"/.test(tree);
+      var removed = onMain ? apiAll('/rest/v1/store_removed_players?select=player&order=player').catch(function () { return []; }) : Promise.resolve([]);
+      return Promise.all([decks, profiles, unlocks, vp, multi, admin, packs, mine, catalog, prices, released, staff, picks, pkEvents, pkBoard, removed]);
     }).then(function (res) {
       attachMulti(res[4] || []);
       PRICE_LOG = (res[9] || []).map(function (c) { return { player: c.player, price: c.price == null ? null : +c.price, t: Date.parse(c.changed_at) }; });
@@ -550,6 +553,8 @@
       window.PCMT_PRICES = {};
       PLAYERS.forEach(function (p) { p.price = priceAt(p.id, Infinity); window.PCMT_PRICES[p.id] = p.price; });
       window.PCMT_BASE_PRICES = BASE_PRICE;
+      window.PCMT_REMOVED_PLAYERS = {};
+      (res[15] || []).forEach(function (r) { window.PCMT_REMOVED_PLAYERS[r.player] = true; });
       window.PCMT_IS_ADMIN = !!(res[5] && res[5].length);
       window.PCMT_PACKS = res[6] || [];
       window.PCMT_MY_CARDS = {};

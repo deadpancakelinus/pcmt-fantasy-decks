@@ -194,3 +194,6 @@ Tables: `profiles`, `deck_history` (insert-only, server timestamps, 60/hour limi
 
 ## 18. Credits window (Oct 25 2026)
 Clicking **PCMT** in the footer line "A PCMT product" opens a glass Credits panel (Esc, the × or a click outside closes it). It lives at the end of `tools/league.js` (copied to `league.js`), so it works on every page that loads league.js with no rebuild. Names are in the `NAMES` list there and sort A–Z on their own. The window's heading is "Thank You!".
+
+## 19. Removing players from The Deck's store (Oct 25 2026)
+backend.html, Player prices tab: each player has **Remove** (asks first) and, once removed, **Put back**. Both save straight away. A removed player is hidden from The Deck's store and random deals; managers who already have them keep them in their deck (and they keep scoring). Table `store_removed_players` (everyone reads, staff add and delete; who and when are set by the server). league.js loads it on The Deck as `window.PCMT_REMOVED_PLAYERS`; `pcmtInStore()` in the Main board filters the store and `dealPool()`. Setup: `setup/store-removed.sql` (also in backend-setup.sql). Until that SQL is run, the buttons say to run it and The Deck shows everyone.

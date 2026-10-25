@@ -127,6 +127,15 @@ for (let i = 0; i < 5; i++) sql(as(P1, `select public.submit_complaint('${words(
 check(fails(as(P1, `select public.submit_complaint('${words(50)}');`), /a lot this hour/), 'a player is limited to 5 an hour');
 check(fails(`set role anon; select public.submit_complaint('${'x'.repeat(400) + ' ' + 'y'.repeat(700)}');`, /too long/), 'very long words are refused too (1,000 characters max)');
 
+// ---- players taken out of The Deck's store ----
+check(fails(as(P1, `insert into public.store_removed_players (player) values ('claps');`)) && fails(as(ADMIN, `insert into public.store_removed_players (player) values ('claps');`)), 'only staff can take a player out of the store');
+sql(as(STAFF, `insert into public.store_removed_players (player, removed_by) values ('claps', '${P1}');`));
+check(sql(`set role anon; select player from public.store_removed_players;`).trim() === 'claps' && sql(`select removed_by from public.store_removed_players;`).trim() === STAFF, 'staff can remove a player; everyone can see the list; who did it is set by the server');
+sql(as(P1, `delete from public.store_removed_players;`));
+check(sql(`select count(*) from public.store_removed_players;`).trim() === '1', 'players cannot put a player back');
+sql(as(STAFF, `delete from public.store_removed_players where player = 'claps';`));
+check(sql(`select count(*) from public.store_removed_players;`).trim() === '0', 'staff can put a player back');
+
 sql('drop database fbtest;', 'postgres');
 console.log(bad ? bad + ' problem(s)' : 'All backend checks passed');
 process.exit(bad ? 1 : 0);

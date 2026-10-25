@@ -7,6 +7,7 @@
 --   * player_price_changes: every price change made on the backend, kept forever. The site and the VP payout
 --     use the newest change for today's prices, and the change in effect when a deck was saved to check its budget.
 --     A row with price null puts that player back on the players.js price.
+--   * store_removed_players: players taken out of The Deck's store (Remove on the backend); owners keep them.
 --   * fb_card_counts(): copies and owners of every card, for the backend's cards sheet (staff only).
 
 -- ===================== Player prices =====================
@@ -35,6 +36,34 @@ end $$;
 drop trigger if exists player_price_stamp on public.player_price_changes;
 create trigger player_price_stamp before insert on public.player_price_changes
   for each row execute function public.player_price_stamp();
+
+-- ===================== Players taken out of The Deck's store =====================
+-- A row here hides that player from The Deck's store and random deals. Managers who already have the player keep them.
+-- Staff add and remove rows from the backend (Player prices tab: Remove / Put back).
+create table if not exists public.store_removed_players (
+  player text primary key,                  -- player id from players.js
+  removed_at timestamptz not null default now(),
+  removed_by uuid references auth.users (id) on delete set null
+);
+alter table public.store_removed_players enable row level security;
+drop policy if exists "anyone reads removed players" on public.store_removed_players;
+create policy "anyone reads removed players" on public.store_removed_players for select using (true);
+drop policy if exists "staff remove players" on public.store_removed_players;
+create policy "staff remove players" on public.store_removed_players for insert with check ((select public.is_freshbatch()));
+drop policy if exists "staff put players back" on public.store_removed_players;
+create policy "staff put players back" on public.store_removed_players for delete using ((select public.is_freshbatch()));
+create or replace function public.store_removed_stamp() returns trigger
+language plpgsql set search_path = public as $$
+begin
+  new.removed_at := now();
+  new.removed_by := auth.uid();
+  return new;
+end $$;
+drop trigger if exists store_removed_stamp on public.store_removed_players;
+create trigger store_removed_stamp before insert on public.store_removed_players
+  for each row execute function public.store_removed_stamp();
+grant select on public.store_removed_players to anon, authenticated;
+grant insert, delete on public.store_removed_players to authenticated;
 
 -- ===================== Cards sheet =====================
 create or replace function public.fb_card_counts() returns table (card_id text, copies bigint, owners bigint)

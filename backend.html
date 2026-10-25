@@ -95,6 +95,7 @@
   .rar { font: 600 12px/1 'JetBrains Mono', monospace; letter-spacing: .06em; text-transform: uppercase; }
   .rar-common { color: #93a9aa; } .rar-rare { color: #7cc2ff; } .rar-epic { color: #c99bff; } .rar-legendary { color: #f5d76e; }
   .link { all: unset; cursor: pointer; color: var(--accent); font: 400 13px/1.2 'JetBrains Mono', monospace; text-decoration: underline; white-space: nowrap; padding: 10px 0; }
+  .link.danger { color: #ff8a80; }
   .link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .sticky { position: sticky; bottom: 0; background: var(--bg); padding: 12px 0; border-top: 1px solid var(--line); }
   .stats { display: flex; flex-wrap: wrap; gap: 10px; }
@@ -205,10 +206,12 @@
     <!-- ===== Player prices ===== -->
     <section class="pane" role="tabpanel" id="pane-prices" aria-labelledby="tab-prices" hidden>
       <p class="note">Change a price and press Save. The site uses the new price the next time a page loads: The Deck's prices and budget, and the cards in packs. Decks already saved keep counting with the prices from when they were saved, so a price rise never breaks someone's deck; it only applies to new changes. Prices go from 0 to 30 in steps of 0.5.</p>
+      <p class="note">Remove takes a player out of The Deck's store straight away: nobody can buy them or get them from a random deal. Managers who already have them keep them in their deck. Put back undoes it.</p>
       <div class="toolbar">
         <label class="field"><span class="kicker">Search</span><input type="search" id="p-search" placeholder="Player or team" autocomplete="off"></label>
         <label class="field"><span class="kicker">Region</span><select id="p-region"><option value="">All</option><option>NA</option><option>EMEA</option></select></label>
         <label class="check"><input type="checkbox" id="p-changed"> Only changed prices</label>
+        <label class="check"><input type="checkbox" id="p-removed"> Only removed from the store</label>
         <span class="spacer"></span>
         <button class="btn ghost" id="p-csv" type="button">Download CSV</button>
       </div>
@@ -222,6 +225,7 @@
           <th class="num"><button type="button" class="sort" data-k="price">Price</button></th>
           <th><button type="button" class="sort" data-k="when">Last change</button></th>
           <th><span class="sr">Reset</span></th>
+          <th><button type="button" class="sort" data-k="removed">Store</button></th>
         </tr></thead>
         <tbody id="p-rows"></tbody>
       </table></div>
@@ -387,6 +391,7 @@
 
   // ---------- player prices ----------
   var LOG = [], edits = {}, pSort = { key: 'team', dir: 1 };
+  var REMOVED = {}, removedReady = true, storeBusy = {};   // REMOVED: { <player id>: { removed_at, removed_by } }
   function latest(id) { var c = null; LOG.forEach(function (x) { if (x.player === id) c = x; }); return c; }
   function current(id) { var c = latest(id); return c && c.price != null ? +c.price : BASE[id]; }
   function priceRows() {
@@ -394,22 +399,26 @@
       var c = latest(p.id), cur = current(p.id), ed = edits[p.id];
       return { id: p.id, name: p.name, team: p.team, region: REGION[p.id] || '', role: cap(role(p)), base: BASE[p.id], price: cur,
                value: ed === undefined ? cur : (ed === null ? BASE[p.id] : ed), edited: ed !== undefined, changed: cur !== BASE[p.id],
-               when: c ? Date.parse(c.changed_at) : null, by: c ? (NAMES[c.changed_by] || 'staff') : '' };
+               when: c ? Date.parse(c.changed_at) : null, by: c ? (NAMES[c.changed_by] || 'staff') : '',
+               removed: REMOVED[p.id] ? 1 : 0, removedBy: REMOVED[p.id] ? (NAMES[REMOVED[p.id].removed_by] || 'staff') : '', removedAt: REMOVED[p.id] ? Date.parse(REMOVED[p.id].removed_at) : null };
     });
   }
   function drawPrices() {
-    var q = $('p-search').value.trim().toLowerCase(), reg = $('p-region').value, only = $('p-changed').checked;
+    var q = $('p-search').value.trim().toLowerCase(), reg = $('p-region').value, only = $('p-changed').checked, onlyOut = $('p-removed').checked;
     var rows = sortBy(priceRows().filter(function (r) {
-      return (!q || (r.name + ' ' + r.team).toLowerCase().indexOf(q) >= 0) && (!reg || r.region === reg) && (!only || r.changed || r.edited);
+      return (!q || (r.name + ' ' + r.team).toLowerCase().indexOf(q) >= 0) && (!reg || r.region === reg) && (!only || r.changed || r.edited) && (!onlyOut || r.removed);
     }), pSort.key, pSort.dir);
     $('p-rows').innerHTML = rows.length ? rows.map(function (r) {
-      return '<tr data-id="' + esc(r.id) + '"' + (r.edited ? ' class="edited"' : '') + '>' +
-        '<td class="strong">' + esc(r.name) + '</td><td>' + esc(r.team) + '</td><td>' + esc(r.region) + '</td><td>' + esc(r.role) + '</td>' +
+      return '<tr data-id="' + esc(r.id) + '"' + (r.edited ? ' class="edited"' : r.removed ? ' class="retired"' : '') + '>' +
+        '<td class="strong">' + esc(r.name) + (r.removed ? '<span class="tag">Removed</span>' : '') + '</td><td>' + esc(r.team) + '</td><td>' + esc(r.region) + '</td><td>' + esc(r.role) + '</td>' +
         '<td class="num mono">' + r.base.toFixed(1) + '</td>' +
         '<td class="num"><input type="number" inputmode="decimal" min="0" max="30" step="0.5" value="' + r.value.toFixed(1) + '" aria-label="' + esc(r.name) + ' price"' + (r.value !== r.base ? ' class="moved"' : '') + '></td>' +
         '<td class="dim">' + (r.when ? esc(day(r.when)) + ' · ' + esc(r.by) : '—') + '</td>' +
-        '<td>' + ((r.changed && !(r.edited && edits[r.id] === null)) || (r.edited && edits[r.id] !== null) ? '<button type="button" class="link" data-reset="' + esc(r.id) + '">Back to ' + r.base.toFixed(1) + '</button>' : '') + '</td></tr>';
-    }).join('') : '<tr><td colspan="8" class="dim">No players match.</td></tr>';
+        '<td>' + ((r.changed && !(r.edited && edits[r.id] === null)) || (r.edited && edits[r.id] !== null) ? '<button type="button" class="link" data-reset="' + esc(r.id) + '">Back to ' + r.base.toFixed(1) + '</button>' : '') + '</td>' +
+        '<td>' + (storeBusy[r.id] ? '<span class="dim">Saving…</span>'
+          : r.removed ? '<button type="button" class="link" data-store="back" data-pid="' + esc(r.id) + '" aria-label="Put ' + esc(r.name) + ' back in the store">Put back</button><small>' + esc(day(r.removedAt)) + ' · ' + esc(r.removedBy) + '</small>'
+          : '<button type="button" class="link danger" data-store="remove" data-pid="' + esc(r.id) + '" aria-label="Remove ' + esc(r.name) + ' from the store">Remove</button>') + '</td></tr>';
+    }).join('') : '<tr><td colspan="9" class="dim">No players match.</td></tr>';
     markSort($('p-table'), pSort);
     var n = Object.keys(edits).length;
     $('p-save').disabled = !n; $('p-undo').disabled = !n;
@@ -423,13 +432,28 @@
     if (n === current(id)) delete edits[id]; else edits[id] = n === BASE[id] && current(id) !== BASE[id] ? null : n;
     pSay(''); drawPrices();
   });
+  // Remove / Put back: saved straight away (no Save button needed).
+  $('p-rows').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-store]'); if (!b) return;
+    var id = b.getAttribute('data-pid'), p = BY_ID[id] || { name: id }, out = b.getAttribute('data-store') === 'remove';
+    if (!removedReady) return pSay('Run setup/store-removed.sql in the Supabase SQL Editor first, then reload this page.', 'err');
+    if (out && !window.confirm('Remove ' + p.name + ' from The Deck\'s store? Managers who already have them keep them.')) return;
+    storeBusy[id] = true; drawPrices();
+    var req = out ? L.api('/rest/v1/store_removed_players', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: { player: id } })
+                  : L.api('/rest/v1/store_removed_players?player=eq.' + encodeURIComponent(id), { method: 'DELETE', headers: { Prefer: 'return=minimal' } });
+    req.then(function () { return loadRemoved(); }).then(function () {
+      delete storeBusy[id]; drawPrices();
+      pSay(out ? p.name + ' is out of the store. The Deck stops showing them from the next page load.' : p.name + ' is back in the store.', 'ok');
+    }, function (err) { delete storeBusy[id]; drawPrices(); pSay('Couldn\'t change ' + p.name + ': ' + err.message, 'err'); });
+  });
   $('p-rows').addEventListener('click', function (e) {
     var b = e.target.closest('button[data-reset]'); if (!b) return;
     var id = b.getAttribute('data-reset');
     if (current(id) === BASE[id]) delete edits[id]; else edits[id] = null;
     pSay(''); drawPrices();
   });
-  ['p-search', 'p-region', 'p-changed'].forEach(function (id) { $(id).addEventListener('input', drawPrices); $(id).addEventListener('change', drawPrices); });
+  // Search boxes redraw as you type; not again when they lose focus, or a click on a row button would be lost mid-redraw.
+  ['p-search', 'p-region', 'p-changed', 'p-removed'].forEach(function (id) { $(id).addEventListener($(id).type === 'search' ? 'input' : 'change', drawPrices); });
   wireSort($('p-table'), pSort, drawPrices);
   $('p-undo').addEventListener('click', function () { edits = {}; pSay(''); drawPrices(); });
   $('p-save').addEventListener('click', function () {
@@ -442,9 +466,14 @@
       .catch(function (e) { $('p-save').disabled = false; pSay('Couldn\'t save: ' + e.message, 'err'); });
   });
   $('p-csv').addEventListener('click', function () {
-    csv('pcmt-player-prices.csv', ['Player', 'Player id', 'Team', 'Region', 'Role', 'Start price', 'Price', 'Last change', 'Changed by'],
-      sortBy(priceRows(), pSort.key, pSort.dir).map(function (r) { return [r.name, r.id, r.team, r.region, r.role, r.base, r.price, r.when ? new Date(r.when).toISOString() : '', r.by]; }));
+    csv('pcmt-player-prices.csv', ['Player', 'Player id', 'Team', 'Region', 'Role', 'Start price', 'Price', 'Last change', 'Changed by', 'In the store'],
+      sortBy(priceRows(), pSort.key, pSort.dir).map(function (r) { return [r.name, r.id, r.team, r.region, r.role, r.base, r.price, r.when ? new Date(r.when).toISOString() : '', r.by, r.removed ? 'No (removed)' : 'Yes']; }));
   });
+  function loadRemoved() {
+    return L.apiAll('/rest/v1/store_removed_players?select=player,removed_at,removed_by&order=player')
+      .then(function (r) { removedReady = true; REMOVED = {}; (r || []).forEach(function (x) { REMOVED[x.player] = x; }); },
+            function () { removedReady = false; REMOVED = {}; });
+  }
   function loadPrices() {
     return L.apiAll('/rest/v1/player_price_changes?select=player,price,changed_at,changed_by&order=changed_at.asc,id.asc')
       .then(function (r) { LOG = r || []; });
@@ -485,7 +514,8 @@
       return '<div class="stat"><b>' + s[0] + '</b><span>' + s[1] + '</span></div>';
     }).join('');
   }
-  ['c-search', 'c-rarity', 'c-pack', 'c-retired'].forEach(function (id) { $(id).addEventListener('input', drawCards); $(id).addEventListener('change', drawCards); });
+  // Search boxes redraw as you type; not again when they lose focus, or a click on a row button would be lost mid-redraw.
+  ['c-search', 'c-rarity', 'c-pack', 'c-retired'].forEach(function (id) { $(id).addEventListener($(id).type === 'search' ? 'input' : 'change', drawCards); });
   wireSort($('c-table'), cSort, drawCards);
   $('c-csv').addEventListener('click', function () {
     csv('pcmt-cards.csv', ['Card', 'Card id', 'Type', 'Player', 'Rarity', 'Season', 'Pack', 'Copies', 'Owners', 'In packs'],
@@ -809,7 +839,7 @@
       if (ok !== true) return show('st-nostaff');
       return Promise.all([
         L.apiAll('/rest/v1/profiles?select=id,name&order=id').then(function (r) { (r || []).forEach(function (p) { NAMES[p.id] = p.name; }); }).catch(function () {}),
-        loadPrices(), loadCards(), loadComplaints(), loadPages()
+        loadPrices(), loadRemoved(), loadCards(), loadComplaints(), loadPages()
       ]).then(function () {
         show('st-staff');
         var h = (location.hash || '').slice(1);

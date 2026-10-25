@@ -315,6 +315,9 @@ var PCMT_PLAYERS = [
   { id: 'denial', name: 'denial', team: 'NATS', role: 'initiator', price: 10.0 } // added Oct 25 2026, price from PCMT.gg toxic rating
 ];
 (function () { var P = window.PCMT_PRICES || {}; PCMT_PLAYERS.forEach(function (p) { if (P[p.id] != null) p.price = P[p.id]; }); })();  // prices edited on the backend
+// Players PCMT Team took out of the store on the backend (store_removed_players): they can't be bought or dealt.
+// Anyone who already has one keeps them in their deck.
+function pcmtInStore(p) { return !(window.PCMT_REMOVED_PLAYERS || {})[p.id]; }
 // The same person on two region cards: only one of the pair can be in a deck at a time.
 var PCMT_TWIN = { 'night': 'night-emea', 'night-emea': 'night' };
 var PCMT_TEAMS = {};
@@ -884,7 +887,7 @@ class Component extends DCLogic {
 
   dealPool() {
     var r = this.state.dealRegions || { NA: true, EMEA: true };
-    return PCMT_PLAYERS.filter(function (p) { return pcmtRegions(p).some(function (x) { return r[x]; }); });
+    return PCMT_PLAYERS.filter(function (p) { return pcmtInStore(p) && pcmtRegions(p).some(function (x) { return r[x]; }); });
   }
 
   toggleDealRegion(key) {
@@ -1172,7 +1175,7 @@ class Component extends DCLogic {
       if (code === q || (q.length >= 3 && (code.indexOf(q) === 0 || name.indexOf(q) >= 0))) teamHit[t.code] = true;
     });
     var pool = PCMT_PLAYERS
-      .filter(function (p) { return self.regionShown(p) && (allTab || pcmtRole(p) === tabRole.key) && (s.filter === 'ALL' || p.team === s.filter) && (!q || p.name.toLowerCase().indexOf(q) >= 0 || teamHit[p.team]); })
+      .filter(function (p) { return pcmtInStore(p) && self.regionShown(p) && (allTab || pcmtRole(p) === tabRole.key) && (s.filter === 'ALL' || p.team === s.filter) && (!q || p.name.toLowerCase().indexOf(q) >= 0 || teamHit[p.team]); })
       .slice().sort(function (a, b) { return b.price - a.price || a.name.localeCompare(b.name); })
       .map(function (p) {
         var isPicked = pickedIds.indexOf(p.id) >= 0;
