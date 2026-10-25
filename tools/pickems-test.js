@@ -75,6 +75,9 @@ check(fails(as(P1, `select public.save_bracket('emea-s2', '{"4": "ATLC", "2": "N
 check(fails(as(P1, `select public.save_bracket('emea-s2', '{"1": "XTC"}'::jsonb);`), /already played/), 'played series cannot be picked');
 check(fails(as(P1, `select public.save_bracket('emea-s2', '{"3": "NIP"}'::jsonb);`), /isn't one of its teams/), 'a known series only takes its two teams');
 check(sb(P1, {}) === '0' && sql(as(P1, `select count(*) from public.pickem_picks;`)).trim() === '0', 'saving an empty bracket clears your picks');
+sql(`insert into public.pickem_picks (user_id, event, series, winner, updated_at) values ('${P1}', 'emea-s2', 1, ${lit(by(1).winner)}, now());`);
+check(sb(P1, { 2: 'NATS' }) === '1' && sql(as(P1, `select string_agg(series || winner, ',' order by series) from public.pickem_picks;`)).trim() === '1' + by(1).winner + ',2NATS', 'saving keeps your picks on series already played');
+sql(`delete from public.pickem_picks where user_id = '${P1}' and series = 1;`);
 sb(P1, { 2: 'ATLC' });
 sql(`update public.pickem_events set lock_at = now() - interval '1 minute';`);
 check(fails(as(P1, `select public.save_bracket('emea-s2', '{"2": "NATS"}'::jsonb);`), /locked until the end/) && fails(as(STAFF, `select public.save_pick('emea-s2', 2, 'NATS', null, null);`), /locked until the end/), 'the whole bracket locks at lock_at, staff included');

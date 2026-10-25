@@ -518,7 +518,7 @@ AUTHENTIC
 <section aria-label="Player store (collapsed)" class="pcmt-store-tab" style="min-width: 0; align-self: stretch; background: #172124; border: 1px solid #2a3a3e; border-radius: 12px; overflow: hidden; display: flex">
 <button onClick="{{toggleStore}}" aria-expanded="false" aria-label="Open the player store" title="Open the player store" style="flex: 1; min-height: 64px; padding: 18px 8px; border: none; background: transparent; color: #a5dcdd; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 14px; font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600; letter-spacing: 0.12em">
 <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
-<span class="pcmt-store-v">STORE · {{poolCount}} PLAYERS</span>
+<span class="pcmt-store-v">STORE · {{poolCount}} {{poolWordUp}}</span>
 </button>
 </section>
 </sc-if>
@@ -527,7 +527,7 @@ AUTHENTIC
 <div style="padding: 18px 18px 14px; display: flex; flex-direction: column; gap: 14px; border-bottom: 1px solid #2a3a3e">
 <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px">
 <h2 id="market-h" style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">STORE // {{tabCode}}</h2>
-<span style="display: inline-flex; align-items: center; gap: 10px"><span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">{{poolCount}} players</span><button onClick="{{toggleStore}}" aria-expanded="true" aria-label="Collapse the player store" title="Collapse the player store" style="width: 36px; height: 36px; flex: none; border-radius: 8px; border: 1px solid #3a4f53; background: transparent; color: #a5dcdd; display: grid; place-items: center; padding: 0"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"></path></svg></button></span>
+<span style="display: inline-flex; align-items: center; gap: 10px"><span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">{{poolCount}} {{poolWord}}</span><button onClick="{{toggleStore}}" aria-expanded="true" aria-label="Collapse the player store" title="Collapse the player store" style="width: 36px; height: 36px; flex: none; border-radius: 8px; border: 1px solid #3a4f53; background: transparent; color: #a5dcdd; display: grid; place-items: center; padding: 0"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"></path></svg></button></span>
 </div>
 <div role="group" aria-label="Store by role" style="display: flex; flex-wrap: wrap; gap: 8px">
 <sc-for list="{{tabs}}" as="t" hint-placeholder-count="6">
@@ -546,7 +546,7 @@ AUTHENTIC
 </div>
 <div style="display: flex; flex-direction: column; gap: 6px">
 <label for="player-search" style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.06em; text-transform: uppercase">Search</label>
-<input id="player-search" type="search" value="{{search}}" onChange="{{setSearch}}" placeholder="Player name" autocomplete="off" style="height: 46px; width: 100%; box-sizing: border-box; padding: 0 12px; border-radius: 8px; border: 1px solid #3a4f53; background: #0d1416; color: #eaf4f4; font-family: 'JetBrains Mono', monospace; font-size: 14px">
+<input id="player-search" type="search" value="{{search}}" onChange="{{setSearch}}" placeholder="Player or team" autocomplete="off" style="height: 46px; width: 100%; box-sizing: border-box; padding: 0 12px; border-radius: 8px; border: 1px solid #3a4f53; background: #0d1416; color: #eaf4f4; font-family: 'JetBrains Mono', monospace; font-size: 14px">
 </div>
 </div>
 <div style="display: flex; flex-direction: column; max-height: 1100px; overflow-y: auto">
@@ -1619,9 +1619,15 @@ class Component extends DCLogic {
     var wildFilled = 0;
     for (var w = 1; w <= PCMT_WILD; w++) if (s.slots['wild-' + w]) wildFilled++;
 
+    // One search box for players and teams: a player's name, or their team's tag (T1, NATS) or full name (Team 1).
     var q = (s.search || '').trim().toLowerCase();
+    var teamHit = {};
+    if (q) PCMT_TEAM_LIST.forEach(function (t) {
+      var code = t.code.toLowerCase(), name = t.name.toLowerCase();
+      if (code === q || (q.length >= 3 && (code.indexOf(q) === 0 || name.indexOf(q) >= 0))) teamHit[t.code] = true;
+    });
     var pool = PCMT_PLAYERS
-      .filter(function (p) { return self.regionShown(p) && (allTab || pcmtRole(p) === tabRole.key) && (s.filter === 'ALL' || p.team === s.filter) && (!q || p.name.toLowerCase().indexOf(q) >= 0); })
+      .filter(function (p) { return self.regionShown(p) && (allTab || pcmtRole(p) === tabRole.key) && (s.filter === 'ALL' || p.team === s.filter) && (!q || p.name.toLowerCase().indexOf(q) >= 0 || teamHit[p.team]); })
       .slice().sort(function (a, b) { return b.price - a.price || a.name.localeCompare(b.name); })
       .map(function (p) {
         var isPicked = pickedIds.indexOf(p.id) >= 0;
@@ -1755,7 +1761,7 @@ class Component extends DCLogic {
 
     var groups = PCMT_ROLES.map(function (r) {
       var slots = [];
-      for (var i = 1; i <= PCMT_PER_ROLE; i++) slots.push(slotView(r.key + '-' + i, r.key, 'Buy a ' + r.label.toLowerCase(), 'opens ' + r.label.toUpperCase() + ' page'));
+      for (var i = 1; i <= PCMT_PER_ROLE; i++) slots.push(slotView(r.key + '-' + i, r.key, (/^[aeiou]/i.test(r.label) ? 'Buy an ' : 'Buy a ') + r.label.toLowerCase(), 'opens ' + r.label.toUpperCase() + ' page'));
       return { label: r.label, cls: 'pcmt-g2', inner: 'pcmt-in2', filledLabel: roleFilled(r.key) + '/' + PCMT_PER_ROLE, slots: slots };
     });
     var wildSlots = [];
@@ -1873,7 +1879,7 @@ class Component extends DCLogic {
       mvpLogoH: self.find(mvpId) ? Math.round((PCMT_LOGO_H[self.find(mvpId).team] || 30) * 1.3) : 39,
       buyNote: buyNote,
       filter: s.filter,
-      poolCount: pool.length,
+      poolCount: pool.length, poolWord: pool.length === 1 ? 'player' : 'players', poolWordUp: pool.length === 1 ? 'PLAYER' : 'PLAYERS',
       search: s.search || '',
       auraOn: (function () {
         var m = self.props.auraPreview ?? 'Live';

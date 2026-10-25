@@ -133,7 +133,7 @@ create or replace function public.save_bracket(p_event text, p_picks jsonb) retu
 language plpgsql volatile security definer set search_path = public as $$
 declare
   u uuid := auth.uid(); ev public.pickem_events; st jsonb; x jsonb; won jsonb := '{}'::jsonb; lost jsonb := '{}'::jsonb;
-  ref_a text; ref_b text; ta text; tb text; pk text; n int; saved int := 0;
+  ref_a text; ref_b text; ta text; tb text; pk text; n int; saved int := 0; played int[] := '{}';
 begin
   if u is null then raise exception 'Log in with Discord to save your picks.'; end if;
   select * into ev from public.pickem_events where id = p_event;
@@ -154,6 +154,7 @@ begin
     tb := coalesce(x ->> 'b', case when ref_b ~ '^W\d+$' then won ->> substr(ref_b, 2) when ref_b ~ '^L\d+$' then lost ->> substr(ref_b, 2) end);
     if x ->> 'winner' is not null then
       won := won || jsonb_build_object(n::text, x ->> 'winner'); lost := lost || jsonb_build_object(n::text, x ->> 'loser');
+      played := played || n;
       if p_picks ? n::text then raise exception 'Series % is already played.', n; end if;
       continue;
     end if;
@@ -167,7 +168,8 @@ begin
       select 1 from jsonb_array_elements(st -> 'series') s where (s ->> 'n') = k)) then
     raise exception 'That series isn''t in the bracket.';
   end if;
-  delete from public.pickem_picks where user_id = u and event = p_event;
+  -- picks on played series are kept (they score in the standings); only the rest are replaced
+  delete from public.pickem_picks where user_id = u and event = p_event and not (series = any (played));
   insert into public.pickem_picks (user_id, event, series, winner, updated_at)
     select u, p_event, k::int, p_picks ->> k, now() from jsonb_object_keys(p_picks) k;
   get diagnostics saved = row_count;

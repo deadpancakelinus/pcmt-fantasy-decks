@@ -161,8 +161,11 @@ class Component extends DCLogic {
   constructor(props) {
     super(props);
     var b = PCMT_PICKEMS_DATA[0], mine = (window.PCMT_MY_PICKS || {})[b.id];
-    var start = Object.assign({}, mine || (props.samplePicks ? pcmtSamplePicks() : {}));
-    this.state = { picks: start, saved: JSON.stringify(pcmtPickMap(start)), saving: false, search: '' };
+    var stored = Object.assign({}, mine || (props.samplePicks ? pcmtSamplePicks() : {}));
+    // A saved pick can stop making sense once a real result is in (you had the other team going through):
+    // those are dropped here, so the series shows as still to pick and the bracket can be saved again.
+    var start = pcmtPrunePicks(b, stored);
+    this.state = { picks: start, saved: JSON.stringify(pcmtPickMap(stored)), saving: false, search: '' };
   }
   componentDidMount() {
     var self = this, start = Date.now();
@@ -245,7 +248,7 @@ class Component extends DCLogic {
 
   // Unplayed series sent to the server (played ones never are).
   sendable(picks) {
-    var map = pcmtPickMap(picks), played = pcmtPickemResolve(PCMT_PICKEMS_DATA[0], {}, 0);
+    var map = pcmtPickMap(pcmtPrunePicks(PCMT_PICKEMS_DATA[0], picks)), played = pcmtPickemResolve(PCMT_PICKEMS_DATA[0], {}, 0);
     Object.keys(map).forEach(function (n) { if (played[n] && played[n].done) delete map[n]; });
     return map;
   }
