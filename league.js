@@ -658,7 +658,7 @@
     var bs = document.querySelectorAll('footer b');
     for (var i = 0; i < bs.length; i++) if (isLink(bs[i]) && !bs[i].classList.contains('pcmt-credits-link')) {
       bs[i].classList.add('pcmt-credits-link'); bs[i].setAttribute('role', 'button'); bs[i].setAttribute('tabindex', '0');
-      bs[i].setAttribute('aria-haspopup', 'dialog'); bs[i].title = 'Credits';
+      bs[i].setAttribute('aria-haspopup', 'dialog'); bs[i].title = 'Thank You!';
     }
   }
   function close() {
@@ -679,7 +679,7 @@
     wrap.className = 'pcmt-cr-back';
     wrap.innerHTML = '<div class="pcmt-cr" role="dialog" aria-modal="true" aria-labelledby="pcmt-cr-t">' +
       '<button type="button" class="pcmt-cr-x" aria-label="Close">&times;</button>' +
-      '<p class="pcmt-cr-k">A PCMT product</p><h2 id="pcmt-cr-t">Credits</h2><ul></ul>' +
+      '<h2 id="pcmt-cr-t">Thank You!</h2><ul></ul>' +
       '<p class="pcmt-cr-f">fantasy.pcmt.gg · Plat Chat Members Tourney</p></div>';
     var ul = wrap.querySelector('ul');
     NAMES.forEach(function (n) { var li = document.createElement('li'); li.textContent = n; ul.appendChild(li); });
