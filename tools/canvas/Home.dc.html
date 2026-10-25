@@ -129,11 +129,11 @@ a.hm-tile{color:inherit}
 
 <sc-if value="{{hasNote}}" hint-placeholder-val="{{ false }}">
 <section aria-labelledby="notes-h" style="display: flex; flex-direction: column; gap: 16px; min-width: 0">
-<h2 id="notes-h" style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">Latest Batch Notes</h2>
+<h2 id="notes-h" style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">Latest Patch Notes</h2>
 <article class="hm-panel" style="display: flex; flex-direction: column; gap: 10px">
 <div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px">
 <h3 style="margin: 0; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 32px; line-height: 1; color: #a5dcdd">{{note.version}}</h3>
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">PCMT Team · {{note.date}}</span>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">fantasy.pcmt.gg · {{note.date}}</span>
 </div>
 <sc-for list="{{note.paras}}" as="np" hint-placeholder-count="2">
 <p style="margin: 0; color: #c4d4d4; line-height: 1.55; font-size: 16px">{{np.pre}}<sc-if value="{{np.hasLink}}" hint-placeholder-val="{{ false }}"><a href="#comments" onClick="{{ccJump}}" style="color: #a5dcdd">{{np.link}}</a></sc-if>{{np.post}}</p>
@@ -178,7 +178,7 @@ a.hm-tile{color:inherit}
 // Open to everyone.
 // Live data: PCMT_MATCHES / PCMT_RESULTS (data.js). The canvas shows the sample below.
 
-// The newest Batch Note: { version, date, paras }, or null for none. Each paragraph is { pre, link, post }:
+// The newest Patch Note: { version, date, paras }, or null for none. Each paragraph is { pre, link, post }:
 // link (optional) is shown as a link to the comments and complaints panel below.
 var PCMT_HOME_NOTE = {
   version: 'Version 1.0', date: 'October 2026',
