@@ -31,7 +31,7 @@ Start here. It covers what exists, how changes are made and shipped, and what's 
 | (hand-written) | admin.html | Old admin page: now just sends people to backend.html (4Ks and 5Ks and card pack prices moved there). |
 | (hand-written) | mvp-vs.html | **MVP VS** card game (see section 9). Its board MvpVs.dc.html is only the old "Coming soon" design and is not built. |
 
-Branding: header and titles say **fantasy.pcmt.gg**. The site is a PCMT Team product (Freshbatch is no longer involved, Oct 24 2026); every page footer says "A PCMT Team product" (plain text; the old Freshbatch credits window, freshbatch.js and its intro video were removed) above Riot's required fan-project notice. Every page footer carries Riot's required fan-project notice ("created under Riot Games' Legal Jibber Jabber policy…", linking riotgames.com/en/legal); keep it on any new page. Colors black + `#a5dcdd`; fonts Cabin Sketch / Space Grotesk / JetBrains Mono.
+Branding: header and titles say **fantasy.pcmt.gg**. The site is a PCMT Team product (Freshbatch is no longer involved, Oct 24 2026); every page footer says "A PCMT product" (plain text; the old Freshbatch credits window, freshbatch.js and its intro video were removed) above Riot's required fan-project notice. Every page footer carries Riot's required fan-project notice ("created under Riot Games' Legal Jibber Jabber policy…", linking riotgames.com/en/legal); keep it on any new page. Colors black + `#a5dcdd`; fonts Cabin Sketch / Space Grotesk / JetBrains Mono.
 
 ## 3. How the site is built
 
@@ -185,6 +185,6 @@ Tables: `profiles`, `deck_history` (insert-only, server timestamps, 60/hour limi
 
 ## 17. Freshbatch out (Oct 24 2026)
 
-- Freshbatch is no longer part of the site. Everything players and staff see says **PCMT Team** instead: page footers ("A PCMT Team product"), the link preview ("Pickems, Fantasy League and more. Built by PCMT Team"), the Home thank-you message, Batch Note signatures, the backend ("PCMT Team backend", "PCMT Team staff list") and the database's "PCMT Team staff only." messages.
+- Freshbatch is no longer part of the site. Everything players and staff see says **PCMT Team** instead: page footers ("A PCMT product"), the link preview ("Pickems, Fantasy League and more. Built by PCMT Team"), the Home thank-you message, Batch Note signatures, the backend ("PCMT Team backend", "PCMT Team staff list") and the database's "PCMT Team staff only." messages.
 - Removed: the Freshbatch credits window (freshbatch.js) and media/freshbatch-intro.mp4 (the backend sign-in window no longer plays a video).
 - Internal names stay as they were so nothing breaks: the `freshbatch_staff` table, `is_freshbatch()`, `freshbatch_settings`, the `fb_*` functions and the `fb-unlocked` session key. They mean "PCMT Team staff".
