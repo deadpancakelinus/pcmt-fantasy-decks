@@ -22,7 +22,7 @@ Start here. It covers what exists, how changes are made and shipped, and what's 
 | Main.dc.html | index.html | **The Deck** (deck building, player store, next match, lock countdown) |
 | Customization.dc.html | customization.html | Card backs, auras, favorites, codes, card packs |
 | Leaderboard.dc.html | leaderboard.html | **The Deck Leaderboard** (renamed Oct 24 2026, also in the menu and Home tile): this gameweek / overall standings, no Rankings heading |
-| Rules.dc.html | guide.html | Guide + Batch Notes (site is "Version 1.0" since Oct 25 2026; footers on every page show the version) |
+| Rules.dc.html | guide.html | Guide + Batch Notes (site is "Version 1.2" since Oct 26 2026; footers on every page show the version) |
 | Login.dc.html | login.html | Discord log in |
 | (removed) | transactions.html | Redirects to store.html#credits. Paychecks and spending now live at the bottom of the Store. |
 | Store.dc.html | store.html | **Store**: The Bank, NA and EMEA card packs (buy with VP, then the pack opening plays with the cards you pulled), and the variants found in packs (The Role of Yoru: Rare, NA). Everyone except admins sees an empty page with only the card animation and "Coming Soon..." (nothing of the page is drawn). |
