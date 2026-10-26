@@ -209,10 +209,10 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </div>
 
 <div style="display: flex; flex-wrap: wrap; gap: 16px">
-<div style="flex: 1 1 160px; background: #172124; border: 1px solid #2a3a3e; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+<div style="flex: 1 1 160px; background: #172124; border: 1px solid #2a3a3e; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px; min-width: 0">
 <span style="display: inline-flex; align-items: center; gap: 6px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.06em; text-transform: uppercase"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="#f5d76e"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 20.9l1.6-7L2 9.2l7.1-.6z"></path></svg>{{mvpLabel}}</span>
-<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
-<div style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 34px; line-height: 1.1; word-break: break-word; min-width: 0; color: #f5d76e">{{mvpName}}</div>
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-width: 0">
+<div data-pcmt-fit="34" title="{{mvpName}}" style="flex: 1 1 auto; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 34px; line-height: 1.1; white-space: nowrap; overflow: hidden; min-width: 0; color: #f5d76e">{{mvpName}}</div>
 <sc-if value="{{mvpHasLogo}}" hint-placeholder-val="{{ false }}">
 <img src="{{mvpLogo}}" alt="{{mvpTeam}}" style="height: {{mvpLogoH}}px; width: auto; max-width: 90px; object-fit: contain; display: block; flex: none; margin-right: 14px">
 </sc-if>
@@ -633,6 +633,26 @@ var PCMT_TEAM_LIST = [
   { code: 'NOOT', name: 'Penguin Patrol', color: '#3fb6a8', region: 'EMEA' },
   { code: 'NATS', name: 'Never Available To Scrim', color: '#ef8f8f', region: 'EMEA' }
 ];
+// Text marked data-pcmt-fit="<largest px>" stays on one line: its font shrinks until the whole name fits (14px at the smallest).
+(function () {
+  function fit() {
+    var els = document.querySelectorAll('[data-pcmt-fit]');
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i], max = +el.getAttribute('data-pcmt-fit') || 34;
+      el.style.fontSize = max + 'px';
+      if (el.clientWidth && el.scrollWidth > el.clientWidth) el.style.fontSize = Math.max(14, Math.floor(max * el.clientWidth / el.scrollWidth)) + 'px';
+    }
+  }
+  var queued = false;
+  function soon() { if (!queued) { queued = true; requestAnimationFrame(function () { queued = false; fit(); }); } }
+  function start() {
+    new MutationObserver(soon).observe(document.body, { childList: true, subtree: true, characterData: true });
+    window.addEventListener('resize', soon);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(soon);
+    soon();
+  }
+  if (document.body) start(); else document.addEventListener('DOMContentLoaded', start);
+})();
 var PCMT_PLAYERS = [
   { id: 'crocman', name: 'MrCrocMan', team: 'T1', role: 'duelist', price: 14.5 },
   { id: 'pi', name: 'Pi', team: 'T1', role: 'initiator', price: 10.5 },
