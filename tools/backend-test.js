@@ -136,6 +136,15 @@ check(sql(`select count(*) from public.store_removed_players;`).trim() === '1', 
 sql(as(STAFF, `delete from public.store_removed_players where player = 'claps';`));
 check(sql(`select count(*) from public.store_removed_players;`).trim() === '0', 'staff can put a player back');
 
+// ---- delete my account ----
+sql(`insert into public.profiles (id, name) values ('${P2}', 'Player Two'), ('${P1}', 'Player One') on conflict (id) do nothing;
+insert into public.vp_ledger (user_id, kind, amount, detail) values ('${P2}', 'pack', -20, '{}'), ('${P1}', 'pack', -20, '{}');
+insert into public.complaints (body, words, user_id) values ('hi from two', 3, '${P2}'), ('hi from one', 3, '${P1}');`);
+check(fails(`set role anon; select public.delete_my_account();`), 'logged-out visitors cannot delete anything');
+check(sql(as(P2, `select public.delete_my_account();`)).trim() === 't', 'a player can delete their own account');
+const left = id => sql(`select (select count(*) from auth.users where id = '${id}') || ',' || (select count(*) from public.profiles where id = '${id}') || ',' || (select count(*) from public.vp_ledger where user_id = '${id}') || ',' || (select count(*) from public.complaints where user_id = '${id}');`).trim();
+check(left(P2) === '0,0,0,0' && /^1,1,1,[1-9]/.test(left(P1)), 'it removes their login, profile, Credits and comments, and nobody else\'s (' + left(P2) + ' / ' + left(P1) + ')');
+
 sql('drop database fbtest;', 'postgres');
 console.log(bad ? bad + ' problem(s)' : 'All backend checks passed');
 process.exit(bad ? 1 : 0);

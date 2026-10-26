@@ -371,6 +371,14 @@
       var back = location.origin + location.pathname.replace(/[^/]*$/, '') + (typeof page === 'string' ? page : 'index.html');
       location.href = SB_URL + '/auth/v1/authorize?provider=discord&redirect_to=' + encodeURIComponent(back);
     },
+    // Deletes your account and everything saved with it (server: delete_my_account), then logs you out on this device.
+    deleteAccount: function () {
+      if (!me) return Promise.reject(new Error('Log in with Discord first.'));
+      return refreshIfNeeded().then(function () { return api('/rest/v1/rpc/delete_my_account', { method: 'POST', body: {} }); }).then(function () {
+        try { Object.keys(localStorage).forEach(function (k) { if (/^pcmt/.test(k)) localStorage.removeItem(k); }); } catch (e) {}
+        writeSession(null); me = null;
+      });
+    },
     signOut: function () {
       var done = function () { writeSession(null); location.href = 'index.html'; };
       if (!session) return done();
@@ -698,4 +706,133 @@
   document.addEventListener('keydown', function (e) { if ((e.key === 'Enter' || e.key === ' ') && isLink(e.target)) { e.preventDefault(); show(e.target); } });
   function watch() { mark(); new MutationObserver(mark).observe(document.body, { childList: true, subtree: true }); }
   if (document.body) watch(); else document.addEventListener('DOMContentLoaded', watch);
+})();
+
+
+/* Privacy notice window (footer link "Privacy notice", or #privacy in the address) and the Delete my account window
+   (button at the bottom of Home). Both use the glass panel style of the Thank You window above. */
+(function () {
+  'use strict';
+  var css = document.createElement('style');
+  css.textContent =
+    '.pcmt-cr.pcmt-wide{max-width:640px;max-height:min(86vh,820px);overflow:auto;text-align:left}' +
+    '.pcmt-pv h3{margin:22px 0 6px;font:600 13px/1.3 "JetBrains Mono",monospace;letter-spacing:.08em;text-transform:uppercase;color:#a5dcdd}' +
+    '.pcmt-pv p,.pcmt-pv li{margin:0 0 8px;font-size:15px;line-height:1.55;color:#d6e4e4}' +
+    '.pcmt-cr .pcmt-pv ul,.pcmt-cr .pcmt-del ul{display:block;list-style:disc;margin:0 0 12px;padding-left:20px}' +
+    '.pcmt-cr .pcmt-pv li,.pcmt-cr .pcmt-del li{padding:0;border:0;border-radius:0;background:none;font-weight:400;font-size:15px;line-height:1.55;margin:0 0 6px;color:#d6e4e4}' +
+    '.pcmt-cr.pcmt-wide h2{font-size:30px;margin-bottom:16px;padding-right:44px}' +
+    '.pcmt-pv .pcmt-pv-date{margin:-12px 0 4px;font:12px "JetBrains Mono",monospace;color:#93a9aa}' +
+    '.pcmt-del p{margin:0 0 12px;font-size:15px;line-height:1.55;color:#d6e4e4}' +
+    '.pcmt-del label{display:block;margin:4px 0 6px;font:12px "JetBrains Mono",monospace;letter-spacing:.06em;text-transform:uppercase;color:#93a9aa}' +
+    '.pcmt-del input{width:100%;box-sizing:border-box;height:46px;padding:0 14px;border-radius:10px;border:1px solid rgba(255,255,255,.2);background:rgba(0,0,0,.35);color:#fff;font:600 16px "JetBrains Mono",monospace;letter-spacing:.1em}' +
+    '.pcmt-del input:focus{outline:none;border-color:#ff8a80;box-shadow:0 0 0 3px rgba(255,138,128,.3)}' +
+    '.pcmt-del-row{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end;margin-top:18px}' +
+    '.pcmt-del-row button{min-height:46px;padding:0 20px;border-radius:10px;font:700 13px "JetBrains Mono",monospace;letter-spacing:.06em;text-transform:uppercase;cursor:pointer}' +
+    '.pcmt-del-no{border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.06);color:#eaf4f4}' +
+    '.pcmt-del-yes{border:1px solid #ff8a80;background:#ff8a80;color:#1a0b0a}' +
+    '.pcmt-del-yes:disabled{opacity:.4;cursor:not-allowed}' +
+    '.pcmt-del-row button:focus-visible{outline:2px solid #fff;outline-offset:2px}' +
+    '.pcmt-del-msg{margin:12px 0 0;min-height:1.4em;font-size:14px;color:#ff8a80}' +
+    '.pcmt-del-msg.ok{color:#8be4b7}';
+  (document.head || document.documentElement).appendChild(css);
+
+  var open = null, back = null;
+  function close() {
+    if (!open) return;
+    var el = open, from = back; open = null; back = null;
+    el.classList.remove('on'); setTimeout(function () { el.remove(); }, 200);
+    document.removeEventListener('keydown', onKey, true);
+    if (from && from.focus) try { from.focus(); } catch (e) {}
+  }
+  function focusables() { return Array.prototype.filter.call(open.querySelectorAll('button,input,a[href],[tabindex="0"]'), function (x) { return !x.disabled; }); }
+  function onKey(e) {
+    if (!open) return;
+    if (e.key === 'Escape' && !open.getAttribute('data-busy')) { e.preventDefault(); close(); }
+    else if (e.key === 'Tab') {
+      var f = focusables(); if (!f.length) return;
+      var i = f.indexOf(document.activeElement);
+      e.preventDefault();
+      f[(i + (e.shiftKey ? f.length - 1 : 1)) % f.length].focus();
+    }
+  }
+  function show(html, from, label, focusSel) {
+    if (open) close();
+    back = from || document.activeElement;
+    var wrap = document.createElement('div');
+    wrap.className = 'pcmt-cr-back';
+    wrap.innerHTML = '<div class="pcmt-cr pcmt-wide" role="dialog" aria-modal="true" aria-labelledby="' + label + '">' +
+      '<button type="button" class="pcmt-cr-x" aria-label="Close">&times;</button>' + html + '</div>';
+    wrap.addEventListener('click', function (e) {
+      if (wrap.getAttribute('data-busy')) return;
+      if (e.target === wrap || e.target.closest('.pcmt-cr-x') || e.target.closest('[data-close]')) close();
+    });
+    document.body.appendChild(wrap);
+    open = wrap;
+    document.addEventListener('keydown', onKey, true);
+    requestAnimationFrame(function () { wrap.classList.add('on'); (wrap.querySelector(focusSel || '.pcmt-cr-x') || wrap.querySelector('.pcmt-cr-x')).focus(); });
+    return wrap;
+  }
+
+  var PRIVACY = '<div class="pcmt-pv"><h2 id="pcmt-pv-t">Privacy notice</h2><p class="pcmt-pv-date">Last updated October 26, 2026</p>' +
+    '<p>fantasy.pcmt.gg is a free fan site for the Plat Chat Members Tourney, run by the PCMT Team. This is what we keep about you and why.</p>' +
+    '<h3>What we keep</h3><ul>' +
+    '<li><b>From Discord, when you log in:</b> your display name, avatar, username and Discord account ID. We use them to know it’s you and to show your name on the leaderboards.</li>' +
+    '<li><b>Your email:</b> Discord sends it when you log in, but we throw it away straight away. It is never stored.</li>' +
+    '<li><b>What you do on the site:</b> your decks and deck names (with when you saved them), Pick’ems picks, Credits, cards and codes you redeem.</li>' +
+    '<li><b>Comments and complaints</b> you send from Home.</li>' +
+    '<li><b>Login records:</b> our database provider keeps the time, IP address and browser of each login, to keep you signed in and stop abuse.</li>' +
+    '<li><b>On your device:</b> your browser remembers your login and some settings (favorites, opened packs, panels you collapsed). This is not used for tracking or ads.</li></ul>' +
+    '<h3>Who can see it</h3><ul>' +
+    '<li><b>Everyone:</b> your display name and avatar, your saved decks and deck names, and your place in the standings.</li>' +
+    '<li><b>Only you:</b> your Pick’ems picks before they score, your Credits and your cards.</li>' +
+    '<li><b>PCMT Team staff:</b> comments and complaints, and the account details above when needed to run the site.</li>' +
+    '<li>We never sell your information, show ads, or share it with anyone else.</li></ul>' +
+    '<h3>Services we use</h3><p>Discord (login), Supabase (database), Cloudflare (hosting) and Google Fonts (lettering). Like any website, they can see your IP address when your browser contacts them.</p>' +
+    '<h3>How long we keep it</h3><p>For as long as you have an account. Delete it any time with <b>Delete my account</b> at the bottom of Home: your account, decks, picks, Credits, cards and comments are removed straight away. Login records are removed with the account.</p>' +
+    '<h3>Your choices</h3><p>You can ask what we hold about you, ask us to fix it, or delete your account. Use the comments and complaints box on Home or message the PCMT Team on Discord.</p>' +
+    '<h3>Age</h3><p>You need a Discord account to log in, so you must meet Discord’s minimum age (13 in most countries).</p>' +
+    '<h3>Changes</h3><p>If this notice changes, the date at the top changes too.</p></div>';
+  function showPrivacy(from) { show(PRIVACY, from, 'pcmt-pv-t'); }
+
+  function showDelete(from) {
+    var L = window.PCMT_LEAGUE;
+    if (!L || !L.signedIn) { if (L && L.toast) L.toast('Log in with Discord to delete your account.'); return; }
+    var name = (window.PCMT_AUTH && window.PCMT_AUTH.name) || 'your account';
+    var w = show('<div class="pcmt-del"><h2 id="pcmt-del-t">Delete your account?</h2>' +
+      '<p>This permanently deletes <b class="pcmt-del-name"></b> from fantasy.pcmt.gg:</p>' +
+      '<ul><li>your decks and deck names, and your place on the leaderboards</li><li>your Pick’ems picks and standings</li>' +
+      '<li>your Credits, cards and unlocks</li><li>your comments and complaints</li></ul>' +
+      '<p><b>This can’t be undone.</b> If you log in with Discord again later, you start over with a new, empty account.</p>' +
+      '<label for="pcmt-del-in">Type DELETE to confirm</label><input id="pcmt-del-in" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false">' +
+      '<div class="pcmt-del-row"><button type="button" class="pcmt-del-no" data-close>Keep my account</button><button type="button" class="pcmt-del-yes" disabled>Delete my account</button></div>' +
+      '<p class="pcmt-del-msg" role="status" aria-live="polite"></p></div>', from, 'pcmt-del-t', '.pcmt-del-no');
+    w.querySelector('.pcmt-del-name').textContent = name;
+    var inp = w.querySelector('#pcmt-del-in'), yes = w.querySelector('.pcmt-del-yes'), msg = w.querySelector('.pcmt-del-msg');
+    inp.addEventListener('input', function () { yes.disabled = inp.value.trim().toUpperCase() !== 'DELETE'; });
+    inp.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !yes.disabled) yes.click(); });
+    yes.addEventListener('click', function () {
+      if (inp.value.trim().toUpperCase() !== 'DELETE') return;
+      w.setAttribute('data-busy', '1'); yes.disabled = true; inp.disabled = true; w.querySelector('.pcmt-del-no').disabled = true;
+      msg.className = 'pcmt-del-msg ok'; msg.textContent = 'Deleting…';
+      L.deleteAccount().then(function () {
+        msg.textContent = 'Your account has been deleted. Taking you to Home…';
+        setTimeout(function () { location.href = 'home.html'; }, 1800);
+      }, function (e) {
+        w.removeAttribute('data-busy'); inp.disabled = false; w.querySelector('.pcmt-del-no').disabled = false;
+        yes.disabled = inp.value.trim().toUpperCase() !== 'DELETE';
+        msg.className = 'pcmt-del-msg'; msg.textContent = 'Couldn’t delete your account: ' + (e && e.message ? e.message : 'try again.');
+      });
+    });
+  }
+
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('[data-pcmt-privacy],a[href="#privacy"]');
+    if (a) { e.preventDefault(); showPrivacy(a); return; }
+    var d = e.target.closest && e.target.closest('[data-pcmt-delete]');
+    if (d) { e.preventDefault(); showDelete(d); }
+  });
+  window.PCMT_PRIVACY = { show: showPrivacy, deleteAccount: showDelete };
+  function fromHash() { if (location.hash === '#privacy') setTimeout(function () { showPrivacy(null); }, 400); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fromHash); else fromHash();
+  window.addEventListener('hashchange', fromHash);
 })();

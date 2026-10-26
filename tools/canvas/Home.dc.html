@@ -156,6 +156,16 @@ a.hm-tile{color:inherit}
 <p role="status" aria-live="polite" style="margin: 0; font-size: 15px; line-height: 1.5; color: {{ccMsgColor}}">{{ccMsg}}</p>
 </section>
 
+<sc-if value="{{hasAccount}}" hint-placeholder-val="{{ true }}">
+<section aria-labelledby="acct-h" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; padding: 18px 20px; border: 1px solid #3a2a2a; border-radius: 12px; background: rgba(255,138,128,.04)">
+<div style="display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1 1 260px">
+<h2 id="acct-h" style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #ff8a80">Your account</h2>
+<span style="font-size: 14px; line-height: 1.45; color: #c4d4d4">Remove your account and everything saved with it. See the <a href="#privacy" data-pcmt-privacy>privacy notice</a> for what we keep.</span>
+</div>
+<button type="button" data-pcmt-delete style="min-height: 44px; padding: 0 18px; border-radius: 8px; border: 1px solid #ff8a80; background: transparent; color: #ff8a80; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; letter-spacing: 0.04em">Delete my account</button>
+</section>
+</sc-if>
+
 
 </div>
 </div>
@@ -166,7 +176,7 @@ a.hm-tile{color:inherit}
 <div style="max-width: 1280px; margin: 0 auto; padding: 22px 24px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">
 <span>fantasy.pcmt.gg · Plat Chat Members Tourney</span>
 <span>Version 1.0</span>
-<a href="https://pcmt.gg" target="_blank" rel="noopener">Stats on PCMT.gg</a>
+<span style="display: flex; flex-wrap: wrap; gap: 6px 18px"><a href="#privacy" data-pcmt-privacy>Privacy notice</a><a href="https://pcmt.gg" target="_blank" rel="noopener">Stats on PCMT.gg</a></span>
 </div>
 <p style="max-width: 1280px; margin: 0 auto; padding: 0 24px 22px; font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.6; color: #93a9aa"><span style="display: block; margin-bottom: 6px; font-size: 12px; color: #c4d4d4">A <b style="font-weight: 700; color: #eaf4f4">PCMT</b> product</span>fantasy.pcmt.gg was created under Riot Games' <a href="https://www.riotgames.com/en/legal" target="_blank" rel="noopener" style="color: #a5dcdd">&quot;Legal Jibber Jabber&quot;</a> policy using assets owned by Riot Games. Riot Games does not endorse or sponsor this project.</p>
 </footer>
@@ -374,6 +384,7 @@ class Component extends DCLogic {
       menu: PCMT_HOME_MENU,
       note: PCMT_HOME_NOTE ? Object.assign({}, PCMT_HOME_NOTE, { paras: (PCMT_HOME_NOTE.paras || []).map(function (x) { return { pre: x.pre || '', link: x.link || '', post: x.post || '', hasLink: !!x.link }; }) }) : {},
       hasNote: !!PCMT_HOME_NOTE,
+      hasAccount: !!(window.PCMT_AUTH && window.PCMT_AUTH.signedIn),
       ccJump: function (e) {
         var box = document.getElementById('comments'), ta = document.getElementById('cc-text');
         if (!box) return;

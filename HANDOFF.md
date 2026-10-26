@@ -200,3 +200,7 @@ backend.html, Player prices tab: each player has **Remove** (asks first) and, on
 
 ## 20. No emails stored (Oct 25 2026)
 Supabase's Discord login always asks Discord for the email. Triggers drop it before it's written (`setup/no-emails.sql`): `auth.users` (email emptied, email and email_verified taken out of the user details), `auth.identities` (taken out of the Discord details) and `auth.audit_log_entries` (the login log's copy). The emails already saved were removed the same day. Logins still work because Supabase finds a returning player by their Discord account id. The Log in page says so. Don't turn on email logins or anything that needs an email (magic links, account linking by email) without changing this.
+
+## 21. Privacy notice and Delete my account (Oct 26 2026)
+- Every footer has a **Privacy notice** link (`data-pcmt-privacy`, or `#privacy` in the address) that opens a glass window. The text is `PRIVACY` near the end of tools/league.js; change the "Last updated" date when it changes.
+- Home has a **Your account** box at the bottom (logged in only) with **Delete my account**. It opens a window listing what gets deleted; the button only works after typing DELETE. It calls `delete_my_account()` (`setup/delete-account.sql`, also in backend-setup.sql): the player's comments are deleted, then their auth.users row, which removes everything else saved with the account. Then the browser forgets the login and the saved deck and goes to Home. Logging in again starts a new empty account.
