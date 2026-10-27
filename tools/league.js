@@ -742,6 +742,7 @@
     '.pcmt-switch[aria-checked="true"]{background:#a5dcdd;border-color:#a5dcdd}' +
     '.pcmt-switch[aria-checked="true"] span{transform:translateX(24px);background:#0d1416}' +
     '.pcmt-switch:focus-visible{outline:2px solid #fff;outline-offset:3px}' +
+    '.pcmt-set-foot{margin:14px 0 0;padding-top:14px;border-top:1px solid rgba(255,255,255,.12);font:12px "JetBrains Mono",monospace;color:#93a9aa}' +
     '@media (prefers-reduced-motion:reduce){.pcmt-switch,.pcmt-switch span{transition:none}}';
   (document.head || document.documentElement).appendChild(css);
 
@@ -836,15 +837,18 @@
 
   // Settings: a window with per-device options. Glass mode is saved in this browser only (localStorage 'pcmt-glass').
   function showSettings(from) {
-    var G = window.PCMT_GLASS;
-    var w = show('<div class="pcmt-set"><h2 id="pcmt-set-t">Settings</h2>' +
-      '<div class="pcmt-set-row"><div><span class="pcmt-set-name" id="pcmt-set-glass-l">Glass mode</span>' +
-      '<span class="pcmt-set-note" id="pcmt-set-glass-d">A see-through, frosted look for the whole site. Saved on this device only.</span></div>' +
-      '<button type="button" class="pcmt-switch" role="switch" aria-labelledby="pcmt-set-glass-l" aria-describedby="pcmt-set-glass-d"><span></span></button></div></div>',
-      from, 'pcmt-set-t', '.pcmt-switch');
-    var sw = w.querySelector('.pcmt-switch');
-    function draw() { sw.setAttribute('aria-checked', G && G.on() ? 'true' : 'false'); }
-    sw.addEventListener('click', function () { if (G) G.set(!G.on()); draw(); });
+    var looks = window.PCMT_LOOKS || [];   // [{ id, name, note, on(), set(on) }] registered by the look blocks below
+    var w = show('<div class="pcmt-set"><h2 id="pcmt-set-t">Settings</h2>' + looks.map(function (k) {
+      return '<div class="pcmt-set-row"><div><span class="pcmt-set-name" id="pcmt-set-' + k.id + '-l">' + k.name + '</span>' +
+        '<span class="pcmt-set-note" id="pcmt-set-' + k.id + '-d">' + k.note + '</span></div>' +
+        '<button type="button" class="pcmt-switch" data-look="' + k.id + '" role="switch" aria-labelledby="pcmt-set-' + k.id + '-l" aria-describedby="pcmt-set-' + k.id + '-d"><span></span></button></div>';
+    }).join('') + '<p class="pcmt-set-foot">Saved on this device only. You can turn on more than one.</p></div>', from, 'pcmt-set-t', '.pcmt-switch');
+    function draw() { looks.forEach(function (k) { var b = w.querySelector('[data-look="' + k.id + '"]'); if (b) b.setAttribute('aria-checked', k.on() ? 'true' : 'false'); }); }
+    w.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-look]'); if (!b) return;
+      looks.forEach(function (k) { if (k.id === b.getAttribute('data-look')) k.set(!k.on()); });
+      draw();
+    });
     draw();
   }
   window.PCMT_SETTINGS = { show: showSettings };
@@ -895,5 +899,61 @@
     on: function () { return d.classList.contains('pcmt-glass'); },
     set: function (on) { apply(on); try { if (on) localStorage.setItem(KEY, '1'); else localStorage.removeItem(KEY); } catch (e) {} }
   };
+  (window.PCMT_LOOKS = window.PCMT_LOOKS || []).push({ id: 'glass', name: 'Glass mode', note: 'A see-through, frosted look for the whole site.', on: window.PCMT_GLASS.on, set: window.PCMT_GLASS.set });
   window.addEventListener('storage', function (e) { if (e.key === KEY) apply(e.newValue === '1'); });   // other open tabs follow
+})();
+
+
+/* Fantasy mode (Settings): html.pcmt-fantasy puts an ornate gold, dragon-scale frame around the site's panels.
+   The frame is one SVG drawn with border-image just outside and over the panel's edge, so nothing moves.
+   Corners: a horned curl with a ruby eye; edges: a double rail with a row of scales. Saved per device ('pcmt-fantasy'). */
+(function () {
+  'use strict';
+  var KEY = 'pcmt-fantasy', d = document.documentElement;
+  function read() { try { return localStorage.getItem(KEY) === '1'; } catch (e) { return false; } }
+  // 120 x 120 tile, 44px corners: a folded dragon wing (dark red membrane, gold ribs) over a horned curl with a ruby eye.
+  var corner =
+    '<g id="c">' +
+    '<path d="M3 44V10a7 7 0 0 1 7-7h34" fill="none" stroke="url(#g)" stroke-width="3"/>' +
+    '<path d="M11 44V15a4 4 0 0 1 4-4h29" fill="none" stroke="url(#g)" stroke-width="1.1" opacity=".8"/>' +
+    '<path d="M6 6L42 9Q33 12 30 18Q24 16 21 22Q16 19 13 26Q8 25 9 31Q11 36 9 42Z" fill="url(#w)" stroke="url(#g)" stroke-width="1.3" stroke-linejoin="round"/>' +
+    '<path d="M6 6L30 18M6 6L21 22M6 6L13 26" stroke="url(#g)" stroke-width="1" opacity=".9"/>' +
+    '<path d="M42 9l4-6 1 7z" fill="url(#g)"/>' +
+    '<path d="M24 31c6 0 9 5 6 8-3 2-6 0-5-2" fill="none" stroke="url(#g)" stroke-width="1.6" stroke-linecap="round"/>' +
+    '<circle cx="7" cy="7" r="3.6" fill="#a8231b" stroke="#f7dc84" stroke-width="1.1"/><circle cx="6" cy="6" r="1" fill="#ffd9cc"/>' +
+    '</g>';
+  var edge =
+    '<g id="e">' +
+    '<path d="M44 3H76" stroke="url(#g)" stroke-width="3"/><path d="M44 11H76" stroke="url(#g)" stroke-width="1.1" opacity=".8"/>' +
+    '<path d="M44 11q4 5 8 0q4 5 8 0q4 5 8 0q4 5 8 0" fill="rgba(168,35,27,.22)" stroke="url(#g)" stroke-width=".9"/>' +
+    '<path d="M57 3l3-3 3 3" fill="url(#g)"/>' +
+    '</g>';
+  var svg = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 120 120" width="120" height="120">' +
+    '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff1b8"/><stop offset=".45" stop-color="#d4af37"/><stop offset="1" stop-color="#7a5a1e"/></linearGradient>' +
+    '<linearGradient id="w" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7a1a14"/><stop offset="1" stop-color="#2a0906"/></linearGradient>' + corner + edge + '</defs>' +
+    '<use href="#c" xlink:href="#c"/><use href="#c" xlink:href="#c" transform="translate(120 0) scale(-1 1)"/>' +
+    '<use href="#c" xlink:href="#c" transform="translate(0 120) scale(1 -1)"/><use href="#c" xlink:href="#c" transform="translate(120 120) scale(-1 -1)"/>' +
+    '<use href="#e" xlink:href="#e"/><use href="#e" xlink:href="#e" transform="translate(0 120) scale(1 -1)"/>' +
+    '<use href="#e" xlink:href="#e" transform="matrix(0 1 1 0 0 0)"/><use href="#e" xlink:href="#e" transform="translate(120 0) scale(-1 1) matrix(0 1 1 0 0 0)"/>' +
+    '</svg>';
+  var url = 'url("data:image/svg+xml,' + encodeURIComponent(svg) + '")';
+  var P = 'html.pcmt-fantasy ';
+  var panels = [P + '[style*="background: #172124"][style*="border-radius: 12px"]:not([style*="backface-visibility"])',
+                P + '[style*="background: #172124"][style*="border-radius: 16px"]',
+                P + '.hm-panel', P + '.hm-tile', P + '.lib-mvp'].join(',');
+  var css = document.createElement('style');
+  css.textContent =
+    panels + '{border-style:solid!important;border-width:1px!important;border-image-source:' + url + '!important;border-image-slice:44!important;' +
+      'border-image-width:30px!important;border-image-outset:3px!important;border-image-repeat:round!important;' +
+      'box-shadow:0 0 0 1px rgba(122,90,30,.35),0 10px 30px rgba(0,0,0,.35),0 0 26px rgba(212,140,55,.10)}' +
+    P + 'h1{text-shadow:0 0 18px rgba(212,175,55,.25)}';
+  (document.head || d).appendChild(css);
+  function apply(on) { d.classList.toggle('pcmt-fantasy', !!on); }
+  apply(read());
+  var api = {
+    on: function () { return d.classList.contains('pcmt-fantasy'); },
+    set: function (on) { apply(on); try { if (on) localStorage.setItem(KEY, '1'); else localStorage.removeItem(KEY); } catch (e) {} }
+  };
+  (window.PCMT_LOOKS = window.PCMT_LOOKS || []).push({ id: 'fantasy', name: 'Fantasy mode', note: 'Ornate gold, dragon-scale frames around the panels.', on: api.on, set: api.set });
+  window.addEventListener('storage', function (e) { if (e.key === KEY) apply(e.newValue === '1'); });
 })();
