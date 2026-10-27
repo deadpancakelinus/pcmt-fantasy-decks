@@ -842,11 +842,16 @@
       return '<div class="pcmt-set-row"><div><span class="pcmt-set-name" id="pcmt-set-' + k.id + '-l">' + k.name + '</span>' +
         '<span class="pcmt-set-note" id="pcmt-set-' + k.id + '-d">' + k.note + '</span></div>' +
         '<button type="button" class="pcmt-switch" data-look="' + k.id + '" role="switch" aria-labelledby="pcmt-set-' + k.id + '-l" aria-describedby="pcmt-set-' + k.id + '-d"><span></span></button></div>';
-    }).join('') + '<p class="pcmt-set-foot">Saved on this device only. You can turn on more than one.</p></div>', from, 'pcmt-set-t', '.pcmt-switch');
+    }).join('') + '<p class="pcmt-set-foot">Saved on this device only.</p></div>', from, 'pcmt-set-t', '.pcmt-switch');
     function draw() { looks.forEach(function (k) { var b = w.querySelector('[data-look="' + k.id + '"]'); if (b) b.setAttribute('aria-checked', k.on() ? 'true' : 'false'); }); }
     w.addEventListener('click', function (e) {
       var b = e.target.closest('[data-look]'); if (!b) return;
-      looks.forEach(function (k) { if (k.id === b.getAttribute('data-look')) k.set(!k.on()); });
+      var pick = null; looks.forEach(function (k) { if (k.id === b.getAttribute('data-look')) pick = k; });
+      if (!pick) return;
+      var turnOn = !pick.on();
+      // looks in the same group (light and glass) can't be on together: switching one on switches the others off
+      if (turnOn && pick.group) looks.forEach(function (k) { if (k !== pick && k.group === pick.group && k.on()) k.set(false); });
+      pick.set(turnOn);
       draw();
     });
     draw();
@@ -899,61 +904,104 @@
     on: function () { return d.classList.contains('pcmt-glass'); },
     set: function (on) { apply(on); try { if (on) localStorage.setItem(KEY, '1'); else localStorage.removeItem(KEY); } catch (e) {} }
   };
-  (window.PCMT_LOOKS = window.PCMT_LOOKS || []).push({ id: 'glass', name: 'Glass mode', note: 'A see-through, frosted look for the whole site.', on: window.PCMT_GLASS.on, set: window.PCMT_GLASS.set });
+  (window.PCMT_LOOKS = window.PCMT_LOOKS || []).push({ id: 'glass', group: 'theme', name: 'Glass mode', note: 'A see-through, frosted look for the whole site.', on: window.PCMT_GLASS.on, set: window.PCMT_GLASS.set });
   window.addEventListener('storage', function (e) { if (e.key === KEY) apply(e.newValue === '1'); });   // other open tabs follow
 })();
 
 
-/* Fantasy mode (Settings): html.pcmt-fantasy puts an ornate gold, dragon-scale frame around the site's panels.
-   The frame is one SVG drawn with border-image just outside and over the panel's edge, so nothing moves.
-   Corners: a horned curl with a ruby eye; edges: a double rail with a row of scales. Saved per device ('pcmt-fantasy'). */
+/* Light mode (Settings): html.pcmt-light swaps the dark palette for a light one. The pages keep their colours inline,
+   so each dark colour the site uses is mapped to a light one below (backgrounds, text, borders). Card backs, team
+   colours, logos and buttons keep their own colours. Light and Glass can't be on together (same 'theme' group).
+   Saved per device ('pcmt-light'). A new inline colour added to the boards needs a line here to follow. */
 (function () {
   'use strict';
-  var KEY = 'pcmt-fantasy', d = document.documentElement;
+  var KEY = 'pcmt-light', d = document.documentElement;
   function read() { try { return localStorage.getItem(KEY) === '1'; } catch (e) { return false; } }
-  // 120 x 120 tile, 44px corners: a folded dragon wing (dark red membrane, gold ribs) over a horned curl with a ruby eye.
-  var corner =
-    '<g id="c">' +
-    '<path d="M3 44V10a7 7 0 0 1 7-7h34" fill="none" stroke="url(#g)" stroke-width="3"/>' +
-    '<path d="M11 44V15a4 4 0 0 1 4-4h29" fill="none" stroke="url(#g)" stroke-width="1.1" opacity=".8"/>' +
-    '<path d="M6 6L42 9Q33 12 30 18Q24 16 21 22Q16 19 13 26Q8 25 9 31Q11 36 9 42Z" fill="url(#w)" stroke="url(#g)" stroke-width="1.3" stroke-linejoin="round"/>' +
-    '<path d="M6 6L30 18M6 6L21 22M6 6L13 26" stroke="url(#g)" stroke-width="1" opacity=".9"/>' +
-    '<path d="M42 9l4-6 1 7z" fill="url(#g)"/>' +
-    '<path d="M24 31c6 0 9 5 6 8-3 2-6 0-5-2" fill="none" stroke="url(#g)" stroke-width="1.6" stroke-linecap="round"/>' +
-    '<circle cx="7" cy="7" r="3.6" fill="#a8231b" stroke="#f7dc84" stroke-width="1.1"/><circle cx="6" cy="6" r="1" fill="#ffd9cc"/>' +
-    '</g>';
-  var edge =
-    '<g id="e">' +
-    '<path d="M44 3H76" stroke="url(#g)" stroke-width="3"/><path d="M44 11H76" stroke="url(#g)" stroke-width="1.1" opacity=".8"/>' +
-    '<path d="M44 11q4 5 8 0q4 5 8 0q4 5 8 0q4 5 8 0" fill="rgba(168,35,27,.22)" stroke="url(#g)" stroke-width=".9"/>' +
-    '<path d="M57 3l3-3 3 3" fill="url(#g)"/>' +
-    '</g>';
-  var svg = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 120 120" width="120" height="120">' +
-    '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff1b8"/><stop offset=".45" stop-color="#d4af37"/><stop offset="1" stop-color="#7a5a1e"/></linearGradient>' +
-    '<linearGradient id="w" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7a1a14"/><stop offset="1" stop-color="#2a0906"/></linearGradient>' + corner + edge + '</defs>' +
-    '<use href="#c" xlink:href="#c"/><use href="#c" xlink:href="#c" transform="translate(120 0) scale(-1 1)"/>' +
-    '<use href="#c" xlink:href="#c" transform="translate(0 120) scale(1 -1)"/><use href="#c" xlink:href="#c" transform="translate(120 120) scale(-1 -1)"/>' +
-    '<use href="#e" xlink:href="#e"/><use href="#e" xlink:href="#e" transform="translate(0 120) scale(1 -1)"/>' +
-    '<use href="#e" xlink:href="#e" transform="matrix(0 1 1 0 0 0)"/><use href="#e" xlink:href="#e" transform="translate(120 0) scale(-1 1) matrix(0 1 1 0 0 0)"/>' +
-    '</svg>';
-  var url = 'url("data:image/svg+xml,' + encodeURIComponent(svg) + '")';
-  var P = 'html.pcmt-fantasy ';
-  var panels = [P + '[style*="background: #172124"][style*="border-radius: 12px"]:not([style*="backface-visibility"])',
-                P + '[style*="background: #172124"][style*="border-radius: 16px"]',
-                P + '.hm-panel', P + '.hm-tile', P + '.lib-mvp'].join(',');
+  var P = 'html.pcmt-light ';
+  var BG = { '#0f1d1e': '#e3f2f2', '#0d1416': '#eef3f3', '#111a1c': '#ffffff', '#172124': '#ffffff', '#080b0c': '#f3f7f7', '#13292b': '#dff1f1', '#111819': '#eef3f3', '#2a3a3e': '#d5e0e0' };
+  var FG = { '#eaf4f4': '#142322', '#c4d4d4': '#3b5153', '#93a9aa': '#566d6f', '#a5dcdd': '#17767a', '#f5d76e': '#8a6a0a', '#ff8a80': '#c0392b',
+             '#8be4b7': '#1e8a57', '#ef8f8f': '#c0392b', '#7f9597': '#677d7f', '#d6e4e4': '#2b3f40' };
+  var BD = { '#2a3a3e': '#d5e0e0', '#3a4f53': '#b9caca', '#3a2a2a': '#e6c9c6' };
+  var rules = [
+    P.trim() + '{color-scheme:light}',
+    P + 'body{background:#eef3f3!important}',
+    P + 'a{color:#17767a}', P + 'a:hover{color:#0d4f52}',
+    P + '*{scrollbar-color:#b9caca #eef3f3}',
+    P + '.hm-panel,' + P + '.hm-tile,' + P + '.lib-mvp{background:#ffffff!important;border-color:#d5e0e0!important;box-shadow:0 1px 2px rgba(20,35,34,.06),0 6px 18px rgba(20,35,34,.06)}',
+    P + '.hm-cc textarea,' + P + 'input[type=text],' + P + 'input[type=search],' + P + 'select{background-color:#ffffff!important;color:#142322!important;border-color:#b9caca!important}',
+    P + 'input::placeholder,' + P + 'textarea::placeholder{color:#7b9092!important}',
+    P + 'table.grid,' + P + '.sheet{background:#ffffff!important}',
+    // white role icons (duelist, initiator, sentinel, controller) turn dark
+    P + 'img[src*="3911a104"],' + P + 'img[src*="8f7fb7ff"],' + P + 'img[src*="006daf34"],' + P + 'img[src*="783fdcc5"]{filter:invert(1) brightness(.35)}'
+  ];
+  Object.keys(BG).forEach(function (h) {
+    rules.push(P + '[style*="background: ' + h + '"],' + P + '[style*="background:' + h + '"]{background-color:' + BG[h] + '!important}');
+  });
+  // panels get a soft shadow so white-on-light still reads as a card
+  rules.push(P + '[style*="background: #172124"][style*="border-radius: 12px"]{box-shadow:0 1px 2px rgba(20,35,34,.06),0 6px 18px rgba(20,35,34,.06)}');
+  Object.keys(FG).forEach(function (h) {
+    rules.push(P + '[style*=" color: ' + h + '"],' + P + '[style^="color: ' + h + '"],' + P + '[style*=";color:' + h + '"],' + P + '[style^="color:' + h + '"]{color:' + FG[h] + '!important}');
+  });
+  Object.keys(BD).forEach(function (h) {
+    rules.push(P + '[style*="solid ' + h + '"],' + P + '[style*="dashed ' + h + '"]{border-color:' + BD[h] + '!important}');
+  });
   var css = document.createElement('style');
-  css.textContent =
-    panels + '{border-style:solid!important;border-width:1px!important;border-image-source:' + url + '!important;border-image-slice:44!important;' +
-      'border-image-width:30px!important;border-image-outset:3px!important;border-image-repeat:round!important;' +
-      'box-shadow:0 0 0 1px rgba(122,90,30,.35),0 10px 30px rgba(0,0,0,.35),0 0 26px rgba(212,140,55,.10)}' +
-    P + 'h1{text-shadow:0 0 18px rgba(212,175,55,.25)}';
+  css.textContent = rules.join('');
   (document.head || d).appendChild(css);
-  function apply(on) { d.classList.toggle('pcmt-fantasy', !!on); }
+  function apply(on) { d.classList.toggle('pcmt-light', !!on); }
   apply(read());
+  if (read() && window.PCMT_GLASS && window.PCMT_GLASS.on()) window.PCMT_GLASS.set(false);   // only one of the two
+  // Text in a team's own colour (yellows, lime, near-white) can be too pale on white. While light mode is on, any inline
+  // text colour with less than 3.5:1 contrast on a light background is darkened just enough (the original is kept in
+  // data-pcmt-c and put back when light mode goes off). Text sitting on a dark or pictured background is left alone.
+  function rgb(c) { var m = String(c).match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?/); return m ? [+m[1], +m[2], +m[3], m[4] == null ? 1 : +m[4]] : null; }
+  function lum(v) { return [0, 1, 2].reduce(function (t, i) { var c = v[i] / 255; c = c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); return t + [0.2126, 0.7152, 0.0722][i] * c; }, 0); }
+  function onDark(el) {
+    for (var e = el; e && e !== document.body; e = e.parentElement) {
+      var cs = getComputedStyle(e);
+      if (cs.backgroundImage && cs.backgroundImage !== 'none' && !/^url\(/.test(cs.backgroundImage) ) return true;
+      var b = rgb(cs.backgroundColor);
+      if (b && b[3] > 0.5) return lum(b) < 0.35;
+    }
+    return false;
+  }
+  var seen = new WeakMap();
+  function fix() {
+    if (!d.classList.contains('pcmt-light')) return;
+    var els = document.querySelectorAll('[style*="color"]');
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i];
+      if (el.hasAttribute('data-pcmt-c') || !el.style.color) continue;
+      var st = el.getAttribute('style'); if (seen.get(el) === st) continue;   // already checked with this style
+      seen.set(el, st);
+      var v = rgb(getComputedStyle(el).color); if (!v) continue;
+      if ((1.05) / (lum(v) + 0.05) >= 3.5 || onDark(el)) continue;
+      var k = 1;
+      while (k > 0.2 && 1.05 / (lum([v[0] * k, v[1] * k, v[2] * k]) + 0.05) < 3.5) k -= 0.05;
+      el.setAttribute('data-pcmt-c', el.style.color);
+      el.style.setProperty('color', 'rgb(' + Math.round(v[0] * k) + ',' + Math.round(v[1] * k) + ',' + Math.round(v[2] * k) + ')', 'important');
+    }
+  }
+  function unfix() {
+    seen = new WeakMap();
+    var els = document.querySelectorAll('[data-pcmt-c]');
+    for (var i = 0; i < els.length; i++) { els[i].style.setProperty('color', els[i].getAttribute('data-pcmt-c')); els[i].removeAttribute('data-pcmt-c'); }
+  }
+  var queued = false;
+  function soon() { if (!queued) { queued = true; requestAnimationFrame(function () { queued = false; fix(); }); } }
+  function watch() {
+    new MutationObserver(function (list) {
+      // a redraw that changes an element's colour drops its mark, so it's checked again
+      list.forEach(function (m) { if (m.type === 'attributes' && m.target.hasAttribute && m.target.hasAttribute('data-pcmt-c') && m.target.style.getPropertyPriority('color') !== 'important') m.target.removeAttribute('data-pcmt-c'); });
+      soon();
+    }).observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['style'] });
+    soon();
+  }
+  if (document.body) watch(); else document.addEventListener('DOMContentLoaded', watch);
   var api = {
-    on: function () { return d.classList.contains('pcmt-fantasy'); },
-    set: function (on) { apply(on); try { if (on) localStorage.setItem(KEY, '1'); else localStorage.removeItem(KEY); } catch (e) {} }
+    on: function () { return d.classList.contains('pcmt-light'); },
+    set: function (on) { apply(on); if (on) soon(); else unfix(); try { if (on) localStorage.setItem(KEY, '1'); else localStorage.removeItem(KEY); } catch (e) {} }
   };
-  (window.PCMT_LOOKS = window.PCMT_LOOKS || []).push({ id: 'fantasy', name: 'Fantasy mode', note: 'Ornate gold, dragon-scale frames around the panels.', on: api.on, set: api.set });
+  (window.PCMT_LOOKS = window.PCMT_LOOKS || []).unshift({ id: 'light', group: 'theme', name: 'Light mode', note: 'A bright, light look for the whole site.', on: api.on, set: api.set });
   window.addEventListener('storage', function (e) { if (e.key === KEY) apply(e.newValue === '1'); });
 })();
