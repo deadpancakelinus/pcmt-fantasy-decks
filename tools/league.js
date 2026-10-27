@@ -733,7 +733,16 @@
     '.pcmt-del-yes:disabled{opacity:.4;cursor:not-allowed}' +
     '.pcmt-del-row button:focus-visible{outline:2px solid #fff;outline-offset:2px}' +
     '.pcmt-del-msg{margin:12px 0 0;min-height:1.4em;font-size:14px;color:#ff8a80}' +
-    '.pcmt-del-msg.ok{color:#8be4b7}';
+    '.pcmt-del-msg.ok{color:#8be4b7}' +
+    '.pcmt-set-row{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:16px 0;border-top:1px solid rgba(255,255,255,.12)}' +
+    '.pcmt-set-name{display:block;font-size:17px;font-weight:700;color:#fff}' +
+    '.pcmt-set-note{display:block;margin-top:4px;font-size:14px;line-height:1.45;color:#c4d4d4}' +
+    '.pcmt-switch{flex:none;position:relative;width:56px;height:32px;padding:0;border-radius:999px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);cursor:pointer;transition:background .2s,border-color .2s}' +
+    '.pcmt-switch span{position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#eaf4f4;box-shadow:0 2px 6px rgba(0,0,0,.4);transition:transform .2s}' +
+    '.pcmt-switch[aria-checked="true"]{background:#a5dcdd;border-color:#a5dcdd}' +
+    '.pcmt-switch[aria-checked="true"] span{transform:translateX(24px);background:#0d1416}' +
+    '.pcmt-switch:focus-visible{outline:2px solid #fff;outline-offset:3px}' +
+    '@media (prefers-reduced-motion:reduce){.pcmt-switch,.pcmt-switch span{transition:none}}';
   (document.head || document.documentElement).appendChild(css);
 
   var open = null, back = null;
@@ -825,14 +834,66 @@
     });
   }
 
+  // Settings: a window with per-device options. Glass mode is saved in this browser only (localStorage 'pcmt-glass').
+  function showSettings(from) {
+    var G = window.PCMT_GLASS;
+    var w = show('<div class="pcmt-set"><h2 id="pcmt-set-t">Settings</h2>' +
+      '<div class="pcmt-set-row"><div><span class="pcmt-set-name" id="pcmt-set-glass-l">Glass mode</span>' +
+      '<span class="pcmt-set-note" id="pcmt-set-glass-d">A see-through, frosted look for the whole site. Saved on this device only.</span></div>' +
+      '<button type="button" class="pcmt-switch" role="switch" aria-labelledby="pcmt-set-glass-l" aria-describedby="pcmt-set-glass-d"><span></span></button></div></div>',
+      from, 'pcmt-set-t', '.pcmt-switch');
+    var sw = w.querySelector('.pcmt-switch');
+    function draw() { sw.setAttribute('aria-checked', G && G.on() ? 'true' : 'false'); }
+    sw.addEventListener('click', function () { if (G) G.set(!G.on()); draw(); });
+    draw();
+  }
+  window.PCMT_SETTINGS = { show: showSettings };
   document.addEventListener('click', function (e) {
+    var st = e.target.closest && e.target.closest('[data-pcmt-settings],a[href="#settings"]');
+    if (st) { e.preventDefault(); showSettings(st); return; }
     var a = e.target.closest && e.target.closest('[data-pcmt-privacy],a[href="#privacy"]');
     if (a) { e.preventDefault(); showPrivacy(a); return; }
     var d = e.target.closest && e.target.closest('[data-pcmt-delete]');
     if (d) { e.preventDefault(); showDelete(d); }
   });
   window.PCMT_PRIVACY = { show: showPrivacy, deleteAccount: showDelete };
-  function fromHash() { if (location.hash === '#privacy') setTimeout(function () { showPrivacy(null); }, 400); }
+  function fromHash() { if (location.hash === '#privacy') setTimeout(function () { showPrivacy(null); }, 400); else if (location.hash === '#settings') setTimeout(function () { showSettings(null); }, 400); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fromHash); else fromHash();
   window.addEventListener('hashchange', fromHash);
+})();
+
+
+/* Glass mode (Settings): html.pcmt-glass turns the dark panels into frosted glass over a soft coloured backdrop.
+   The pages keep their colours inline, so the rules below match those inline backgrounds. Card backs, buttons and
+   logos aren't touched. Turned on early so the page doesn't flash dark first. */
+(function () {
+  'use strict';
+  var KEY = 'pcmt-glass', d = document.documentElement;
+  function read() { try { return localStorage.getItem(KEY) === '1'; } catch (e) { return false; } }
+  var css = document.createElement('style');
+  var P = 'html.pcmt-glass ';
+  var glassy = 'background-color:rgba(255,255,255,.06)!important;background-image:linear-gradient(145deg,rgba(255,255,255,.07),rgba(255,255,255,.02))!important;border-color:rgba(255,255,255,.14)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 8px 24px rgba(0,0,0,.25)';
+  css.textContent =
+    P + '{color-scheme:dark}' +
+    P + 'body{background:#071012!important;background-image:radial-gradient(900px 600px at 8% 0%,rgba(68,170,175,.38),transparent 65%),radial-gradient(800px 700px at 100% 30%,rgba(118,82,196,.32),transparent 60%),radial-gradient(900px 700px at 30% 100%,rgba(40,120,160,.30),transparent 60%),linear-gradient(160deg,#081417,#0b1020)!important;background-attachment:fixed!important}' +
+    P + '[data-pcmt-root]{background:transparent!important}' +
+    P + 'header[style*="background: #111a1c"],' + P + '[style*="background: #111a1c"]{background:rgba(10,18,20,.42)!important;-webkit-backdrop-filter:blur(18px) saturate(150%);backdrop-filter:blur(18px) saturate(150%);border-color:rgba(255,255,255,.12)!important}' +
+    P + '[style*="background: #172124"]:not([style*="backface-visibility"]),' + P + '.hm-panel,' + P + '.hm-tile,' + P + '.lib-mvp{' + glassy + ';-webkit-backdrop-filter:blur(14px) saturate(140%);backdrop-filter:blur(14px) saturate(140%)}' +
+    P + '[style*="background: #172124"][style*="backface-visibility"],' + P + '.pk-front,' + P + '.st-card{background-color:rgba(20,32,36,.72)!important;border-color:rgba(255,255,255,.16)!important}' +
+    P + '[style*="background: #0d1416"]:not(.pcmt-loading):not([data-pcmt-root]){background:rgba(0,0,0,.22)!important;border-color:rgba(255,255,255,.16)!important}' +
+    P + '[style*="background: #080b0c"]{background:rgba(0,0,0,.24)!important}' +
+    P + '[style*="background: #13292b"]{background:rgba(165,220,221,.12)!important}' +
+    P + '[style*="background: #111819"]{background:rgba(0,0,0,.2)!important}' +
+    P + '.hm-cc textarea,' + P + 'input[type=text],' + P + 'input[type=search],' + P + 'select{background-color:rgba(0,0,0,.22)!important;border-color:rgba(255,255,255,.18)!important}' +
+    P + 'footer{background:rgba(6,12,14,.35);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}' +
+    P + 'table.grid,' + P + '.sheet{background:rgba(255,255,255,.04)!important}' +
+    '@media (prefers-reduced-transparency:reduce){html.pcmt-glass [style]{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}}';
+  (document.head || d).appendChild(css);
+  function apply(on) { d.classList.toggle('pcmt-glass', !!on); }
+  apply(read());
+  window.PCMT_GLASS = {
+    on: function () { return d.classList.contains('pcmt-glass'); },
+    set: function (on) { apply(on); try { if (on) localStorage.setItem(KEY, '1'); else localStorage.removeItem(KEY); } catch (e) {} }
+  };
+  window.addEventListener('storage', function (e) { if (e.key === KEY) apply(e.newValue === '1'); });   // other open tabs follow
 })();
