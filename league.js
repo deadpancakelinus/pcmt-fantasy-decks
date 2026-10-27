@@ -839,9 +839,8 @@
   function showSettings(from) {
     var looks = window.PCMT_LOOKS || [];   // [{ id, name, note, on(), set(on) }] registered by the look blocks below
     var w = show('<div class="pcmt-set"><h2 id="pcmt-set-t">Settings</h2>' + looks.map(function (k) {
-      return '<div class="pcmt-set-row"><div><span class="pcmt-set-name" id="pcmt-set-' + k.id + '-l">' + k.name + '</span>' +
-        '<span class="pcmt-set-note" id="pcmt-set-' + k.id + '-d">' + k.note + '</span></div>' +
-        '<button type="button" class="pcmt-switch" data-look="' + k.id + '" role="switch" aria-labelledby="pcmt-set-' + k.id + '-l" aria-describedby="pcmt-set-' + k.id + '-d"><span></span></button></div>';
+      return '<div class="pcmt-set-row"><div><span class="pcmt-set-name" id="pcmt-set-' + k.id + '-l">' + k.name + '</span></div>' +
+        '<button type="button" class="pcmt-switch" data-look="' + k.id + '" role="switch" aria-labelledby="pcmt-set-' + k.id + '-l"><span></span></button></div>';
     }).join('') + '<p class="pcmt-set-foot">Saved on this device only.</p></div>', from, 'pcmt-set-t', '.pcmt-switch');
     function draw() { looks.forEach(function (k) { var b = w.querySelector('[data-look="' + k.id + '"]'); if (b) b.setAttribute('aria-checked', k.on() ? 'true' : 'false'); }); }
     w.addEventListener('click', function (e) {
