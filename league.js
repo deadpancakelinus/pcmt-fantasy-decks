@@ -934,7 +934,8 @@
     P + 'img[src*="3911a104"],' + P + 'img[src*="8f7fb7ff"],' + P + 'img[src*="006daf34"],' + P + 'img[src*="783fdcc5"]{filter:invert(1) brightness(.35)}'
   ];
   Object.keys(BG).forEach(function (h) {
-    rules.push(P + '[style*="background: ' + h + '"],' + P + '[style*="background:' + h + '"]{background-color:' + BG[h] + '!important}');
+    // round elements (the logo circle on card backs) keep the card's own dark colour
+    rules.push(P + '[style*="background: ' + h + '"]:not([style*="border-radius: 50%"]),' + P + '[style*="background:' + h + '"]:not([style*="border-radius:50%"]){background-color:' + BG[h] + '!important}');
   });
   // panels get a soft shadow so white-on-light still reads as a card
   rules.push(P + '[style*="background: #172124"][style*="border-radius: 12px"]{box-shadow:0 1px 2px rgba(20,35,34,.06),0 6px 18px rgba(20,35,34,.06)}');
