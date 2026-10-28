@@ -139,4 +139,4 @@ var PCMT_SITE_PLAYERS = [
   {"id": "denial", "name": "denial", "team": "NATS", "role": "initiator", "price": 10.0}
 ];
 var PCMT_SITE_TWIN = {"night": "night-emea", "night-emea": "night"};
-var PCMT_SITE_CHAMPS = {"longclaw": true, "devil": true, "platinum": true, "igneous": true, "james": true, "stingray": true, "faye": true, "charlotte": true, "mide": true, "king": true, "tonnoman": true};
+var PCMT_SITE_CHAMPS = {"longclaw": true, "devil": true, "platinum": true, "igneous": true, "james": true, "stingray": true, "faye": true, "charlotte": true, "mide": true, "king": true, "tonnoman": true, "amara": true};
