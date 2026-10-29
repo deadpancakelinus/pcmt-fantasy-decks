@@ -1013,7 +1013,7 @@ var PCMT_MATCHES = [
 ];
 // Gameweek locks use the first match of the week in either region.
 var PCMT_NA_MATCHES = PCMT_MATCHES;
-var PCMT_LOCK_LEAD_H = 12;
+var PCMT_LOCK_LEAD_H = 6;
 // Finished series from PCMT.gg, one entry each, added by the PCMT.gg results check.
 // { region: 'NA'|'EMEA', start: ISO time the series started (same as in PCMT_MATCHES), a: team code, b: team code,
 //   winner: team code, url: PCMT.gg match page,
@@ -1132,7 +1132,7 @@ function pcmtWeekLock(now) {
   }
   return { locked: false, until: null, lockAt: lockAt };
 }
-// Next time squads lock: 12h before the first NA match of whichever gameweek comes next.
+// Next time squads lock: 6h before the first NA match of whichever gameweek comes next.
 function pcmtNextLock(now) {
   var best = null;
   PCMT_NA_MATCHES.forEach(function (m) {
@@ -1882,7 +1882,7 @@ class Component extends DCLogic {
       lockNote: weekLocked ? 'Locked until ' + pcmtWhen(wk.until) : '',
       showCountdown: !weekLocked && !!nextLock,
       countdown: nextLock ? pcmtCountdown(nextLock - Date.now()) : '',
-      countdownTitle: nextLock ? 'Decks lock ' + pcmtWhen(nextLock) + ' (12 hours before the first match of the week)' : '',
+      countdownTitle: nextLock ? 'Decks lock ' + pcmtWhen(nextLock) + ' (6 hours before the first match of the week)' : '',
       lockTitle: weekLocked ? 'Deck locked' : 'Deck open for changes',
       actionsDisabled: weekLocked,
       actionOpacity: weekLocked ? 0.4 : 1,

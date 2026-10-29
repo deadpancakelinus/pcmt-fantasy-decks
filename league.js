@@ -79,7 +79,7 @@
   window.PCMT_CENSOR_NAME = pcmtCensorName;
   var TOKEN_KEY = 'pcmt-auth';
   // Transfers are unlimited while the deck is unlocked (Oct 24 2026): change any players until the gameweek locks.
-  var BUDGET = 100, TEAM_LIMIT = 2, TRANSFERS = Infinity, LOCK_LEAD_H = 12;
+  var BUDGET = 100, TEAM_LIMIT = 2, TRANSFERS = Infinity, LOCK_LEAD_H = 6;
   var ROLES = ['duelist', 'controller', 'initiator', 'sentinel'];
   // Scoring (same as the Guide and setup/vp-setup.sql vp_series_points). toxic = places 1-3 by PCMT.gg's Toxic rating (RT).
   var SCORING = { kill: 1, per5MapKills: 1, assist: 0.5, firstBlood: 0.5, toxic: [3, 2, 1], topKast: 1, topAcs: 2, seriesScore: { '2-0': 2, '3-0': 3, '3-1': 1 }, mapWin: 1,

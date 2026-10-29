@@ -163,7 +163,7 @@ a.hm-tile{color:inherit}
 <div class="hm-cb-text">
 <span class="hm-cb-kick"><img src="/_blob/c265e976f8968e60e4a2bdd32542b499" alt="" aria-hidden="true">PCMT NA SEASON 3 · CHAMPIONS</span>
 <h2 id="champ-h" class="hm-cb-name">Spank Ptheory Gaming</h2>
-<p class="hm-cb-final"><span class="hm-cb-score"><span class="hm-champ-shine">3</span><span class="hm-cb-dash">–</span><span>0</span></span><span>Swept <img src="/_blob/ce2bf22e2df8751703c00f132b854650" alt="" aria-hidden="true"> Team 1 in the Grand Final</span></p>
+<p class="hm-cb-final"><span class="hm-cb-score"><span class="hm-champ-shine">3</span><span class="hm-cb-dash">–</span><span>0</span></span><span>Grand Final sweep</span></p>
 <ul class="hm-cb-maps" aria-label="Maps won"><li>Abyss</li><li>Summit</li><li>Lotus</li></ul>
 </div>
 </div>
@@ -418,13 +418,13 @@ class Component extends DCLogic {
                when: when(m.start), meta: (m.region || 'NA') + (m.bo ? ' · Bo' + m.bo : ''),
                url: m.url || 'https://pcmt.gg/matches' };   // each series links to its own page on PCMT.gg
     });
-    // Deck lock: 12 hours before the gameweek's first series (gameweeks start Monday 09:00 UTC).
+    // Deck lock: 6 hours before the gameweek's first series (gameweeks start Monday 09:00 UTC).
     var d = new Date(now), ws = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 9) - ((d.getUTCDay() + 6) % 7) * 864e5;
     if (ws > now) ws -= 7 * 864e5;
     var inWeek = all.filter(function (m) { var t = Date.parse(m.start); return t >= ws && t < ws + 7 * 864e5; });
     var lockLabel = 'Decks are open';
     if (inWeek.length) {
-      var lockAt = Date.parse(inWeek[0].start) - 12 * 36e5;
+      var lockAt = Date.parse(inWeek[0].start) - 6 * 36e5;
       var res = live ? (W.PCMT_RESULTS || []) : [];
       var left = inWeek.some(function (m) {   // a game this week still to play (no result yet and its time slot not over)
         var played = res.some(function (r) { return r.start === m.start && r.a === m.a && r.b === m.b; });

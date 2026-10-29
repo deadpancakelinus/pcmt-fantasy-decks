@@ -253,7 +253,7 @@ begin
 
   for u in select distinct user_id from public.deck_history loop
     prev := null; use_name := null;
-    for w in select b, first_t - interval '12 hours' as lock_at, b + interval '7 days' as e from vp_weeks order by b loop
+    for w in select b, first_t - interval '6 hours' as lock_at, b + interval '7 days' as e from vp_weeks order by b loop
       if p_now < w.lock_at then continue; end if;              -- gameweek not locked yet
       use_slots := null;
       for d in select slots, name, created_at from public.deck_history where user_id = u and created_at < w.lock_at order by created_at desc, id desc loop
