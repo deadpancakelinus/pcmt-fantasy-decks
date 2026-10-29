@@ -31,6 +31,15 @@ var PCMT_MATCHES = [
     "bo": 5,
     "hours": 5,
     "url": "https://pcmt.gg/events/s3-na/t1-vs-spg-s3-playoffs-2026-10-28-2"
+  },
+  {
+    "region": "EMEA",
+    "start": "2026-11-01T19:00:00Z",
+    "a": "NOOT",
+    "b": "SEAL",
+    "bo": 3,
+    "hours": 3,
+    "url": "https://pcmt.gg/events/s2-emea/noot-vs-seal-s2-playoffs-2026-11-01"
   }
 ];
 
