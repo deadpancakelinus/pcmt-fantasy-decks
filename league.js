@@ -93,12 +93,29 @@
   window.PCMT_LEAGUE_VALS = { total: '0', rank: '—', rankLabel: 'Rank —' };
 
   // ---------- small helpers ----------
+  // Gameweeks (Oct 29 2026): Thursday 09:00 UTC (5:00 AM EDT) to the next Thursday. Before that they ran Monday to
+  // Monday; the short week Mon Oct 26 - Thu Oct 29 bridges the two. Same as vp_week_start() in setup/vp-setup.sql.
+  var THU_FROM = Date.parse('2026-10-29T09:00:00Z'), BRIDGE_FROM = Date.parse('2026-10-26T09:00:00Z');
   function weekStart(t) {
+    if (t >= BRIDGE_FROM && t < THU_FROM) return BRIDGE_FROM;
     var local = new Date(t - 4 * 3600000);
-    var dow = (local.getUTCDay() + 6) % 7;
+    var dow = t >= THU_FROM ? (local.getUTCDay() + 3) % 7 : (local.getUTCDay() + 6) % 7;   // days since Thursday / Monday
     var b = Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate() - dow, 9);
     if (b > t) b -= 7 * DAY;
     return b;
+  }
+  function weekEnd(b) { return weekStart(b + 7 * DAY); }
+  // Calendar day in New York (days since 1970), for "Saturday or later" and "a Tuesday game".
+  function etDay(t) {
+    var p = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date(t));
+    var g = function (k) { return +p.filter(function (x) { return x.type === k; })[0].value; };
+    return Math.round(Date.UTC(g('year'), g('month') - 1, g('day')) / DAY);
+  }
+  // When a gameweek's decks lock: Thursday morning (the week's start), unless its first game is on Saturday or later,
+  // then 6 hours before that game. Weeks before the Thursday switch locked 6 hours before their first game.
+  function weekLockAt(b, first) {
+    if (b < THU_FROM) return first - LOCK_LEAD_H * 3600000;
+    return etDay(first) - etDay(b) >= 2 ? first - LOCK_LEAD_H * 3600000 : b;
   }
   function weekKey(b) { return new Date(b).toISOString().slice(0, 10); }
   function role(p) { var r = String(p.role || '').split('/')[0]; return r === 'yoru' ? 'duelist' : r; }
@@ -198,36 +215,31 @@
     (window.PCMT_MATCHES || []).concat(window.PCMT_RESULTS || []).forEach(function (m) { var t = Date.parse(m.start); if (!isNaN(t)) starts.push(t); });
     var weeks = {};
     starts.forEach(function (t) {
-      var b = weekStart(t), w = weeks[b] || (weeks[b] = { b: b, e: b + 7 * DAY, key: weekKey(b), first: t, results: [] });
+      var b = weekStart(t), w = weeks[b] || (weeks[b] = { b: b, e: weekEnd(b), key: weekKey(b), first: t, results: [] });
       if (t < w.first) w.first = t;
     });
     (window.PCMT_RESULTS || []).forEach(function (r) { var t = Date.parse(r.start); if (!isNaN(t)) weeks[weekStart(t)].results.push(r); });
-    return Object.keys(weeks).map(function (k) { var w = weeks[k]; w.lockAt = w.first - LOCK_LEAD_H * 3600000; w.done = now >= w.e; w.locked = now >= w.lockAt; return w; })
+    return Object.keys(weeks).map(function (k) { var w = weeks[k]; w.lockAt = weekLockAt(w.b, w.first); w.done = now >= w.e; w.locked = now >= w.lockAt; return w; })
       .sort(function (a, b) { return a.b - b.b; });
   }
 
-  // For each manager: the points each gameweek scored (Oct 29 2026: decks lock per game).
-  // Every series is scored with the manager's last valid deck saved before that series' lock (6 h before it starts);
-  // with none, the deck they had before counts again. A week with no results yet still notes the deck in effect at
-  // its first lock. Entry: { week, deck (the last deck used), pts (IGL x1.5), byTeam, cards: { <player id>: points } }.
+  // For each manager: which deck counted each gameweek, and the points it scored. The deck that counts is the last valid
+  // one saved before the week's lock (else the one from the week before). Entry: { week, deck, pts (IGL x1.5), byTeam,
+  // cards: { <player id>: points } }.
   function scoreManager(subs, weeks) {
     subs = subs.slice().sort(function (a, b) { return a.t - b.t; });
-    function latest(before) {
-      for (var i = subs.length - 1; i >= 0; i--) if (subs[i].t < before && validDeck(subs[i].slots, subs[i].t)) return subs[i];
-      return null;
-    }
     var prev = null, out = [];
     weeks.forEach(function (w) {
       if (!w.locked) return;
-      var used = null, pts = 0, byTeam = {}, cards = {}, champWin = false, missedWin = false;
-      var rs = w.results.slice().sort(function (a, b) { return Date.parse(a.start) - Date.parse(b.start); });
-      if (!rs.length) { used = latest(w.lockAt) || prev; if (!used) return; prev = used; }
-      rs.forEach(function (r) {
-        var use = latest(Date.parse(r.start) - LOCK_LEAD_H * 3600000) || prev;
-        if (!use) return;
-        prev = used = use;
+      var use = null;
+      for (var i = subs.length - 1; i >= 0; i--) if (subs[i].t < w.lockAt && validDeck(subs[i].slots, subs[i].t)) { use = subs[i]; break; }
+      if (!use) use = prev;
+      if (!use) return;
+      prev = use;
+      var pts = 0, byTeam = {}, cards = {}, champWin = false, missedWin = false, ids = deckIds(use.slots);
+      w.results.forEach(function (r) {
         var sp = seriesPoints(r);
-        deckIds(use.slots).forEach(function (id) {
+        ids.forEach(function (id) {
           var p = BY_ID[id], base = sp[id] || 0;
           pts += base * (id === use.igl ? 1.5 : 1);
           byTeam[p.team] = (byTeam[p.team] || 0) + base;
@@ -236,8 +248,7 @@
           if (p.team === r.winner && LOWEST[id]) missedWin = true;
         });
       });
-      if (!used) return;
-      out.push({ week: w, deck: used, pts: Math.round(pts * 10) / 10, byTeam: byTeam, cards: cards, champWin: champWin, missedWin: missedWin });
+      out.push({ week: w, deck: use, pts: Math.round(pts * 10) / 10, byTeam: byTeam, cards: cards, champWin: champWin, missedWin: missedWin });
     });
     return out;
   }

@@ -9,7 +9,7 @@ const check = (ok, msg) => { console.log((ok ? 'ok   ' : 'FAIL ') + msg); if (!o
 
 // ---- the site's rules, straight from league.js ----
 const LEAGUE = fs.readFileSync(__dirname + '/league.js', 'utf8');
-const core = LEAGUE.slice(LEAGUE.indexOf('  function weekStart(t)'), LEAGUE.indexOf('  // ---------- Supabase over plain fetch'));
+const core = LEAGUE.slice(LEAGUE.indexOf('  // Gameweeks (Oct 29 2026)'), LEAGUE.indexOf('  // ---------- Supabase over plain fetch'));
 // the scoring numbers and the 4K/5K start date, exactly as league.js has them
 const SCORING_JS = 'var ' + LEAGUE.match(/var SCORING = \{[\s\S]*?\};/)[0].slice(4) + ' var ' + LEAGUE.match(/var MULTI_FROM = [^;]*;/)[0].slice(4);
 function siteRules(matches, results) {

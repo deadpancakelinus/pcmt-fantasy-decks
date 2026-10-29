@@ -562,7 +562,7 @@ function pcmtNum(n) {
 var PCMT_NEXT_MATCH = '2026-10-24T00:00:00Z'; // Fri Oct 23, 7:00 PM CDT
 // Upcoming matches in both regions, from pcmt.gg/matches. The live site refreshes this list from PCMT.gg.
 var PCMT_MATCHES = window.PCMT_MATCHES || [];
-// Deck locks use every match in either region (6 hours before each one).
+// Deck locks use the matches of both regions.
 var PCMT_NA_MATCHES = PCMT_MATCHES;
 var PCMT_LOCK_LEAD_H = 6;
 // Finished series from PCMT.gg, one entry each, added by the PCMT.gg results check.
@@ -619,12 +619,12 @@ function pcmtSeriesPoints(r) {
   });
   return out;
 }
-// Points each player has scored this gameweek, added up across every series they played. Back to zero at the 5:00 AM Monday EDT rollover.
+// Points each player has scored this gameweek, added up across every series they played. Back to zero at the 5:00 AM Thursday EDT rollover.
 var pcmtWeekCache = { b: null, pts: null };
 function pcmtWeekPointsAt(now) {
   var b = pcmtMondayStart(now);
   if (pcmtWeekCache.b === b && pcmtWeekCache.n === PCMT_RESULTS.length) return pcmtWeekCache.pts;
-  var e = pcmtAddDays(b, 7), pts = {};
+  var e = pcmtWeekEnd(b), pts = {};
   PCMT_RESULTS.forEach(function (r) {
     var st = Date.parse(r.start);
     if (!(st >= b && st < e)) return;
@@ -635,46 +635,60 @@ function pcmtWeekPointsAt(now) {
   return pts;
 }
 // Champion's Aura: held by one manager at a time — whoever was #1 on the overall leaderboard
-// when the previous gameweek ended. It switches over at the 5:00 AM Monday rollover.
+// when the previous gameweek ended. It switches over at the 5:00 AM Thursday rollover.
 // The live site fills this from the leaderboard; null until Week 1 has finished.
 var PCMT_AURA = window.PCMT_AURA_LIVE || { holderId: null, me: null };
-// Gameweeks turn over at 5:00 AM Monday EDT (09:00 UTC) for everyone, all year, wherever they are.
+// Gameweeks (Oct 29 2026) run Thursday 5:00 AM EDT (09:00 UTC) to the next Thursday. Before that they ran Monday to
+// Monday; the short week Mon Oct 26 - Thu Oct 29 bridges the two. Same as weekStart() in league.js.
 var PCMT_REOPEN_HOUR = 5;
 var PCMT_EDT_OFFSET_H = -4;
-function pcmtMondayStart(t) {
+var PCMT_THU_FROM = Date.parse('2026-10-29T09:00:00Z'), PCMT_BRIDGE_FROM = Date.parse('2026-10-26T09:00:00Z');
+function pcmtMondayStart(t) {   // (name kept) the start of the gameweek holding t
+  if (t >= PCMT_BRIDGE_FROM && t < PCMT_THU_FROM) return PCMT_BRIDGE_FROM;
   var local = new Date(t + PCMT_EDT_OFFSET_H * 3600000);
-  var dow = (local.getUTCDay() + 6) % 7;
+  var dow = t >= PCMT_THU_FROM ? (local.getUTCDay() + 3) % 7 : (local.getUTCDay() + 6) % 7;
   var b = Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate() - dow, PCMT_REOPEN_HOUR - PCMT_EDT_OFFSET_H);
   if (b > t) b -= 7 * 86400000;
   return b;
 }
+function pcmtWeekEnd(b) { return pcmtMondayStart(b + 7 * 86400000); }
+function pcmtEtDay(t) {   // calendar day in New York (days since 1970)
+  var p = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date(t));
+  var g = function (k) { return +p.filter(function (x) { return x.type === k; })[0].value; };
+  return Math.round(Date.UTC(g('year'), g('month') - 1, g('day')) / 86400000);
+}
 function pcmtAddDays(t, n) { return t + n * 86400000; }
-// Decks lock per game (Oct 29 2026): from 6 hours before a series starts until it's over (its result is in, or its
-// time slot has passed). Between games decks are open, and a saved deck counts from the next game's lock.
-function pcmtLockWindows(now) {
-  var out = [];
-  PCMT_NA_MATCHES.forEach(function (m) {
-    var st = Date.parse(m.start); if (isNaN(st)) return;
-    var played = PCMT_RESULTS.some(function (r) { return r.start === m.start && r.a === m.a && r.b === m.b; });
-    var en = st + (m.hours || 3) * 3600000;
-    if (played || en <= now) return;
-    out.push({ from: st - PCMT_LOCK_LEAD_H * 3600000, to: en });
-  });
-  return out.sort(function (a, b) { return a.from - b.from; });
+// Deck locks (Oct 29 2026), one per gameweek (Thursday to Thursday):
+//   * lock Thursday 5:00 AM EDT, unless the week's first game is on Saturday or later: then 6 hours before that game;
+//   * open again Tuesday 5:00 AM EDT, unless the week has a Tuesday game: then once every Tuesday game's result is in.
+// The deck saved before the lock counts for the whole week (games on Wednesday too); changes after it reopens count
+// from next gameweek. A week with no games posted doesn't lock. Same lock time as weekLockAt() in league.js.
+function pcmtPlayed(m) { return PCMT_RESULTS.some(function (r) { return r.start === m.start && r.a === m.a && r.b === m.b; }); }
+function pcmtWeekInfo(b) {
+  var e = pcmtWeekEnd(b), games = PCMT_NA_MATCHES.concat(PCMT_RESULTS).filter(function (m) { var t = Date.parse(m.start); return t >= b && t < e; });
+  if (!games.length) return null;
+  var first = Math.min.apply(null, games.map(function (m) { return Date.parse(m.start); }));
+  var lockAt = b < PCMT_THU_FROM || pcmtEtDay(first) - pcmtEtDay(b) >= 2 ? first - PCMT_LOCK_LEAD_H * 3600000 : b;
+  var tue = PCMT_NA_MATCHES.filter(function (m) { var t = Date.parse(m.start); return t >= b && t < e && pcmtEtDay(t) - pcmtEtDay(b) === 5; });
+  var waitTue = tue.some(function (m) { return !pcmtPlayed(m); });
+  var openAt = b < PCMT_THU_FROM ? e : b + 5 * 86400000;   // Tuesday 5:00 AM EDT (the bridge week ran to its end)
+  return { b: b, e: e, lockAt: lockAt, openAt: openAt, waitTue: waitTue, hasTue: tue.length > 0 };
 }
 function pcmtWeekLock(now) {
-  var ws = pcmtLockWindows(now), cur = null;
-  ws.forEach(function (w) {
-    if (cur) { if (w.from <= cur.to) cur.to = Math.max(cur.to, w.to); }   // back-to-back games stay locked through
-    else if (w.from <= now) cur = { from: w.from, to: w.to };
-  });
-  if (cur) return { locked: true, until: cur.to, lockAt: cur.from };
+  var w = pcmtWeekInfo(pcmtMondayStart(now));
+  if (w && now >= w.lockAt) {
+    if (w.hasTue ? w.waitTue : now < w.openAt) return { locked: true, until: w.hasTue ? null : w.openAt, tuesdayGame: w.hasTue, lockAt: w.lockAt };
+  }
   return { locked: false, until: null, lockAt: pcmtNextLock(now) };
 }
-// Next time decks lock: 6 hours before the next game that hasn't started.
+// Next time decks lock: this gameweek's lock if it hasn't come yet, else the next week with a game posted.
 function pcmtNextLock(now) {
-  var best = null;
-  pcmtLockWindows(now).forEach(function (w) { if (w.from > now && (best === null || w.from < best)) best = w.from; });
+  var best = null, seen = {};
+  PCMT_NA_MATCHES.forEach(function (m) {
+    var b = pcmtMondayStart(Date.parse(m.start)); if (seen[b]) return; seen[b] = true;
+    var w = pcmtWeekInfo(b);
+    if (w && w.lockAt > now && (best === null || w.lockAt < best)) best = w.lockAt;
+  });
   return best;
 }
 function pcmtCountdown(ms) {
@@ -744,14 +758,14 @@ class Component extends DCLogic {
   weekLock() {
     var mode = this.props.lockPreview ?? 'Live';
     var w = pcmtWeekLock(this.state.now || Date.now());
-    if (mode === 'Locked') return { locked: true, until: w.until || pcmtAddDays(pcmtMondayStart(Date.now()), 7), lockAt: w.lockAt };
+    if (mode === 'Locked') return { locked: true, until: w.until || pcmtWeekEnd(pcmtMondayStart(Date.now())), lockAt: w.lockAt };
     if (mode === 'Open') return { locked: false, until: null, lockAt: w.lockAt };
     return w;
   }
 
   isLocked() { return this.weekLock().locked; }
 
-  // Points a player has scored so far this gameweek (every game they've played since the 5:00 AM Monday reset).
+  // Points a player has scored so far this gameweek (every game they've played since the 5:00 AM Thursday reset).
   weekPoints(id) {
     if (this.props.samplePoints) {
       var h = 0;
@@ -1344,7 +1358,7 @@ class Component extends DCLogic {
       return n > 0 ? n + ' ' + r.label.toLowerCase() : null;
     }).filter(Boolean);
     var openWildAll = PCMT_WILD - wildFilled;
-    if (weekLocked) statusText = 'Locked for the game. Deck changes reopen ' + pcmtWhen(wk.until) + ' (or as soon as the result is in).';
+    if (weekLocked) statusText = wk.tuesdayGame ? 'Gameweek locked. Deck changes reopen once Tuesday\'s game is over and its result is in.' : 'Gameweek locked. Deck changes reopen ' + pcmtWhen(wk.until) + '.';
     else if (s.saved) statusText = 'Deck locked in. Edits are open until ' + (wk.lockAt ? pcmtWhen(wk.lockAt) : 'the next match') + '.';
     else if (missing.length) statusText = 'No points until every role is filled. Still need: ' + missing.join(', ') + '.';
     else if (need > 0) statusText = 'Every role is filled. Pick ' + openWildAll + ' more wildcard' + (openWildAll === 1 ? '' : 's') + ' to complete your deck.';
@@ -1409,10 +1423,10 @@ class Component extends DCLogic {
           colorA: PCMT_TEAMS[next.a] || '#eaf4f4', colorB: PCMT_TEAMS[next.b] || '#eaf4f4', time: pcmtMatchTime(next.start) };
       }),
       weekLocked: weekLocked, weekOpen: !weekLocked,
-      lockNote: weekLocked ? 'Locked until ' + pcmtWhen(wk.until) : '',
+      lockNote: weekLocked ? (wk.until ? 'Locked until ' + pcmtWhen(wk.until) : 'Locked until Tuesday\'s result is in') : '',
       showCountdown: !weekLocked && !!nextLock,
       countdown: nextLock ? pcmtCountdown(nextLock - Date.now()) : '',
-      countdownTitle: nextLock ? 'Decks lock ' + pcmtWhen(nextLock) + ' (6 hours before the next game)' : '',
+      countdownTitle: nextLock ? 'Decks lock ' + pcmtWhen(nextLock) + ' for the gameweek' : '',
       lockTitle: weekLocked ? 'Deck locked' : 'Deck open for changes',
       actionsDisabled: weekLocked,
       actionOpacity: weekLocked ? 0.4 : 1,

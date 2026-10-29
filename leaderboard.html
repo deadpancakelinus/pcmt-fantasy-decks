@@ -45,17 +45,22 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <script type="application/json" id="dc-props">{"sampleStandings": false}</script>
 <script type="text/plain" id="dc-logic">
 // Standings, one entry per manager: { id, manager, squad, igl, me, weeks: { 'YYYY-MM-DD': points } }.
-// weeks: that manager's points for each gameweek, keyed by the gameweek's Monday (EDT date).
-// "This gameweek" = the current gameweek's points at the moment you look (0 right after the Monday 5:00 AM EDT rollover).
+// weeks: that manager's points for each gameweek, keyed by the gameweek's first day (EDT date).
+// "This gameweek" = the current gameweek's points at the moment you look (0 right after the Thursday 5:00 AM EDT rollover).
 // "Overall" = every gameweek of the season added together. me: true marks the signed-in manager.
 // The live site fills this from scoring. Empty until the first match is scored.
 var PCMT_STANDINGS = window.PCMT_STANDINGS || [];
-// Gameweeks turn over at 5:00 AM Monday EDT (09:00 UTC), same as The Deck.
+// Gameweeks (Oct 29 2026) run Thursday 5:00 AM EDT (09:00 UTC) to the next Thursday, keyed by their first day; before
+// that Monday to Monday, with the short week from Mon Oct 26 bridging the two. Same as weekStart() in league.js.
 function pcmtWeekKey(t) {
-  var local = new Date(t - 4 * 3600000 - 5 * 3600000); // shift so the week starts at Monday 00:00
-  var dow = (local.getUTCDay() + 6) % 7;
-  var mon = new Date(Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate() - dow));
-  return mon.toISOString().slice(0, 10);
+  var THU = Date.parse('2026-10-29T09:00:00Z'), BRIDGE = Date.parse('2026-10-26T09:00:00Z'), b;
+  if (t >= BRIDGE && t < THU) b = BRIDGE;
+  else {
+    var local = new Date(t - 4 * 3600000), dow = t >= THU ? (local.getUTCDay() + 3) % 7 : (local.getUTCDay() + 6) % 7;
+    b = Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate() - dow, 9);
+    if (b > t) b -= 7 * 86400000;
+  }
+  return new Date(b).toISOString().slice(0, 10);
 }
 function pcmtStandingRow(m, now) {
   if (!m.weeks) return m; // already has gw / total

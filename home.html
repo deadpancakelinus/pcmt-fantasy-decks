@@ -257,17 +257,38 @@ class Component extends DCLogic {
                when: when(m.start), meta: (m.region || 'NA') + (m.bo ? ' · Bo' + m.bo : ''),
                url: m.url || 'https://pcmt.gg/matches' };   // each series links to its own page on PCMT.gg
     });
-    // Deck lock, per game (Oct 29 2026): from 6 hours before each series until it's over (result in, or time slot passed).
+    // Deck lock, per gameweek (Thursday to Thursday; same rules as The Deck): lock Thursday 5:00 AM EDT, or 6 hours before
+    // the first game if it's on Saturday or later; open again Tuesday 5:00 AM EDT, or once Tuesday's results are in.
     var res = live ? (W.PCMT_RESULTS || []) : [];
-    var wins = all.map(function (m) {
-      var st = Date.parse(m.start), played = res.some(function (r) { return r.start === m.start && r.a === m.a && r.b === m.b; });
-      return { from: st - 6 * 36e5, to: st + (m.hours || 3) * 36e5, played: played };
-    }).filter(function (w) { return !w.played && w.to > now; }).sort(function (a, b) { return a.from - b.from; });
+    var THU = Date.parse('2026-10-29T09:00:00Z'), BRIDGE = Date.parse('2026-10-26T09:00:00Z');
+    function wkStart(t) {
+      if (t >= BRIDGE && t < THU) return BRIDGE;
+      var l = new Date(t - 4 * 36e5), dow = t >= THU ? (l.getUTCDay() + 3) % 7 : (l.getUTCDay() + 6) % 7;
+      var b = Date.UTC(l.getUTCFullYear(), l.getUTCMonth(), l.getUTCDate() - dow, 9);
+      return b > t ? b - 7 * 864e5 : b;
+    }
+    function etDay(t) {
+      var p = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date(t));
+      var g = function (k) { return +p.filter(function (x) { return x.type === k; })[0].value; };
+      return Math.round(Date.UTC(g('year'), g('month') - 1, g('day')) / 864e5);
+    }
+    function played(m) { return res.some(function (r) { return r.start === m.start && r.a === m.a && r.b === m.b; }); }
+    function info(b) {
+      var e = wkStart(b + 7 * 864e5), games = all.concat(res).filter(function (m) { var t = Date.parse(m.start); return t >= b && t < e; });
+      if (!games.length) return null;
+      var first = Math.min.apply(null, games.map(function (m) { return Date.parse(m.start); }));
+      var tue = all.filter(function (m) { var t = Date.parse(m.start); return t >= b && t < e && etDay(t) - etDay(b) === 5; });
+      return { lockAt: b < THU || etDay(first) - etDay(b) >= 2 ? first - 6 * 36e5 : b, openAt: b < THU ? e : b + 5 * 864e5,
+               hasTue: tue.length > 0, waitTue: tue.some(function (m) { return !played(m); }) };
+    }
     var lockLabel = 'Decks are open';
-    var curW = null;
-    wins.forEach(function (w) { if (curW) { if (w.from <= curW.to) curW.to = Math.max(curW.to, w.to); } else if (w.from <= now) curW = { to: w.to }; });
-    if (curW) lockLabel = 'Decks locked until ' + when(new Date(curW.to).toISOString());
-    else if (wins.length) lockLabel = 'Decks lock ' + when(new Date(wins[0].from).toISOString());
+    var cw = info(wkStart(now));
+    if (cw && now >= cw.lockAt && (cw.hasTue ? cw.waitTue : now < cw.openAt)) lockLabel = cw.hasTue ? 'Decks locked until Tuesday’s result' : 'Decks locked until ' + when(new Date(cw.openAt).toISOString()).split(' · ')[0];
+    else {
+      var nextAt = null, seen = {};
+      all.forEach(function (m) { var b = wkStart(Date.parse(m.start)); if (seen[b]) return; seen[b] = 1; var w = info(b); if (w && w.lockAt > now && (nextAt === null || w.lockAt < nextAt)) nextAt = w.lockAt; });
+      if (nextAt !== null) lockLabel = 'Decks lock ' + when(new Date(nextAt).toISOString());
+    }
     var results = live ? (W.PCMT_RESULTS || []) : [];
     var last = results.length ? results.slice().sort(function (a, b) { return Date.parse(b.start) - Date.parse(a.start); })[0] : null;
     return {
