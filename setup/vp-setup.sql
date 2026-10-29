@@ -225,24 +225,24 @@ create or replace function public.vp_compute(p_matches jsonb, p_results jsonb, p
                                              p_now timestamptz default now(), p_pay boolean default true)
 returns jsonb
 language plpgsql security definer set search_path = public as $$
+-- Decks lock per game (Oct 29 2026): every series is scored with the manager's last valid deck saved before that
+-- series' lock (6 hours before it starts); with none, the deck they had before counts again. A gameweek pays, when it
+-- ends, each player's points from the series they were in the deck for (a card below zero counts as 0). Same as
+-- scoreManager() / weekCardVP() in tools/league.js.
 declare
-  players jsonb; weekpts jsonb := '{}'::jsonb; r jsonb; rb text; sp record; top_acs numeric; top_kast numeric;
-  w record; u uuid; d record; use_slots jsonb; use_name text; prev jsonb; owed int; paid int; cards jsonb;
+  players jsonb; s record; w record; u uuid; d record; use_slots jsonb; use_name text; prev jsonb; prev_name text;
+  acc jsonb; owed int; paid int; cards jsonb; rb text; v text;
   out jsonb := '[]'::jsonb; paid_lines int := 0; paid_total int := 0;
 begin
   perform pg_advisory_xact_lock(hashtext('pcmt-vp'));
   select coalesce(jsonb_object_agg(p ->> 'id', p), '{}'::jsonb) into players from jsonb_array_elements(coalesce(p_players, '[]')) p;
   p_twin := coalesce(p_twin, '{}'::jsonb);
 
-  -- Card numbers: each player's points per gameweek (same as seriesPoints() on the site).
-  for r in select x from jsonb_array_elements(coalesce(p_results, '[]')) x loop
-    if public.vp_ts(r ->> 'start') is null then continue; end if;
-    rb := to_char(public.vp_week_start(public.vp_ts(r ->> 'start')) at time zone 'UTC', 'YYYY-MM-DD');
-    for sp in select q.k, q.v from jsonb_each(public.vp_series_points(r, players)) q(k, v) loop
-      weekpts := jsonb_set(weekpts, array[rb], coalesce(weekpts -> rb, '{}'::jsonb), true);
-      weekpts := jsonb_set(weekpts, array[rb, sp.k], to_jsonb(coalesce((weekpts -> rb ->> sp.k)::numeric, 0) + (sp.v #>> '{}')::numeric), true);
-    end loop;
-  end loop;
+  create temp table if not exists vp_series (t timestamptz, b timestamptz, pts jsonb) on commit drop;
+  truncate vp_series;
+  insert into vp_series (t, b, pts)
+    select public.vp_ts(x ->> 'start'), public.vp_week_start(public.vp_ts(x ->> 'start')), public.vp_series_points(x, players)
+    from jsonb_array_elements(coalesce(p_results, '[]')) x where public.vp_ts(x ->> 'start') is not null;
 
   create temp table if not exists vp_weeks (b timestamptz primary key, first_t timestamptz) on commit drop;
   truncate vp_weeks;
@@ -252,30 +252,38 @@ begin
     ) q where t is not null group by 1;
 
   for u in select distinct user_id from public.deck_history loop
-    prev := null; use_name := null;
+    prev := null; prev_name := null;
     for w in select b, first_t - interval '6 hours' as lock_at, b + interval '7 days' as e from vp_weeks order by b loop
-      if p_now < w.lock_at then continue; end if;              -- gameweek not locked yet
-      use_slots := null;
-      for d in select slots, name, created_at from public.deck_history where user_id = u and created_at < w.lock_at order by created_at desc, id desc loop
-        if public.vp_valid_deck(d.slots, public.vp_players_at(players, d.created_at), p_twin) then   -- transfers are unlimited while the deck is unlocked (Oct 24 2026)
-          use_slots := d.slots; use_name := d.name; exit;
-        end if;
-      end loop;
-      if use_slots is null then
-        if prev is null then continue; end if;
-        use_slots := prev;                                     -- no allowed new deck: the last one counts again
+      if p_now < w.lock_at then continue; end if;              -- gameweek hasn't locked yet
+      acc := '{}'::jsonb; use_slots := null;
+      if not exists (select 1 from vp_series where b = w.b) then
+        -- no results yet: note the deck in effect at the week's first lock
+        for d in select slots, name, created_at from public.deck_history where user_id = u and created_at < w.lock_at order by created_at desc, id desc loop
+          if public.vp_valid_deck(d.slots, public.vp_players_at(players, d.created_at), p_twin) then prev := d.slots; prev_name := d.name; exit; end if;
+        end loop;
       end if;
-      prev := use_slots;
-      if p_now < w.e then continue; end if;                    -- paid when the gameweek ends
+      for s in select t, pts from vp_series where b = w.b order by t loop
+        use_slots := null;
+        for d in select slots, name, created_at from public.deck_history
+                 where user_id = u and created_at < s.t - interval '6 hours' order by created_at desc, id desc loop
+          if public.vp_valid_deck(d.slots, public.vp_players_at(players, d.created_at), p_twin) then use_slots := d.slots; use_name := d.name; exit; end if;
+        end loop;
+        if use_slots is null then use_slots := prev; use_name := prev_name; end if;
+        if use_slots is null then continue; end if;
+        prev := use_slots; prev_name := use_name;
+        for v in select distinct value from jsonb_each_text(use_slots) loop
+          acc := jsonb_set(acc, array[v], to_jsonb(coalesce((acc ->> v)::numeric, 0) + coalesce((s.pts ->> v)::numeric, 0)), true);
+        end loop;
+      end loop;
+      if p_now < w.e or acc = '{}'::jsonb then continue; end if;   -- paid when the gameweek ends
       rb := to_char(w.b at time zone 'UTC', 'YYYY-MM-DD');
-      select coalesce(jsonb_object_agg(v, greatest(0, coalesce((weekpts -> rb ->> v)::numeric, 0))), '{}'::jsonb),
-             round(coalesce(sum(greatest(0, coalesce((weekpts -> rb ->> v)::numeric, 0))), 0))::int   -- paid in whole Credits
-        into cards, owed from jsonb_each_text(use_slots) s(k, v);
+      select coalesce(jsonb_object_agg(k, greatest(0, x::numeric)), '{}'::jsonb), round(coalesce(sum(greatest(0, x::numeric)), 0))::int   -- whole Credits
+        into cards, owed from jsonb_each_text(acc) q(k, x);
       select coalesce(sum(amount), 0)::int into paid from public.vp_ledger where user_id = u and kind = 'week' and week = rb::date;
       out := out || jsonb_build_array(jsonb_build_object('user', u, 'week', rb, 'owed', owed, 'paid_before', paid));
       if p_pay and owed > paid then
         insert into public.vp_ledger (user_id, kind, week, amount, detail)
-          values (u, 'week', rb::date, owed - paid, jsonb_build_object('deck', coalesce(use_name, ''), 'cards', cards, 'topup', paid > 0));
+          values (u, 'week', rb::date, owed - paid, jsonb_build_object('deck', coalesce(prev_name, ''), 'cards', cards, 'topup', paid > 0));
         paid_lines := paid_lines + 1; paid_total := paid_total + (owed - paid);
       end if;
     end loop;

@@ -206,42 +206,47 @@
       .sort(function (a, b) { return a.b - b.b; });
   }
 
-  // For each manager: which deck counted each gameweek, and the points it scored.
+  // For each manager: the points each gameweek scored (Oct 29 2026: decks lock per game).
+  // Every series is scored with the manager's last valid deck saved before that series' lock (6 h before it starts);
+  // with none, the deck they had before counts again. A week with no results yet still notes the deck in effect at
+  // its first lock. Entry: { week, deck (the last deck used), pts (IGL x1.5), byTeam, cards: { <player id>: points } }.
   function scoreManager(subs, weeks) {
     subs = subs.slice().sort(function (a, b) { return a.t - b.t; });
+    function latest(before) {
+      for (var i = subs.length - 1; i >= 0; i--) if (subs[i].t < before && validDeck(subs[i].slots, subs[i].t)) return subs[i];
+      return null;
+    }
     var prev = null, out = [];
     weeks.forEach(function (w) {
       if (!w.locked) return;
-      var before = subs.filter(function (s) { return s.t < w.lockAt && validDeck(s.slots, s.t); });
-      var use = null;
-      for (var i = before.length - 1; i >= 0; i--) {
-        if (!prev || transfersBetween(prev.slots, before[i].slots) <= TRANSFERS) { use = before[i]; break; }
-      }
-      if (!use) use = prev;
-      if (!use) return;
-      prev = use;
-      var pts = 0, byTeam = {}, champWin = false, missedWin = false, ids = deckIds(use.slots);
-      w.results.forEach(function (r) {
+      var used = null, pts = 0, byTeam = {}, cards = {}, champWin = false, missedWin = false;
+      var rs = w.results.slice().sort(function (a, b) { return Date.parse(a.start) - Date.parse(b.start); });
+      if (!rs.length) { used = latest(w.lockAt) || prev; if (!used) return; prev = used; }
+      rs.forEach(function (r) {
+        var use = latest(Date.parse(r.start) - LOCK_LEAD_H * 3600000) || prev;
+        if (!use) return;
+        prev = used = use;
         var sp = seriesPoints(r);
-        ids.forEach(function (id) {
+        deckIds(use.slots).forEach(function (id) {
           var p = BY_ID[id], base = sp[id] || 0;
           pts += base * (id === use.igl ? 1.5 : 1);
           byTeam[p.team] = (byTeam[p.team] || 0) + base;
+          cards[id] = (cards[id] || 0) + base;
           if (p.team === r.winner && CHAMPS[id]) champWin = true;
           if (p.team === r.winner && LOWEST[id]) missedWin = true;
         });
       });
-      out.push({ week: w, deck: use, pts: Math.round(pts * 10) / 10, byTeam: byTeam, champWin: champWin, missedWin: missedWin });
+      if (!used) return;
+      out.push({ week: w, deck: used, pts: Math.round(pts * 10) / 10, byTeam: byTeam, cards: cards, champWin: champWin, missedWin: missedWin });
     });
     return out;
   }
 
-  // VP for one gameweek: each card's number on The Deck (that player's points), no IGL bonus,
-  // and a card below zero counts as 0. Supabase pays the same amount when the gameweek ends (setup/vp-setup.sql).
-  function weekCardVP(week, deck) {
-    var pts = {}, cards = {}, total = 0;
-    week.results.forEach(function (r) { var sp = seriesPoints(r); Object.keys(sp).forEach(function (k) { pts[k] = (pts[k] || 0) + sp[k]; }); });
-    deckIds(deck.slots).forEach(function (id) { var v = Math.max(0, pts[id] || 0); cards[id] = v; total += v; });
+  // VP for one gameweek (an entry from scoreManager): each player's points from the series they were in your deck for,
+  // no IGL bonus, a card below zero counts as 0. Supabase pays the same amount when the gameweek ends (setup/vp-setup.sql).
+  function weekCardVP(entry) {
+    var cards = {}, total = 0;
+    Object.keys(entry.cards || {}).forEach(function (id) { var v = Math.max(0, entry.cards[id]); cards[id] = v; total += v; });
     return { total: Math.round(total), cards: cards };   // paid in whole Credits
   }
 
@@ -476,13 +481,13 @@
     else if (cw) {
       var mine = scored.filter(function (x) { return x.week.b === cw.b; })[0];
       week = mine
-        ? { vp: String(weekCardVP(mine.week, mine.deck).total), state: 'live', note: 'So far from the deck you locked in. Paid ' + fmtWhen(cw.e) + ', when your cards reset.' }
+        ? { vp: String(weekCardVP(mine).total), state: 'live', note: 'So far from the deck you locked in. Paid ' + fmtWhen(cw.e) + ', when your cards reset.' }
         : { vp: '0', state: 'nodeck', note: 'No deck counted this gameweek. Lock one in on The Deck before the next gameweek locks.' };
     }
     var lastDone = weeks.filter(function (w) { return w.done; }).pop();
     var lastPay = lastDone ? (paidByWeek[lastDone.key] || 0) : 0;
     var arriving = 0;
-    if (ready) scored.forEach(function (x) { if (x.week.done) arriving += Math.max(0, weekCardVP(x.week, x.deck).total - (paidByWeek[x.week.key] || 0)); });
+    if (ready) scored.forEach(function (x) { if (x.week.done) arriving += Math.max(0, weekCardVP(x).total - (paidByWeek[x.week.key] || 0)); });
     return { signedIn: true, ready: ready, balance: String(balance), lastPay: String(lastPay), earned: String(earned), history: history, spent: spent, week: week, arriving: arriving };
   }
   window.PCMT_PACKS = []; window.PCMT_MY_CARDS = {}; window.PCMT_CARD_CATALOG = [];

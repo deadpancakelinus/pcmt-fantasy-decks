@@ -418,20 +418,17 @@ class Component extends DCLogic {
                when: when(m.start), meta: (m.region || 'NA') + (m.bo ? ' · Bo' + m.bo : ''),
                url: m.url || 'https://pcmt.gg/matches' };   // each series links to its own page on PCMT.gg
     });
-    // Deck lock: 6 hours before the gameweek's first series (gameweeks start Monday 09:00 UTC).
-    var d = new Date(now), ws = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 9) - ((d.getUTCDay() + 6) % 7) * 864e5;
-    if (ws > now) ws -= 7 * 864e5;
-    var inWeek = all.filter(function (m) { var t = Date.parse(m.start); return t >= ws && t < ws + 7 * 864e5; });
+    // Deck lock, per game (Oct 29 2026): from 6 hours before each series until it's over (result in, or time slot passed).
+    var res = live ? (W.PCMT_RESULTS || []) : [];
+    var wins = all.map(function (m) {
+      var st = Date.parse(m.start), played = res.some(function (r) { return r.start === m.start && r.a === m.a && r.b === m.b; });
+      return { from: st - 6 * 36e5, to: st + (m.hours || 3) * 36e5, played: played };
+    }).filter(function (w) { return !w.played && w.to > now; }).sort(function (a, b) { return a.from - b.from; });
     var lockLabel = 'Decks are open';
-    if (inWeek.length) {
-      var lockAt = Date.parse(inWeek[0].start) - 6 * 36e5;
-      var res = live ? (W.PCMT_RESULTS || []) : [];
-      var left = inWeek.some(function (m) {   // a game this week still to play (no result yet and its time slot not over)
-        var played = res.some(function (r) { return r.start === m.start && r.a === m.a && r.b === m.b; });
-        return !played && Date.parse(m.start) + (m.hours || 3) * 36e5 > now;
-      });
-      lockLabel = now < lockAt ? 'Decks lock ' + when(new Date(lockAt).toISOString()).split(' · ')[0] : left ? 'Decks locked until Monday' : 'Decks are open';
-    }
+    var curW = null;
+    wins.forEach(function (w) { if (curW) { if (w.from <= curW.to) curW.to = Math.max(curW.to, w.to); } else if (w.from <= now) curW = { to: w.to }; });
+    if (curW) lockLabel = 'Decks locked until ' + when(new Date(curW.to).toISOString());
+    else if (wins.length) lockLabel = 'Decks lock ' + when(new Date(wins[0].from).toISOString());
     var results = live ? (W.PCMT_RESULTS || []) : [];
     var last = results.length ? results.slice().sort(function (a, b) { return Date.parse(b.start) - Date.parse(a.start); })[0] : null;
     return {

@@ -127,7 +127,7 @@ function expected(sc, now) {
   const api = siteRules(sc.matches, withMulti(sc)), weeks = api.buildWeeks(now), out = {};
   sc.users.forEach(u => {
     const subs = sc.decks.filter(d => d.user_id === u).map(d => ({ slots: d.slots, igl: d.igl, name: d.name, t: Date.parse(d.created_at) }));
-    api.scoreManager(subs, weeks).forEach(x => { if (x.week.done) out[u + '|' + x.week.key] = api.weekCardVP(x.week, x.deck).total; });
+    api.scoreManager(subs, weeks).forEach(x => { if (x.week.done) out[u + '|' + x.week.key] = api.weekCardVP(x).total; });
   });
   return out;
 }
