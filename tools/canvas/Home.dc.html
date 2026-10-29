@@ -43,10 +43,37 @@ a.hm-tile{color:inherit}
 .hm-champ-stamp{margin-left:auto;display:inline-flex;align-items:center;gap:5px;padding:4px 8px;border-radius:4px;border:1.5px solid #f5d76e;box-shadow:inset 0 0 0 2px #172124,inset 0 0 0 3px #f5d76e,0 0 12px rgba(245,215,110,.45);color:#f5d76e;transform:rotate(-7deg);font:700 10px/1 'JetBrains Mono',monospace;letter-spacing:.16em;white-space:nowrap}
 .hm-champ-shine{background-image:linear-gradient(100deg,#f5d76e 0%,#f5d76e 35%,#fff 50%,#f5d76e 65%,#f5d76e 100%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:hm-champ-shine 6s ease-in-out infinite}
 @keyframes hm-champ-shine{0%{background-position:160% 0}50%,100%{background-position:-60% 0}}
-.hm-champ-p{display:flex;align-items:center;gap:8px;min-height:36px;padding:4px 12px;border-radius:8px;background:rgba(0,0,0,.5);font-family:'Cabin Sketch',cursive;font-weight:700;font-size:18px;line-height:1.1}
-.hm-champ-p img{margin-left:auto;width:16px;height:16px;object-fit:contain;filter:drop-shadow(0 0 4px rgba(245,215,110,.6))}
 .hm-champ-sheen{position:absolute;inset:0;z-index:4;pointer-events:none;background-image:linear-gradient(115deg,transparent 42%,rgba(245,215,110,.22) 50%,transparent 58%);background-size:260% 100%;background-repeat:no-repeat;animation:hm-champ-sheen 5s ease-in-out infinite}
 @keyframes hm-champ-sheen{0%{background-position:160% 0}55%,100%{background-position:-60% 0}}
+.hm-cb{position:relative;overflow:hidden;border-radius:18px;padding:34px 36px 30px;background:radial-gradient(120% 140% at 12% 20%,rgba(255,127,102,.30),transparent 55%),radial-gradient(90% 120% at 100% 100%,rgba(245,215,110,.18),transparent 60%),linear-gradient(135deg,#1d1512 0%,#120d0c 45%,#0b0f10 100%);border:1px solid rgba(245,215,110,.55);box-shadow:0 0 0 2px #0d1416,0 0 0 4px rgba(245,215,110,.75),0 0 40px rgba(245,215,110,.35),0 18px 50px rgba(0,0,0,.5);color:#fff4ea}
+.hm-cb-rays{position:absolute;left:-10%;top:-60%;width:70%;aspect-ratio:1;border-radius:50%;background:repeating-conic-gradient(from 0deg,rgba(245,215,110,.10) 0deg 6deg,transparent 6deg 18deg);-webkit-mask:radial-gradient(circle,#000 0 30%,transparent 70%);mask:radial-gradient(circle,#000 0 30%,transparent 70%);animation:hm-cb-spin 60s linear infinite;pointer-events:none}
+@keyframes hm-cb-spin{to{transform:rotate(360deg)}}
+.hm-cb-confetti{position:absolute;inset:0;pointer-events:none;opacity:.55;background-image:radial-gradient(circle,#f5d76e 0 1.5px,transparent 2px),radial-gradient(circle,#ff7f66 0 1.5px,transparent 2px),radial-gradient(circle,#fff 0 1px,transparent 1.5px);background-size:120px 90px,170px 130px,90px 70px;background-position:10px 20px,60px 50px,30px 5px;-webkit-mask:linear-gradient(90deg,transparent 0,#000 35%,#000 100%);mask:linear-gradient(90deg,transparent 0,#000 35%,#000 100%)}
+.hm-cb-trophy-art{position:absolute;right:-30px;top:50%;height:150%;width:auto;transform:translateY(-50%) rotate(8deg);opacity:.16;pointer-events:none}
+.hm-cb-sheen{position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(115deg,transparent 42%,rgba(245,215,110,.16) 50%,transparent 58%);background-size:260% 100%;background-repeat:no-repeat;animation:hm-champ-sheen 7s ease-in-out infinite}
+.hm-cb-in{position:relative;display:flex;align-items:center;gap:36px}
+.hm-cb-badge{position:relative;flex:none}
+.hm-cb-ring{width:190px;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle,#2a1612 0%,#0b0f10 75%);border:3px solid #f5d76e;box-shadow:0 0 0 6px rgba(13,20,22,.9),0 0 0 8px rgba(245,215,110,.45),0 0 50px rgba(255,127,102,.55)}
+.hm-cb-ring img{width:72%;height:72%;object-fit:contain;filter:drop-shadow(0 6px 14px rgba(0,0,0,.6))}
+.hm-cb-stamp{position:absolute;right:-26px;bottom:6px;margin:0;padding:6px 10px;font-size:12px;box-shadow:inset 0 0 0 2px #120d0c,inset 0 0 0 3px #f5d76e,0 0 16px rgba(245,215,110,.5);background:#120d0c}
+.hm-cb-text{display:flex;flex-direction:column;gap:10px;min-width:0}
+.hm-cb-kick{display:inline-flex;align-items:center;gap:10px;font:600 13px/1 'JetBrains Mono',monospace;letter-spacing:.2em;color:#f5d76e}
+.hm-cb-kick img{width:22px;height:22px;object-fit:contain}
+.hm-cb-name{margin:0;font-family:'Cabin Sketch',cursive;font-weight:700;font-size:clamp(40px,6vw,76px);line-height:.95;color:#ff7f66;text-shadow:0 3px 0 #5a2418,0 10px 30px rgba(255,127,102,.35)}
+.hm-cb-final{margin:4px 0 0;display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;font-size:18px;color:#f0dccf}
+.hm-cb-final img{width:22px;height:22px;object-fit:contain;vertical-align:-5px}
+.hm-cb-score{display:inline-flex;align-items:baseline;gap:6px;font-family:'Cabin Sketch',cursive;font-weight:700;font-size:44px;line-height:1;color:#c9b8ae}
+.hm-cb-dash{color:#8a7a72}
+.hm-cb-maps{list-style:none;margin:2px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.hm-cb-maps li{padding:6px 12px;border-radius:999px;border:1px solid rgba(245,215,110,.45);background:rgba(245,215,110,.08);font:600 12px/1 'JetBrains Mono',monospace;letter-spacing:.12em;text-transform:uppercase;color:#f5d76e}
+.hm-cb-roster{position:relative;list-style:none;margin:28px 0 0;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.hm-cb-roster li{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:92px;padding:12px 8px;border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(0,0,0,.35));border:1px solid rgba(245,215,110,.35);text-align:center}
+.hm-cb-roster li span{font-family:'Cabin Sketch',cursive;font-weight:700;font-size:22px;line-height:1.05;color:#fff4ea;overflow-wrap:anywhere}
+.hm-cb-roster li img{width:22px;height:22px;object-fit:contain;filter:drop-shadow(0 0 6px rgba(245,215,110,.7))}
+.hm-cb-roster li small{font:600 10px/1.2 'JetBrains Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#f5d76e}
+.hm-cb-roster li.hm-cb-top{border-color:#f5d76e;box-shadow:0 0 18px rgba(245,215,110,.35);background:linear-gradient(180deg,rgba(245,215,110,.16),rgba(0,0,0,.35))}
+@media (max-width:860px){.hm-cb{padding:26px 20px 22px}.hm-cb-in{flex-direction:column;align-items:flex-start;gap:24px}.hm-cb-ring{width:140px}.hm-cb-roster{grid-template-columns:repeat(2,minmax(0,1fr))}.hm-cb-roster li:last-child{grid-column:1 / -1}.hm-cb-trophy-art{height:90%;top:30%;opacity:.12}}
+@media (prefers-reduced-motion: reduce){.hm-cb-rays,.hm-cb-sheen{animation:none}}
 @media (prefers-reduced-motion: reduce){.hm-champ-shine,.hm-champ-sheen{animation:none}}
 </style>
 </helmet>
@@ -97,34 +124,6 @@ a.hm-tile{color:inherit}
 <section aria-labelledby="home-h" class="hm-hero">
 <div style="display: flex; flex-direction: column; gap: 14px; min-width: 0">
 <h1 id="home-h" style="margin: 0; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 60px; line-height: 1">Home</h1>
-<figure aria-label="PCMT NA S3 Champions: Spank Ptheory Gaming" class="hm-champ" style="position: relative; margin: 8px 0 0; width: 300px; max-width: 100%; height: 434px; border-radius: 14px; overflow: hidden; background: #172124; border: 1px solid #2a3a3e; box-shadow: 0 0 0 2px #f5d76e, 0 0 28px rgba(245,215,110,.5); display: flex; flex-direction: column; color: #eaf4f4">
-<div aria-hidden="true" style="position: absolute; inset: 0; z-index: 0; pointer-events: none; display: grid; place-items: center"><img src="/_blob/c265e976f8968e60e4a2bdd32542b499" alt="" style="width: 78%; max-width: 230px; aspect-ratio: 1; object-fit: contain; opacity: 0.08; transform: translateY(14px)"></div>
-<div aria-hidden="true" style="position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden"><img src="/_blob/a8390c53c5aa10a347b6af0841aa6835" alt="" style="position: absolute; left: 50%; top: 50%; height: 80%; width: auto; transform: translate(-50%, -46%); opacity: 0.2"></div>
-<span style="display: block; height: 5px; flex: none; position: relative; z-index: 1; background: #ff7f66"></span>
-<div style="position: relative; z-index: 1; flex: 1; padding: 14px; display: flex; flex-direction: column; gap: 8px; min-height: 0">
-<div style="display: flex; align-items: center; height: 40px; flex: none">
-<img src="/_blob/fb1551434b59a200d90d2e9ed6a51e8b" alt="Spank Ptheory Gaming" style="height: 40px; width: auto; max-width: 80px; object-fit: contain; display: block">
-<span class="hm-champ-stamp"><img src="/_blob/7dd283457b69773e4aa58012ed89ad9a" alt="" style="width: 11px; height: 11px; object-fit: contain"><span class="hm-champ-shine">CHAMPIONS</span></span>
-</div>
-<figcaption style="display: flex; flex-direction: column; gap: 2px; flex: none">
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 600; letter-spacing: 0.14em; color: #f5d76e">PCMT NA S3 CHAMPIONS</span>
-<span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 28px; line-height: 1.05; color: #ff7f66; text-shadow: 0 2px 8px rgba(0,0,0,.6)">Spank Ptheory Gaming</span>
-</figcaption>
-<ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; flex: 1; justify-content: flex-end">
-<li class="hm-champ-p"><span>Lil Thighs</span><img src="/_blob/7dd283457b69773e4aa58012ed89ad9a" alt="PCMT champion"></li>
-<li class="hm-champ-p"><span>Cooleo</span><img src="/_blob/7dd283457b69773e4aa58012ed89ad9a" alt="PCMT champion"></li>
-<li class="hm-champ-p"><span>Derpina</span><img src="/_blob/7dd283457b69773e4aa58012ed89ad9a" alt="PCMT champion"></li>
-<li class="hm-champ-p"><span>Phuzzythecat</span><img src="/_blob/7dd283457b69773e4aa58012ed89ad9a" alt="PCMT champion"></li>
-<li class="hm-champ-p"><span>Dunkn</span><img src="/_blob/7dd283457b69773e4aa58012ed89ad9a" alt="PCMT champion"></li>
-</ul>
-<div style="display: flex; align-items: center; gap: 8px; height: 24px; flex: none">
-<img src="/_blob/c265e976f8968e60e4a2bdd32542b499" alt="NA" style="width: 22px; height: 22px; object-fit: contain; display: block">
-<span style="margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 600; letter-spacing: 0.14em; color: #93a9aa">FANTASY.PCMT.GG</span>
-</div>
-</div>
-<span style="display: block; height: 5px; flex: none; position: relative; z-index: 1; background: #ff7f66"></span>
-<div class="hm-champ-sheen" aria-hidden="true"></div>
-</figure>
 </div>
 <div class="hm-panel" style="display: flex; flex-direction: column; gap: 14px">
 <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px">
@@ -149,6 +148,32 @@ a.hm-tile{color:inherit}
 <sc-if value="{{noMatches}}" hint-placeholder-val="{{ false }}"><p style="margin: 0; color: #c4d4d4; line-height: 1.5">No series scheduled right now. Check back soon.</p></sc-if>
 <sc-if value="{{hasResult}}" hint-placeholder-val="{{ false }}"><p style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">Last result: <span style="color: #eaf4f4">{{resultLabel}}</span></p></sc-if>
 </div>
+</section>
+
+<section aria-labelledby="champ-h" class="hm-cb">
+<div class="hm-cb-rays" aria-hidden="true"></div>
+<div class="hm-cb-confetti" aria-hidden="true"></div>
+<img class="hm-cb-trophy-art" src="/_blob/a8390c53c5aa10a347b6af0841aa6835" alt="" aria-hidden="true">
+<div class="hm-cb-sheen" aria-hidden="true"></div>
+<div class="hm-cb-in">
+<div class="hm-cb-badge">
+<div class="hm-cb-ring"><img src="/_blob/fb1551434b59a200d90d2e9ed6a51e8b" alt="Spank Ptheory Gaming"></div>
+<span class="hm-champ-stamp hm-cb-stamp"><img src="/_blob/7dd283457b69773e4aa58012ed89ad9a" alt="" style="width: 13px; height: 13px; object-fit: contain"><span class="hm-champ-shine">CHAMPIONS</span></span>
+</div>
+<div class="hm-cb-text">
+<span class="hm-cb-kick"><img src="/_blob/c265e976f8968e60e4a2bdd32542b499" alt="" aria-hidden="true">PCMT NA SEASON 3 · CHAMPIONS</span>
+<h2 id="champ-h" class="hm-cb-name">Spank Ptheory Gaming</h2>
+<p class="hm-cb-final"><span class="hm-cb-score"><span class="hm-champ-shine">3</span><span class="hm-cb-dash">–</span><span>0</span></span><span>Swept <img src="/_blob/ce2bf22e2df8751703c00f132b854650" alt="" aria-hidden="true"> Team 1 in the Grand Final</span></p>
+<ul class="hm-cb-maps" aria-label="Maps won"><li>Abyss</li><li>Summit</li><li>Lotus</li></ul>
+</div>
+</div>
+<ul class="hm-cb-roster" aria-label="Champion roster">
+<li><img src="/_blob/7dd283457b69773e4aa58012ed89ad9a" alt="" aria-hidden="true"><span>Lil Thighs</span></li>
+<li class="hm-cb-top"><img src="/_blob/7dd283457b69773e4aa58012ed89ad9a" alt="" aria-hidden="true"><span>Cooleo</span><small>Top rating · 1.30</small></li>
+<li><img src="/_blob/7dd283457b69773e4aa58012ed89ad9a" alt="" aria-hidden="true"><span>Derpina</span></li>
+<li><img src="/_blob/7dd283457b69773e4aa58012ed89ad9a" alt="" aria-hidden="true"><span>Phuzzythecat</span></li>
+<li><img src="/_blob/7dd283457b69773e4aa58012ed89ad9a" alt="" aria-hidden="true"><span>Dunkn</span></li>
+</ul>
 </section>
 
 <section aria-label="All pages" style="display: flex; flex-direction: column; gap: 16px">
