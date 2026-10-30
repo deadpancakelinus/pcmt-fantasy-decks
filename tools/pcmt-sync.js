@@ -1,6 +1,7 @@
 // Syncs the site with PCMT.gg's JSON API (see tools/pcmt-api.js). Run from the repo root:
 //   node tools/pcmt-sync.js           update data.js and pickems.js, print what changed
 //   node tools/pcmt-sync.js --dry     only print what would change
+//   node tools/pcmt-sync.js --message msg.txt   also write a short commit message for what changed
 // What it does:
 //   * PCMT_MATCHES: adds every NA/EMEA match (not showmatches) dated from 14 days ago onward (never before the Oct 19 2026
 //     gameweek) that isn't listed yet,
@@ -14,6 +15,7 @@ const A = require('./pcmt-api.js');
 
 const ROOT = path.join(__dirname, '..');
 const DRY = process.argv.includes('--dry');
+const MSG = process.argv.includes('--message') ? process.argv[process.argv.indexOf('--message') + 1] : null;
 const WINDOW = 14 * 24 * 3600 * 1000;
 const now = Date.now();
 const SCORED_FROM = Date.parse('2026-10-19T09:00:00Z');   // first scored gameweek: nothing older is ever added
@@ -109,3 +111,15 @@ for (const [txt, names] of [[dataJs, ['PCMT_MATCHES', 'PCMT_RESULTS']], [pkJs, [
 }
 fs.writeFileSync(dataPath, dataJs); fs.writeFileSync(pkPath, pkJs);
 console.log('Wrote data.js and pickems.js.');
+if (MSG) {   // e.g. "Add result: T1 vs SPG; Add match: NOOT vs SEAL; Pick'ems: series 8 result"
+  const parts = [];
+  log.forEach(l => {
+    let m;
+    if ((m = l.match(/^Add result: (\w+ vs \w+)/))) parts.push('Add result: ' + m[1]);
+    else if ((m = l.match(/^Add match: (\w+ vs \w+)/))) parts.push('Add match: ' + m[1]);
+    else if ((m = l.match(/^Update match: (\w+ vs \w+)/))) parts.push('Move match: ' + m[1]);
+    else if ((m = l.match(/^Pick'ems series \d+ result: (\S+) \S+ (\S+)$/))) parts.push("Pick'ems: " + m[1] + ' vs ' + m[2] + ' result');
+  });
+  const uniq = [...new Set(parts)];
+  fs.writeFileSync(MSG, (uniq.length ? uniq.slice(0, 4).join('; ') + (uniq.length > 4 ? '; more' : '') : 'Schedule update') + '\n');
+}
