@@ -766,9 +766,9 @@
     '.pcmt-pr-t th{padding:0 8px 8px;text-align:right;font:600 11px "JetBrains Mono",monospace;color:#93a9aa;white-space:nowrap}' +
     '.pcmt-pr-t td{padding:9px 8px;border-top:1px solid rgba(255,255,255,.12);text-align:right;font-family:"JetBrains Mono",monospace;color:#c4d4d4;white-space:nowrap}' +
     '.pcmt-pr-t th:first-child,.pcmt-pr-t td.rk{text-align:left;padding-left:0}' +
-    '.pcmt-pr-t td.rk{font:700 18px "Cabin Sketch","Space Grotesk",sans-serif;color:#fff;width:22px}' +
+    '.pcmt-pr-t td.rk{font:700 20px "Cabin Sketch","Space Grotesk",sans-serif;color:#fff;width:36px}' +
     '.pcmt-pr-t tbody tr:first-child td.rk{color:#f5d76e}' +
-    '.pcmt-pr-t td.mv{width:30px;text-align:left;font-size:11px;padding-left:0}' +
+    '.pcmt-pr-t td.rk .mv{display:block;font:600 10px "JetBrains Mono",monospace;margin-top:2px}' +
     '.pcmt-pr-t .up{color:#8be4b7}.pcmt-pr-t .down{color:#ff8a80}.pcmt-pr-t .same{color:#5d7376}' +
     '.pcmt-pr-t .tm{text-align:left;white-space:normal;font-family:inherit;width:100%}' +
     '.pcmt-pr-t td.tm>span{display:flex;align-items:center;gap:10px}' +
@@ -777,12 +777,13 @@
     '.pcmt-pr-t td.tm em{margin-left:8px;padding:1px 6px;border-radius:4px;border:1px solid rgba(255,255,255,.2);font:600 10px "JetBrains Mono",monospace;font-style:normal;color:#93a9aa;vertical-align:2px}' +
     '.pcmt-pr-t td.tm small{display:block;font-size:12px;color:#93a9aa;line-height:1.3}' +
     '.pcmt-pr-t tr.out td{opacity:.55}' +
-    '.pcmt-pr-t td.rt{color:#fff;font-weight:600}' +
+    '.pcmt-pr-t td.rt{color:#fff;font-weight:700;font-size:16px}' +
+    '.pcmt-pr-t td.rt small{display:block;min-height:13px;font-size:10px;font-weight:600}' +
     '.pcmt-pr-t td.fm i{display:inline-block;width:17px;height:17px;margin-left:3px;border-radius:3px;font:700 10px/17px "JetBrains Mono",monospace;font-style:normal;text-align:center}' +
     '.pcmt-pr-t td.fm i.w{background:rgba(139,228,183,.18);color:#8be4b7}.pcmt-pr-t td.fm i.l{background:rgba(255,138,128,.15);color:#ff8a80}' +
     '.pcmt-pr .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}' +
     '.pcmt-pr-note{margin:16px 0 0;font-size:13px;line-height:1.5;color:#93a9aa}' +
-    '@media (max-width:560px){.pcmt-pr-t .hide-s{display:none}.pcmt-pr-t td.tm small{display:none}}' +
+    '@media (max-width:560px){.pcmt-pr-t .hide-s{display:none}.pcmt-pr-t td.tm b{display:none}.pcmt-pr-t td.tm small{display:inline;font-size:14px;font-weight:700;color:#fff}.pcmt-pr-t td.tm em{order:2;margin-left:6px}.pcmt-pr-t td.tm>span>span{display:flex;align-items:center}.pcmt-pr-t td.tm img{width:24px;height:24px}.pcmt-pr-t th,.pcmt-pr-t td{padding-left:5px;padding-right:5px}}' +
     '@media (prefers-reduced-motion:reduce){.pcmt-switch,.pcmt-switch span{transition:none}}';
   (document.head || document.documentElement).appendChild(css);
 
@@ -868,25 +869,29 @@
     var body;
     if (!P || !P.teams || !P.teams.length) body = '<p class="pcmt-pr-note">The rankings aren’t available right now. Check back soon.</p>';
     else {
+      var now = Date.now();
+      var ago = function (iso) {
+        if (!iso) return '—';
+        var d = Math.floor((now - Date.parse(iso)) / 864e5);
+        return d < 1 ? 'today' : d === 1 ? '1d ago' : d < 7 ? d + 'd ago' : d < 60 ? Math.floor(d / 7) + 'w ago' : Math.floor(d / 30) + 'mo ago';
+      };
       var rows = P.teams.map(function (t) {
-        var mv = t.last == null ? '' : t.last > t.rank ? '<span class="up" title="Up ' + (t.last - t.rank) + ' since last week">▲' + (t.last - t.rank) + '</span>'
-          : t.last < t.rank ? '<span class="down" title="Down ' + (t.rank - t.last) + ' since last week">▼' + (t.rank - t.last) + '</span>' : '<span class="same" title="No change">–</span>';
         var lg = logos[t.code] || {};
-        var form = t.form.map(function (f) {
-          return '<i class="' + (f.r === 'W' ? 'w' : 'l') + '" title="' + esc((f.r === 'W' ? 'Won ' : 'Lost ') + f.score + ' vs ' + f.vs) + '">' + f.r + '</i>';
-        }).join('');
-        return '<tr' + (out[t.code] ? ' class="out"' : '') + '><td class="rk">' + t.rank + '</td><td class="mv">' + mv + '</td>' +
+        var ch = t.change > 0 ? '<span class="up">+' + t.change + '</span>' : t.change < 0 ? '<span class="down">' + t.change + '</span>' : '';
+        var mv = t.last == null || t.last === t.rank ? '' : t.last > t.rank ? '<span class="up" title="Up ' + (t.last - t.rank) + ' since last week">▲' + (t.last - t.rank) + '</span>'
+          : '<span class="down" title="Down ' + (t.rank - t.last) + ' since last week">▼' + (t.rank - t.last) + '</span>';
+        var st = t.streak ? '<span class="' + (/W$/.test(t.streak) ? 'up' : 'down') + '">' + esc(t.streak) + '</span>' : '—';
+        return '<tr' + (out[t.code] ? ' class="out"' : '') + '><td class="rk">' + t.rank + '<span class="mv">' + mv + '</span></td>' +
           '<td class="tm"><span>' + (lg.logo ? '<img src="' + esc(lg.logo) + '" alt="" style="padding:' + (lg.small ? '3px' : '0') + '">' : '') +
-          '<span><b>' + esc(t.code) + '</b>' + (out[t.code] ? '<em>Out</em>' : '') + '<small>' + esc(t.name) + '</small></span></span></td>' +
-          '<td>' + t.sw + '–' + t.sl + '</td><td class="hide-s">' + t.mw + '–' + t.ml + '</td><td class="hide-s">' + (t.rd > 0 ? '+' : '') + t.rd + '</td>' +
-          '<td class="fm hide-s">' + form + '</td><td class="rt">' + t.rating + '</td></tr>';
+          '<span><b>' + esc(t.name) + '</b>' + (out[t.code] ? '<em>Out</em>' : '') + '<small>' + esc(t.code) + '</small></span></span></td>' +
+          '<td class="rt">' + t.rating + '<small>' + ch + '</small></td><td>' + st + '</td><td>' + t.w + '–' + t.l + '</td><td class="hide-s">' + ago(t.lastPlayed) + '</td></tr>';
       }).join('');
       var upd = P.updated ? new Date(P.updated).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '';
       body = '<p class="pcmt-pr-sub">Season 2' + (upd ? ' · through the games of ' + esc(upd) : '') + '</p>' +
-        '<div class="pcmt-pr-wrap"><table class="pcmt-pr-t"><thead><tr><th>#</th><th><span class="sr">Change</span></th><th class="tm">Team</th><th title="Series won–lost">Series</th>' +
-        '<th class="hide-s" title="Maps won–lost">Maps</th><th class="hide-s" title="Round difference">+/−</th><th class="hide-s">Last 5</th><th title="Power rating">Rating</th></tr></thead>' +
+        '<div class="pcmt-pr-wrap"><table class="pcmt-pr-t"><thead><tr><th>Rank</th><th class="tm">Team</th><th>Rating</th><th>Streak</th><th title="Series won–lost">Record</th>' +
+        '<th class="hide-s">Last played</th></tr></thead>' +
         '<tbody>' + rows + '</tbody></table></div>' +
-        '<p class="pcmt-pr-note">Every EMEA Season 2 map on PCMT.gg counts, oldest first. Beating a higher-rated team or winning by more rounds earns more; losing to a lower-rated team costs more. ▲▼ is the change over the last week of games. Updates every hour.</p>';
+        '<p class="pcmt-pr-note">Ranked like VLR.gg: an Elo rating from every EMEA Season 2 series on PCMT.gg. Teams start at 1500; beating a higher-rated team earns more, playoff series and sweeps count more. Changes are over the last week of games. Updates every hour.</p>';
     }
     var w = show('<div class="pcmt-pr"><h2 id="pcmt-pr-t">EMEA Power Rankings</h2>' + body + '</div>', from, 'pcmt-pr-t');
     w.querySelector('.pcmt-cr').classList.add('pcmt-pr-win');

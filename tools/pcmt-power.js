@@ -1,53 +1,58 @@
-// EMEA power rankings from PCMT.gg match data (used by tools/pcmt-sync.js, which writes rankings.js).
-// Every finished map of the event, oldest first, moves both teams' rating like chess Elo (everyone starts at 1500):
-// the winner takes points from the loser, more for an upset and more for a big round difference.
-// Winning the series adds a smaller swing on top. "Last week" is the same table built without the last 7 days of
-// games before the latest one, so the window can show who moved up or down (it only changes when a new game is played).
-const START = 1500, K_MAP = 24, K_SERIES = 12;
+// EMEA power rankings from PCMT.gg match data (used by tools/pcmt-sync.js, which writes rankings.js), done the way
+// VLR.gg ranks teams: an Elo rating built from series results. Everyone starts at 1500 and every finished series,
+// oldest first, moves points from the loser to the winner:
+//   * beating a higher-rated team earns more, losing to a lower-rated team costs more (Elo expectation)
+//   * playoff series count more than group games (K 40 vs 32)
+//   * a sweep (2-0, 3-0) counts 1.25x, 3-1 counts 1.1x, a series that goes the distance counts 1x
+// The table shows what VLR.gg's rankings show: rating, streak, series record and when the team last played.
+const START = 1500, K_GROUP = 32, K_PLAYOFF = 40;
 
 const expect = (ra, rb) => 1 / (1 + Math.pow(10, (rb - ra) / 400));
+function margin(w, l) { return l === 0 ? 1.25 : w - l >= 2 ? 1.1 : 1; }
 
 function rate(matches, until) {
   const R = {}, rec = {};
   const team = (code, name) => {
-    if (!(code in R)) { R[code] = START; rec[code] = { code, name: name || code, sw: 0, sl: 0, mw: 0, ml: 0, rd: 0, form: [] }; }
+    if (!(code in R)) { R[code] = START; rec[code] = { code, name: name || code, w: 0, l: 0, results: [], lastPlayed: null }; }
     return rec[code];
   };
   matches
-    .filter(M => M.completed && (!until || Date.parse(M.date) < until))
+    .filter(M => M.completed && M.score1 !== M.score2 && (!until || Date.parse(M.date) < until))
     .sort((x, y) => Date.parse(x.date) - Date.parse(y.date))
     .forEach(M => {
       const a = team(M.team1, M.team1Name), b = team(M.team2, M.team2Name);
-      (M.mapDetails || []).forEach(md => {
-        const s1 = +md.score1, s2 = +md.score2; if (s1 === s2) return;
-        const aw = s1 > s2, diff = Math.abs(s1 - s2);
-        const mult = Math.log(diff + 1) / Math.log(14) + 0.5;   // 13-12 ~0.75, 13-6 ~1.3, 13-0 1.5
-        const d = K_MAP * mult * ((aw ? 1 : 0) - expect(R[a.code], R[b.code]));
-        R[a.code] += d; R[b.code] -= d;
-        if (aw) { a.mw++; b.ml++; } else { b.mw++; a.ml++; }
-        a.rd += s1 - s2; b.rd += s2 - s1;
-      });
       const aw = M.score1 > M.score2;
-      const d = K_SERIES * ((aw ? 1 : 0) - expect(R[a.code], R[b.code]));
+      const k = (/playoff/i.test(M.stage || M.id) ? K_PLAYOFF : K_GROUP) * margin(Math.max(M.score1, M.score2), Math.min(M.score1, M.score2));
+      const d = k * ((aw ? 1 : 0) - expect(R[a.code], R[b.code]));
       R[a.code] += d; R[b.code] -= d;
-      (aw ? a : b).sw++; (aw ? b : a).sl++;
-      a.form.push({ r: aw ? 'W' : 'L', vs: b.code, score: M.score1 + '-' + M.score2 });
-      b.form.push({ r: aw ? 'L' : 'W', vs: a.code, score: M.score2 + '-' + M.score1 });
+      (aw ? a : b).w++; (aw ? b : a).l++;
+      a.results.push(aw ? 'W' : 'L'); b.results.push(aw ? 'L' : 'W');
+      a.lastPlayed = b.lastPlayed = M.date;
     });
   return Object.keys(rec)
     .map(c => Object.assign(rec[c], { rating: Math.round(R[c]) }))
-    .sort((x, y) => y.rating - x.rating || y.rd - x.rd);
+    .sort((x, y) => y.rating - x.rating || (y.w - y.l) - (x.w - x.l));
 }
 
-// -> { event, updated, teams: [{ rank, code, name, rating, last (rank a week ago, or null), sw, sl, mw, ml, rd, form }] }
+function streak(results) {
+  if (!results.length) return '';
+  const last = results[results.length - 1];
+  let n = 0;
+  for (let i = results.length - 1; i >= 0 && results[i] === last; i--) n++;
+  return n + last;
+}
+
+// -> { event, updated, teams: [{ rank, code, name, rating, change (rating change over the last week of games),
+//      last (rank then, or null), w, l, streak ("3W"), lastPlayed (ISO) }] }
 function powerRankings(event, matches) {
   const played = matches.filter(M => M.completed).map(M => M.date).sort();
   const latest = played.length ? Date.parse(played[played.length - 1]) : 0;
-  const lastWeek = {};
-  rate(matches, latest - 7 * 864e5).forEach((t, i) => { lastWeek[t.code] = i + 1; });
+  const before = {};
+  rate(matches, latest - 7 * 864e5).forEach((t, i) => { before[t.code] = { rank: i + 1, rating: t.rating }; });
   const teams = rate(matches).map((t, i) => ({
-    rank: i + 1, code: t.code, name: t.name, rating: t.rating, last: lastWeek[t.code] || null,
-    sw: t.sw, sl: t.sl, mw: t.mw, ml: t.ml, rd: t.rd, form: t.form.slice(-5)
+    rank: i + 1, code: t.code, name: t.name, rating: t.rating,
+    change: before[t.code] ? t.rating - before[t.code].rating : 0, last: before[t.code] ? before[t.code].rank : null,
+    w: t.w, l: t.l, streak: streak(t.results), lastPlayed: t.lastPlayed
   }));
   return { event, updated: played[played.length - 1] || null, teams };
 }
