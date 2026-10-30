@@ -1,4 +1,4 @@
-// EMEA power rankings for the Pick'ems page, worked out from PCMT.gg results by tools/pcmt-sync.js. Don't edit by hand.
+// Power rankings for the Pick'ems page, worked out from PCMT.gg results by tools/pcmt-sync.js. Don't edit by hand.
 var PCMT_POWER = {
   "s2-emea": {
     "event": "s2-emea",
@@ -123,6 +123,204 @@ var PCMT_POWER = {
         "l": 4,
         "streak": "1W",
         "lastPlayed": "2026-10-11T18:00:00Z"
+      }
+    ]
+  },
+  "s3-na": {
+    "event": "s3-na",
+    "updated": "2026-10-28T23:30:00Z",
+    "teams": [
+      {
+        "rank": 1,
+        "code": "SPG",
+        "name": "Spank Ptheory Gaming",
+        "rating": 1642,
+        "change": 26,
+        "last": 1,
+        "w": 9,
+        "l": 2,
+        "streak": "4W",
+        "lastPlayed": "2026-10-28T23:30:00Z"
+      },
+      {
+        "rank": 2,
+        "code": "T1",
+        "name": "Team 1",
+        "rating": 1603,
+        "change": -3,
+        "last": 2,
+        "w": 9,
+        "l": 3,
+        "streak": "1L",
+        "lastPlayed": "2026-10-28T23:30:00Z"
+      },
+      {
+        "rank": 3,
+        "code": "NAVI",
+        "name": "No Actual Valorant Intelligence",
+        "rating": 1560,
+        "change": -24,
+        "last": 3,
+        "w": 7,
+        "l": 4,
+        "streak": "1L",
+        "lastPlayed": "2026-10-24T00:00:00Z"
+      },
+      {
+        "rank": 4,
+        "code": "C9",
+        "name": "Clown9",
+        "rating": 1546,
+        "change": 0,
+        "last": 4,
+        "w": 7,
+        "l": 3,
+        "streak": "1L",
+        "lastPlayed": "2026-10-10T01:00:00Z"
+      },
+      {
+        "rank": 5,
+        "code": "SRB",
+        "name": "Sunshine and Rainbows",
+        "rating": 1538,
+        "change": 0,
+        "last": 5,
+        "w": 6,
+        "l": 3,
+        "streak": "2L",
+        "lastPlayed": "2026-09-27T00:00:00Z"
+      },
+      {
+        "rank": 6,
+        "code": "TL",
+        "name": "Team Dyslexia",
+        "rating": 1521,
+        "change": 0,
+        "last": 6,
+        "w": 5,
+        "l": 4,
+        "streak": "1L",
+        "lastPlayed": "2026-09-28T01:00:00Z"
+      },
+      {
+        "rank": 7,
+        "code": "FSG",
+        "name": "Furry Squirrels Gaming",
+        "rating": 1491,
+        "change": 0,
+        "last": 7,
+        "w": 5,
+        "l": 4,
+        "streak": "2L",
+        "lastPlayed": "2026-09-19T01:00:00Z"
+      },
+      {
+        "rank": 8,
+        "code": "SSG",
+        "name": "Squirtle Squad Gaming",
+        "rating": 1486,
+        "change": 0,
+        "last": 8,
+        "w": 3,
+        "l": 4,
+        "streak": "1W",
+        "lastPlayed": "2026-08-30T22:00:00Z"
+      },
+      {
+        "rank": 9,
+        "code": "BAKA",
+        "name": "Beautiful and Kinda Adorable",
+        "rating": 1483,
+        "change": 0,
+        "last": 9,
+        "w": 3,
+        "l": 4,
+        "streak": "1W",
+        "lastPlayed": "2026-08-09T23:00:00Z"
+      },
+      {
+        "rank": 10,
+        "code": "100T",
+        "name": "100 Tony's",
+        "rating": 1482,
+        "change": 0,
+        "last": 10,
+        "w": 3,
+        "l": 4,
+        "streak": "1W",
+        "lastPlayed": "2026-07-30T23:00:00Z"
+      },
+      {
+        "rank": 11,
+        "code": "TS",
+        "name": "Team Slugshow",
+        "rating": 1472,
+        "change": 0,
+        "last": 11,
+        "w": 4,
+        "l": 5,
+        "streak": "3L",
+        "lastPlayed": "2026-09-20T00:00:00Z"
+      },
+      {
+        "rank": 12,
+        "code": "EPY",
+        "name": "Team Entropy",
+        "rating": 1453,
+        "change": 0,
+        "last": 12,
+        "w": 2,
+        "l": 5,
+        "streak": "2W",
+        "lastPlayed": "2026-08-22T23:00:00Z"
+      },
+      {
+        "rank": 13,
+        "code": "RRQ",
+        "name": "Rage Re-Queuers",
+        "rating": 1449,
+        "change": 0,
+        "last": 13,
+        "w": 2,
+        "l": 5,
+        "streak": "2L",
+        "lastPlayed": "2026-08-30T22:00:00Z"
+      },
+      {
+        "rank": 14,
+        "code": "IHOP",
+        "name": "I Hate Odin Party",
+        "rating": 1426,
+        "change": 0,
+        "last": 14,
+        "w": 1,
+        "l": 6,
+        "streak": "4L",
+        "lastPlayed": "2026-08-19T00:00:00Z"
+      },
+      {
+        "rank": 15,
+        "code": "FNC",
+        "name": "cow paulo FaN Club",
+        "rating": 1425,
+        "change": 0,
+        "last": 15,
+        "w": 1,
+        "l": 6,
+        "streak": "1W",
+        "lastPlayed": "2026-08-22T00:00:00Z"
+      },
+      {
+        "rank": 16,
+        "code": "DFM",
+        "name": "Dementia Found Me",
+        "rating": 1422,
+        "change": 0,
+        "last": 16,
+        "w": 1,
+        "l": 6,
+        "streak": "2L",
+        "lastPlayed": "2026-08-22T23:00:00Z"
       }
     ]
   }

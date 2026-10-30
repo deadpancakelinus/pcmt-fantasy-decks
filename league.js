@@ -777,6 +777,7 @@
     '.pcmt-pr-t td.tm em{margin-left:8px;padding:1px 6px;border-radius:4px;border:1px solid rgba(255,255,255,.2);font:600 10px "JetBrains Mono",monospace;font-style:normal;color:#93a9aa;vertical-align:2px}' +
     '.pcmt-pr-t td.tm small{display:block;font-size:12px;color:#93a9aa;line-height:1.3}' +
     '.pcmt-pr-t tr.out td{opacity:.55}' +
+    '.pcmt-pr-t td.tm em.ch{border-color:#f5d76e;color:#f5d76e}' +
     '.pcmt-pr-t td.rt{color:#fff;font-weight:700;font-size:16px}' +
     '.pcmt-pr-t td.rt small{display:block;min-height:13px;font-size:10px;font-weight:600}' +
     '.pcmt-pr-t td.fm i{display:inline-block;width:17px;height:17px;margin-left:3px;border-radius:3px;font:700 10px/17px "JetBrains Mono",monospace;font-style:normal;text-align:center}' +
@@ -848,8 +849,8 @@
   // EMEA power rankings (rankings.js, written hourly from PCMT.gg results by tools/pcmt-sync.js). Opened from the
   // Group A / Group B box on Pick'ems ([data-pcmt-power]). Knocked-out teams are worked out from pickems.js.
   function esc(x) { return String(x == null ? '' : x).replace(/[&<>"']/g, function (c) { return '&#' + c.charCodeAt(0) + ';'; }); }
-  function knockedOut() {
-    var b = (window.PCMT_PICKEMS || [])[0], out = {};
+  function knockedOut(event) {
+    var b = (window.PCMT_PICKEMS || []).filter(function (x) { return x.event === event; })[0], out = {};
     if (!b) return out;
     var won = {}, lost = {}, used = {};
     b.series.forEach(function (s) { [s.a, s.b].forEach(function (r) { used[r] = 1; }); });
@@ -860,12 +861,18 @@
       var aw = s.score[0] > s.score[1];
       won[s.n] = aw ? a : c; lost[s.n] = aw ? c : a;
       if (!used['L' + s.n]) out[lost[s.n]] = 1;
+      if (!used['W' + s.n]) out[won[s.n]] = 'champ';   // won the grand final
     });
+    // Once the playoffs are over only the champions are marked (group-stage teams were never in the bracket either).
+    var champ = Object.keys(out).filter(function (k) { return out[k] === 'champ'; })[0];
+    if (champ) { out = {}; out[champ] = 'champ'; }
     return out;
   }
-  function showPower(from) {
-    var P = (window.PCMT_POWER || {})['s2-emea'];
-    var logos = window.PCMT_PICKEM_TEAMS || {}, out = knockedOut();
+  var POWER_NAMES = { 's2-emea': ['EMEA', 'Season 2'], 's3-na': ['NA', 'Season 3'] };
+  function showPower(from, event) {
+    event = event || (from && from.getAttribute && from.getAttribute('data-pcmt-power')) || 's2-emea';
+    var P = (window.PCMT_POWER || {})[event], nm = POWER_NAMES[event] || [event, ''];
+    var logos = window.PCMT_PICKEM_TEAMS || {}, out = knockedOut(event);
     var body;
     if (!P || !P.teams || !P.teams.length) body = '<p class="pcmt-pr-note">The rankings aren’t available right now. Check back soon.</p>';
     else {
@@ -881,19 +888,19 @@
         var mv = t.last == null || t.last === t.rank ? '' : t.last > t.rank ? '<span class="up" title="Up ' + (t.last - t.rank) + ' since last week">▲' + (t.last - t.rank) + '</span>'
           : '<span class="down" title="Down ' + (t.rank - t.last) + ' since last week">▼' + (t.rank - t.last) + '</span>';
         var st = t.streak ? '<span class="' + (/W$/.test(t.streak) ? 'up' : 'down') + '">' + esc(t.streak) + '</span>' : '—';
-        return '<tr' + (out[t.code] ? ' class="out"' : '') + '><td class="rk">' + t.rank + '<span class="mv">' + mv + '</span></td>' +
+        return '<tr' + (out[t.code] === 1 ? ' class="out"' : '') + '><td class="rk">' + t.rank + '<span class="mv">' + mv + '</span></td>' +
           '<td class="tm"><span>' + (lg.logo ? '<img src="' + esc(lg.logo) + '" alt="" style="padding:' + (lg.small ? '3px' : '0') + '">' : '') +
-          '<span><b>' + esc(t.name) + '</b>' + (out[t.code] ? '<em>Out</em>' : '') + '<small>' + esc(t.code) + '</small></span></span></td>' +
+          '<span><b>' + esc(t.name) + '</b>' + (out[t.code] === 'champ' ? '<em class="ch">Champions</em>' : out[t.code] ? '<em>Out</em>' : '') + '<small>' + esc(t.code) + '</small></span></span></td>' +
           '<td class="rt">' + t.rating + '<small>' + ch + '</small></td><td>' + st + '</td><td>' + t.w + '–' + t.l + '</td><td class="hide-s">' + ago(t.lastPlayed) + '</td></tr>';
       }).join('');
       var upd = P.updated ? new Date(P.updated).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '';
-      body = '<p class="pcmt-pr-sub">Season 2' + (upd ? ' · through the games of ' + esc(upd) : '') + '</p>' +
+      body = '<p class="pcmt-pr-sub">' + nm[1] + (upd ? ' · through the games of ' + esc(upd) : '') + '</p>' +
         '<div class="pcmt-pr-wrap"><table class="pcmt-pr-t"><thead><tr><th>Rank</th><th class="tm">Team</th><th>Rating</th><th>Streak</th><th title="Series won–lost">Record</th>' +
         '<th class="hide-s">Last played</th></tr></thead>' +
         '<tbody>' + rows + '</tbody></table></div>' +
-        '<p class="pcmt-pr-note">Ranked like VLR.gg: an Elo rating from every EMEA Season 2 series on PCMT.gg. Teams start at 1500; beating a higher-rated team earns more, playoff series and sweeps count more. Changes are over the last week of games. Updates every hour.</p>';
+        '<p class="pcmt-pr-note">Ranked like VLR.gg: an Elo rating from every ' + nm[0] + ' ' + nm[1] + ' series on PCMT.gg. Teams start at 1500; beating a higher-rated team earns more, playoff series and sweeps count more. Changes are over the last week of games. Updates every hour.</p>';
     }
-    var w = show('<div class="pcmt-pr"><h2 id="pcmt-pr-t">EMEA Power Rankings</h2>' + body + '</div>', from, 'pcmt-pr-t');
+    var w = show('<div class="pcmt-pr"><h2 id="pcmt-pr-t">' + nm[0] + ' Power Rankings</h2>' + body + '</div>', from, 'pcmt-pr-t');
     w.querySelector('.pcmt-cr').classList.add('pcmt-pr-win');
   }
 

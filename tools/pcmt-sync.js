@@ -9,7 +9,7 @@
 //   * PCMT_RESULTS: adds every finished match from the last 14 days that isn't in yet, with full stats.
 //   * Pick'ems (pickems.js): for each playoff match of a bracket's event, finds the series with those two teams and
 //     fills in start, url, best-of and, once finished, the score (in the series' own a/b order).
-//   * rankings.js: EMEA power rankings (tools/pcmt-power.js) from every finished game of the event, for the Pick'ems page.
+//   * rankings.js: power rankings for each Pick'ems bracket's event (tools/pcmt-power.js) from every finished game of the event, for the Pick'ems page.
 // The arrays stay strict JSON (the server reads them). Exit code 0 even when nothing changed.
 const fs = require('fs'), path = require('path'), vm = require('vm');
 const A = require('./pcmt-api.js');
@@ -85,9 +85,16 @@ brackets.forEach(B => {
       const a = team(s.a), b = team(s.b);
       if (a && b && s.score) { const aw = s.score[0] > s.score[1]; won[s.n] = aw ? a : b; lost[s.n] = aw ? b : a; }
     });
-    B.series.forEach(s => {
+    // Two teams can meet twice (upper final and grand final): a series keeps the game its url already points to,
+    // otherwise it takes the earliest game between its two teams that no other series has.
+    const claimed = new Set(B.series.map(s => s.url).filter(Boolean));
+    const byDate = list.slice().sort((x, y) => Date.parse(x.date) - Date.parse(y.date));
+    B.series.slice().sort((x, y) => x.n - y.n).forEach(s => {
       const a = team(s.a), b = team(s.b); if (!a || !b) return;
-      const M = list.find(x => (x.team1 === a && x.team2 === b) || (x.team1 === b && x.team2 === a)); if (!M) return;
+      const pair = x => (x.team1 === a && x.team2 === b) || (x.team1 === b && x.team2 === a);
+      const M = byDate.find(x => pair(x) && A.pageUrl(ev, x.id) === s.url) || byDate.find(x => pair(x) && !claimed.has(A.pageUrl(ev, x.id)));
+      if (!M) return;
+      claimed.add(A.pageUrl(ev, M.id));
       const url = A.pageUrl(ev, M.id), bo = M.bestOf || s.bo;
       if (s.start !== M.date || s.url !== url || s.bo !== bo) {
         log.push("Pick'ems series " + s.n + ': ' + a + ' vs ' + b + ' at ' + M.date); s.start = M.date; s.url = url; s.bo = bo;
@@ -103,8 +110,8 @@ brackets.forEach(B => {
 // ---- power rankings (rankings.js) ----
 const rkPath = path.join(ROOT, 'rankings.js');
 const power = {};
-['s2-emea'].forEach(ev => { if (byEvent[ev]) power[ev] = require('./pcmt-power.js').powerRankings(ev, byEvent[ev]); });
-const rkJs = '// EMEA power rankings for the Pick\'ems page, worked out from PCMT.gg results by tools/pcmt-sync.js. Don\'t edit by hand.\n' +
+[...new Set(brackets.map(B => B.event).filter(Boolean))].forEach(ev => { if (byEvent[ev]) power[ev] = require('./pcmt-power.js').powerRankings(ev, byEvent[ev]); });
+const rkJs = '// Power rankings for the Pick\'ems page, worked out from PCMT.gg results by tools/pcmt-sync.js. Don\'t edit by hand.\n' +
   'var PCMT_POWER = ' + JSON.stringify(power, null, 2) + ';\n';
 const rkOld = fs.existsSync(rkPath) ? fs.readFileSync(rkPath, 'utf8') : '';
 if (Object.keys(power).length && rkJs !== rkOld) log.push('Power rankings updated');

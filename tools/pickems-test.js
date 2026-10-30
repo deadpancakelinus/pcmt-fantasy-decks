@@ -41,7 +41,7 @@ sql(`update public.pickem_events set lock_at = null;`);   // tests below run wit
 check(fails(as(STAFF, `select public.save_pick('emea-s2', 2, 'NATS', 2, 1);`), /hasn't loaded/), 'no picks before the bracket is on the server');
 const first = JSON.parse(ingest(JS));
 check(first.payouts === 0, 'first sync pays nothing (no picks yet)');
-const resolved = JSON.parse(sql(`select public.pickem_resolve(data) from public.pickem_state;`).trim());
+const resolved = JSON.parse(sql(`select public.pickem_resolve(data) from public.pickem_state where event = 'emea-s2';`).trim());
 const by = n => resolved.find(x => x.n === n);
 check(by(1).winner === 'XTC' && by(6).winner === 'SEAL' && by(7).winner === 'HOT', 'played series have the right winners');
 check(by(3).a === 'SOG' && by(3).b === 'XTC' && by(8).a === 'NOOT' && by(8).b === 'SEAL' && by(9).b === 'HOT' && by(9).a === null, 'winners and losers move on to the right series');
@@ -63,7 +63,7 @@ check(pick(P1, 2, 'ATLC', 2, 1) === 't' && pick(P2, 2, 'NATS', 2, 0) === 't', 'e
 check(sql(as(P1, `select count(*) from public.pickem_picks;`)).trim() === '1' && sql(`set role anon; select count(*) from public.pickem_picks;`).trim() === '0', 'everyone sees only their own picks');
 check(fails(as(P1, `insert into public.pickem_picks values ('${P1}', 'emea-s2', 1, 'XTC', 2, 0, now());`)) && fails(as(P1, `update public.pickem_picks set series = 1;`)) === false &&
       sql(`select count(*) from public.pickem_picks where series = 1;`).trim() === '0', 'picks cannot be written past save_pick');
-check(fails(as(P1, `update public.pickem_events set credits_win = 9999;`)) === false && sql(`select credits_win from public.pickem_events;`).trim() === '20', 'players cannot change the Credits amounts');
+check(fails(as(P1, `update public.pickem_events set credits_win = 9999;`)) === false && sql(`select credits_win from public.pickem_events where id = 'emea-s2';`).trim() === '20', 'players cannot change the Credits amounts');
 check(fails(as(STAFF, `select public.pickem_ingest('x');`)) && fails(as(P1, `select public.pickem_sync();`)), 'nobody can run the sync or payout from the site');
 check(fails(as(P1, `insert into public.vp_ledger (user_id, kind, amount) values ('${P1}', 'pickem', 500);`)), 'players cannot pay themselves');
 
@@ -86,14 +86,14 @@ sql(`update public.pickem_events set lock_at = null;`);
 // 6 hours before the next game the whole bracket locks for good.
 let js6 = edit(JS, 2, { start: iso(7) });
 ingest(js6);
-check(sb(P1, { 2: 'NATS' }) === '1' && sql(`select coalesce(lock_at::text, 'none') from public.pickem_events;`).trim() === 'none', 'more than 6 hours before the next game, picks are open');
+check(sb(P1, { 2: 'NATS' }) === '1' && sql(`select coalesce(lock_at::text, 'none') from public.pickem_events where id = 'emea-s2';`).trim() === 'none', 'more than 6 hours before the next game, picks are open');
 js6 = edit(JS, 2, { start: iso(5) });
 ingest(js6);
 check(fails(as(P1, `select public.save_bracket('emea-s2', '{"2": "ATLC"}'::jsonb);`), /locked until the end/), 'within 6 hours of the next game the bracket locks');
-const lockAt = sql(`select lock_at from public.pickem_events;`).trim();
-check(sql(`select abs(extract(epoch from lock_at - (now() - interval '1 hour'))) < 120 from public.pickem_events;`).trim() === 't', 'the lock time saved is 6 hours before the game');
+const lockAt = sql(`select lock_at from public.pickem_events where id = 'emea-s2';`).trim();
+check(sql(`select abs(extract(epoch from lock_at - (now() - interval '1 hour'))) < 120 from public.pickem_events where id = 'emea-s2';`).trim() === 't', 'the lock time saved is 6 hours before the game');
 ingest(edit(JS, 2, { start: iso(72) }));
-check(sql(`select lock_at from public.pickem_events;`).trim() === lockAt && fails(as(STAFF, `select public.save_pick('emea-s2', 2, 'NATS', null, null);`), /locked until the end/), 'once locked it stays locked, even if the game moves later');
+check(sql(`select lock_at from public.pickem_events where id = 'emea-s2';`).trim() === lockAt && fails(as(STAFF, `select public.save_pick('emea-s2', 2, 'NATS', null, null);`), /locked until the end/), 'once locked it stays locked, even if the game moves later');
 sql(`update public.pickem_events set lock_at = null;`);
 sql(`delete from public.pickem_picks where user_id = '${P1}';`); sb(P1, { 2: 'ATLC' });
 
@@ -111,7 +111,7 @@ check(JSON.parse(ingest(js2)).payouts === 0 && sql(`select count(*) from public.
 check(sql(as(P1, `select count(*) from public.vp_ledger;`)).trim() === '0' && sql(as(STAFF, `select count(*) from public.vp_ledger;`)).trim() === '1', 'each player sees only their own Credits lines');
 const st = sql(`set role anon; select user_id || ':' || points || ':' || correct || ':' || exact from public.pickem_standings('emea-s2') order by points desc, user_id;`).trim().split('\n');
 check(st.join(',') === `${P2}:1:1:0,${STAFF}:1:1:0,${ADMIN}:0:0:0,${P1}:0:0:0`.split(',').sort((a, b) => b.split(':')[1] - a.split(':')[1] || a.localeCompare(b)).join(','), 'standings: 1 point for each right winner');
-const r2 = JSON.parse(sql(`select public.pickem_resolve(data) from public.pickem_state;`).trim());
+const r2 = JSON.parse(sql(`select public.pickem_resolve(data) from public.pickem_state where event = 'emea-s2';`).trim());
 check(r2.find(x => x.n === 4).b === 'NATS' && r2.find(x => x.n === 9).a === 'ATLC', 'the result moves teams on through the bracket');
 
 console.log(bad ? `${bad} check(s) failed` : 'all pick\'ems checks passed');
