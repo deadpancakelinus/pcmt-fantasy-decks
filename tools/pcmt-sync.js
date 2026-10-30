@@ -9,6 +9,7 @@
 //   * PCMT_RESULTS: adds every finished match from the last 14 days that isn't in yet, with full stats.
 //   * Pick'ems (pickems.js): for each playoff match of a bracket's event, finds the series with those two teams and
 //     fills in start, url, best-of and, once finished, the score (in the series' own a/b order).
+//   * rankings.js: EMEA power rankings (tools/pcmt-power.js) from every finished game of the event, for the Pick'ems page.
 // The arrays stay strict JSON (the server reads them). Exit code 0 even when nothing changed.
 const fs = require('fs'), path = require('path'), vm = require('vm');
 const A = require('./pcmt-api.js');
@@ -99,6 +100,15 @@ brackets.forEach(B => {
   }
 });
 
+// ---- power rankings (rankings.js) ----
+const rkPath = path.join(ROOT, 'rankings.js');
+const power = {};
+['s2-emea'].forEach(ev => { if (byEvent[ev]) power[ev] = require('./pcmt-power.js').powerRankings(ev, byEvent[ev]); });
+const rkJs = '// EMEA power rankings for the Pick\'ems page, worked out from PCMT.gg results by tools/pcmt-sync.js. Don\'t edit by hand.\n' +
+  'var PCMT_POWER = ' + JSON.stringify(power, null, 2) + ';\n';
+const rkOld = fs.existsSync(rkPath) ? fs.readFileSync(rkPath, 'utf8') : '';
+if (Object.keys(power).length && rkJs !== rkOld) log.push('Power rankings updated');
+
 // ---- write ----
 if (!log.length) { console.log('Nothing new on PCMT.gg.'); process.exit(0); }
 log.forEach(l => console.log(l));
@@ -110,7 +120,8 @@ for (const [txt, names] of [[dataJs, ['PCMT_MATCHES', 'PCMT_RESULTS']], [pkJs, [
   vm.runInNewContext(txt);
 }
 fs.writeFileSync(dataPath, dataJs); fs.writeFileSync(pkPath, pkJs);
-console.log('Wrote data.js and pickems.js.');
+if (Object.keys(power).length) { vm.runInNewContext(rkJs); fs.writeFileSync(rkPath, rkJs); }
+console.log('Wrote data.js, pickems.js and rankings.js.');
 if (MSG) {   // e.g. "Add result: T1 vs SPG; Add match: NOOT vs SEAL; Pick'ems: series 8 result"
   const parts = [];
   log.forEach(l => {
@@ -118,6 +129,7 @@ if (MSG) {   // e.g. "Add result: T1 vs SPG; Add match: NOOT vs SEAL; Pick'ems: 
     if ((m = l.match(/^Add result: (\w+ vs \w+)/))) parts.push('Add result: ' + m[1]);
     else if ((m = l.match(/^Add match: (\w+ vs \w+)/))) parts.push('Add match: ' + m[1]);
     else if ((m = l.match(/^Update match: (\w+ vs \w+)/))) parts.push('Move match: ' + m[1]);
+    else if (l === 'Power rankings updated') parts.push('Power rankings');
     else if ((m = l.match(/^Pick'ems series \d+ result: (\S+) \S+ (\S+)$/))) parts.push("Pick'ems: " + m[1] + ' vs ' + m[2] + ' result');
   });
   const uniq = [...new Set(parts)];

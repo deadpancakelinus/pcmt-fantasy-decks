@@ -759,6 +759,30 @@
     '.pcmt-switch[aria-checked="true"] span{transform:translateX(24px);background:#0d1416}' +
     '.pcmt-switch:focus-visible{outline:2px solid #fff;outline-offset:3px}' +
     '.pcmt-set-foot{margin:14px 0 0;padding-top:14px;border-top:1px solid rgba(255,255,255,.12);font:12px "JetBrains Mono",monospace;color:#93a9aa}' +
+    '.pcmt-cr.pcmt-pr-win{max-width:780px}' +
+    '.pcmt-pr-sub{margin:-10px 0 14px;font:12px "JetBrains Mono",monospace;color:#93a9aa}' +
+    '.pcmt-pr-wrap{overflow-x:auto}' +
+    '.pcmt-pr-t{width:100%;border-collapse:collapse;font-size:14px}' +
+    '.pcmt-pr-t th{padding:0 8px 8px;text-align:right;font:600 11px "JetBrains Mono",monospace;color:#93a9aa;white-space:nowrap}' +
+    '.pcmt-pr-t td{padding:9px 8px;border-top:1px solid rgba(255,255,255,.12);text-align:right;font-family:"JetBrains Mono",monospace;color:#c4d4d4;white-space:nowrap}' +
+    '.pcmt-pr-t th:first-child,.pcmt-pr-t td.rk{text-align:left;padding-left:0}' +
+    '.pcmt-pr-t td.rk{font:700 18px "Cabin Sketch","Space Grotesk",sans-serif;color:#fff;width:22px}' +
+    '.pcmt-pr-t tbody tr:first-child td.rk{color:#f5d76e}' +
+    '.pcmt-pr-t td.mv{width:30px;text-align:left;font-size:11px;padding-left:0}' +
+    '.pcmt-pr-t .up{color:#8be4b7}.pcmt-pr-t .down{color:#ff8a80}.pcmt-pr-t .same{color:#5d7376}' +
+    '.pcmt-pr-t .tm{text-align:left;white-space:normal;font-family:inherit;width:100%}' +
+    '.pcmt-pr-t td.tm>span{display:flex;align-items:center;gap:10px}' +
+    '.pcmt-pr-t td.tm img{width:30px;height:30px;flex:none;object-fit:contain;border-radius:50%;background:#0d1416;box-sizing:border-box}' +
+    '.pcmt-pr-t td.tm b{font-size:15px;color:#fff}' +
+    '.pcmt-pr-t td.tm em{margin-left:8px;padding:1px 6px;border-radius:4px;border:1px solid rgba(255,255,255,.2);font:600 10px "JetBrains Mono",monospace;font-style:normal;color:#93a9aa;vertical-align:2px}' +
+    '.pcmt-pr-t td.tm small{display:block;font-size:12px;color:#93a9aa;line-height:1.3}' +
+    '.pcmt-pr-t tr.out td{opacity:.55}' +
+    '.pcmt-pr-t td.rt{color:#fff;font-weight:600}' +
+    '.pcmt-pr-t td.fm i{display:inline-block;width:17px;height:17px;margin-left:3px;border-radius:3px;font:700 10px/17px "JetBrains Mono",monospace;font-style:normal;text-align:center}' +
+    '.pcmt-pr-t td.fm i.w{background:rgba(139,228,183,.18);color:#8be4b7}.pcmt-pr-t td.fm i.l{background:rgba(255,138,128,.15);color:#ff8a80}' +
+    '.pcmt-pr .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}' +
+    '.pcmt-pr-note{margin:16px 0 0;font-size:13px;line-height:1.5;color:#93a9aa}' +
+    '@media (max-width:560px){.pcmt-pr-t .hide-s{display:none}.pcmt-pr-t td.tm small{display:none}}' +
     '@media (prefers-reduced-motion:reduce){.pcmt-switch,.pcmt-switch span{transition:none}}';
   (document.head || document.documentElement).appendChild(css);
 
@@ -820,6 +844,54 @@
     '<h3>Changes</h3><p>If this notice changes, the date at the top changes too.</p></div>';
   function showPrivacy(from) { show(PRIVACY, from, 'pcmt-pv-t'); }
 
+  // EMEA power rankings (rankings.js, written hourly from PCMT.gg results by tools/pcmt-sync.js). Opened from the
+  // Group A / Group B box on Pick'ems ([data-pcmt-power]). Knocked-out teams are worked out from pickems.js.
+  function esc(x) { return String(x == null ? '' : x).replace(/[&<>"']/g, function (c) { return '&#' + c.charCodeAt(0) + ';'; }); }
+  function knockedOut() {
+    var b = (window.PCMT_PICKEMS || [])[0], out = {};
+    if (!b) return out;
+    var won = {}, lost = {}, used = {};
+    b.series.forEach(function (s) { [s.a, s.b].forEach(function (r) { used[r] = 1; }); });
+    function team(r) { return /^W\d+$/.test(r) ? won[r.slice(1)] : /^L\d+$/.test(r) ? lost[r.slice(1)] : b.seeds[r]; }
+    b.series.slice().sort(function (x, y) { return x.n - y.n; }).forEach(function (s) {
+      var a = team(s.a), c = team(s.b);
+      if (!a || !c || !s.score) return;
+      var aw = s.score[0] > s.score[1];
+      won[s.n] = aw ? a : c; lost[s.n] = aw ? c : a;
+      if (!used['L' + s.n]) out[lost[s.n]] = 1;
+    });
+    return out;
+  }
+  function showPower(from) {
+    var P = (window.PCMT_POWER || {})['s2-emea'];
+    var logos = window.PCMT_PICKEM_TEAMS || {}, out = knockedOut();
+    var body;
+    if (!P || !P.teams || !P.teams.length) body = '<p class="pcmt-pr-note">The rankings aren’t available right now. Check back soon.</p>';
+    else {
+      var rows = P.teams.map(function (t) {
+        var mv = t.last == null ? '' : t.last > t.rank ? '<span class="up" title="Up ' + (t.last - t.rank) + ' since last week">▲' + (t.last - t.rank) + '</span>'
+          : t.last < t.rank ? '<span class="down" title="Down ' + (t.rank - t.last) + ' since last week">▼' + (t.rank - t.last) + '</span>' : '<span class="same" title="No change">–</span>';
+        var lg = logos[t.code] || {};
+        var form = t.form.map(function (f) {
+          return '<i class="' + (f.r === 'W' ? 'w' : 'l') + '" title="' + esc((f.r === 'W' ? 'Won ' : 'Lost ') + f.score + ' vs ' + f.vs) + '">' + f.r + '</i>';
+        }).join('');
+        return '<tr' + (out[t.code] ? ' class="out"' : '') + '><td class="rk">' + t.rank + '</td><td class="mv">' + mv + '</td>' +
+          '<td class="tm"><span>' + (lg.logo ? '<img src="' + esc(lg.logo) + '" alt="" style="padding:' + (lg.small ? '3px' : '0') + '">' : '') +
+          '<span><b>' + esc(t.code) + '</b>' + (out[t.code] ? '<em>Out</em>' : '') + '<small>' + esc(t.name) + '</small></span></span></td>' +
+          '<td>' + t.sw + '–' + t.sl + '</td><td class="hide-s">' + t.mw + '–' + t.ml + '</td><td class="hide-s">' + (t.rd > 0 ? '+' : '') + t.rd + '</td>' +
+          '<td class="fm hide-s">' + form + '</td><td class="rt">' + t.rating + '</td></tr>';
+      }).join('');
+      var upd = P.updated ? new Date(P.updated).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '';
+      body = '<p class="pcmt-pr-sub">Season 2' + (upd ? ' · through the games of ' + esc(upd) : '') + '</p>' +
+        '<div class="pcmt-pr-wrap"><table class="pcmt-pr-t"><thead><tr><th>#</th><th><span class="sr">Change</span></th><th class="tm">Team</th><th title="Series won–lost">Series</th>' +
+        '<th class="hide-s" title="Maps won–lost">Maps</th><th class="hide-s" title="Round difference">+/−</th><th class="hide-s">Last 5</th><th title="Power rating">Rating</th></tr></thead>' +
+        '<tbody>' + rows + '</tbody></table></div>' +
+        '<p class="pcmt-pr-note">Every EMEA Season 2 map on PCMT.gg counts, oldest first. Beating a higher-rated team or winning by more rounds earns more; losing to a lower-rated team costs more. ▲▼ is the change over the last week of games. Updates every hour.</p>';
+    }
+    var w = show('<div class="pcmt-pr"><h2 id="pcmt-pr-t">EMEA Power Rankings</h2>' + body + '</div>', from, 'pcmt-pr-t');
+    w.querySelector('.pcmt-cr').classList.add('pcmt-pr-win');
+  }
+
   function showDelete(from) {
     var L = window.PCMT_LEAGUE;
     if (!L || !L.signedIn) { if (L && L.toast) L.toast('Log in with Discord to delete your account.'); return; }
@@ -877,10 +949,16 @@
     if (st) { e.preventDefault(); showSettings(st); return; }
     var a = e.target.closest && e.target.closest('[data-pcmt-privacy],a[href="#privacy"]');
     if (a) { e.preventDefault(); showPrivacy(a); return; }
+    var pw = e.target.closest && e.target.closest('[data-pcmt-power]');
+    if (pw) { e.preventDefault(); showPower(pw); return; }
     var d = e.target.closest && e.target.closest('[data-pcmt-delete]');
     if (d) { e.preventDefault(); showDelete(d); }
   });
   window.PCMT_PRIVACY = { show: showPrivacy, deleteAccount: showDelete };
+  window.PCMT_POWER_UI = { show: showPower };
+  document.addEventListener('keydown', function (e) {
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.closest && e.target.closest('[data-pcmt-power]') && !open) { e.preventDefault(); showPower(e.target.closest('[data-pcmt-power]')); }
+  });
   function fromHash() { if (location.hash === '#privacy') setTimeout(function () { showPrivacy(null); }, 400); else if (location.hash === '#settings') setTimeout(function () { showSettings(null); }, 400); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fromHash); else fromHash();
   window.addEventListener('hashchange', fromHash);

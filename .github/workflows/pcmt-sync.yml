@@ -44,7 +44,7 @@ jobs:
 
       - name: Commit and push
         run: |
-          git add data.js pickems.js trumps/data/pcmt-stats.tsv trumps-cards.js
+          git add data.js pickems.js rankings.js trumps/data/pcmt-stats.tsv trumps-cards.js
           if git diff --cached --quiet; then echo "Nothing new."; exit 0; fi
           msg=$(cat "$RUNNER_TEMP"/msg-*.txt 2>/dev/null | paste -sd ';' - | sed 's/;/; /g')
           git -c user.name="deadpancakelinus" -c user.email="sixthneigh@gmail.com" commit -m "${msg:-PCMT.gg sync}"

@@ -27,6 +27,9 @@ button,input{font:inherit}
 @media (prefers-reduced-motion: reduce){.pcmt-loader span{animation-duration:calc(var(--speed)*3)}}
 .pcmt-loading{transition:opacity .4s ease}
 .pk-swipe{display:none}
+.pk-groups{cursor:pointer;transition:border-color .15s ease}
+.pk-groups:hover,.pk-groups:focus-visible{border-color:#a5dcdd !important;outline:none}
+.pk-groups:hover tfoot td,.pk-groups:focus-visible tfoot td{background:rgba(165,220,221,.08)}
 @media (max-width: 1300px){.pk-swipe{display:block}}
 input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !important;box-shadow:0 0 0 3px rgba(165,220,221,.3)}
 .lb-gold{position:relative;box-shadow:0 0 28px rgba(245,215,110,.22),inset 0 0 0 1px rgba(245,215,110,.55)}
@@ -112,7 +115,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <path d="M1112 300 L1104 266 L1122 280 L1135 258 L1148 280 L1166 266 L1158 300 Z" fill="#f5d76e" stroke="#c9a93c" stroke-width="2" stroke-linejoin="round"></path>
 </svg>
 
-<table style="position: absolute; left: 24px; top: 36px; width: 330px; border-collapse: collapse; background: #172124; border: 2px solid #3a4f53; font-size: 15px">
+<table data-pcmt-power role="button" tabindex="0" aria-label="Groups. Open the EMEA power rankings" title="EMEA power rankings" class="pk-groups" style="position: absolute; left: 24px; top: 36px; width: 330px; border-collapse: collapse; background: #172124; border: 2px solid #3a4f53; font-size: 15px">
 <thead>
 <tr>
 <th scope="col" style="width: 50%; height: 40px; border: 2px solid #3a4f53; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; color: #ef8f8f">GROUP A</th>
@@ -134,6 +137,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </tr>
 </sc-for>
 </tbody>
+<tfoot><tr><td colspan="2" style="height: 34px; padding: 0 12px; border: 2px solid #3a4f53; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #a5dcdd; text-align: center">Power rankings →</td></tr></tfoot>
 </table>
 
 <sc-for list="{{boxes}}" as="bx" hint-placeholder-count="14">
@@ -263,7 +267,7 @@ var PCMT_PICKEM_LINES = [
   'M580 472 H610 V597 H580', 'M610 532 H640', 'M790 532 H830',
   'M980 227 H1020 V532 H980', 'M1020 372 H1060'
 ];
-var PCMT_PICKEM_TEAMS = {
+var PCMT_PICKEM_TEAMS = window.PCMT_PICKEM_TEAMS = {
   FaZe: { name: 'Fabulous and Zesty', logo: '/_blob/9da6e0491a922186cad6bc5daf699626' },
   ATLC: { name: 'ATLNTIC Esports', logo: '/_blob/086abe908c829ddcb51bee4b1db16b83' },
   SEAL: { name: 'Stay Seally', logo: '/_blob/7f2055fcc7e78ae7d1510fe56608fd83' },

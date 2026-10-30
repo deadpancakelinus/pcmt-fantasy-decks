@@ -170,7 +170,7 @@ for board, outname in PAGES.items():
     if board in ('Library.dc.html', 'Store.dc.html'):  # Library and Store show each card's MVP VS stats
         data_tag += '<script src="trumps-cards.js"></script>\n'
     if board == 'Pickems.dc.html':  # brackets, kept up to date by the match check like data.js
-        data_tag = '<script src="pickems.js"></script>\n' + data_tag
+        data_tag = '<script src="pickems.js"></script>\n<script src="rankings.js"></script>\n' + data_tag
     page = f'''<!doctype html>
 <html lang="en">
 <head>
