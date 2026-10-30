@@ -10,7 +10,7 @@ Start here. It covers what exists, how changes are made and shipped, and what's 
 | GitHub repo | `deadpancakelinus/pcmt-fantasy-decks` (Cloudflare Pages redeploys on every push to `main`) |
 | Designs | The page boards in the design canvas; the current copy is in `tools/canvas/` |
 | Supabase | https://wwrsavqipkxvdsxcemos.supabase.co, publishable key `sb_publishable_e8v-uyAo4fnvwJCHUVA5FQ_LXR6yYM7` (public, already in league.js) |
-| PCMT.gg sync | GitHub Action `.github/workflows/pcmt-sync.yml` (runs on GitHub, every 3 h at :17 UTC, or by hand from the repo's Actions tab → PCMT.gg sync → Run workflow): `node tools/pcmt-sync.js` for matches, results and Pick'ems, `tools/pcmt-stats.js` + `trumps/build_cards.py` for MVP VS, then commits as deadpancakelinus and pushes to main. A failed step marks the run red (GitHub emails the repo owner). It doesn't update the design canvas's copy of the arrays. |
+| PCMT.gg sync | GitHub Action `.github/workflows/pcmt-sync.yml` (runs on GitHub, every hour at :17, or by hand from the repo's Actions tab → PCMT.gg sync → Run workflow): `node tools/pcmt-sync.js` for matches, results and Pick'ems, `tools/pcmt-stats.js` + `trumps/build_cards.py` for MVP VS, then commits as deadpancakelinus and pushes to main. A failed step marks the run red (GitHub emails the repo owner). It doesn't update the design canvas's copy of the arrays. |
 
 **Never** put these in the site or the repo, or share them: the Supabase database password, the Supabase secret / service_role key, or the Discord Client Secret. Only the publishable key belongs in the site.
 

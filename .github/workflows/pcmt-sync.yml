@@ -1,10 +1,10 @@
 name: PCMT.gg sync
 
-# Every 3 hours (and on demand from the Actions tab): pull matches, results and Pick'ems from PCMT.gg's API,
+# Every hour (and on demand from the Actions tab): pull matches, results and Pick'ems from PCMT.gg's API,
 # refresh the MVP VS stats from pcmt.gg/stats, and push any changes to main (Cloudflare Pages redeploys the site).
 on:
   schedule:
-    - cron: '17 */3 * * *'
+    - cron: '17 * * * *'
   workflow_dispatch:
 
 permissions:
