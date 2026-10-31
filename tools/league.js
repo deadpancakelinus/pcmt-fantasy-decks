@@ -772,7 +772,7 @@
     '.pcmt-pr-t .up{color:#8be4b7}.pcmt-pr-t .down{color:#ff8a80}.pcmt-pr-t .same{color:#5d7376}' +
     '.pcmt-pr-t .tm{text-align:left;white-space:normal;font-family:inherit;width:100%}' +
     '.pcmt-pr-t td.tm>span{display:flex;align-items:center;gap:10px}' +
-    '.pcmt-pr-t td.tm img{width:30px;height:30px;flex:none;object-fit:contain;border-radius:50%;background:#0d1416;box-sizing:border-box}' +
+    '.pcmt-pr-t td.tm img{width:30px;height:30px;flex:none;object-fit:contain}' +
     '.pcmt-pr-t td.tm b{font-size:15px;color:#fff}' +
     '.pcmt-pr-t td.tm em{margin-left:8px;padding:1px 6px;border-radius:4px;border:1px solid rgba(255,255,255,.2);font:600 10px "JetBrains Mono",monospace;font-style:normal;color:#93a9aa;vertical-align:2px}' +
     '.pcmt-pr-t td.tm small{display:block;font-size:12px;color:#93a9aa;line-height:1.3}' +
@@ -889,7 +889,7 @@
           : '<span class="down" title="Down ' + (t.rank - t.last) + ' since last week">▼' + (t.rank - t.last) + '</span>';
         var st = t.streak ? '<span class="' + (/W$/.test(t.streak) ? 'up' : 'down') + '">' + esc(t.streak) + '</span>' : '—';
         return '<tr' + (out[t.code] === 1 ? ' class="out"' : '') + '><td class="rk">' + t.rank + '<span class="mv">' + mv + '</span></td>' +
-          '<td class="tm"><span>' + (lg.logo ? '<img src="' + esc(lg.logo) + '" alt="" style="padding:' + (lg.small ? '3px' : '0') + '">' : '') +
+          '<td class="tm"><span>' + (lg.logo ? '<img src="' + esc(lg.logo) + '" alt="">' : '') +
           '<span><b>' + esc(t.name) + '</b>' + (out[t.code] === 'champ' ? '<em class="ch">Champions</em>' : out[t.code] ? '<em>Out</em>' : '') + '<small>' + esc(t.code) + '</small></span></span></td>' +
           '<td class="rt">' + t.rating + '<small>' + ch + '</small></td><td>' + st + '</td><td>' + t.w + '–' + t.l + '</td><td class="hide-s">' + ago(t.lastPlayed) + '</td></tr>';
       }).join('');

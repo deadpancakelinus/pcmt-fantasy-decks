@@ -142,7 +142,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <td title="{{gc.full}}" style="height: 40px; padding: 0 12px; border: 2px solid #3a4f53">
 <span style="display: flex; align-items: center; gap: 8px">
 <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: {{gc.seedColor}}; min-width: 20px">{{gc.seed}}</span>
-<img src="{{gc.logo}}" alt="" style="width: 22px; height: 22px; object-fit: contain; border-radius: 50%; background: #0d1416; padding: {{gc.logoPad}}; box-sizing: border-box">
+<img src="{{gc.logo}}" alt="" style="width: 22px; height: 22px; object-fit: contain">
 <span style="font-weight: 600">{{gc.code}}</span>
 </span>
 </td>
@@ -158,13 +158,13 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <sc-for list="{{bx.rows}}" as="t" hint-placeholder-count="2">
 <sc-if value="{{t.canPick}}" hint-placeholder-val="{{ true }}">
 <button type="button" onClick="{{t.pick}}" aria-pressed="{{t.picked}}" aria-label="{{t.aria}}" title="{{t.full}}" style="display: flex; align-items: center; gap: 8px; width: 100%; height: 40px; padding: 0 10px; box-sizing: border-box; border: 0; border-top: {{t.divider}}; border-radius: {{t.radius}}; background: {{t.bg}}; color: {{t.color}}; font: inherit; font-size: 15px; font-weight: {{t.weight}}; text-align: left; cursor: pointer">
-<sc-if value="{{t.hasLogo}}" hint-placeholder-val="{{ true }}"><img src="{{t.logo}}" alt="" style="width: 22px; height: 22px; flex: 0 0 22px; object-fit: contain; border-radius: 50%; background: #0d1416; padding: {{t.logoPad}}; box-sizing: border-box"></sc-if>
+<sc-if value="{{t.hasLogo}}" hint-placeholder-val="{{ true }}"><img src="{{t.logo}}" alt="" style="width: 22px; height: 22px; flex: 0 0 22px; object-fit: contain"></sc-if>
 <span style="flex: 1 1 auto; font-style: {{t.italic}}">{{t.label}}</span>
 </button>
 </sc-if>
 <sc-if value="{{t.fixed}}" hint-placeholder-val="{{ false }}">
 <div aria-label="{{t.aria}}" title="{{t.full}}" style="display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 10px; box-sizing: border-box; border-top: {{t.divider}}; border-radius: {{t.radius}}; background: {{t.bg}}; color: {{t.color}}; font-size: 15px; font-weight: {{t.weight}}">
-<sc-if value="{{t.hasLogo}}" hint-placeholder-val="{{ true }}"><img src="{{t.logo}}" alt="" style="width: 22px; height: 22px; flex: 0 0 22px; object-fit: contain; border-radius: 50%; background: #0d1416; padding: {{t.logoPad}}; box-sizing: border-box; opacity: {{t.logoOpacity}}"></sc-if>
+<sc-if value="{{t.hasLogo}}" hint-placeholder-val="{{ true }}"><img src="{{t.logo}}" alt="" style="width: 22px; height: 22px; flex: 0 0 22px; object-fit: contain; opacity: {{t.logoOpacity}}"></sc-if>
 <span style="flex: 1 1 auto; font-style: {{t.italic}}">{{t.label}}</span>
 <sc-if value="{{t.hasScore}}" hint-placeholder-val="{{ false }}"><span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 700">{{t.score}}</span></sc-if>
 </div>
