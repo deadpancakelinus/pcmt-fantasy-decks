@@ -77,11 +77,12 @@ Tables: `profiles`, `deck_history` (insert-only, server timestamps, 60/hour limi
 
 ## 8. Open items
 
-- Run `setup/cards-setup.sql` in the Supabase SQL Editor (after vp-setup.sql) to switch on card packs; then set prices on backend.html (Card packs tab).
-- Run `setup/vp-setup.sql` in the Supabase SQL Editor to switch on VP (until then, the Store's paychecks panel shows "VP isn't switched on yet" to admins).
-- Run `setup/fix-display-names.sql` in the Supabase SQL Editor if not done yet.
-- Run `setup/trumps-setup.sql` in the Supabase SQL Editor to switch on MVP VS online rooms (until then, online shows "not switched on yet" and the bot game works). Re-run it after 2026-10-21 so online rooms accept the past seasons.
-- If Supabase Redirect URLs are not a wildcard, add `https://fantasy.pcmt.gg/mvp-vs.html` (and the pages.dev one) so logging in from MVP VS returns there.
+Checked Oct 31 2026: every setup file is live on Supabase (VP, cards, MVP VS rooms, Pick'ems, store removals, no-emails, delete account). `pickem_events`: emea-s2 open, na-s3 closed (finished bracket, shown to everyone anyway).
+
+- MVP VS card base art is being designed separately (1000 x 1400 PNG, 5:7, no text; the site draws name, stats, logos and strips on top). When the files arrive, wire them in behind `.tt-card` in mvp-vs.html / trumps.js.
+- NATS vs ATLC (Oct 24) result still has `~denial`: he was added to The Deck after that game. Re-pulling it (`node tools/pcmt-result.js s2-emea nats-vs-atlc-s2-playoffs-2026-10-24`) would give his card and decks those points. Not done; owner's call.
+- The design canvas's copy of `PCMT_MATCHES` / `PCMT_RESULTS` (Main board) is no longer updated automatically; the live site isn't affected.
+- Discord login still asks for the email scope (Supabase's built-in provider always does); emails are stripped on arrival. A custom provider could drop the scope after the playoffs.
 
 ## 9. MVP VS (mvp-vs.html, public since 2026-10-19)
 
