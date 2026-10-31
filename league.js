@@ -11,7 +11,7 @@
   // MVP VS, Store and Library stay hidden until staff press Launch on backend.html (Pages tab), which marks them
   // launched in the site_pages table. Until then links to them are hidden for everyone (staff open them from the
   // backend), and anyone but staff and site admins who opens one is sent to Home. (mvp-vs.html has its own copy.)
-  var LAUNCH_PAGES = { 'mvp-vs': ['mvp-vs'], store: ['store', 'transactions', 'collection'], library: ['library'] };
+  var LAUNCH_PAGES = { 'mvp-vs': ['mvp-vs'], store: ['store', 'transactions', 'collection'], library: ['library'], losersq: ['losersq'] };
   function launchId(path) {
     var f = String(path || '').split('/').pop().replace(/\.html$/, '');
     for (var id in LAUNCH_PAGES) if (LAUNCH_PAGES[id].indexOf(f) >= 0) return id;
