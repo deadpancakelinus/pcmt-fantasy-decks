@@ -1,5 +1,6 @@
 // LosersQ: build a team of 5 with a coach, then the sim bot plays your run through a simulated NA Season 3.
-// Players and stats come from trumps-cards.js (the S3 NA cards, from pcmt.gg/stats). Format is NA S3's: two groups
+// Players and stats come from trumps-cards.js (the S3 NA cards, from pcmt.gg/stats); each player's numbers per role come
+// from losersq-roles.js (every NA S3 map on PCMT.gg, built by tools/losersq-roles.js). Format is NA S3's: two groups
 // of 8 (Alpha, Omega), a Bo3 round robin, then the top 4 of each into the same 8-team double elimination bracket
 // (lower final and grand final Bo5). Your team takes the place of one real team.
 // The engine (LQ) is pure and seeded, so a season code always replays the same season; losersq/test.js runs it in Node.
@@ -55,6 +56,7 @@
   var MOMENTUM = 0.007;     // per round of a win streak, up to 3
   var PRIOR = 0.93, PRIOR_MAPS = 6;   // small samples (subs) are pulled toward an average player
   var STAND_IN = 0.84;      // a stand-in nobody has heard of
+  var ROLE_PRIOR = 5;       // a role's numbers are pulled toward the player's overall rating, as if over this many maps
 
   function rng(seed) {
     var a = seed >>> 0;
@@ -76,11 +78,34 @@
     var raw = 0.6 * c.toxic + 0.25 * c.acs / 240 + 0.15 * c.kast / 72;
     return (raw * c.maps + PRIOR * PRIOR_MAPS) / (c.maps + PRIOR_MAPS);
   }
-  function makePool(cards) {
+  // Each player carries roles: { <role>: { maps, toxic, acs, kast, dpr, agents, r } }, only for roles they played in S3
+  // (PCMT.gg agent per map). A role's rating starts from that role's own numbers and is pulled toward the player's
+  // overall rating on a small sample, so one great map on a new role doesn't make a star. Their listed role
+  // (from The Deck / MVP VS) is the default and always allowed.
+  function makePool(cards, roleStats) {
+    roleStats = roleStats || {};
     return (cards || []).map(function (c) {
-      return { id: c.id, name: c.name, team: c.team || '', teamName: c.teamName || '', color: c.color || '#a5dcdd', role: c.role || '',
-        sub: !!c.sub, champ: !!c.champ, maps: c.maps, toxic: c.toxic, acs: c.acs, kast: c.kast, hs: c.hs, dpr: c.dpr, r: rate(c) };
+      var all = rate(c), roles = {}, rs = roleStats[c.id] || {};
+      Object.keys(rs).forEach(function (role) {
+        var x = rs[role], raw = 0.6 * x.toxic + 0.25 * x.acs / 240 + 0.15 * x.kast / 72;
+        roles[role] = { maps: x.maps, toxic: x.toxic, acs: x.acs, kast: x.kast, dpr: x.dpr, agents: x.agents || [], r: (raw * x.maps + all * ROLE_PRIOR) / (x.maps + ROLE_PRIOR) };
+      });
+      if (c.role && !roles[c.role]) roles[c.role] = { maps: 0, toxic: c.toxic, acs: c.acs, kast: c.kast, dpr: c.dpr, agents: [], r: all };
+      var p = { id: c.id, name: c.name, team: c.team || '', teamName: c.teamName || '', color: c.color || '#a5dcdd', role: c.role || '', mainRole: c.role || '',
+        sub: !!c.sub, champ: !!c.champ, maps: c.maps, toxic: c.toxic, acs: c.acs, kast: c.kast, hs: c.hs, dpr: c.dpr, all: all, roles: roles, r: all, roleMaps: c.maps };
+      return c.role ? onRole(p, c.role) : p;
     });
+  }
+  function canPlay(p, role) { return !!(p && p.roles && p.roles[role]); }
+  // The player as they play on that role: rating, ACS, KAST and DPR from their maps on it. Unplayed roles: unchanged.
+  function onRole(p, role) {
+    if (!canPlay(p, role)) return p;
+    var x = p.roles[role], q = {};
+    for (var k in p) q[k] = p[k];
+    q.role = role; q.r = x.r;
+    if (x.maps) { q.acs = x.acs; q.kast = x.kast; q.dpr = x.dpr; }
+    q.roleMaps = x.maps;
+    return q;
   }
   function score100(r) { return Math.round(r * 100); }
 
@@ -112,7 +137,8 @@
       GROUPS[g].forEach(function (code) {
         var t;
         if (code === replace) {
-          var players = mine.players.map(function (id) { return byId[id]; }).filter(Boolean);
+          var set = mine.roles || {};
+          var players = mine.players.map(function (id) { var p = byId[id]; return p && set[id] ? onRole(p, set[id]) : p; }).filter(Boolean);
           t = { code: 'YOU', name: mine.name || 'LosersQ', color: '#ff4655', logo: '', players: players, coach: mine.coach || '', mine: true, replaced: code };
         } else {
           var own = pool.filter(function (p) { return p.team === code && !taken[p.id]; }).sort(function (a, b) { return b.maps - a.maps || b.r - a.r; });
@@ -322,7 +348,7 @@
   }
 
   var LQ = { TEAMS: TEAMS, GROUPS: GROUPS, LOGOS: LOGOS, MAPS: MAPS, BRACKET: BRACKET, COACHES: COACHES, rng: rng, hash: hash, newCode: newCode,
-    makePool: makePool, strengthOf: strengthOf, makeLeague: makeLeague, simSeason: simSeason, project: project, score100: score100,
+    makePool: makePool, onRole: onRole, canPlay: canPlay, strengthOf: strengthOf, makeLeague: makeLeague, simSeason: simSeason, project: project, score100: score100,
     roundRobin: roundRobin };
   if (typeof module !== 'undefined' && module.exports) module.exports = LQ;
   root.PCMT_LOSERSQ = LQ;
@@ -332,7 +358,7 @@
   // =====================================================================================================
   // Page
   // =====================================================================================================
-  var POOL = makePool(((root.PCMT_TRUMPS_CARDS || {}).na) || []), BY_ID = {};
+  var POOL = makePool(((root.PCMT_TRUMPS_CARDS || {}).na) || [], root.PCMT_LQ_ROLES), BY_ID = {};
   POOL.forEach(function (p) { BY_ID[p.id] = p; });
   var ROLE_ICONS = { duelist: '3911a104cbddaf481d7a7bf070a2e696.png', initiator: '8f7fb7ffa93c48ba09a00fcd223c7f7c.png',
     sentinel: '006daf34642009c6f6749139f80a613e.png', controller: '783fdcc50fe04d2622938ee185d4ed32.png' };
@@ -342,7 +368,7 @@
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
 
-  var ui = { screen: 'build', name: 'Losers Queue', players: [], coach: 'tactician', replace: 'DFM',
+  var ui = { screen: 'build', name: 'Losers Queue', players: [], roles: {}, coach: 'tactician', replace: 'DFM',
     role: '', team: '', q: '', sort: 'r', proj: null, projKey: '', season: null, code: '', step: 0, timer: null, tab: 'you' };
   try {
     var saved = JSON.parse(localStorage.getItem(STORE) || 'null');
@@ -351,10 +377,13 @@
       ui.players = (saved.players || []).filter(function (id) { return BY_ID[id]; }).slice(0, 5);
       if (COACHES.some(function (c) { return c.id === saved.coach; })) ui.coach = saved.coach;
       if (TEAMS[saved.replace]) ui.replace = saved.replace;
+      Object.keys(saved.roles || {}).forEach(function (id) { if (ui.players.indexOf(id) >= 0 && canPlay(BY_ID[id], saved.roles[id])) ui.roles[id] = saved.roles[id]; });
     }
   } catch (e) {}
-  function save() { try { localStorage.setItem(STORE, JSON.stringify({ name: ui.name, players: ui.players, coach: ui.coach, replace: ui.replace })); } catch (e) {} }
-  function opts() { return { mine: { name: ui.name.trim() || 'Losers Queue', players: ui.players.slice(), coach: ui.coach }, replace: ui.replace }; }
+  function save() { try { localStorage.setItem(STORE, JSON.stringify({ name: ui.name, players: ui.players, roles: ui.roles, coach: ui.coach, replace: ui.replace })); } catch (e) {} }
+  function opts() { return { mine: { name: ui.name.trim() || 'Losers Queue', players: ui.players.slice(), roles: myRoles(), coach: ui.coach }, replace: ui.replace }; }
+  function myRoles() { var o = {}; ui.players.forEach(function (id) { if (ui.roles[id] && ui.roles[id] !== BY_ID[id].mainRole) o[id] = ui.roles[id]; }); return o; }
+  function mineP(id) { return ui.roles[id] ? onRole(BY_ID[id], ui.roles[id]) : BY_ID[id]; }
 
   function qMark(size) {   // the LosersQ "Q": an octagon with the red tail, as in the intro
     return '<svg class="lq-q" width="' + size + '" height="' + size + '" viewBox="0 0 40 40" aria-hidden="true"><path d="M13 4h14l9 9v14l-9 9H13l-9-9V13z" fill="none" stroke="#ece8e1" stroke-width="3.4" stroke-linejoin="miter"/><path d="M22 24l12 12" stroke="#ff4655" stroke-width="4"/></svg>';
@@ -364,16 +393,23 @@
     var l = LOGOS[code];
     return l ? '<img class="' + (cls || 'lq-logo') + '" src="assets/' + l + '" alt="" loading="lazy">' : '<img class="' + (cls || 'lq-logo') + '" src="' + NA_LOGO + '" alt="" loading="lazy">';
   }
+  var ROLE_LIST = ['duelist', 'initiator', 'controller', 'sentinel'];
+  function rolesPlayed(p) {   // small icons for the other roles a player has S3 maps on
+    var list = Object.keys(p.roles || {}).filter(function (r) { return r !== p.mainRole; });
+    if (!list.length) return '';
+    return '<span class="lq-alts" title="Also played: ' + esc(list.map(function (r) { return cap(r) + ' ' + p.roles[r].maps; }).join(', ')) + '">' +
+      list.map(function (r) { return '<img src="assets/' + ROLE_ICONS[r] + '" alt="' + cap(r) + '">'; }).join('') + '</span>';
+  }
   function roleIcon(role) { return role ? '<img class="lq-role" src="assets/' + ROLE_ICONS[role] + '" alt="' + cap(role) + '" title="' + cap(role) + '">' : '<span class="lq-role lq-role-none" title="No role data"></span>'; }
   function teamName(s, code) { return code === 'YOU' ? s.league.teams.YOU.name : (TEAMS[code] || code); }
   function short(code) { return code === 'YOU' ? (ui.season ? ui.season.league.teams.YOU.name : 'You') : code; }
 
   // ---------- build screen ----------
   function renderBuild() {
-    var mine = ui.players.map(function (id) { return BY_ID[id]; });
+    var mine = ui.players.map(mineP);
     var str = strengthOf(mine, ui.coach);
-    var pool = POOL.filter(function (p) {
-      if (ui.role && p.role !== ui.role) return false;
+    var pool = POOL.map(function (p) { return ui.role ? onRole(p, ui.role) : p; }).filter(function (p) {
+      if (ui.role && !canPlay(p, ui.role)) return false;
       if (ui.team && (ui.team === 'SUB' ? p.team : p.team !== ui.team)) return false;
       if (ui.q && p.name.toLowerCase().indexOf(ui.q.toLowerCase()) < 0) return false;
       return true;
@@ -396,9 +432,9 @@
       '<div class="lq-table-wrap"><table class="lq-ptable"><thead><tr><th scope="col">Player</th><th scope="col" class="num">LQ</th><th scope="col" class="num hide-s">ACS</th><th scope="col" class="num hide-s">KAST</th><th scope="col" class="num hide-s">DPR</th><th scope="col" class="num hide-xs">Maps</th><th scope="col"><span class="sr">Add</span></th></tr></thead><tbody>' +
       pool.map(function (p) {
         var inTeam = ui.players.indexOf(p.id) >= 0;
-        return '<tr class="' + (inTeam ? 'is-in' : '') + '" style="--team:' + esc(p.color) + '"><td><div class="lq-pl">' + logoHTML(p.team || 'SUB') + roleIcon(p.role) +
-          '<span class="lq-pl-n"><b>' + esc(p.name) + '</b><small>' + (p.team ? esc(p.team) : 'Sub') + (p.maps < 6 ? ' · small sample' : '') + '</small></span></div></td>' +
-          '<td class="num"><b class="lq-rt">' + score100(p.r) + '</b></td><td class="num hide-s">' + p.acs + '</td><td class="num hide-s">' + p.kast + '%</td><td class="num hide-s">' + p.dpr.toFixed(2) + '</td><td class="num hide-xs">' + p.maps + '</td>' +
+        return '<tr class="' + (inTeam ? 'is-in' : '') + '" style="--team:' + esc(p.color) + '"><td><div class="lq-pl">' + logoHTML(p.team || 'SUB') + roleIcon(p.mainRole) +
+          '<span class="lq-pl-n"><b>' + esc(p.name) + '</b><small>' + (p.team ? esc(p.team) : 'Sub') + (p.maps < 6 ? ' · small sample' : '') + (ui.role && p.role !== p.mainRole ? ' · ' + p.roleMaps + (p.roleMaps === 1 ? ' map' : ' maps') + ' as ' + p.role : '') + '</small></span>' + rolesPlayed(p) + '</div></td>' +
+          '<td class="num"><b class="lq-rt">' + score100(p.r) + '</b></td><td class="num hide-s">' + p.acs + '</td><td class="num hide-s">' + p.kast + '%</td><td class="num hide-s">' + p.dpr.toFixed(2) + '</td><td class="num hide-xs">' + (ui.role ? p.roleMaps : p.maps) + '</td>' +
           '<td class="act">' + (inTeam ? '<button type="button" class="lq-mini on" data-drop="' + esc(p.id) + '" aria-label="Take ' + esc(p.name) + ' off your team">✓</button>'
             : '<button type="button" class="lq-mini" data-add="' + esc(p.id) + '"' + (full ? ' disabled' : '') + ' aria-label="Add ' + esc(p.name) + '">+</button>') + '</td></tr>';
       }).join('') + (pool.length ? '' : '<tr><td colspan="7" class="lq-dim lq-empty">No players match.</td></tr>') + '</tbody></table></div></section>';
@@ -412,9 +448,15 @@
       '<ol class="lq-slots">' + [0, 1, 2, 3, 4].map(function (i) {
         var p = mine[i];
         if (!p) return '<li class="lq-slot empty"><span class="lq-slot-n">' + (i + 1) + '</span><span class="lq-dim">Pick a player</span></li>';
-        return '<li class="lq-slot" style="--team:' + esc(p.color) + '"><span class="lq-slot-n">' + (i + 1) + '</span>' + logoHTML(p.team || 'SUB') + roleIcon(p.role) +
+        var x = p.roles[p.role] || {}, off = p.role !== p.mainRole;
+        return '<li class="lq-slot" style="--team:' + esc(p.color) + '"><div class="lq-slot-top"><span class="lq-slot-n">' + (i + 1) + '</span>' + logoHTML(p.team || 'SUB') +
           '<span class="lq-pl-n"><b>' + esc(p.name) + '</b><small>' + (p.team ? esc(p.teamName) : 'Sub') + '</small></span><b class="lq-rt">' + score100(p.r) + '</b>' +
-          '<button type="button" class="lq-x" data-drop="' + esc(p.id) + '" aria-label="Take ' + esc(p.name) + ' off your team">×</button></li>';
+          '<button type="button" class="lq-x" data-drop="' + esc(p.id) + '" aria-label="Take ' + esc(p.name) + ' off your team">×</button></div>' +
+          '<div class="lq-slot-roles"><div class="lq-rolepick" role="radiogroup" aria-label="' + esc(p.name) + ' role">' + ROLE_LIST.map(function (r) {
+            var y = p.roles[r], on = p.role === r;
+            var tip = y ? cap(r) + ': ' + (y.maps ? y.maps + (y.maps === 1 ? ' map' : ' maps') + ' in S3' + (y.agents.length ? ' (' + y.agents.slice(0, 3).join(', ') + ')' : '') : 'listed role') + ', LQ ' + score100(y.r) : p.name + ' never played ' + r + ' in S3';
+            return '<button type="button" role="radio" aria-checked="' + on + '" data-setrole="' + r + '" data-for="' + esc(p.id) + '"' + (y ? '' : ' disabled') + ' title="' + esc(tip) + '" aria-label="' + esc(tip) + '"><img src="assets/' + ROLE_ICONS[r] + '" alt=""></button>';
+          }).join('') + '</div><small class="lq-role-note' + (off ? ' off' : '') + '">' + cap(p.role) + (x.maps ? ' · ' + x.maps + (x.maps === 1 ? ' map' : ' maps') + (x.agents && x.agents.length ? ' · ' + esc(x.agents.slice(0, 2).join(', ')) : '') : '') + (off ? ' · off role' : '') + '</small></div></li>';
       }).join('') + '</ol>' +
       '<div class="lq-quick"><button type="button" class="tt-btn ghost" data-act="random">Random 5</button><button type="button" class="tt-btn ghost" data-act="clear"' + (ui.players.length ? '' : ' disabled') + '>Clear</button></div>' +
       '<h3 class="lq-h3">Coach</h3><div class="lq-coaches" role="radiogroup" aria-label="Coach">' + COACHES.map(function (c) {
@@ -464,7 +506,7 @@
     if (po >= 0.2) return 'Bot: you\'ll need to steal a few series to make playoffs.';
     return 'Bot: honestly? This one lives up to the name.';
   }
-  function projKey() { return ui.players.slice().sort().join(',') + '|' + ui.coach + '|' + ui.replace; }
+  function projKey() { var rl = myRoles(); return ui.players.slice().sort().map(function (id) { return id + (rl[id] ? '@' + rl[id] : ''); }).join(',') + '|' + ui.coach + '|' + ui.replace; }
   var projTimer = null;
   function queueProj() {
     clearTimeout(projTimer);
@@ -542,8 +584,9 @@
     }).join('') + '</div>';
   }
 
+  function inLeague(S, id) { var f = null; S.league.order.forEach(function (c) { S.league.teams[c].players.forEach(function (x) { if (x.id === id) f = x; }); }); return f; }
   function statRows(S, ids) {
-    return ids.map(function (id) { var x = S.stats[id]; if (!x) return null; return { id: id, p: BY_ID[id] || { name: id.indexOf('standin') === 0 ? 'Stand-in' : id, role: '' }, x: x, rating: x.ratingSum / x.rounds, acs: x.acsSum / x.rounds }; })
+    return ids.map(function (id) { var x = S.stats[id]; if (!x) return null; return { id: id, p: inLeague(S, id) || BY_ID[id] || { name: id.indexOf('standin') === 0 ? 'Stand-in' : id, role: '' }, x: x, rating: x.ratingSum / x.rounds, acs: x.acsSum / x.rounds }; })
       .filter(Boolean).sort(function (a, b) { return b.rating - a.rating; });
   }
   function statsTable(rows, withTeam) {
@@ -648,7 +691,13 @@
     var t = e.target.closest('button'); if (!t || !$('lq-app').contains(t)) return;
     var id;
     if ((id = t.getAttribute('data-add'))) { if (ui.players.length < 5 && ui.players.indexOf(id) < 0) ui.players.push(id); save(); return render(); }
-    if ((id = t.getAttribute('data-drop'))) { ui.players = ui.players.filter(function (x) { return x !== id; }); save(); return render(); }
+    if ((id = t.getAttribute('data-drop'))) { ui.players = ui.players.filter(function (x) { return x !== id; }); delete ui.roles[id]; save(); return render(); }
+    if ((id = t.getAttribute('data-for'))) {
+      var role = t.getAttribute('data-setrole');
+      if (!canPlay(BY_ID[id], role)) return;   // never played it in S3: not allowed
+      if (role === BY_ID[id].mainRole) delete ui.roles[id]; else ui.roles[id] = role;
+      save(); return render();
+    }
     if (t.hasAttribute('data-role')) { ui.role = t.getAttribute('data-role'); return render(); }
     if ((id = t.getAttribute('data-coach'))) { ui.coach = id; save(); return render(); }
     var act = t.getAttribute('data-act');
@@ -657,7 +706,7 @@
       while (ui.players.length < 5 && left.length) ui.players.push(left.splice(Math.floor(Math.random() * left.length), 1)[0].id);
       save(); return render();
     }
-    if (act === 'clear') { ui.players = []; save(); return render(); }
+    if (act === 'clear') { ui.players = []; ui.roles = {}; save(); return render(); }
     if (act === 'sim' && ui.players.length === 5) return startSeason();
     if (act === 'next') { if (ui.timer) { stop(); return render(); } return next(); }
     if (act === 'auto') { if (ui.timer) { stop(); return render(); } ui.timer = setInterval(next, 1400); return next(); }

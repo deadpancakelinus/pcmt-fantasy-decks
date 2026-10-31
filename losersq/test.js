@@ -4,8 +4,9 @@
 const fs = require('fs'), vm = require('vm'), path = require('path'), assert = require('assert');
 const ctx = {}; vm.createContext(ctx);
 vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'trumps-cards.js'), 'utf8') + ';this.CARDS = PCMT_TRUMPS_CARDS;', ctx);
+vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'losersq-roles.js'), 'utf8') + ';this.ROLES = PCMT_LQ_ROLES;', ctx);
 const LQ = require('../losersq.js');
-const pool = LQ.makePool(ctx.CARDS.na);
+const pool = LQ.makePool(ctx.CARDS.na, ctx.ROLES);
 const N = +(process.argv[2] || 2000);
 
 // Round robin: 7 weeks, every pair once.
@@ -38,6 +39,21 @@ assert(!L.teams.SPG.players.some(p => draft.mine.players.includes(p.id)));
   Object.values(s.stats).forEach(x => { k += x.k; n += x.maps; if (x.maps >= 10) best = Math.max(best, x.acsSum / x.rounds); });
   console.log('kills per player-map', (k / n).toFixed(1), 'best ACS', best.toFixed(0));
   assert(k / n > 13 && k / n < 20); assert(best > 250 && best < 360); }
+// Roles: every player has their listed role, only roles with S3 maps are allowed, and a role change uses that role's numbers.
+pool.forEach(p => { assert(!p.mainRole || LQ.canPlay(p, p.mainRole), p.name + ' listed role'); Object.keys(p.roles).forEach(r => assert(p.roles[r].maps > 0 || r === p.mainRole)); });
+const byName = n => pool.find(p => p.name === n);
+assert(!LQ.canPlay(byName('avi'), 'controller'), 'avi never played controller');
+assert(LQ.onRole(byName('avi'), 'controller').role === 'duelist', 'unplayed role is refused');
+const linus = byName('linus'), lc = LQ.onRole(linus, 'controller');
+assert.strictEqual(lc.role, 'controller'); assert.strictEqual(lc.roleMaps, ctx.ROLES['na-linus'].controller.maps); assert.strictEqual(lc.acs, ctx.ROLES['na-linus'].controller.acs);
+// A team that sets an unplayed role keeps the player's listed role.
+const bad = { mine: { name: 'x', players: ['na-avi', 'na-claps', 'na-thighs', 'na-nolan', 'na-dunkn'], roles: { 'na-avi': 'controller', 'na-claps': 'duelist' }, coach: '' }, replace: 'DFM' };
+const BL = LQ.makeLeague(pool, bad);
+assert.strictEqual(BL.teams.YOU.players[0].role, 'duelist'); assert.strictEqual(BL.teams.YOU.players[1].role, 'duelist');
+assert.strictEqual(BL.teams.YOU.str.roles.controller, 1, 'claps moved off controller leaves only dunkn');
+// Small samples lean to the overall rating: ethan's 1 map of duelist (1.81) can't put him far above his own level.
+const eth = byName('ethan'); assert(eth.roles.duelist.r - eth.all < 0.12, 'one map shouldn\'t make a star');
+console.log('roles ok');
 console.log('format ok');
 
 // Real rosters over N seasons: title and playoff odds per team.
