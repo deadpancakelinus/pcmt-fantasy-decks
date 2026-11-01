@@ -112,7 +112,10 @@ var PCMT_PICKEMS = [
         "b": "W6",
         "bo": 3,
         "start": "2026-11-01T19:00:00Z",
-        "score": null,
+        "score": [
+          1,
+          2
+        ],
         "url": "https://pcmt.gg/events/s2-emea/noot-vs-seal-s2-playoffs-2026-11-01"
       },
       {
