@@ -7,7 +7,6 @@
 //     gameweek) that isn't listed yet,
 //     and drops entries more than 14 days old (their results stay).
 //   * PCMT_RESULTS: adds every finished match from the last 14 days that isn't in yet, with full stats.
-//     From Nov 1 2026, a sub's numbers are scored as the missing player's (applySubs in tools/pcmt-api.js, tools/subs.json).
 //   * Pick'ems (pickems.js): for each playoff match of a bracket's event, finds the series with those two teams and
 //     fills in start, url, best-of and, once finished, the score (in the series' own a/b order).
 //   * rankings.js: power rankings for each Pick'ems bracket's event (tools/pcmt-power.js) from every finished game of the event, for the Pick'ems page.
@@ -40,8 +39,6 @@ let dataJs = fs.readFileSync(dataPath, 'utf8'), pkJs = fs.readFileSync(pkPath, '
 const players = A.loadPlayers(fs.readFileSync(path.join(ROOT, 'players.js'), 'utf8'));
 const matches = readArr(dataJs, 'PCMT_MATCHES').arr, results = readArr(dataJs, 'PCMT_RESULTS').arr;
 const brackets = readArr(pkJs, 'PCMT_PICKEMS').arr;
-const subsPath = path.join(ROOT, 'tools', 'subs.json');
-const SUBS = fs.existsSync(subsPath) ? JSON.parse(fs.readFileSync(subsPath, 'utf8')) : {};
 const log = [];
 
 const events = A.getJson('/api/matches.json').filter(ev => !ev.showmatch && /^(na|emea)$/i.test(ev.region));
@@ -66,21 +63,10 @@ events.forEach(ev => byEvent[ev.id].forEach(M => {
     res.a = m.a; res.b = m.b; res.maps.forEach(mp => { const x = mp.a; mp.a = mp.b; mp.b = x; });
   }
   if (m) res.start = m.start;
-  A.applySubs(res, M, players, byEvent[ev.id], SUBS).forEach(n => log.push(n));
   results.push(res);
   const strangers = Object.keys(res.stats).filter(k => k[0] === '~');
   log.push('Add result: ' + res.a + ' vs ' + res.b + ', ' + res.winner + ' won' + (strangers.length ? ' (not in the store: ' + strangers.join(', ') + ')' : ''));
 }));
-// Subs on results already in (e.g. a line added to tools/subs.json after the result came in).
-results.forEach(r => {
-  if (Date.parse(r.start) < A.SUBS_FROM || !Object.keys(r.stats || {}).some(k => k[0] === '~')) return;
-  const ev = events.find(e => (r.url || '').indexOf('/events/' + e.id + '/') >= 0);
-  const M = ev && byEvent[ev.id].find(x => r.url.endsWith('/' + x.id));
-  if (!M) return;
-  const before = JSON.stringify(r), notes = A.applySubs(r, M, players, byEvent[ev.id], SUBS);
-  if (JSON.stringify(r) !== before) notes.forEach(n => log.push(n));
-  else notes.forEach(n => console.log(n));   // still unclear: say so, but it isn't a change
-});
 for (let i = matches.length - 1; i >= 0; i--) {
   if (Date.parse(matches[i].start) < now - WINDOW) { log.push('Drop old match: ' + matches[i].a + ' vs ' + matches[i].b); matches.splice(i, 1); }
 }
@@ -151,7 +137,6 @@ if (MSG) {   // e.g. "Add result: T1 vs SPG; Add match: NOOT vs SEAL; Pick'ems: 
     else if ((m = l.match(/^Add match: (\w+ vs \w+)/))) parts.push('Add match: ' + m[1]);
     else if ((m = l.match(/^Update match: (\w+ vs \w+)/))) parts.push('Move match: ' + m[1]);
     else if (l === 'Power rankings updated') parts.push('Power rankings');
-    else if ((m = l.match(/^Sub: (\S+) played for (\S+) \(/))) parts.push('Sub: ' + m[1] + ' for ' + m[2]);
     else if ((m = l.match(/^Pick'ems series \d+ result: (\S+) \S+ (\S+)$/))) parts.push("Pick'ems: " + m[1] + ' vs ' + m[2] + ' result');
   });
   const uniq = [...new Set(parts)];

@@ -341,6 +341,7 @@
     get myId() { return me ? me.id : null; },
     api: function (path, opts) { return refreshIfNeeded().then(function () { return api(path, opts); }); },
     apiAll: function (path) { return refreshIfNeeded().then(function () { return apiAll(path); }); },
+    applySubs: function (rows, results) { return applySubs(rows, results); },   // backend.html, Subs tab
     // Puts an owned Rare (or rarer) card in your MVP VS deck, or takes it out (Library page).
     setInDeck: function (cardId, on) {
       if (!me) return Promise.reject(new Error('Log in with Discord first.'));
@@ -517,6 +518,28 @@
   }
   window.PCMT_SERIES_KEY = seriesKey;
 
+  // Subs (backend.html, Subs tab; table player_subs, from Nov 1 2026): rows { sub, player } = "<sub> played for <player>".
+  // In a series from Nov 1 2026 where "~<sub>" played (someone not listed on that team), <player> didn't, and <player>'s team
+  // is in it, the sub's stats and per-map kills move to <player>, so their card scores them. r.subs = { <player>: <sub> }.
+  // Same as vp_apply_subs() in setup/vp-setup.sql (the VP payout). Changes the results in place; returns the series it changed.
+  var SUBS_FROM = Date.parse('2026-11-01T00:00:00Z');
+  function applySubs(rows, results) {
+    var changed = [];
+    (results || window.PCMT_RESULTS || []).forEach(function (r) {
+      if (!(Date.parse(r.start) >= SUBS_FROM)) return;
+      (rows || []).forEach(function (row) {
+        var k = '~' + String(row.sub || '').toLowerCase(), id = row.player, st = r.stats || {}, p = BY_ID[id];
+        if (!p || !(k in st) || (id in st) || (p.team !== r.a && p.team !== r.b)) return;
+        st[id] = st[k]; delete st[k];
+        (r.maps || []).forEach(function (m) { if (m.k && k in m.k) { m.k[id] = m.k[k]; delete m.k[k]; } });
+        (r.subs = r.subs || {})[id] = String(row.sub).toLowerCase();
+        changed.push(r);
+      });
+    });
+    return changed;
+  }
+  window.PCMT_SUBS = [];
+
   // ---------- load everything, then let the page draw ----------
   function load() {
     launchList();
@@ -569,8 +592,12 @@
       // Players taken out of The Deck's store on the backend
       var onMain = /"data-pcmt-root":"Main"/.test(tree);
       var removed = onMain ? apiAll('/rest/v1/store_removed_players?select=player&order=player').catch(function () { return []; }) : Promise.resolve([]);
-      return Promise.all([decks, profiles, unlocks, vp, multi, admin, packs, mine, catalog, prices, released, staff, picks, pkEvents, pkBoard, removed]);
+      // Subs entered on the backend (public; empty until setup/subs-setup.sql has been run)
+      var subs = apiAll('/rest/v1/player_subs?select=id,sub,player,created_at&order=id').catch(function () { return []; });
+      return Promise.all([decks, profiles, unlocks, vp, multi, admin, packs, mine, catalog, prices, released, staff, picks, pkEvents, pkBoard, removed, subs]);
     }).then(function (res) {
+      window.PCMT_SUBS = res[16] || [];
+      applySubs(window.PCMT_SUBS);
       attachMulti(res[4] || []);
       PRICE_LOG = (res[9] || []).map(function (c) { return { player: c.player, price: c.price == null ? null : +c.price, t: Date.parse(c.changed_at) }; });
       // Today's prices everywhere on the site (The Deck, packs, budget): window.PCMT_PRICES = { <player id>: price }
