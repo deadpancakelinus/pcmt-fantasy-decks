@@ -8,10 +8,11 @@ const vm = require('vm');
 
 const BASE = 'https://pcmt.gg';
 
-// Downloads JSON with curl (it goes through the machine's proxy settings; Node's own fetch doesn't).
+// Downloads JSON with curl (it goes through the machine's proxy settings; Node's own fetch doesn't). Retries a few times,
+// since PCMT.gg sometimes drops a connection.
 function getJson(path) {
   const url = /^https?:/.test(path) ? path : BASE + path;
-  const txt = execFileSync('curl', ['-sS', '--fail', '--max-time', '30', url], { encoding: 'utf8', maxBuffer: 1 << 28 });
+  const txt = execFileSync('curl', ['-sS', '--fail', '--max-time', '30', '--retry', '4', '--retry-delay', '10', '--retry-all-errors', url], { encoding: 'utf8', maxBuffer: 1 << 28 });
   return JSON.parse(txt);
 }
 

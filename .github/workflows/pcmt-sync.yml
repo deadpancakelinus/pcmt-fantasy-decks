@@ -34,7 +34,7 @@ jobs:
         id: stats
         continue-on-error: true
         run: |
-          curl -sS --fail --max-time 60 https://pcmt.gg/stats -o "$RUNNER_TEMP/stats.html"
+          curl -sS --fail --max-time 60 --retry 4 --retry-delay 10 --retry-all-errors https://pcmt.gg/stats -o "$RUNNER_TEMP/stats.html"
           node tools/pcmt-stats.js "$RUNNER_TEMP/stats.html" trumps/data/pcmt-stats.tsv
           if ! git diff --quiet -- trumps/data/pcmt-stats.tsv; then
             python3 -I trumps/build_cards.py
