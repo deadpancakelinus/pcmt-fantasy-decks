@@ -49,4 +49,86 @@ function toResult(M, event, players) {
            url: pageUrl(event, M.id), stats, maps };
 }
 
-module.exports = { BASE, getJson, loadPlayers, regionOf, pageUrl, toResult };
+// ---------- subs (from Nov 1 2026) ----------
+// When a player listed on a team doesn't play and someone not listed on that team plays instead (a "~" entry in the
+// result), the sub's numbers are scored as the missing player's: their stats and per-map kills move to the missing
+// player's id, and res.subs = { <missing player id>: <sub's PCMT.gg name> } records it.
+// Who was missing: listed players who didn't play this series but did play the team's previous series (so a team's usual
+// bench player isn't picked). If that leaves more than one, the sub's role (agent they played most) has to match exactly
+// one of them. Anything still unclear is left alone and reported; tools/subs.json settles it by hand:
+//   { "<match url or PCMT.gg match id>": { "<sub's PCMT.gg name>": "<missing player id>" } }   (null = nobody gets the points)
+const SUBS_FROM = Date.parse('2026-11-01T00:00:00Z');
+const AGENT_ROLE = {};
+Object.entries({
+  duelist: ['Jett', 'Reyna', 'Raze', 'Phoenix', 'Yoru', 'Neon', 'Iso', 'Waylay'],
+  initiator: ['Sova', 'Breach', 'Skye', 'KAY/O', 'Fade', 'Gekko', 'Tejo'],
+  controller: ['Brimstone', 'Viper', 'Omen', 'Astra', 'Harbor', 'Clove', 'Miks'],
+  sentinel: ['Killjoy', 'Cypher', 'Sage', 'Chamber', 'Deadlock', 'Vyse', 'Veto']
+}).forEach(([r, list]) => list.forEach(a => { AGENT_ROLE[a.toLowerCase()] = r; }));
+
+// The lineup (PCMT.gg names, lower case) a team played in its last finished match before M, from that event's matches.
+function prevLineup(eventMatches, M, team) {
+  const t = Date.parse(M.date);
+  const before = (eventMatches || []).filter(x => x.completed && x.id !== M.id && Date.parse(x.date) < t && (x.team1 === team || x.team2 === team))
+    .sort((x, y) => Date.parse(y.date) - Date.parse(x.date));
+  for (const x of before) {
+    const side = (x.combinedStats || []).find(s => s.team === team);
+    if (side && side.players && side.players.length) return side.players.map(p => String(p.Player).toLowerCase());
+  }
+  return null;
+}
+
+// Moves subs' numbers onto the players they replaced. Returns notes for the sync log. Safe to run again on the same result.
+function applySubs(res, M, players, eventMatches, overrides) {
+  const notes = [];
+  if (!res || !M || Date.parse(res.start) < SUBS_FROM) return notes;
+  const over = (overrides && (overrides[res.url] || overrides[M.id])) || {};
+  res.subs = res.subs || {};
+  (M.combinedStats || []).forEach(side => {
+    const team = side.team, listed = players.filter(p => p.team === team);
+    const played = new Set(side.players.map(p => String(p.Player).toLowerCase()));
+    const isListed = n => listed.some(p => p.name.toLowerCase() === n || p.id === n);
+    const subs = side.players.map(p => String(p.Player).toLowerCase()).filter(n => !isListed(n) && res.stats['~' + n]);
+    if (!subs.length) return;
+    let missing = listed.filter(p => !played.has(p.name.toLowerCase()) && !played.has(p.id) && !res.subs[p.id]);
+    const prev = prevLineup(eventMatches, M, team);
+    if (prev) { const regulars = missing.filter(p => prev.includes(p.name.toLowerCase()) || prev.includes(p.id)); if (regulars.length) missing = regulars; }
+    const roleOf = n => {
+      const c = {};
+      (M.mapDetails || []).forEach(md => (md.stats || []).forEach(t => t.team === team && t.players.forEach(p => {
+        if (String(p.Player).toLowerCase() === n) { const r = AGENT_ROLE[String(p.Agent || '').toLowerCase()]; if (r) c[r] = (c[r] || 0) + 1; }
+      })));
+      return Object.keys(c).sort((a, b) => c[b] - c[a])[0] || '';
+    };
+    const pairs = [], left = [];
+    subs.forEach(n => {
+      const o = Object.keys(over).find(k => k.toLowerCase() === n);
+      if (o !== undefined) {
+        if (over[o] === null) return;
+        const p = listed.find(q => q.id === over[o]);
+        if (!p) { notes.push('tools/subs.json: ' + over[o] + ' is not on ' + team); return; }
+        pairs.push([n, p]); missing = missing.filter(q => q.id !== p.id); return;
+      }
+      left.push(n);
+    });
+    if (left.length === 1 && missing.length === 1) pairs.push([left.pop(), missing.pop()]);
+    else left.slice().forEach(n => {
+      const same = missing.filter(p => p.role === roleOf(n));
+      if (same.length === 1) { pairs.push([n, same[0]]); missing = missing.filter(p => p !== same[0]); left.splice(left.indexOf(n), 1); }
+    });
+    if (left.length === 1 && missing.length === 1) pairs.push([left.pop(), missing.pop()]);
+    pairs.forEach(([n, p]) => {
+      const name = side.players.find(q => String(q.Player).toLowerCase() === n).Player;
+      res.stats[p.id] = res.stats['~' + n]; delete res.stats['~' + n];
+      (res.maps || []).forEach(m => { if (m.k && ('~' + n) in m.k) { m.k[p.id] = m.k['~' + n]; delete m.k['~' + n]; } });
+      res.subs[p.id] = name;
+      notes.push('Sub: ' + name + ' played for ' + p.name + ' (' + team + '), ' + p.name + ' gets the points');
+    });
+    left.forEach(n => notes.push('Sub: ' + n + ' played for ' + team + ' but who they replaced isn\'t clear (missing: ' +
+      (missing.map(p => p.id).join(', ') || 'nobody') + '); set it in tools/subs.json'));
+  });
+  if (!Object.keys(res.subs).length) delete res.subs;
+  return notes;
+}
+
+module.exports = { BASE, getJson, loadPlayers, regionOf, pageUrl, toResult, applySubs, SUBS_FROM };

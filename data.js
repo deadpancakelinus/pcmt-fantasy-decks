@@ -574,16 +574,6 @@ var PCMT_RESULTS = [
         78.7,
         0.534
       ],
-      "~nana": [
-        48,
-        28,
-        24,
-        7,
-        260,
-        87,
-        176.3,
-        1.366
-      ],
       "ghrf6": [
         50,
         32,
@@ -623,6 +613,16 @@ var PCMT_RESULTS = [
         76,
         112.3,
         0.862
+      ],
+      "dovie": [
+        48,
+        28,
+        24,
+        7,
+        260,
+        87,
+        176.3,
+        1.366
       ]
     },
     "maps": [
@@ -637,10 +637,10 @@ var PCMT_RESULTS = [
           "king": 10,
           "pengu": 5,
           "ghrf6": 22,
-          "~nana": 17,
           "hmmmdead": 13,
           "eva": 12,
-          "otaka": 11
+          "otaka": 11,
+          "dovie": 17
         }
       },
       {
@@ -657,7 +657,7 @@ var PCMT_RESULTS = [
           "eva": 16,
           "ghrf6": 16,
           "otaka": 12,
-          "~nana": 11
+          "dovie": 11
         }
       },
       {
@@ -670,13 +670,16 @@ var PCMT_RESULTS = [
           "king": 10,
           "jamit": 6,
           "pengu": 5,
-          "~nana": 20,
           "hmmmdead": 15,
           "eva": 11,
           "ghrf6": 12,
-          "otaka": 6
+          "otaka": 6,
+          "dovie": 20
         }
       }
-    ]
+    ],
+    "subs": {
+      "dovie": "nana"
+    }
   }
 ];

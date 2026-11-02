@@ -1,0 +1,3 @@
+{
+  "_how": "Who a sub played for, when tools/pcmt-sync.js can't tell on its own. Key: the match's PCMT.gg url or match id. Value: { \"<sub's PCMT.gg name>\": \"<player id from players.js>\" }, or null for nobody. See applySubs in tools/pcmt-api.js."
+}
