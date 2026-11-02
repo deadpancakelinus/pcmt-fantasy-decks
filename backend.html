@@ -74,6 +74,8 @@
   .sb-list li[aria-selected="true"], .sb-list li:hover { background: rgba(165,220,221,.12); }
   .sb-list li.none { cursor: default; color: var(--dim); background: none; }
   .sb-on { color: var(--good); }
+  .sb-past summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; gap: 8px; font: 600 13px/1 'JetBrains Mono', monospace; letter-spacing: .06em; text-transform: uppercase; color: var(--soft); }
+  .sb-past .sheet { margin-top: 8px; }
   .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .toolbar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 16px; }
   .field { display: flex; flex-direction: column; gap: 6px; }
@@ -314,7 +316,7 @@
 
     <!-- ===== Subs ===== -->
     <section class="pane" role="tabpanel" id="pane-subs" aria-labelledby="tab-subs" hidden>
-      <p class="note">When a player sits out and someone else plays in their place, enter it here and the sub's points go to the player they replaced: on their card, every deck with them, the Leaderboard and Credits. It counts in every series from Nov 1 2026 where the sub played for that player's team and the player didn't, including ones played later. Remove it and the points go back to nobody. Changes show on the site the next time a page loads.</p>
+      <p class="note">When a player sits out and someone else plays in their place, enter it here and the sub's points go to the player they replaced: on their card, every deck with them, the Leaderboard and Credits. A sub lasts one gameweek: it counts in that week's series where the sub played for that player's team and the player didn't, and stays active until decks reopen. Nothing carries into later games. You can remove it until the gameweek ends; once that week's points are paid it's locked and moves to Past gameweeks. Changes show on the site the next time a page loads.</p>
       <form class="panel" id="sb-form" autocomplete="off" novalidate>
         <div class="sb-row">
           <div class="field sb-combo">
@@ -330,13 +332,21 @@
           </div>
           <button class="btn" id="sb-add" type="submit">Add sub</button>
         </div>
+        <p class="note" id="sb-week"></p>
         <p class="note" id="sb-preview" aria-live="polite"></p>
         <p class="msg" id="sb-msg" role="status" aria-live="polite"></p>
       </form>
       <div class="sheet"><table class="grid">
-        <thead><tr><th class="plain" scope="col">Sub</th><th class="plain" scope="col">Played for</th><th class="plain" scope="col">Counts in</th><th class="plain" scope="col">Added</th><th class="plain" scope="col"><span class="sr-only">Remove</span></th></tr></thead>
+        <thead><tr><th class="plain" scope="col">Sub</th><th class="plain" scope="col">Played for</th><th class="plain" scope="col">Gameweek</th><th class="plain" scope="col">Counts in</th><th class="plain" scope="col">Added</th><th class="plain" scope="col"><span class="sr-only">Remove</span></th></tr></thead>
         <tbody id="sb-rows"></tbody>
       </table></div>
+      <details class="sb-past" id="sb-past" hidden>
+        <summary>Past gameweeks <span class="who">(points paid, locked)</span> <span class="count" id="sb-past-n"></span></summary>
+        <div class="sheet"><table class="grid">
+          <thead><tr><th class="plain" scope="col">Sub</th><th class="plain" scope="col">Played for</th><th class="plain" scope="col">Gameweek</th><th class="plain" scope="col">Counted in</th><th class="plain" scope="col">Added</th></tr></thead>
+          <tbody id="sb-past-rows"></tbody>
+        </table></div>
+      </details>
     </section>
 
     <!-- ===== Complaints ===== -->
@@ -742,8 +752,34 @@
   function sbDay(t) { return new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/New_York' }); }
   function sbSeries(r) { return r.a + ' vs ' + r.b + ' · ' + sbDay(r.start); }
   function sbResults() { return (window.PCMT_RESULTS || []).filter(function (r) { return Date.parse(r.start) >= SUBS_FROM; }); }
+  // Gameweeks (same as league.js / vp_week_start): a sub belongs to one, is active until its decks reopen (Tuesday,
+  // or after a Tuesday game) and can be changed until the week ends and its points are paid.
+  var DAY_MS = 86400000;
+  function sbWk(row) { return Date.parse(row.week); }
+  function sbPaid(b) { return L.weekEnd(b) <= Date.now(); }
+  function sbTueGame(b) { return (window.PCMT_MATCHES || []).concat(window.PCMT_RESULTS || []).some(function (m) { var t = Date.parse(m.start); return t >= b + 5 * DAY_MS && t < b + 6 * DAY_MS; }); }
+  function sbWeekLabel(b) { return sbDay(b) + ' – ' + sbDay(L.weekEnd(b)); }
+  function sbStatus(b) {
+    var now = Date.now(), reopen = b + 5 * DAY_MS;
+    if (sbPaid(b)) return 'Points paid ' + sbDay(L.weekEnd(b));
+    if (now < reopen || (sbTueGame(b) && now < b + 6 * DAY_MS)) return 'Active until decks reopen ' + (sbTueGame(b) ? 'after Tuesday\'s game' : sbDay(reopen));
+    return 'Decks reopened · points pay ' + sbDay(L.weekEnd(b));
+  }
+  // The gameweek a new sub goes in: the latest unpaid week where the sub already played in place of that player,
+  // else the week whose games are next (this week until decks reopen, then next week).
+  function sbWeekFor(sub, id) {
+    var p = BY_ID[id], best = null;
+    if (sub && p) sbResults().forEach(function (r) {
+      var b = L.weekStart(Date.parse(r.start)), st = r.stats || {};
+      if (sbPaid(b) || !(('~' + sub) in st) || (id in st) || (p.team !== r.a && p.team !== r.b)) return;
+      if (best === null || b > best) best = b;
+    });
+    if (best !== null) return best;
+    var now = Date.now(), cur = L.weekStart(now);
+    return now < cur + 5 * DAY_MS ? cur : L.weekEnd(cur);
+  }
   function loadSubs() {
-    return L.apiAll('/rest/v1/player_subs?select=id,sub,player,created_at,created_by&order=id')
+    return L.apiAll('/rest/v1/player_subs?select=id,sub,player,week,created_at,created_by&order=id')
       .then(function (r) { SUBS = r || []; sbErr = ''; })
       .catch(function (e) { SUBS = []; sbErr = 'Couldn\'t load subs (' + e.message + '). Has setup/subs-setup.sql been run?'; });
   }
@@ -761,6 +797,7 @@
   function sbSeen() {
     var seen = {};
     sbResults().forEach(function (r) {
+      if (sbPaid(L.weekStart(Date.parse(r.start)))) return;   // only weeks that can still take a sub
       Object.keys(r.stats || {}).forEach(function (k) { if (k[0] === '~') (seen[k.slice(1)] = seen[k.slice(1)] || []).push(r); });
       Object.keys(r.subs || {}).forEach(function (id) { (seen[r.subs[id]] = seen[r.subs[id]] || []).push(r); });
     });
@@ -820,24 +857,34 @@
   }
   function sbPreview() {
     var el = $('sb-preview'), s = sbPick.sub, id = sbPick.player, p = id && BY_ID[id];
+    $('sb-week').textContent = '';
     if (!s || !p) { el.textContent = ''; return; }
+    var b = sbWeekFor(s, id), iso = new Date(b).toISOString();
+    $('sb-week').textContent = 'Gameweek ' + sbWeekLabel(b) + ' · ' + sbStatus(b) + '.';
     if (PLAYERS.some(function (q) { return q.team === p.team && q.name.toLowerCase() === s; })) { el.innerHTML = '<span style="color: var(--bad)">' + esc(s) + ' is listed on ' + esc(p.team) + ', so they already score their own points.</span>'; return; }
-    if (SUBS.some(function (r) { return r.sub === s && r.player === id; })) { el.textContent = 'That sub is already in the list.'; return; }
-    var copy = JSON.parse(JSON.stringify(sbResults())), hit = L.applySubs([{ sub: s, player: id }], copy);
+    if (SUBS.some(function (r) { return r.sub === s && r.player === id && sbWk(r) === b; })) { el.textContent = 'That sub is already in the list for this gameweek.'; return; }
+    var copy = JSON.parse(JSON.stringify(sbResults())), hit = L.applySubs([{ sub: s, player: id, week: iso }], copy);
     el.innerHTML = hit.length ? '<span class="sb-on">' + esc(p.name) + ' gets ' + esc(s) + '\'s points in ' + esc(hit.map(sbSeries).join(', ')) + '.</span>'
-      : 'No series yet where ' + esc(s) + ' played for ' + esc(p.team) + ' and ' + esc(p.name) + ' didn\'t. It will count as soon as one comes in.';
+      : 'No series yet this gameweek where ' + esc(s) + ' played for ' + esc(p.team) + ' and ' + esc(p.name) + ' didn\'t. It will count if one comes in before the week ends.';
   }
   function drawSubs() {
-    $('sb-badge').textContent = SUBS.length ? '(' + SUBS.length + ')' : '';
     $('sb-add').disabled = sbBusy || !sbPick.sub || !sbPick.player;
-    var rows = SUBS.slice().reverse().map(function (r) {
-      var p = BY_ID[r.player], where = sbResults().filter(function (x) { return x.subs && x.subs[r.player] === r.sub; }), armed = sbArmed === r.id;
-      return '<tr><td><b>' + esc(r.sub) + '</b></td><td>' + esc(p ? p.name : r.player) + ' <span class="who">' + esc(p ? p.team : '') + '</span></td>' +
-        '<td>' + (where.length ? esc(where.map(sbSeries).join(', ')) : '<span class="who">No series yet</span>') + '</td>' +
-        '<td class="who">' + esc(sbDay(r.created_at)) + (NAMES[r.created_by] ? ' · ' + esc(NAMES[r.created_by]) : '') + '</td>' +
-        '<td style="text-align: right"><button class="btn ghost" type="button" data-sb-del="' + r.id + '"' + (sbBusy ? ' disabled' : '') + '>' + (armed ? 'Press again to remove' : 'Remove') + '</button></td></tr>';
-    });
-    $('sb-rows').innerHTML = rows.join('') || '<tr><td colspan="5" class="who">' + esc(sbErr || 'No subs yet.') + '</td></tr>';
+    var cells = function (r) {
+      var p = BY_ID[r.player], b = sbWk(r), where = sbResults().filter(function (x) { return x.subs && x.subs[r.player] === r.sub && L.weekStart(Date.parse(x.start)) === b; });
+      return '<td><b>' + esc(r.sub) + '</b></td><td>' + esc(p ? p.name : r.player) + ' <span class="who">' + esc(p ? p.team : '') + '</span></td>' +
+        '<td>' + esc(sbWeekLabel(b)) + '<br><span class="who">' + esc(sbStatus(b)) + '</span></td>' +
+        '<td>' + (where.length ? esc(where.map(sbSeries).join(', ')) : '<span class="who">No series</span>') + '</td>' +
+        '<td class="who">' + esc(sbDay(r.created_at)) + (NAMES[r.created_by] ? ' · ' + esc(NAMES[r.created_by]) : '') + '</td>';
+    };
+    var live = SUBS.filter(function (r) { return !sbPaid(sbWk(r)); }).reverse(), past = SUBS.filter(function (r) { return sbPaid(sbWk(r)); }).reverse();
+    $('sb-rows').innerHTML = live.map(function (r) {
+      var armed = sbArmed === r.id;
+      return '<tr>' + cells(r) + '<td style="text-align: right"><button class="btn ghost" type="button" data-sb-del="' + r.id + '"' + (sbBusy ? ' disabled' : '') + '>' + (armed ? 'Press again to remove' : 'Remove') + '</button></td></tr>';
+    }).join('') || '<tr><td colspan="6" class="who">' + esc(sbErr || 'No subs this gameweek.') + '</td></tr>';
+    $('sb-past').hidden = !past.length;
+    $('sb-past-n').textContent = past.length ? '(' + past.length + ')' : '';
+    $('sb-past-rows').innerHTML = past.map(function (r) { return '<tr>' + cells(r) + '</tr>'; }).join('');
+    $('sb-badge').textContent = live.length ? '(' + live.length + ')' : '';
   }
   sbCombo($('sb-sub'), $('sb-sub-list'), sbSubOptions, function (o) { sbPick.sub = o ? o.value : null; $('sb-msg').textContent = ''; sbPreview(); drawSubs(); });
   sbCombo($('sb-player'), $('sb-player-list'), sbPlayerOptions, function (o) { sbPick.player = o ? o.value : null; $('sb-msg').textContent = ''; sbPreview(); drawSubs(); });
@@ -846,13 +893,14 @@
     var s = sbPick.sub, id = sbPick.player, p = BY_ID[id];
     if (!s || !p || sbBusy) return;
     if (PLAYERS.some(function (q) { return q.team === p.team && q.name.toLowerCase() === s; })) return;
-    if (SUBS.some(function (r) { return r.sub === s && r.player === id; })) return;
+    var wk = new Date(sbWeekFor(s, id)).toISOString();
+    if (SUBS.some(function (r) { return r.sub === s && r.player === id && sbWk(r) === Date.parse(wk); })) return;
     sbBusy = true; drawSubs();
-    L.api('/rest/v1/player_subs', { method: 'POST', headers: { Prefer: 'return=representation' }, body: { sub: s, player: id, created_by: L.myId } }).then(function (rows) {
-      var row = (rows || [])[0] || { id: Date.now(), sub: s, player: id, created_at: new Date().toISOString(), created_by: L.myId };
+    L.api('/rest/v1/player_subs', { method: 'POST', headers: { Prefer: 'return=representation' }, body: { sub: s, player: id, week: wk, created_by: L.myId } }).then(function (rows) {
+      var row = (rows || [])[0] || { id: Date.now(), sub: s, player: id, week: wk, created_at: new Date().toISOString(), created_by: L.myId };
       SUBS.push(row); L.applySubs([row]);
-      sbBusy = false; sbPick = { sub: null, player: null }; $('sb-sub').value = ''; $('sb-player').value = ''; $('sb-preview').textContent = '';
-      $('sb-msg').className = 'msg ok'; $('sb-msg').textContent = 'Saved: ' + s + ' played for ' + p.name + '.';
+      sbBusy = false; sbPick = { sub: null, player: null }; $('sb-sub').value = ''; $('sb-player').value = ''; $('sb-preview').textContent = ''; $('sb-week').textContent = '';
+      $('sb-msg').className = 'msg ok'; $('sb-msg').textContent = 'Saved: ' + s + ' played for ' + p.name + ', gameweek ' + sbWeekLabel(Date.parse(wk)) + '.';
       drawSubs();
     }, function (err) {
       sbBusy = false; drawSubs();
@@ -865,7 +913,7 @@
     if (sbArmed !== id) { sbArmed = id; return drawSubs(); }
     sbBusy = true; drawSubs();
     L.api('/rest/v1/player_subs?id=eq.' + id, { method: 'DELETE', headers: { Prefer: 'return=representation' } }).then(function (gone) {
-      if (!gone || !gone.length) throw new Error('Not removed (are you on the staff list?)');
+      if (!gone || !gone.length) throw new Error('Not removed: that gameweek\'s points may already be paid, or you\'re not on the staff list.');
       SUBS = SUBS.filter(function (r) { return r.id !== id; }); sbRevert(row); L.applySubs(SUBS);
       sbArmed = null; sbBusy = false;
       $('sb-msg').className = 'msg ok'; $('sb-msg').textContent = 'Removed: ' + row.sub + ' for ' + (BY_ID[row.player] ? BY_ID[row.player].name : row.player) + '.';

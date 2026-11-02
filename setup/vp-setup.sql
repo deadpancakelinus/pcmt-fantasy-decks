@@ -78,27 +78,6 @@ create policy "admins change multikills" on public.multikills for update
   using (exists (select 1 from public.pcmt_admins a where a.user_id = auth.uid()) or public.is_freshbatch())
   with check (exists (select 1 from public.pcmt_admins a where a.user_id = auth.uid()) or public.is_freshbatch());
 
--- Subs (backend.html, Subs tab, from Nov 1 2026): "<sub> played for <player>". In any series from Nov 1 2026 where
--- <sub> played (in data.js as "~<sub>", someone not listed on that team) and <player> didn't, with <player>'s team in it,
--- the sub's numbers count as <player>'s: vp_apply_subs() here and applySubs() in league.js do the same thing.
-create table if not exists public.player_subs (
-  id bigserial primary key,
-  sub text not null check (sub = lower(sub) and length(sub) between 1 and 40),   -- PCMT.gg name, lower case
-  player text not null check (length(player) between 1 and 40),                    -- players.js id
-  created_at timestamptz not null default now(),
-  created_by uuid default auth.uid(),
-  unique (sub, player)
-);
-alter table public.player_subs enable row level security;
-drop policy if exists "anyone can read subs" on public.player_subs;
-create policy "anyone can read subs" on public.player_subs for select using (true);
-drop policy if exists "staff add subs" on public.player_subs;
-create policy "staff add subs" on public.player_subs for insert
-  with check ((exists (select 1 from public.pcmt_admins a where a.user_id = auth.uid()) or public.is_freshbatch()) and created_by = auth.uid());
-drop policy if exists "staff remove subs" on public.player_subs;
-create policy "staff remove subs" on public.player_subs for delete
-  using (exists (select 1 from public.pcmt_admins a where a.user_id = auth.uid()) or public.is_freshbatch());
-
 create table if not exists public.vp_sync_log (
   id bigserial primary key,
   ran_at timestamptz not null default now(),
@@ -147,6 +126,36 @@ language sql immutable as $$ select public.vp_week_start(b + interval '7 days') 
 
 -- When a gameweek's decks lock: Thursday morning (its start), unless its first game is on Saturday or later (New York
 -- calendar day), then 6 hours before that game. Weeks before the Thursday switch locked 6 hours before their first game.
+-- Subs (backend.html, Subs tab, from Nov 1 2026): "<sub> played for <player>" in one gameweek (week = its start, as
+-- vp_week_start gives it). In that gameweek's series where <sub> played (in data.js as "~<sub>", someone not listed on that
+-- team) and <player> didn't, with <player>'s team in it, the sub's numbers count as <player>'s. A sub only lasts its own
+-- gameweek: nothing carries into later games. Staff can add or remove one until that gameweek ends (when its points are
+-- paid); after that it's fixed, and kept so the week's points stay on the Leaderboard.
+-- vp_apply_subs() here and applySubs() in league.js do the same thing.
+create table if not exists public.player_subs (
+  id bigserial primary key,
+  sub text not null check (sub = lower(sub) and length(sub) between 1 and 40),   -- PCMT.gg name, lower case
+  player text not null check (length(player) between 1 and 40),                    -- players.js id
+  week timestamptz,                                                                -- start of its gameweek
+  created_at timestamptz not null default now(),
+  created_by uuid default auth.uid()
+);
+alter table public.player_subs add column if not exists week timestamptz;
+update public.player_subs set week = public.vp_week_start(created_at) where week is null;   -- subs saved before weeks were added
+alter table public.player_subs alter column week set not null;
+alter table public.player_subs drop constraint if exists player_subs_sub_player_key;
+do $$ begin alter table public.player_subs add constraint player_subs_sub_player_week_key unique (sub, player, week); exception when duplicate_table or duplicate_object then null; end $$;
+alter table public.player_subs enable row level security;
+drop policy if exists "anyone can read subs" on public.player_subs;
+create policy "anyone can read subs" on public.player_subs for select using (true);
+drop policy if exists "staff add subs" on public.player_subs;
+create policy "staff add subs" on public.player_subs for insert
+  with check ((exists (select 1 from public.pcmt_admins a where a.user_id = auth.uid()) or public.is_freshbatch()) and created_by = auth.uid()
+              and week = public.vp_week_start(week) and public.vp_week_end(week) > now());
+drop policy if exists "staff remove subs" on public.player_subs;
+create policy "staff remove subs" on public.player_subs for delete
+  using ((exists (select 1 from public.pcmt_admins a where a.user_id = auth.uid()) or public.is_freshbatch()) and public.vp_week_end(week) > now());
+
 create or replace function public.vp_week_lock(b timestamptz, first_t timestamptz) returns timestamptz
 language sql immutable as $$
   select case
@@ -341,7 +350,7 @@ begin
   return substr(p_js, s, e)::jsonb;
 end $$;
 
--- Applies the subs to one result (see player_subs). p_subs = [{ sub, player }] oldest first; p_players = players.js.
+-- Applies the subs to one result (see player_subs). p_subs = [{ sub, player, week }] oldest first; p_players = players.js.
 -- Moves "~<sub>"'s stats and per-map kills to <player> and records "subs": { "<player>": "<sub>" }.
 create or replace function public.vp_apply_subs(r jsonb, p_subs jsonb, p_players jsonb) returns jsonb
 language plpgsql immutable set search_path = public as $$
@@ -351,6 +360,7 @@ begin
   for s in select x from jsonb_array_elements(coalesce(p_subs, '[]'::jsonb)) x loop
     k := '~' || lower(s ->> 'sub'); id := s ->> 'player'; st := coalesce(r -> 'stats', '{}'::jsonb);
     if not (st ? k) or st ? id then continue; end if;
+    if s ->> 'week' is null or public.vp_week_start(public.vp_ts(r ->> 'start')) <> (s ->> 'week')::timestamptz then continue; end if;   -- its own gameweek only
     select x ->> 'team' into team from jsonb_array_elements(p_players) x where x ->> 'id' = id limit 1;
     if team is null or team not in (r ->> 'a', r ->> 'b') then continue; end if;
     r := jsonb_set(r, '{stats}', (st - k) || jsonb_build_object(id, st -> k));
@@ -375,7 +385,7 @@ begin
   select coalesce(jsonb_object_agg(series, pl), '{}'::jsonb) into mk from (
     select series, jsonb_object_agg(player, jsonb_build_array(k4, k5)) pl from public.multikills where k4 > 0 or k5 > 0 group by series) q;
   -- Subs from the backend (player_subs): the sub's numbers count as the player they played for
-  select coalesce(jsonb_agg(jsonb_build_object('sub', sub, 'player', player) order by id), '[]'::jsonb) into subs from public.player_subs;
+  select coalesce(jsonb_agg(jsonb_build_object('sub', sub, 'player', player, 'week', week) order by id), '[]'::jsonb) into subs from public.player_subs;
   select coalesce(jsonb_agg(public.vp_apply_subs(x, subs, plist) || jsonb_build_object('multi', coalesce(mk -> ((x ->> 'start') || '|' || (x ->> 'a') || '|' || (x ->> 'b')), '{}'::jsonb))), '[]'::jsonb)
     into res from jsonb_array_elements(public.vp_extract(p_data_js, 'PCMT_RESULTS')) x;
   return public.vp_compute(public.vp_extract(p_data_js, 'PCMT_MATCHES'), res,
