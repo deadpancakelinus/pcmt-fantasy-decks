@@ -55,11 +55,11 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 // Packs come from Supabase (card_packs, see setup/cards-setup.sql); the canvas shows these samples.
 // Buying runs on the server (buy_pack): it takes the VP and draws the cards; the opening below only shows them.
 var PCMT_PACK_SAMPLE = [
-  { id: 'na-pack', name: 'NA Card Pack', region: 'NA', cards: 5, price: null, open_to_all: false, odds: { common: 80, rare: 20, epic: 0, legendary: 0 } },
-  { id: 'emea-pack', name: 'EMEA Card Pack', region: 'EMEA', cards: 5, price: null, open_to_all: false, odds: { common: 80, rare: 20, epic: 0, legendary: 0 } },
-  { id: 'nas1-pack', name: 'NA S1 Throwback Pack', region: 'NA', season: 'S1 NA', cards: 5, price: null, open_to_all: false, odds: { common: 80, rare: 20, epic: 0, legendary: 0 } },
-  { id: 'nas2-pack', name: 'NA S2 Throwback Pack', region: 'NA', season: 'S2 NA', cards: 5, price: null, open_to_all: false, odds: { common: 80, rare: 20, epic: 0, legendary: 0 } },
-  { id: 'emeas1-pack', name: 'EMEA S1 Throwback Pack', region: 'EMEA', season: 'S1 EMEA', cards: 5, price: null, open_to_all: false, odds: { common: 80, rare: 20, epic: 0, legendary: 0 } }
+  { id: 'na-pack', name: 'NA Card Pack', region: 'NA', cards: 5, price: null, open_to_all: false, odds: { common: 85, rare: 10, epic: 0, legendary: 5 } },
+  { id: 'emea-pack', name: 'EMEA Card Pack', region: 'EMEA', cards: 5, price: null, open_to_all: false, odds: { common: 85, rare: 10, epic: 0, legendary: 5 } },
+  { id: 'nas1-pack', name: 'NA S1 Throwback Pack', region: 'NA', season: 'S1 NA', cards: 5, price: null, open_to_all: false, odds: { common: 85, rare: 10, epic: 0, legendary: 5 } },
+  { id: 'nas2-pack', name: 'NA S2 Throwback Pack', region: 'NA', season: 'S2 NA', cards: 5, price: null, open_to_all: false, odds: { common: 85, rare: 10, epic: 0, legendary: 5 } },
+  { id: 'emeas1-pack', name: 'EMEA S1 Throwback Pack', region: 'EMEA', season: 'S1 EMEA', cards: 5, price: null, open_to_all: false, odds: { common: 85, rare: 10, epic: 0, legendary: 5 } }
 ];
 // Pack art: the same foil pack as the opening animation, drawn once into an image per region.
 var PCMT_PACK_ART = { NA: 'assets/1ebfc850b10de6e909e96751b32a0977.webp', EMEA: 'assets/87166e6bb2de15f385a04e2962058989.webp' };
@@ -77,10 +77,11 @@ function pcmtPastCard(c) {
   return st ? { st: st, team: { code: st.team || 'SUB', name: st.teamName, color: st.color, logo: st.logo ? 'assets/' + st.logo : '' } } : { st: null, team: { code: '', name: c.season, color: '#a5dcdd', logo: '' } };
 }
 // Variant art by variant id (cards table: 'v:<id>').
-var PCMT_VARIANT_ART = { 'teklo-variant': 'assets/8b1855340f56f72ea07f5447ca167038.webp', 'straight-variant': 'assets/21ae11daa07a46a08f5d3cf16fd0b2d9.webp', 'claps-variant': 'assets/bb4db91bdcfb1958431ff90d376d30cb.webp', 'croc-variant': 'assets/c78f02d9db76bfab051f4c44769a3d17.webp', 'stingray-s2-variant': 'assets/0b6460a50d263be2466f15c89cb24f7b.webp', 'psyclone-s2-variant': 'assets/170ab53f9041539ed463055bb039a0ab.webp', 'lazy-s2-variant': 'assets/837b0e901e5b7c2268a597ff9176be4b.webp', 'lore-variant': 'assets/6d7189fcc9c2218d0aa67f7572a102e3.webp', 'claps-s2-variant': 'assets/6db6f0ae75aa2952c16701e3164f4569.webp' };
+var PCMT_VARIANT_ART = { 'teklo-variant': 'assets/8b1855340f56f72ea07f5447ca167038.webp', 'straight-variant': 'assets/21ae11daa07a46a08f5d3cf16fd0b2d9.webp', 'claps-variant': 'assets/bb4db91bdcfb1958431ff90d376d30cb.webp', 'croc-variant': 'assets/c78f02d9db76bfab051f4c44769a3d17.webp', 'stingray-s2-variant': 'assets/0b6460a50d263be2466f15c89cb24f7b.webp', 'psyclone-s2-variant': 'assets/170ab53f9041539ed463055bb039a0ab.webp', 'lazy-s2-variant': 'assets/837b0e901e5b7c2268a597ff9176be4b.webp', 'lore-variant': 'assets/6d7189fcc9c2218d0aa67f7572a102e3.webp', 'claps-s2-variant': 'assets/6db6f0ae75aa2952c16701e3164f4569.webp' , 'otaka-only-rare': 'assets/5631323951240bd2dc04700dce08369a.webp', 'otaka-only-legendary': 'assets/813975bd10fc92d144665dffb98e4e00.webp', 'otaka-s1-only-rare': 'assets/a594dae74be81357c5166e8b6fcfedec.webp', 'otaka-s1-only-legendary': 'assets/4eaa7eece6d172ff05bc4b8d784bc31f.webp' };
 // Art that fills the whole card face (screenshots); the rest sit at the side like a cut-out.
 // lore-variant and claps-s2-variant are no longer in packs; their art stays so copies already pulled still look right.
-var PCMT_VARIANT_FULL = { 'straight-variant': true, 'lore-variant': true, 'claps-s2-variant': true, 'lazy-s2-variant': true };
+var PCMT_VARIANT_FULL = { 'straight-variant': true, 'lore-variant': true, 'claps-s2-variant': true, 'lazy-s2-variant': true,
+  'otaka-only-rare': true, 'otaka-only-legendary': true, 'otaka-s1-only-rare': true, 'otaka-s1-only-legendary': true };
 // Champion cards: the trophy sits in the middle of the card, and the sheen is gold.
 // Champion art (also used for past-season champions, and for champion cards already pulled before 2026-10-21).
 var PCMT_VARIANT_ART_CHAMPS = { 'champ-longclaw': 'assets/a8390c53c5aa10a347b6af0841aa6835.png', 'champ-devil': 'assets/a8390c53c5aa10a347b6af0841aa6835.png', 'champ-platinum': 'assets/a8390c53c5aa10a347b6af0841aa6835.png', 'champ-igneous': 'assets/a8390c53c5aa10a347b6af0841aa6835.png', 'champ-james': 'assets/a8390c53c5aa10a347b6af0841aa6835.png', 'champ-stingray': 'assets/a8390c53c5aa10a347b6af0841aa6835.png', 'champ-faye': 'assets/a8390c53c5aa10a347b6af0841aa6835.png', 'champ-charlotte': 'assets/a8390c53c5aa10a347b6af0841aa6835.png', 'champ-mide': 'assets/a8390c53c5aa10a347b6af0841aa6835.png', 'champ-king': 'assets/a8390c53c5aa10a347b6af0841aa6835.png', 'champ-tonnoman': 'assets/a8390c53c5aa10a347b6af0841aa6835.png', 'champ-amara': 'assets/a8390c53c5aa10a347b6af0841aa6835.png' };
@@ -88,6 +89,7 @@ Object.keys(PCMT_VARIANT_ART_CHAMPS).forEach(function (k) { PCMT_VARIANT_ART[k] 
 var PCMT_VARIANT_CENTER = { 'champ-longclaw': true, 'champ-devil': true, 'champ-platinum': true, 'champ-igneous': true, 'champ-james': true, 'champ-stingray': true, 'champ-faye': true, 'champ-charlotte': true, 'champ-mide': true, 'champ-king': true, 'champ-tonnoman': true, 'champ-amara': true };
 var PCMT_VARIANT_SHEEN = { 'champ-longclaw': '#f5d76e', 'champ-devil': '#f5d76e', 'champ-platinum': '#f5d76e', 'champ-igneous': '#f5d76e', 'champ-james': '#f5d76e', 'champ-stingray': '#f5d76e', 'champ-faye': '#f5d76e', 'champ-charlotte': '#f5d76e', 'champ-mide': '#f5d76e', 'champ-king': '#f5d76e', 'champ-tonnoman': '#f5d76e', 'champ-amara': '#f5d76e' };
 var PCMT_RARITY_INK = { common: '#93a9aa', rare: '#7cc2ff', epic: '#c99bff', legendary: '#f5d76e' };
+var PCMT_LEGENDARY_GOLD = '#f5d76e';   // a Legendary's glow, stamp and reveal in the pack opening
 // Variants shown on the page (stats match the player's MVP VS card in trumps-cards.js).
 var PCMT_STORE_ITEMS = [
   { id: 'teklo-variant', card: 'v:teklo-variant', rarity: 'rare', pack: 'NA Card Pack', title: 'The Role of Yoru', blurb: 'teklologik\'s MVP VS card with special art behind the card face.',
@@ -124,7 +126,29 @@ var PCMT_STORE_ITEMS = [
     name: 'lazynottired', team: 'MIBR', teamName: 'Made in Bronze', color: '#a8823c', season: 'S2 NA', maps: 30, role: 'sentinel',
     teamLogo: 'assets/211d40c6a4ba156eee4a5daadec98e19.png', regionLogo: 'assets/c265e976f8968e60e4a2bdd32542b499.png',
     roleIcon: 'assets/006daf34642009c6f6749139f80a613e.png', art: 'assets/837b0e901e5b7c2268a597ff9176be4b.webp',
-    acs: 195, kast: 72, hs: 21, dpr: 0.65, toxic: 1.0 }
+    acs: 195, kast: 72, hs: 21, dpr: 0.65, toxic: 1.0 },
+  // Only Otaka (Nov 5 2026): a Rare and a Legendary of otaka for each season he played. Held back until staff release
+  // the series on backend.html (Rare cards tab).
+  { id: 'otaka-only-rare', card: 'v:otaka-only-rare', rarity: 'rare', pack: 'EMEA Card Pack', series: 'Only Otaka', title: 'Seal Swim', blurb: '',
+    name: 'otaka', team: 'SEAL', teamName: 'Stay Seally', color: '#8fd3e8', season: 'S2 EMEA', maps: 20, role: 'duelist',
+    teamLogo: 'assets/7f2055fcc7e78ae7d1510fe56608fd83.png', regionLogo: 'assets/3c7e7374dceead68d5c58818d0bcfe8a.png',
+    roleIcon: 'assets/3911a104cbddaf481d7a7bf070a2e696.png', art: 'assets/5631323951240bd2dc04700dce08369a.webp',
+    acs: 149, kast: 65, hs: 13, dpr: 0.79, toxic: 0.73 },
+  { id: 'otaka-only-legendary', card: 'v:otaka-only-legendary', rarity: 'legendary', pack: 'EMEA Card Pack', series: 'Only Otaka', title: 'Seally Stare', blurb: '',
+    name: 'otaka', team: 'SEAL', teamName: 'Stay Seally', color: '#8fd3e8', season: 'S2 EMEA', maps: 20, role: 'duelist',
+    teamLogo: 'assets/7f2055fcc7e78ae7d1510fe56608fd83.png', regionLogo: 'assets/3c7e7374dceead68d5c58818d0bcfe8a.png',
+    roleIcon: 'assets/3911a104cbddaf481d7a7bf070a2e696.png', art: 'assets/813975bd10fc92d144665dffb98e4e00.webp',
+    acs: 149, kast: 65, hs: 13, dpr: 0.79, toxic: 0.73 },
+  { id: 'otaka-s1-only-rare', card: 'v:otaka-s1-only-rare', rarity: 'rare', pack: 'EMEA S1 Throwback Pack', series: 'Only Otaka', title: 'Nap Time', blurb: '',
+    name: 'Otaka', team: 'MISC', teamName: 'Mischifs', color: '#2e86de', season: 'S1 EMEA', maps: 16, role: 'duelist',
+    teamLogo: 'assets/aae3db0cd217dd92c695a88e0dacb9f0.png', regionLogo: 'assets/3c7e7374dceead68d5c58818d0bcfe8a.png',
+    roleIcon: 'assets/3911a104cbddaf481d7a7bf070a2e696.png', art: 'assets/a594dae74be81357c5166e8b6fcfedec.webp',
+    acs: 136, kast: 62, hs: 11, dpr: 0.79, toxic: 0.66 },
+  { id: 'otaka-s1-only-legendary', card: 'v:otaka-s1-only-legendary', rarity: 'legendary', pack: 'EMEA S1 Throwback Pack', series: 'Only Otaka', title: 'Puppy Eyes', blurb: '',
+    name: 'Otaka', team: 'MISC', teamName: 'Mischifs', color: '#2e86de', season: 'S1 EMEA', maps: 16, role: 'duelist',
+    teamLogo: 'assets/aae3db0cd217dd92c695a88e0dacb9f0.png', regionLogo: 'assets/3c7e7374dceead68d5c58818d0bcfe8a.png',
+    roleIcon: 'assets/3911a104cbddaf481d7a7bf070a2e696.png', art: 'assets/4eaa7eece6d172ff05bc4b8d784bc31f.webp',
+    acs: 136, kast: 62, hs: 11, dpr: 0.79, toxic: 0.66 }
 ];
 // The default card back (the BLUE deck), used for pack cards.
 var PCMT_STORE_BACK = { color: '#a5dcdd', edge: '#1f3a3b', ringClass: '', bgClass: '', frame: 'rgba(165,220,221,0.75)', frameSoft: 'rgba(165,220,221,0.4)', glow: 'rgba(165,220,221,0.3)',
@@ -345,7 +369,7 @@ function pcmtPackFront(p, t, cfg) {
   var head = t.logo
     ? '<img src="' + e(t.logo) + '" alt="' + e(t.name) + '" style="height:' + (t.logoH || 30) + 'px">'
     : '<span class="pk-tri" style="color:' + e(t.color) + '">' + e(t.code) + '</span>';
-  var rar = p.rarity || '', shiny = rar && rar !== 'common', col = t.color || '#a5dcdd';
+  var rar = p.rarity || '', shiny = rar && rar !== 'common', col = rar === 'legendary' ? PCMT_LEGENDARY_GOLD : t.color || '#a5dcdd';   // Legendary: gold
   // Rare and up: glow, sheen and a shiny stamp, all in the card's own colour.
   var stamp = shiny ? '<span class="pk-rstamp" style="border:1.5px solid ' + e(col) + ';box-shadow:inset 0 0 0 2px #172124,inset 0 0 0 3px ' + e(col) + ',0 0 12px ' + e(pcmtRgba(col, .45)) + ';color:' + e(col) + '">' +
     '<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 20.9l1.6-7L2 9.2l7.1-.6z"/></svg>' +
@@ -732,22 +756,23 @@ function pcmtPackAnim(cfg, onClose) {
       at(wait + 760 + N * 70, function () { state = 'done'; busy = false; root.classList.remove('pk-reveal'); root.classList.add('pk-done'); });
       return;
     }
-    var i = next++, c = cards[i], p = cfg.players[i] || {}, rare = p.rarity && p.rarity !== 'common', col = (p.team && p.team.color) || '#a5dcdd';
+    var i = next++, c = cards[i], p = cfg.players[i] || {}, rare = p.rarity && p.rarity !== 'common', leg = p.rarity === 'legendary';
+    var col = leg ? PCMT_LEGENDARY_GOLD : (p.team && p.team.color) || '#a5dcdd';
     shown = i;
     at(wait, function () {
       c.style.zIndex = '60';
       moveTo(i, TF(0, -12, 0, 1.12), { duration: 460, easing: 'cubic-bezier(.2,.8,.2,1)' });
-      if (rare) {                                         // a rare glows and shakes in its colour before it turns over
-        run(c, [{ filter: 'drop-shadow(0 0 0 ' + col + ')' }, { filter: 'drop-shadow(0 0 26px ' + col + ')', offset: .6 }, { filter: 'drop-shadow(0 0 14px ' + col + ')' }], { duration: 900, delay: 300 });
-        run(c.firstElementChild, [{ transform: 'rotate(0)' }, { transform: 'rotate(-3deg)' }, { transform: 'rotate(3deg)' }, { transform: 'rotate(-2deg)' }, { transform: 'rotate(2deg)' }, { transform: 'rotate(0)' }], { duration: 520, delay: 420 });
+      if (rare) {                                         // a rare glows and shakes in its colour before it turns over (a Legendary: gold, longer)
+        run(c, [{ filter: 'drop-shadow(0 0 0 ' + col + ')' }, { filter: 'drop-shadow(0 0 ' + (leg ? 40 : 26) + 'px ' + col + ')', offset: .6 }, { filter: 'drop-shadow(0 0 ' + (leg ? 20 : 14) + 'px ' + col + ')' }], { duration: leg ? 1500 : 900, delay: 300 });
+        run(c.firstElementChild, [{ transform: 'rotate(0)' }, { transform: 'rotate(-3deg)' }, { transform: 'rotate(3deg)' }, { transform: 'rotate(-2deg)' }, { transform: 'rotate(2deg)' }, { transform: 'rotate(0)' }], { duration: 520, delay: 420, iterations: leg ? 2 : 1 });
       }
-      var flipAt = rare ? 980 : 420;
+      var flipAt = leg ? 1500 : rare ? 980 : 420;
       at(flipAt, function () {
         run(c.firstElementChild, [{ transform: 'rotateY(0)' }, { transform: 'rotateY(180deg) translateZ(0)' }], { duration: 560, easing: 'cubic-bezier(.4,.1,.2,1)' });
       });
       at(flipAt + 300, function () {
         c.classList.add('pk-shown');
-        burst(500, 360, rare ? 60 : 18, { angle: -Math.PI / 2, spread: Math.PI * 2, speed: rare ? 7 : 3.5, size: rare ? 5 : 4, kind: 'spark' });
+        burst(500, 360, leg ? 140 : rare ? 60 : 18, { angle: -Math.PI / 2, spread: Math.PI * 2, speed: leg ? 9 : rare ? 7 : 3.5, size: rare ? 5 : 4, kind: 'spark' });
         if (rare) run(flash, [{ opacity: 0, transform: 'scale(1)', background: col }, { opacity: .7, transform: 'scale(60)', offset: .25 }, { opacity: 0, transform: 'scale(90)' }], { duration: 600, easing: 'ease-out' });
       });
       at(flipAt + 600, function () { busy = false; setTap(next < N ? 'Tap to reveal · ' + (next + 1) + ' of ' + N : 'Tap to see all ' + N); });
@@ -795,6 +820,8 @@ function pcmtMvpStats(region, name, pid) {
 }
 // Builds the opening's card list from what buy_pack returned.
 function pcmtStoreCards(pulled) {
+  // A Legendary is always the last card revealed (buy_pack sends them last too).
+  pulled = pulled.filter(function (c) { return c.rarity !== 'legendary'; }).concat(pulled.filter(function (c) { return c.rarity === 'legendary'; }));
   var abs = function (u) { try { return u ? new URL(u, window.location.href).href : ''; } catch (e) { return u; } };
   var site = (typeof window !== 'undefined' && window.PCMT_SITE_PLAYERS) || null, byId = {};
   if (site) site.forEach(function (p) { byId[p.id] = { id: p.id, name: p.name, team: p.team, role: String(p.role).split('/')[0], price: p.price }; });
@@ -843,14 +870,14 @@ function pcmtSamplePull(pack) {
   return out;
 }
 if (typeof window !== 'undefined') window.__pcmtPackAnim = pcmtPackAnim;
-// The odds a pack can really drop: a rarity with no released cards for that pack falls to the tier below (same as buy_pack).
+// The odds a pack can really drop: a rarity with no released cards for that pack gives a Common instead (same as buy_pack).
 // released = [{ region, season, rarity }] of released Rare-and-up cards, or null when unknown (shows the pack's odds as set).
 function pcmtPackOdds(p, released) {
   var o = p.odds || {}, tiers = ['common', 'rare', 'epic', 'legendary'], e = { common: 0, rare: 0, epic: 0, legendary: 0 };
   tiers.forEach(function (t, i) {
     var v = +o[t] || 0, j = i;
     if (!v) return;
-    while (j > 0 && released && !released.some(function (c) { return c.rarity === tiers[j] && c.region === p.region && (c.season || null) === (p.season || null); })) j--;
+    if (j > 0 && released && !released.some(function (c) { return c.rarity === tiers[j] && c.region === p.region && (c.season || null) === (p.season || null); })) j = 0;
     e[tiers[j]] += v;
   });
   return e;

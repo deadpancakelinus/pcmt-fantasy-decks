@@ -116,11 +116,12 @@ begin
       acc := acc + greatest(0, coalesce((pk.odds ->> drawn)::numeric, 0));
       exit when roll < acc;
     end loop;
-    idx := array_position(tiers, drawn); got_tier := drawn;
-    while idx > 1 and not exists (select 1 from public.cards where active and released and region = pk.region and season is not distinct from pk.season and rarity = tiers[idx]) loop
-      idx := idx - 1;                                                    -- no released cards in that tier yet: next tier down
-    end loop;
-    got_tier := tiers[idx];
+    got_tier := drawn;
+    -- No released cards of that rarity in this pack yet: a Common instead (Nov 5 2026; it used to be the tier below,
+    -- which turned Legendary rolls into extra Rares in packs with no Legendary).
+    if got_tier <> 'common' and not exists (select 1 from public.cards where active and released and region = pk.region and season is not distinct from pk.season and rarity = got_tier) then
+      got_tier := 'common';
+    end if;
     select * into c from public.cards where active and released and region = pk.region and season is not distinct from pk.season and rarity = got_tier order by random() limit 1;
     if not found then raise exception 'There are no cards to draw yet.'; end if;
     insert into public.user_cards (user_id, card_id, count) values (u, c.id, 1)
@@ -129,8 +130,9 @@ begin
     out := out || jsonb_build_array(jsonb_build_object('id', c.id, 'player', c.player, 'variant', c.variant, 'rarity', c.rarity,
                                                        'title', c.title, 'region', c.region, 'season', c.season, 'count', n, 'new', n = 1));
   end loop;
-  -- Shuffle the order so a rare can be anywhere in the pack (each card is drawn on its own, this just mixes the reveal order).
-  select coalesce(jsonb_agg(x order by random()), '[]'::jsonb) into out from jsonb_array_elements(out) x;
+  -- Shuffle the order so a rare can be anywhere in the pack (each card is drawn on its own, this just mixes the reveal order),
+  -- except that a Legendary always comes last: the pack opening reveals the cards in this order.
+  select coalesce(jsonb_agg(x order by (x ->> 'rarity') = 'legendary', random()), '[]'::jsonb) into out from jsonb_array_elements(out) x;
   insert into public.pack_openings (user_id, pack, price, cards) values (u, pk.id, pk.price, out);
   return jsonb_build_object('pack', pk.name, 'price', pk.price, 'balance', bal - pk.price, 'cards', out);
 end $$;

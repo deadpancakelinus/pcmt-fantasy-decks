@@ -26,7 +26,11 @@ grant usage on all sequences in schema public to authenticated;`);
 const buy = (uid, pack = 'na-pack') => JSON.parse(sql(as(uid, `select public.buy_pack('${pack}');`)).trim());
 const bal = uid => +sql(`select coalesce(sum(amount),0) from public.vp_ledger where user_id = '${uid}';`).trim();
 
-check(+sql(`select count(*) from public.cards where active;`).trim() === 268, 'catalog has 137 commons + 4 variants, plus 108 past-season commons + 16 past-season champions + 3 past-season variants');
+check(+sql(`select count(*) from public.cards where active;`).trim() === 272, 'catalog has 137 commons + 6 variants, plus 108 past-season commons + 16 past-season champions + 5 past-season variants');
+check(sql(`select string_agg(id || ':' || rarity || ':' || region || ':' || coalesce(season, '-'), ',' order by id) from public.cards where variant like 'otaka-%';`).trim() ===
+  'v:otaka-only-legendary:legendary:EMEA:-,v:otaka-only-rare:rare:EMEA:-,v:otaka-s1-only-legendary:legendary:EMEA:S1 EMEA,v:otaka-s1-only-rare:rare:EMEA:S1 EMEA',
+  'Only Otaka: a Rare and a Legendary for EMEA S2 and for EMEA S1');
+check(sql(`select string_agg(distinct odds::text, ' | ') from public.card_packs;`).trim() === '{"epic": 0, "rare": 10, "common": 85, "legendary": 5}', 'every pack: Common 85, Rare 10, Legendary 5');
 check(sql(`select rarity from public.cards where id = 'v:teklo-variant';`).trim() === 'rare', 'The Role of Yoru is Rare');
 check(fails(`set role anon; select public.buy_pack('na-pack');`), 'logged-out visitors cannot buy');
 check(fails(as(P1, `select public.buy_pack('na-pack');`), /aren't on sale yet/), 'before launch, a player who is not an admin cannot buy');
@@ -48,6 +52,8 @@ check(sql(`select string_agg(price::text, ',') from public.card_packs`).trim() =
     'every Rare starts unreleased; every Common is released');
   const held = sql(as(STAFF, `select string_agg(distinct c ->> 'rarity', ',') from generate_series(1, 120) g, lateral jsonb_array_elements(public.buy_pack(case g % 4 when 0 then 'na-pack' when 1 then 'nas1-pack' when 2 then 'nas2-pack' else 'emeas1-pack' end) -> 'cards') c;`)).trim();
   check(held === 'common', 'unreleased Rares can never be pulled (600 cards from four packs: ' + held + ')');
+  const heldEu = sql(as(STAFF, `select string_agg(distinct c ->> 'rarity', ',') from generate_series(1, 120) g, lateral jsonb_array_elements(public.buy_pack('emea-pack' || left(g::text, 0)) -> 'cards') c;`)).trim();
+  check(heldEu === 'common', 'Only Otaka held back: the EMEA pack gives only Commons, Legendary rolls included (' + heldEu + ')');
   check(fails(as(P1, `select public.fb_release_card('v:teklo-variant', true);`), /staff only/) && fails(`set role anon; select public.fb_release_card('v:teklo-variant', true);`), 'only PCMT Team staff can release a card');
   check(fails(as(STAFF, `select public.fb_release_card('c:claps', false);`), /always released/), 'Commons cannot be held back');
   sql(as(STAFF, `select public.fb_release_card('v:teklo-variant', true);`));
@@ -66,31 +72,40 @@ let r = buy(ADMIN);
 check(r.cards.length === 5 && r.cards.every(c => c.id && c.player && c.rarity), 'a pack gives 5 cards');
 check(bal(ADMIN) === 0 && +sql(`select count(*) from public.vp_ledger where user_id = '${ADMIN}'`).trim() === 0, 'a free pack takes no VP and writes no ledger line');
 
-// odds: 80 common / 20 rare (epic and legendary at 0 until those cards exist)
+// odds: 85 common / 10 rare / 5 legendary; the NA pack has no Legendary, so those rolls give a Common (90 / 10)
 const N = 1200; const tally = { common: 0, rare: 0, epic: 0, legendary: 0 };
 const many = sql(as(ADMIN, `select string_agg((c ->> 'rarity') || ':' || coalesce(c ->> 'season', '') || (c ->> 'region'), ',') from generate_series(1, ${N}) g, lateral jsonb_array_elements(public.buy_pack('na-pack' || left(g::text, 0)) -> 'cards') c;`)).trim().split(',');
 check(many.every(x => x.endsWith(':NA')), 'the NA pack only gives NA players, and never a past-season card');
 many.forEach(x => tally[x.split(':')[0]]++);
 const share = k => tally[k] / many.length;
 check(many.length === N * 5, `${N} packs gave ${N * 5} cards`);
-check(Math.abs(share('common') - 0.80) < 0.025 && Math.abs(share('rare') - 0.20) < 0.025 && !tally.epic && !tally.legendary,
-  `odds hold: common ${(share('common') * 100).toFixed(1)}%, rare ${(share('rare') * 100).toFixed(1)}%, epic 0, legendary 0`);
+check(Math.abs(share('common') - 0.90) < 0.02 && Math.abs(share('rare') - 0.10) < 0.02 && !tally.epic && !tally.legendary,
+  `NA pack odds hold: common ${(share('common') * 100).toFixed(1)}%, rare ${(share('rare') * 100).toFixed(1)}%, no epic or legendary (it has none)`);
 const owned = +sql(`select sum(count) from public.user_cards where user_id = '${ADMIN}';`).trim();
 check(owned === (N + 1) * 5, 'duplicates are kept as a count (' + owned + ' cards owned)');
-check(+sql(`select count from public.user_cards where user_id = '${ADMIN}' and card_id = 'v:teklo-variant';`).trim() > 20, 'the The Role of Yoru gets pulled');
+check(+sql(`select count from public.user_cards where user_id = '${ADMIN}' and card_id = 'v:teklo-variant';`).trim() > 10, 'the The Role of Yoru gets pulled');
 check(+sql(`select count(*) from public.pack_openings where user_id = '${ADMIN}';`).trim() === N + 1, 'every opening is logged');
 const pos = sql(`select string_agg(p::text, ',') from public.pack_openings o, lateral jsonb_array_elements(o.cards) with ordinality c(x, p) where o.user_id = '${ADMIN}' and c.x ->> 'rarity' = 'rare';`).trim().split(',').map(Number);
 const at = [1, 2, 3, 4, 5].map(k => pos.filter(x => x === k).length / pos.length);
 check(at.every(f => f > 0.15 && f < 0.25), 'rares land anywhere in the pack: ' + at.map(f => (f * 100).toFixed(0) + '%').join(' / ') + ' at positions 1-5');
-const eu = sql(as(ADMIN, `select string_agg((c ->> 'rarity') || ':' || (c ->> 'region'), ',') from generate_series(1, 200) g, lateral jsonb_array_elements(public.buy_pack('emea-pack' || left(g::text, 0)) -> 'cards') c;`)).trim().split(',');
-check(eu.length === 1000 && eu.every(x => x.endsWith(':EMEA')) && eu.every(x => x === 'common:EMEA'), 'the EMEA pack only gives EMEA players (all Common: it has no Rares now, so they drop a tier)');
+sql(`delete from public.pack_openings where user_id = '${ADMIN}';`);
+const eu = sql(as(ADMIN, `select string_agg((c ->> 'rarity') || ':' || (c ->> 'region') || ':' || (c ->> 'id'), ',') from generate_series(1, 1000) g, lateral jsonb_array_elements(public.buy_pack('emea-pack' || left(g::text, 0)) -> 'cards') c;`)).trim().split(',').map(x => x.split(':'));
+const euShare = k => eu.filter(x => x[0] === k).length / eu.length;
+check(eu.length === 5000 && eu.every(x => x[1] === 'EMEA') && Math.abs(euShare('common') - 0.85) < 0.02 && Math.abs(euShare('rare') - 0.10) < 0.02 && Math.abs(euShare('legendary') - 0.05) < 0.015,
+  `EMEA pack odds hold: common ${(euShare('common') * 100).toFixed(1)}%, rare ${(euShare('rare') * 100).toFixed(1)}%, legendary ${(euShare('legendary') * 100).toFixed(1)}%`);
+check(eu.filter(x => x[0] === 'rare').every(x => x[2] === 'v' && x[3] === 'otaka-only-rare') && eu.filter(x => x[0] === 'legendary').every(x => x[3] === 'otaka-only-legendary'),
+  'its Rare is Seal Swim and its Legendary is Seally Stare (the only EMEA S2 Rare and Legendary)');
+const order = sql(`select string_agg(r, ',') from (select string_agg(c.x ->> 'rarity', '>' order by c.p) r from public.pack_openings o, lateral jsonb_array_elements(o.cards) with ordinality c(x, p) where o.user_id = '${ADMIN}' group by o.id having bool_or(c.x ->> 'rarity' = 'legendary')) q;`).trim().split(',');
+check(order.length > 100 && order.every(r => /^((common|rare)>)*legendary(>legendary)*$/.test(r)), 'a Legendary is always the last card in the pack (' + order.length + ' packs with one)');
+const rpos = sql(`select string_agg(p::text, ',') from public.pack_openings o, lateral jsonb_array_elements(o.cards) with ordinality c(x, p) where o.user_id = '${ADMIN}' and c.x ->> 'rarity' = 'rare' and not exists (select 1 from jsonb_array_elements(o.cards) y where y ->> 'rarity' = 'legendary');`).trim().split(',').map(Number);
+check([1, 2, 3, 4, 5].every(k => rpos.filter(x => x === k).length / rpos.length > 0.12), 'Rares still land anywhere in the pack');
 check(+sql(`select count(*) from public.cards where active and id like 'v:champ-%' and season is null;`).trim() === 0, 'no champion cards for the current seasons (nobody has won them yet)');
-for (const [pack, season, reg, champs] of [['nas1-pack', 'S1 NA', 'NA', 6], ['nas2-pack', 'S2 NA', 'NA', 8],   // 5 champions + The Lurking Sova + Psyclone Spotlight + Detained
- ['emeas1-pack', 'S1 EMEA', 'EMEA', 5]]) {
+for (const [pack, season, reg, champs, legs] of [['nas1-pack', 'S1 NA', 'NA', 6, 0], ['nas2-pack', 'S2 NA', 'NA', 8, 0],   // 5 champions + The Lurking Sova + Psyclone Spotlight + Detained
+ ['emeas1-pack', 'S1 EMEA', 'EMEA', 6, 1]]) {   // 5 champions + Nap Time; Legendary: Puppy Eyes
   const tb = sql(as(ADMIN, `select string_agg((c ->> 'rarity') || '|' || coalesce(c ->> 'season', '-') || '|' || (c ->> 'region') || '|' || (c ->> 'id'), ',') from generate_series(1, 300) g, lateral jsonb_array_elements(public.buy_pack('${pack}' || left(g::text, 0)) -> 'cards') c;`)).trim().split(',').map(x => x.split('|'));
-  const rareIds = new Set(tb.filter(x => x[0] === 'rare').map(x => x[3]));
-  check(tb.length === 1500 && tb.every(x => x[1] === season && x[2] === reg) && tb.every(x => x[0] === 'common' ? x[3].startsWith('o:') : x[3].startsWith('v:')) && rareIds.size === champs,
-    `the ${season} throwback pack only gives ${season} cards, Commons plus its ${champs} Rares (${rareIds.size} seen)`);
+  const rareIds = new Set(tb.filter(x => x[0] === 'rare').map(x => x[3])), legIds = new Set(tb.filter(x => x[0] === 'legendary').map(x => x[3]));
+  check(tb.length === 1500 && tb.every(x => x[1] === season && x[2] === reg) && tb.every(x => x[0] === 'common' ? x[3].startsWith('o:') : x[3].startsWith('v:')) && rareIds.size === champs && legIds.size === legs,
+    `the ${season} throwback pack only gives ${season} cards, Commons plus its ${champs} Rares (${rareIds.size} seen) and ${legs} Legendary (${legIds.size} seen)`);
 }
 
 // paying with VP
@@ -111,7 +126,7 @@ sql(`insert into public.vp_ledger (user_id, kind, week, amount) values ('${P2}',
   check(fails(as(P1, `insert into public.user_cards (user_id, card_id) values ('${P1}', 'v:teklo-variant');`)), 'players cannot give themselves cards');
   check(fails(as(P1, `insert into public.vp_ledger (user_id, kind, amount) values ('${P1}', 'week', 999);`)), 'players cannot give themselves VP');
   check(fails(as(P1, `update public.card_packs set price = 1;`)) || sql(`select string_agg(price::text, ',') from public.card_packs`).trim() === '100,100,100,100,100', 'players cannot change the price');
-  check(sql(`set role anon; select count(*) from public.card_packs;`).trim() === '5' && sql(`set role anon; select count(*) from public.cards where active;`).trim() === '268', 'anyone can see the packs and the catalog');
+  check(sql(`set role anon; select count(*) from public.card_packs;`).trim() === '5' && sql(`set role anon; select count(*) from public.cards where active;`).trim() === '272', 'anyone can see the packs and the catalog');
   sql('drop database cardtest;', 'postgres');
   console.log(bad ? bad + ' problem(s)' : 'All card pack checks passed');
   process.exit(bad ? 1 : 0);

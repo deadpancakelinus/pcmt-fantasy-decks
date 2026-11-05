@@ -17,13 +17,16 @@ VARIANTS = [
     ('straight-variant', 'straight', 'rare', 'Straight Ace'),
     ('claps-variant', 'claps', 'rare', 'claps Clove'),
     ('croc-variant', 'crocman', 'rare', 'Croc Spotlight'),
+    # Only Otaka series (EMEA S2; the S1 pair is in PAST_VARIANTS): held back until staff release the series on backend.html
+    ('otaka-only-rare', 'otaka', 'rare', 'Seal Swim'),
+    ('otaka-only-legendary', 'otaka', 'legendary', 'Seally Stare'),
     # Champion Rares only exist for the season a player won: past seasons get theirs from trumps-cards.js
     # (see PAST below). Nobody has won NA S3 or EMEA S2 yet; when one ends, add that season's winners here
     # as ('champ-<player id>', '<player id>', 'rare', '<name> Champion') and their art in the Store and Library boards.
 ]
-# Rares drop 20% of the time. Epic and Legendary stay at 0 until cards of those rarities exist (a roll for a rarity
-# with no cards drops to the tier below, so non-zero odds there would quietly add to the Rare chance).
-ODDS = {'common': 80, 'rare': 20, 'epic': 0, 'legendary': 0}
+# Per card: Rare 10%, Legendary 5% (Nov 5 2026), the rest Common. A roll for a rarity the pack has no released cards of
+# gives a Common (buy_pack), so a pack with no Legendary yet is 90% Common / 10% Rare, never a hidden extra Rare chance.
+ODDS = {'common': 85, 'rare': 10, 'epic': 0, 'legendary': 5}
 PACKS = [
     # id, name, region it draws from, cards per pack, odds per card (percent), season (None = this season)
     ('na-pack', 'NA Card Pack', 'NA', 5, ODDS, None),
@@ -39,6 +42,9 @@ PAST_VARIANTS = [
     ('stingray-s2-variant', 'nas2-stingray', 'rare', 'The Lurking Sova'),
     ('psyclone-s2-variant', 'nas2-psyclone', 'rare', 'Psyclone Spotlight'),
     ('lazy-s2-variant', 'nas2-lazy', 'rare', 'Detained'),
+    # Only Otaka series, EMEA S1
+    ('otaka-s1-only-rare', 'emeas1-otaka', 'rare', 'Nap Time'),
+    ('otaka-s1-only-legendary', 'emeas1-otaka', 'legendary', 'Puppy Eyes'),
 ]
 
 here = os.path.dirname(os.path.abspath(__file__))

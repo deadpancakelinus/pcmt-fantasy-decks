@@ -279,8 +279,11 @@
 
     <!-- ===== Rare cards ===== -->
     <section class="pane" role="tabpanel" id="pane-rares" aria-labelledby="tab-rares" hidden>
-      <p class="note">Every Rare card. They're held back: packs can't drop a card until it's released here, and a pack's Rare roll gives a Common instead. Release a card and it can be pulled from its pack straight away (the Store shows the new odds on its next load). Hold it back again to stop new pulls; anyone who already pulled it keeps it.</p>
+      <p class="note">Every Rare and Legendary card. They're held back: packs can't drop a card until it's released here, and a roll for a rarity a pack has none of gives a Common instead. Release a card and it can be pulled from its pack straight away (the Store shows the new odds on its next load). Hold it back again to stop new pulls; anyone who already pulled it keeps it.</p>
       <div class="stats" id="r-stats"></div>
+      <h3 class="kicker" style="margin: 4px 0 0">Series</h3>
+      <p class="note" style="margin-top: -8px">Launch a whole series at once: every card in it is released together. Hold back the series to stop new pulls of all of them.</p>
+      <ul class="pg-list" id="r-series"></ul>
       <div class="toolbar">
         <label class="field"><span class="kicker">Pack</span><select id="r-pack"><option value="">All packs</option></select></label>
         <label class="field"><span class="kicker">Show</span><select id="r-show"><option value="">All</option><option value="held">Held back</option><option value="out">Released</option></select></label>
@@ -684,7 +687,8 @@
     var sel = $('r-pack'), keep = sel.value;
     sel.innerHTML = '<option value="">All packs</option>' + packs.map(function (n) { return '<option>' + esc(n) + '</option>'; }).join(''); sel.value = keep;
     var out = rares.filter(function (c) { return c.released; }).length;
-    $('r-stats').innerHTML = '<div class="stat"><b>' + rares.length + '</b><span>Rare cards</span></div><div class="stat"><b>' + (rares.length - out) + '</b><span>Held back</span></div><div class="stat"><b>' + out + '</b><span>Released</span></div>';
+    $('r-stats').innerHTML = '<div class="stat"><b>' + rares.length + '</b><span>Rare and up</span></div><div class="stat"><b>' + (rares.length - out) + '</b><span>Held back</span></div><div class="stat"><b>' + out + '</b><span>Released</span></div>';
+    drawSeries(rares);
     if (!hasReleased()) { $('r-msg').className = 'msg err'; $('r-msg').textContent = 'Releasing needs the latest card setup in Supabase (the "released" switch isn\'t there yet).'; }
     var f = $('r-pack').value, show = $('r-show').value;
     var list = rares.filter(function (c) { return (!f || packOf(c) === f) && (!show || (show === 'out') === !!c.released); })
@@ -699,6 +703,35 @@
         '<div class="rc-foot"><button type="button" class="btn' + (c.released ? ' ghost' : '') + '" data-release="' + esc(c.id) + '" data-to="' + (c.released ? '0' : '1') + '"' + (hasReleased() ? '' : ' disabled') + '>' + (c.released ? 'Hold back' : 'Release') + '</button><span class="msg" role="status" aria-live="polite"></span></div></div></article>';
     }).join('') || '<p class="msg">No Rare cards match.</p>';
   }
+  // Series (from the Store board's PCMT_STORE_ITEMS, via variant-art.js): launch or hold back every card in one at once.
+  var serArmed = null, serBusy = false;
+  function drawSeries(rares) {
+    var by = {};
+    rares.forEach(function (c) { var n = seriesOf(c); if (n && n !== 'Champions') (by[n] = by[n] || []).push(c); });
+    $('r-series').innerHTML = Object.keys(by).sort().map(function (n) {
+      var cs = by[n], out = cs.filter(function (c) { return c.released; }).length, all = out === cs.length, key = n + (all ? '|hold' : '|launch');
+      var kinds = ['legendary', 'epic', 'rare'].map(function (r) { var k = cs.filter(function (c) { return c.rarity === r; }).length; return k ? k + ' ' + cap(r) : ''; }).filter(Boolean).join(', ');
+      return '<li class="pg-item"><h3>' + esc(n) + '</h3><span class="who">' + cs.length + ' cards (' + esc(kinds) + ') · ' + (all ? 'Live' : out ? out + ' of ' + cs.length + ' released' : 'Held back') + '</span><span class="spacer"></span>' +
+        '<button class="btn' + (all ? ' ghost' : '') + (serArmed === key ? ' armed' : '') + '" type="button" data-series="' + esc(n) + '" data-to="' + (all ? '0' : '1') + '"' + (serBusy || !hasReleased() ? ' disabled' : '') + '>' +
+        (serArmed === key ? (all ? 'Press again to hold back' : 'Press again to launch') : (all ? 'Hold back series' : 'Launch series')) + '</button></li>';
+    }).join('') || '<li class="who">No series yet.</li>';
+  }
+  $('r-series').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-series]'); if (!b || serBusy) return;
+    var n = b.getAttribute('data-series'), to = b.getAttribute('data-to') === '1', key = n + (to ? '|launch' : '|hold');
+    if (serArmed !== key) { serArmed = key; return drawRares(); }
+    var cs = CATALOG.filter(function (c) { return c.rarity !== 'common' && c.active !== false && seriesOf(c) === n && !!c.released !== to; });
+    serArmed = null; serBusy = true; drawRares();
+    Promise.all(cs.map(function (c) {
+      return L.api('/rest/v1/rpc/fb_release_card', { method: 'POST', body: { p_card: c.id, p_released: to } }).then(function (r) { c.released = !!r; });
+    })).then(function () {
+      serBusy = false; drawRares(); $('r-msg').className = 'msg ok';
+      $('r-msg').textContent = to ? n + ' is live: all its cards can be pulled from their packs now.' : n + ' is held back again: no new pulls of its cards.';
+    }, function (err) {
+      serBusy = false; drawRares(); $('r-msg').className = 'msg err';
+      $('r-msg').textContent = 'Couldn\'t change all of ' + n + ': ' + err.message + '. Check which cards below are released.';
+    });
+  });
   $('r-pack').addEventListener('change', drawRares); $('r-show').addEventListener('change', drawRares);
   $('r-list').addEventListener('click', function (e) {
     var b = e.target.closest('button[data-release]'); if (!b) return;
