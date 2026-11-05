@@ -142,6 +142,11 @@
   .pg-item { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; padding: 18px 20px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
   .pg-item h3 { margin: 0; font: 700 26px/1 'Cabin Sketch', cursive; color: var(--ink); }
   .pg-item .btn.armed { background: #f5d76e; border-color: #f5d76e; }
+  .pk-main { flex: 1 1 280px; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+  .pk-main .who { font-size: 15px; }
+  .pk-ctrls { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 16px; }
+  .pk-ctrls .field input { width: 130px; min-width: 0; }
+  .ser-btns { display: flex; flex-wrap: wrap; gap: 10px; }
   .stat span { font: 400 12px/1 'JetBrains Mono', monospace; color: var(--dim); letter-spacing: .08em; text-transform: uppercase; }
   .count { font-weight: 400; color: var(--dim); }
   .rc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); gap: 16px; }
@@ -305,9 +310,6 @@
     <section class="pane" role="tabpanel" id="pane-rares" aria-labelledby="tab-rares" hidden>
       <p class="note">Every Rare and Legendary card. They're held back: packs can't drop a card until it's released here, and a roll for a rarity a pack has none of gives a Common instead. Release a card and it can be pulled from its pack straight away (the Store shows the new odds on its next load). Hold it back again to stop new pulls; anyone who already pulled it keeps it.</p>
       <div class="stats" id="r-stats"></div>
-      <h3 class="kicker" style="margin: 4px 0 0">Series</h3>
-      <p class="note" style="margin-top: -8px">Launch a whole series at once: every card in it is released together. Hold back the series to stop new pulls of all of them.</p>
-      <ul class="pg-list" id="r-series"></ul>
       <div class="toolbar">
         <label class="field"><span class="kicker">Pack</span><select id="r-pack"><option value="">All packs</option></select></label>
         <label class="field"><span class="kicker">Show</span><select id="r-show"><option value="">All</option><option value="held">Held back</option><option value="out">Released</option></select></label>
@@ -319,11 +321,13 @@
     <!-- ===== Card packs ===== -->
     <section class="pane" role="tabpanel" id="pane-packs" aria-labelledby="tab-packs" hidden>
       <p class="note">Set each pack's price in Credits. While "Open to everyone" is off, only PCMT Team staff and site admins can buy it, so you can test (a price of 0 is free). Odds and what's in each pack come from <span class="mono">tools/cards.py</span>.</p>
-      <div class="sheet"><table class="grid">
-        <thead><tr><th class="plain">Pack</th><th class="plain">Odds per card</th><th class="plain num">Price (Credits)</th><th class="plain num">Open to everyone</th><th class="plain"><span class="sr-only">Cards</span></th></tr></thead>
-        <tbody id="pk-rows"></tbody>
-      </table></div>
+      <h3 class="kicker" style="margin: 4px 0 0">Packs</h3>
+      <ul class="pg-list" id="pk-rows"></ul>
       <div class="bar"><button class="btn" id="pk-save" type="button">Save packs</button><p class="msg" id="pk-msg" role="status" aria-live="polite"></p></div>
+      <h3 class="kicker" style="margin: 12px 0 0">Series</h3>
+      <p class="note" style="margin-top: -8px">Launch a whole series at once: every card in it is released together, into the packs named on its cards. Hold back the series to stop new pulls of all of them. (Each card can also be released on its own on the Rare cards tab.)</p>
+      <p class="msg" id="ser-msg" role="status" aria-live="polite"></p>
+      <ul class="pg-list" id="r-series"></ul>
     </section>
 
     <!-- A pack's cards (View cards on the Card packs tab) -->
@@ -744,12 +748,14 @@
     $('r-series').innerHTML = Object.keys(by).sort().map(function (n) {
       var cs = by[n], out = cs.filter(function (c) { return c.released; }).length, all = out === cs.length, key = n + (all ? '|hold' : '|launch');
       var kinds = ['legendary', 'epic', 'rare'].map(function (r) { var k = cs.filter(function (c) { return c.rarity === r; }).length; return k ? k + ' ' + cap(r) : ''; }).filter(Boolean).join(', ');
-      return '<li class="pg-item"><h3>' + esc(n) + '</h3><span class="who">' + cs.length + ' cards (' + esc(kinds) + ') · ' + (all ? 'Live' : out ? out + ' of ' + cs.length + ' released' : 'Held back') + '</span><span class="spacer"></span>' +
-        '<button class="btn' + (all ? ' ghost' : '') + (serArmed === key ? ' armed' : '') + '" type="button" data-series="' + esc(n) + '" data-to="' + (all ? '0' : '1') + '"' + (serBusy || !hasReleased() ? ' disabled' : '') + '>' +
-        (serArmed === key ? (all ? 'Press again to hold back' : 'Press again to launch') : (all ? 'Hold back series' : 'Launch series')) + '</button></li>';
+      return '<li class="pg-item"><div class="pk-main"><h3>' + esc(n) + '</h3><span class="who">' + cs.length + ' cards (' + esc(kinds) + ') · ' + (all ? 'Live' : out ? out + ' of ' + cs.length + ' released' : 'Held back') + '</span></div>' +
+        '<div class="ser-btns"><button class="btn' + (all ? ' ghost' : '') + (serArmed === key ? ' armed' : '') + '" type="button" data-series="' + esc(n) + '" data-to="' + (all ? '0' : '1') + '"' + (serBusy || !hasReleased() ? ' disabled' : '') + '>' +
+        (serArmed === key ? (all ? 'Press again to hold back' : 'Press again to launch') : (all ? 'Hold back series' : 'Launch series')) + '</button>' +
+        '<button class="btn ghost" type="button" data-view-series="' + esc(n) + '">View cards</button></div></li>';
     }).join('') || '<li class="who">No series yet.</li>';
   }
   $('r-series').addEventListener('click', function (e) {
+    var v = e.target.closest('button[data-view-series]'); if (v) return pvOpenSeries(v.getAttribute('data-view-series'));
     var b = e.target.closest('button[data-series]'); if (!b || serBusy) return;
     var n = b.getAttribute('data-series'), to = b.getAttribute('data-to') === '1', key = n + (to ? '|launch' : '|hold');
     if (serArmed !== key) { serArmed = key; return drawRares(); }
@@ -758,11 +764,11 @@
     Promise.all(cs.map(function (c) {
       return L.api('/rest/v1/rpc/fb_release_card', { method: 'POST', body: { p_card: c.id, p_released: to } }).then(function (r) { c.released = !!r; });
     })).then(function () {
-      serBusy = false; drawRares(); $('r-msg').className = 'msg ok';
-      $('r-msg').textContent = to ? n + ' is live: all its cards can be pulled from their packs now.' : n + ' is held back again: no new pulls of its cards.';
+      serBusy = false; drawRares(); $('ser-msg').className = 'msg ok';
+      $('ser-msg').textContent = to ? n + ' is live: all its cards can be pulled from their packs now.' : n + ' is held back again: no new pulls of its cards.';
     }, function (err) {
-      serBusy = false; drawRares(); $('r-msg').className = 'msg err';
-      $('r-msg').textContent = 'Couldn\'t change all of ' + n + ': ' + err.message + '. Check which cards below are released.';
+      serBusy = false; drawRares(); $('ser-msg').className = 'msg err';
+      $('ser-msg').textContent = 'Couldn\'t change all of ' + n + ': ' + err.message + '. Check which of its cards are released on the Rare cards tab.';
     });
   });
   $('r-pack').addEventListener('change', drawRares); $('r-show').addEventListener('change', drawRares);
@@ -787,18 +793,18 @@
   }
   function drawPacks() {
     var packs = (window.PCMT_PACKS || []).slice().sort(function (a, b) { return (a.season ? 1 : 0) - (b.season ? 1 : 0) || (a.region === 'NA' ? 0 : 1) - (b.region === 'NA' ? 0 : 1) || String(a.name).localeCompare(b.name); });
-    if (!packs.length) { $('pk-rows').innerHTML = '<tr><td colspan="4">No packs yet. Run <span class="mono">setup/cards-setup.sql</span> in Supabase.</td></tr>'; $('pk-save').hidden = true; return; }
+    if (!packs.length) { $('pk-rows').innerHTML = '<li class="who">No packs yet. Run <span class="mono">setup/cards-setup.sql</span> in Supabase.</li>'; $('pk-save').hidden = true; return; }
     $('pk-save').hidden = false;
     $('pk-rows').innerHTML = packs.map(function (p) {
-      return '<tr data-pack="' + esc(p.id) + '"><td>' + esc(p.name) + '<span class="sub2">' + esc(p.region) + (p.season ? ' · ' + esc(p.season) : '') + ' · ' + esc(p.cards) + ' cards</span></td>' +
-        '<td class="mono">' + esc(oddsText(p.odds)) + '</td>' +
-        '<td class="num"><input type="number" inputmode="numeric" min="0" step="1" value="' + (p.price == null ? '' : p.price) + '" placeholder="—" aria-label="' + esc(p.name) + ' price in Credits"></td>' +
-        '<td class="num"><input type="checkbox"' + (p.open_to_all ? ' checked' : '') + ' aria-label="' + esc(p.name) + ' open to everyone" style="width:22px;height:22px;accent-color:#a5dcdd"></td>' +
-        '<td style="text-align: right"><button class="btn ghost" type="button" data-view-pack="' + esc(p.id) + '">View cards</button></td></tr>';
+      return '<li class="pg-item" data-pack="' + esc(p.id) + '"><div class="pk-main"><h3>' + esc(p.name) + '</h3>' +
+        '<span class="who">' + esc(p.region) + (p.season ? ' · ' + esc(p.season) : ' · this season') + ' · ' + esc(p.cards) + ' cards · ' + esc(oddsText(p.odds)) + '</span></div>' +
+        '<div class="pk-ctrls"><label class="field"><span class="kicker">Price (Credits)</span><input type="number" inputmode="numeric" min="0" step="1" value="' + (p.price == null ? '' : p.price) + '" placeholder="—" aria-label="' + esc(p.name) + ' price in Credits"></label>' +
+        '<label class="check"><input type="checkbox"' + (p.open_to_all ? ' checked' : '') + ' aria-label="' + esc(p.name) + ' open to everyone">Open to everyone</label>' +
+        '<button class="btn ghost" type="button" data-view-pack="' + esc(p.id) + '">View cards</button></div></li>';
     }).join('');
   }
   // ---------- View a pack's cards (the same cards buy_pack can draw: active, same region and season) ----------
-  var pvPack = null;
+  var pvPack = null, pvSeries = null;
   function pvCards(p) {
     return CATALOG.filter(function (c) { return c.active !== false && c.region === p.region && (c.season || null) === (p.season || null); });
   }
@@ -809,25 +815,26 @@
     return { name: c.title || c.player, team: '' };
   }
   function pvDraw() {
-    var p = pvPack; if (!p) return;
-    var cards = pvCards(p), q = (($('pv-q') || {}).value || '').trim().toLowerCase();
+    var p = pvPack; if (!p && !pvSeries) return;
+    var cards = p ? pvCards(p) : CATALOG.filter(function (c) { return c.active !== false && seriesOf(c) === pvSeries; }), q = (($('pv-q') || {}).value || '').trim().toLowerCase();
     var byR = { legendary: [], epic: [], rare: [], common: [] };
     cards.forEach(function (c) { (byR[c.rarity] || byR.common).push(c); });
-    var odds = p.odds || {}, html = '';
+    var odds = p ? p.odds || {} : {}, html = '';
     ['legendary', 'epic', 'rare'].forEach(function (r) {
       var list = byR[r].sort(function (a, b) { return String(a.title).localeCompare(String(b.title)); });
-      if (!list.length && !(+odds[r] > 0)) return;
+      if (!list.length && (!p || !(+odds[r] > 0))) return;
       var out = list.filter(function (c) { return c.released; }).length;
-      html += '<section class="pv-sec"><h3 class="rar-' + r + '">' + cap(r) + ' <small>' + list.length + ' card' + (list.length === 1 ? '' : 's') + ' · ' + out + ' released · ' + (+odds[r] || 0) + '% per card' +
-        (!out ? (list.length ? ' (rolls give a Common until one is released)' : ' (rolls give a Common)') : '') + '</small></h3>' +
+      html += '<section class="pv-sec"><h3 class="rar-' + r + '">' + cap(r) + ' <small>' + list.length + ' card' + (list.length === 1 ? '' : 's') + ' · ' + out + ' released' +
+        (p ? ' · ' + (+odds[r] || 0) + '% per card' + (!out ? (list.length ? ' (rolls give a Common until one is released)' : ' (rolls give a Common)') : '') : '') + '</small></h3>' +
         (list.length ? '<div class="pv-grid">' + list.map(function (c) {
           var art = artOf(c), who = pvWho(c), ser = seriesOf(c), cnt = COUNTS[c.id] || {};
           return '<article class="pv-card' + (c.released ? '' : ' held') + '"><div class="pv-art">' + (art ? '<img src="' + esc(art.src) + '" alt="" class="' + (art.center ? 'center' : '') + '" loading="lazy">' : '<span>' + esc(who.name) + '</span>') + '</div>' +
             '<div class="pv-info"><span class="pv-state ' + (c.released ? 'out' : 'held') + '">' + (c.released ? 'Released' : 'Held back') + '</span><b>' + esc(c.title) + '</b>' +
-            '<span class="who">' + esc(who.name) + (who.team ? ' · ' + esc(who.team) : '') + (ser ? ' · ' + esc(ser) : '') + '</span>' +
+            '<span class="who">' + esc(who.name) + (who.team ? ' · ' + esc(who.team) : '') + (p ? (ser ? ' · ' + esc(ser) : '') : ' · ' + esc(packOf(c))) + '</span>' +
             '<span class="who">' + (cnt.owners ? cnt.owners + ' owner' + (cnt.owners === 1 ? '' : 's') + ', ' + cnt.copies + ' cop' + (cnt.copies === 1 ? 'y' : 'ies') : 'Nobody owns it yet') + '</span></div></article>';
         }).join('') + '</div>' : '<p class="note">No ' + r + ' cards in this pack yet.</p>') + '</section>';
     });
+    if (!p) { $('pv-body').innerHTML = html || '<p class="note">No cards in this series.</p>'; return; }
     var commons = byR.common.map(function (c) { return { c: c, who: pvWho(c) }; }).sort(function (a, b) { return String(a.who.team).localeCompare(String(b.who.team)) || a.who.name.toLowerCase().localeCompare(b.who.name.toLowerCase()); });
     var shown = commons.filter(function (x) { return !q || (x.who.name + ' ' + x.who.team).toLowerCase().indexOf(q) >= 0; });
     html += '<section class="pv-sec"><h3 class="rar-common">Common <small>' + commons.length + ' cards · ' + (+odds.common || 0) + '% per card</small></h3>' +
@@ -839,7 +846,7 @@
     if (hadFocus) { var el = $('pv-q'); el.focus(); try { el.setSelectionRange(pos, pos); } catch (e) {} }
   }
   function pvOpen(id) {
-    pvPack = (window.PCMT_PACKS || []).filter(function (p) { return p.id === id; })[0] || PACKS.filter(function (p) { return p.id === id; })[0];
+    pvSeries = null; pvPack = (window.PCMT_PACKS || []).filter(function (p) { return p.id === id; })[0] || PACKS.filter(function (p) { return p.id === id; })[0];
     if (!pvPack) return;
     var p = pvPack, total = pvCards(p).length;
     $('pv-title').textContent = p.name;
@@ -848,13 +855,22 @@
     var d = $('pv'); if (d.showModal) d.showModal(); else d.setAttribute('open', '');
     $('pv-body').scrollTop = 0;
   }
+  function pvOpenSeries(n) {
+    pvPack = null; pvSeries = n;
+    var cs = CATALOG.filter(function (c) { return c.active !== false && seriesOf(c) === n; }), packs = [];
+    cs.forEach(function (c) { var k = packOf(c); if (packs.indexOf(k) < 0) packs.push(k); });
+    $('pv-title').textContent = n;
+    $('pv-sub').textContent = 'Series · ' + cs.length + ' card' + (cs.length === 1 ? '' : 's') + ' · ' + cs.filter(function (c) { return c.released; }).length + ' released · drops from ' + (packs.join(', ') || '—');
+    pvDraw();
+    var d = $('pv'); if (d.showModal) d.showModal(); else d.setAttribute('open', '');
+  }
   $('pk-rows').addEventListener('click', function (e) { var b = e.target.closest('[data-view-pack]'); if (b) pvOpen(b.getAttribute('data-view-pack')); });
   $('pv-close').addEventListener('click', function () { $('pv').close(); });
   $('pv').addEventListener('keydown', function (e) { if (e.key === 'Escape') { e.preventDefault(); this.close(); } });   // also from the search box, which would otherwise just clear itself
   $('pv').addEventListener('click', function (e) { if (e.target === this) this.close(); });   // a click on the dimmed backdrop
   $('pv-body').addEventListener('input', function (e) { if (e.target.id === 'pv-q') pvDraw(); });
   $('pk-save').addEventListener('click', function () {
-    var rows = Array.prototype.slice.call(document.querySelectorAll('#pk-rows tr[data-pack]'));
+    var rows = Array.prototype.slice.call(document.querySelectorAll('#pk-rows [data-pack]'));
     if (rows.some(function (tr) { var v = tr.querySelector('input[type=number]').value.trim(); return v !== '' && !/^\d+$/.test(v); })) return pkSay('Prices must be whole numbers of Credits (or empty for no price).', 'err');
     $('pk-save').disabled = true; pkSay('Saving…');
     Promise.all(rows.map(function (tr) {
