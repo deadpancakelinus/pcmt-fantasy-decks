@@ -100,8 +100,6 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 52px; line-height: 1; color: {{acc.color}}">{{acc.pct}}%</span>
 <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #c4d4d4">correct</span>
 </div>
-<div role="presentation" style="height: 6px; border-radius: 3px; background: #0d1416; overflow: hidden"><div style="height: 100%; width: {{acc.pct}}%; background: {{acc.color}}; border-radius: 3px"></div></div>
-<span style="font-size: 14px; color: #c4d4d4">{{acc.line}}</span>
 <sc-if value="{{acc.rankLine}}" hint-placeholder-val="{{ true }}"><span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">{{acc.rankLine}}</span></sc-if>
 </sc-if>
 <sc-if value="{{acc.none}}" hint-placeholder-val="{{ false }}">
@@ -669,7 +667,6 @@ class Component extends DCLogic {
       var pct = Math.round(100 * totals.correct / totals.decided);
       acc = { has: true, none: false, login: false, pct: pct,
         color: pct >= 70 ? '#8be4b7' : pct >= 40 ? '#a5dcdd' : '#ff8a80',
-        line: totals.correct + ' of ' + totals.decided + ' played ' + (totals.decided === 1 ? 'pick' : 'picks') + ' right',
         rankLine: meRow && ranked.length > 1 ? 'Top ' + Math.max(1, Math.ceil(100 * meRow.rank / ranked.length)) + '% of ' + ranked.length + ' players · #' + meRow.rank : '' };
     }
     // The champion of a finished bracket: the grand final (the highest series number) winner.
