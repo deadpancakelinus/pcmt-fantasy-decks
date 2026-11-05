@@ -108,7 +108,8 @@ const check = (ok, msg) => { if (!ok) { bad++; console.log('FAIL ' + msg); } };
       await pg.click('[data-act="next"]');
     }
     const counts = await pg.evaluate(() => [...document.querySelectorAll('[data-count]')].map(e => +e.dataset.count).concat(document.querySelectorAll('.tt-slot .tt-flip').length));
-    check(counts.length === 3 && counts.reduce((a, b) => a + b, 0) === 51, 'decks + table should total 51 EMEA cards, got ' + counts);
+    const emeaN = await pg.evaluate(() => window.PCMT_TRUMPS.cards.emea.length);   // from trumps-cards.js (the stats sync can add players)
+    check(counts.length === 3 && counts.reduce((a, b) => a + b, 0) === emeaN, 'decks + table should total ' + emeaN + ' EMEA cards, got ' + counts);
     check(!(await pg.$('.tt-pot, #tt-pot')), 'there should be no pot on the table');
     const over = await pg.evaluate(() => document.documentElement.scrollWidth - innerWidth);
     check(over <= 0, `${w}px sideways overflow ${over}px`);

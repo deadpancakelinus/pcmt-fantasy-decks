@@ -452,8 +452,10 @@
   });
 
   // ---------- start ----------
-  window.PCMT_TRUMPS = { newGame: newGame, play: play, botPick: botPick, STATS: STATS, ROUND_LIMIT: ROUND_LIMIT, cards: CARDS };
+  // cardHTML: the backend's View cards window draws cards exactly as they look here.
+  window.PCMT_TRUMPS = { newGame: newGame, play: play, botPick: botPick, STATS: STATS, ROUND_LIMIT: ROUND_LIMIT, cards: CARDS, cardHTML: cardHTML };
   function start() {
+    if (!$('tt-app')) return;   // loaded on a page without the game (backend.html, for cardHTML): nothing to start
     takeRedirectTokens();
     session = readSession();
     render();
