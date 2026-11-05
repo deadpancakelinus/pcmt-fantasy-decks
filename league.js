@@ -1013,6 +1013,82 @@
 (function () {
   'use strict';
   var KEY = 'pcmt-glass', d = document.documentElement;
+
+  // ---- Glass mode page bar (Nov 5 2026) ----
+  // The page links (nav[aria-label="Main"]) become one glass bar, like a phone dock: a light rim, a handle line at the
+  // bottom, and the current page on a raised teal pill that sits in a notch cut into the bar. Clicking another page
+  // slides the pill and the notch over to it, then the page changes. The bar is nav::before (rim) and nav::after
+  // (fill), both cut by an ellipse at the current page (mask); their size and the notch come from CSS variables set
+  // below from the links' positions. One row; on a narrow screen it scrolls sideways. Only in glass mode.
+  var N = 'html.pcmt-glass nav[aria-label="Main"]';
+  // The notch: an ellipse around the raised pill, in the bar's own coordinates (the bar starts 30px down the nav and the
+  // pill rises 30px, so it sits a little under half above the bar, cradled by the dip).
+  var NOTCH = 'radial-gradient(var(--pcmt-dock-rx) 29px at var(--pcmt-dock-x) 4px,transparent 93%,#000 100%)';
+  var NOTCH_IN = 'radial-gradient(calc(var(--pcmt-dock-rx) + 1px) 30px at calc(var(--pcmt-dock-x) - 1px) 3px,transparent 93%,#000 100%)';
+  var DOCK_CSS =
+    '@property --pcmt-dock-x{syntax:"<length>";inherits:true;initial-value:-999px}' +   // registered so the notch can slide
+    '@property --pcmt-dock-rx{syntax:"<length>";inherits:true;initial-value:40px}' +
+    N + '{position:relative;flex-wrap:nowrap!important;gap:2px!important;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;padding:44px 18px 24px!important;margin:-14px 0 -4px}' +
+    N + '[data-pcmt-moving]{transition:--pcmt-dock-x .34s cubic-bezier(.3,.7,.2,1),--pcmt-dock-rx .34s cubic-bezier(.3,.7,.2,1)}' +
+    N + '::-webkit-scrollbar{display:none}' +
+    N + '::before,' + N + '::after{content:"";position:absolute;left:0;top:30px;height:66px;width:var(--pcmt-dock-w,100%);border-radius:33px;pointer-events:none;z-index:0;' +
+      '-webkit-mask-image:' + NOTCH + ';mask-image:' + NOTCH + '}' +
+    N + '::before{background:linear-gradient(180deg,rgba(255,255,255,.32),rgba(255,255,255,.08) 45%,rgba(255,255,255,.2))}' +   // the rim
+    N + '::after{left:1px;top:31px;height:64px;width:calc(var(--pcmt-dock-w,100%) - 2px);border-radius:32px;' +
+      'background:linear-gradient(rgba(255,255,255,.34),rgba(255,255,255,.34)) center bottom 9px/84px 3px no-repeat,' +   // the handle line
+      'radial-gradient(120% 140% at 50% 120%,rgba(165,220,221,.16),transparent 60%),linear-gradient(180deg,rgba(18,30,33,.86),rgba(9,16,18,.9));' +
+      'box-shadow:inset 0 1px 0 rgba(255,255,255,.12);-webkit-mask-image:' + NOTCH_IN + ';mask-image:' + NOTCH_IN + '}' +
+    N + ' a{position:relative;z-index:1;flex:none;background:transparent!important;color:#eaf4f4!important;font-weight:500!important;border-radius:999px!important;white-space:nowrap;' +
+      'transition:transform .34s cubic-bezier(.3,.7,.2,1),background-color .2s,box-shadow .34s,color .2s}' +
+    N + ' a:hover{background:rgba(255,255,255,.07)!important}' +
+    // the current page: a raised teal pill in the notch (and, while moving, the page you picked)
+    N + ':not([data-pcmt-moving]) a[aria-current],' + N + ' a[data-pcmt-next]{transform:translateY(-30px);color:#fff!important;font-weight:600!important;' +
+      'background:linear-gradient(180deg,#2c8a83,#17544f)!important;box-shadow:0 0 0 1px rgba(255,255,255,.22),0 8px 18px rgba(0,0,0,.5),0 0 18px rgba(44,138,131,.35),inset 0 1px 0 rgba(255,255,255,.25)}' +
+    '@media (prefers-reduced-motion:reduce){' + N + ',' + N + ' a{transition:none!important}}';
+  var dockRaf = 0;
+  function dockMeasure(target) {
+    var nav = document.querySelector('nav[aria-label="Main"]');
+    if (!nav || !d.classList.contains('pcmt-glass')) return;
+    var links = Array.prototype.filter.call(nav.querySelectorAll('a[href]'), function (a) { return a.offsetParent !== null; });
+    if (!links.length) return;
+    var last = links[links.length - 1], cur = target || nav.querySelector('a[aria-current]');
+    nav.style.setProperty('--pcmt-dock-w', (last.offsetLeft + last.offsetWidth + 18) + 'px');
+    if (cur && cur.offsetParent !== null) {
+      nav.style.setProperty('--pcmt-dock-x', (cur.offsetLeft + cur.offsetWidth / 2) + 'px');
+      nav.style.setProperty('--pcmt-dock-rx', (cur.offsetWidth / 2 + 11) + 'px');
+      if (!target && nav.scrollWidth > nav.clientWidth && !nav.getAttribute('data-pcmt-scrolled')) {   // phones: bring the current page into view
+        nav.setAttribute('data-pcmt-scrolled', '1');
+        nav.scrollLeft = Math.max(0, cur.offsetLeft + cur.offsetWidth / 2 - nav.clientWidth / 2);
+      }
+    } else nav.style.setProperty('--pcmt-dock-x', '-999px');
+  }
+  function dockSoon() { cancelAnimationFrame(dockRaf); dockRaf = requestAnimationFrame(function () { dockMeasure(); }); }
+  // Pages draw (and redraw) their header after league.js loads, and launched pages show up later: measure again then.
+  new MutationObserver(function (list) {
+    if (!d.classList.contains('pcmt-glass')) return;
+    if (list.some(function (m) { return m.target.nodeType === 1 && (m.target.matches('nav[aria-label="Main"], nav[aria-label="Main"] *') || m.target.querySelector && m.target.querySelector('nav[aria-label="Main"]')); }) ||
+        list.some(function (m) { return m.target === d; })) dockSoon();
+  }).observe(d, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'aria-current'] });
+  window.addEventListener('resize', dockSoon);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(dockSoon);
+  // Picking a page: the pill and the notch slide over to it, then the page changes.
+  document.addEventListener('click', function (e) {
+    if (!d.classList.contains('pcmt-glass') || e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    var a = e.target && e.target.closest ? e.target.closest('nav[aria-label="Main"] a[href]') : null;
+    if (!a || a.target === '_blank' || a.getAttribute('aria-current')) return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var nav = a.closest('nav'), href = a.href;
+    e.preventDefault();
+    nav.setAttribute('data-pcmt-moving', '');
+    a.setAttribute('data-pcmt-next', '');
+    dockMeasure(a);
+    setTimeout(function () { location.href = href; }, 360);
+  });
+  window.addEventListener('pageshow', function (e) {   // back button: the page comes back from memory, so put the pill back
+    if (!e.persisted) return;
+    var nav = document.querySelector('nav[aria-label="Main"]');
+    if (nav) { nav.removeAttribute('data-pcmt-moving'); Array.prototype.forEach.call(nav.querySelectorAll('[data-pcmt-next]'), function (x) { x.removeAttribute('data-pcmt-next'); }); dockMeasure(); }
+  });
   function read() { try { return localStorage.getItem(KEY) === '1'; } catch (e) { return false; } }
   var css = document.createElement('style');
   var P = 'html.pcmt-glass ';
@@ -1031,9 +1107,10 @@
     P + '.hm-cc textarea,' + P + 'input[type=text],' + P + 'input[type=search],' + P + 'select{background-color:rgba(0,0,0,.22)!important;border-color:rgba(255,255,255,.18)!important}' +
     P + 'footer{background:rgba(6,12,14,.35);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}' +
     P + 'table.grid,' + P + '.sheet{background:rgba(255,255,255,.04)!important}' +
-    '@media (prefers-reduced-transparency:reduce){html.pcmt-glass [style]{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}}';
+    '@media (prefers-reduced-transparency:reduce){html.pcmt-glass [style]{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}}' +
+    DOCK_CSS;
   (document.head || d).appendChild(css);
-  function apply(on) { d.classList.toggle('pcmt-glass', !!on); }
+  function apply(on) { d.classList.toggle('pcmt-glass', !!on); if (on) dockSoon(); }
   apply(read());
   window.PCMT_GLASS = {
     on: function () { return d.classList.contains('pcmt-glass'); },
