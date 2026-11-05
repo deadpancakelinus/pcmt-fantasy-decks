@@ -211,7 +211,7 @@
     var rv = o.rare, art = rv ? rareArt(rv.variant) : '', ink = rv ? (RARE_INK[rv.rarity] || RARE_INK.rare) : '';
     return '<div class="tt-card' + (o.result ? ' ' + o.result : '') + (rv ? ' tt-rare' : '') + '" style="--team:' + c.color + (rv ? ';--rare:' + ink : '') + '"' + (rv ? ' title="' + esc(rv.title) + '"' : '') + '>' +
       '<span class="tt-wm" aria-hidden="true"><img src="' + REGIONS[region].logo + '" alt=""></span>' +
-      (art ? '<span class="tt-rare-art' + (rv.variant.indexOf('champ-') === 0 ? ' is-center' : '') + '" aria-hidden="true"><img src="' + art + '" alt=""></span>' : '') +
+      (art ? '<span class="tt-rare-art' + (rv.variant.indexOf('champ-') === 0 ? ' is-center' : (window.PCMT_VARIANT_FULL || {})[rv.variant] ? ' is-full' : '') + '" aria-hidden="true"><img src="' + art + '" alt=""></span>' : '') +   // is-full: photos fill the card (variant-art.js)
       (rv ? '<span class="tt-rare-sheen" aria-hidden="true"></span>' : '') +
       '<span class="tt-edge"></span><div class="tt-card-body">' +
       '<div class="tt-card-top">' + (logo ? '<img class="tt-team" src="assets/' + logo + '" alt="' + esc(c.teamName) + '" title="' + esc(c.teamName) + '">' : '<img class="tt-team tt-sub" src="' + REGIONS[region].logo + '" alt="' + REGIONS[region].label.split(' ')[0] + ' sub" title="Sub (' + REGIONS[region].label.split(' ')[0] + ')">') +   // subs: the logo of the region they sub for

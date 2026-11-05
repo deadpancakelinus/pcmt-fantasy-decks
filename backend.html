@@ -76,6 +76,7 @@
   .tt-rare-art { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
   .tt-rare-art img { position: absolute; right: -8%; bottom: 0; height: 92%; width: auto; max-width: none; opacity: .5; }
   .tt-rare-art.is-center img { right: 50%; transform: translateX(50%); bottom: 18%; height: 58%; opacity: .32; }
+  .tt-rare-art.is-full img { right: 0; bottom: 0; width: 100%; height: 100%; object-fit: cover; opacity: .55; filter: brightness(.62); }   /* photos and screenshots fill the card, darkened so the card text stays readable */
   .tt-rare-sheen { position: absolute; inset: 0; z-index: 0; pointer-events: none; background: linear-gradient(115deg, transparent 42%, color-mix(in srgb, var(--rare) 22%, transparent) 50%, transparent 58%); background-size: 250% 100%; animation: tt-sheen 5s ease-in-out infinite; }
   @keyframes tt-sheen { 0%, 60% { background-position: 120% 0; } 100% { background-position: -120% 0; } }
   .tt-rare-stamp { font: 700 10px/1 'JetBrains Mono', monospace; letter-spacing: .14em; color: var(--rare); border: 1.5px solid var(--rare); border-radius: 4px; padding: 3px 7px; transform: rotate(-9deg); white-space: nowrap; }
