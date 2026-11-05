@@ -93,6 +93,22 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </sc-for>
 </div>
 </div>
+<section aria-labelledby="acc-h" style="flex: 1 1 240px; max-width: 340px; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px; padding: 18px 20px; border: 1px solid #2a3a3e; border-radius: 12px; background: #172124">
+<h2 id="acc-h" style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; letter-spacing: 0.1em; color: #a5dcdd; white-space: nowrap">YOUR PICK'EMS</h2>
+<sc-if value="{{acc.has}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; align-items: baseline; gap: 10px">
+<span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 52px; line-height: 1; color: {{acc.color}}">{{acc.pct}}%</span>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #c4d4d4">correct</span>
+</div>
+<div role="presentation" style="height: 6px; border-radius: 3px; background: #0d1416; overflow: hidden"><div style="height: 100%; width: {{acc.pct}}%; background: {{acc.color}}; border-radius: 3px"></div></div>
+<span style="font-size: 14px; color: #c4d4d4">{{acc.line}}</span>
+<sc-if value="{{acc.rankLine}}" hint-placeholder-val="{{ true }}"><span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">{{acc.rankLine}}</span></sc-if>
+</sc-if>
+<sc-if value="{{acc.none}}" hint-placeholder-val="{{ false }}">
+<p style="margin: 0; color: #c4d4d4; line-height: 1.5">{{acc.note}}</p>
+<sc-if value="{{acc.login}}" hint-placeholder-val="{{ false }}"><a href="login.html" style="align-self: flex-start; font-family: 'JetBrains Mono', monospace; font-size: 13px">Log in with Discord</a></sc-if>
+</sc-if>
+</section>
 <section aria-labelledby="next-h" style="flex: 0 1 440px; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px; padding: 18px 20px; border: 1px solid #2a3a3e; border-radius: 12px; background: #172124">
 <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px">
 <h2 id="next-h" style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; letter-spacing: 0.1em; color: #a5dcdd; white-space: nowrap">{{nextHeading}}</h2>
@@ -553,7 +569,7 @@ class Component extends DCLogic {
     // The whole bracket locks when the next game starts and stays locked to the end of the playoffs.
     var lockAt = pcmtBracketLockAt(b, ev), bracketLocked = finished || (lockAt !== null && now >= lockAt);
     Object.keys(R).forEach(function (n) { R[n].locked = R[n].done || bracketLocked; });
-    var totals = { points: 0, credits: 0, correct: 0, made: 0, open: 0, left: 0 };
+    var totals = { points: 0, credits: 0, correct: 0, made: 0, open: 0, left: 0, decided: 0 };
     function row(code, real, info, side, first) {
       var t = code ? PCMT_PICKEM_TEAMS[code] : null, ref = side === 'a' ? info.s.a : info.s.b;
       var p = info.pick, picked = !!(p && code && p.winner === code), isWinner = info.done && info.winner === code;
@@ -582,6 +598,7 @@ class Component extends DCLogic {
     var boxes = V.layout.map(function (L) {
       var info = R[L.n], p = info.pick;
       if (p) totals.made++;
+      if (info.done && p) totals.decided++;
       if (info.done && p && p.winner === info.winner) { totals.points++; totals.correct++; totals.credits += ev.credits_win; }
       if (!info.locked) {
         totals.open++;
@@ -640,6 +657,19 @@ class Component extends DCLogic {
       };
     });
     var mine = shown.some(function (x) { return x.m.me; }) ? null : ranked.find(function (x) { return x.m.me; });
+    // Your Pick'ems (top of the page): % of your picks on played series that were right, and where that puts you in the
+    // standings (top X% by points). Logged out: a log-in link. The canvas preview uses the sample picks.
+    var Lg = W.PCMT_LEAGUE, signedIn = Lg ? !!Lg.signedIn : !!this.props.samplePicks;
+    var meRow = ranked.find(function (x) { return x.m.me; }), acc = { has: false, none: true, login: false, note: '' };
+    if (!signedIn) { acc.login = true; acc.note = 'Log in to see what percentage of your picks are right.'; }
+    else if (!totals.decided) acc.note = finished && !totals.made ? 'You didn\'t make picks for these playoffs.' : 'Your percentage shows once a series you picked has been played.';
+    else {
+      var pct = Math.round(100 * totals.correct / totals.decided);
+      acc = { has: true, none: false, login: false, pct: pct,
+        color: pct >= 70 ? '#8be4b7' : pct >= 40 ? '#a5dcdd' : '#ff8a80',
+        line: totals.correct + ' of ' + totals.decided + ' played ' + (totals.decided === 1 ? 'pick' : 'picks') + ' right',
+        rankLine: meRow && ranked.length > 1 ? 'Top ' + Math.max(1, Math.ceil(100 * meRow.rank / ranked.length)) + '% of ' + ranked.length + ' players · #' + meRow.rank : '' };
+    }
     // The champion of a finished bracket: the grand final (the highest series number) winner.
     var gf = b.series.reduce(function (m, s) { return !m || s.n > m.n ? s : m; }, null), champ = gf && R[gf.n] ? R[gf.n].winner : null;
     var champT = champ ? PCMT_PICKEM_TEAMS[champ] : null;
@@ -650,6 +680,7 @@ class Component extends DCLogic {
         pick: function () { self.setView(x.id); } };
     });
     return {
+      acc: acc,
       tabs: tabs, viewLabel: V.label, viewLogo: V.logo, powerEvent: b.event || '', powerAria: 'Groups. Open the ' + (V.tab || b.region) + ' power rankings', powerTitle: (V.tab || b.region) + ' power rankings',
       isFinished: finished, notFinished: !finished, nextHeading: finished ? 'CHAMPIONS' : 'NEXT UP', champName: champT ? champT.name : (champ || ''), champLogo: champT ? champT.logo : '', champColor: PCMT_PICKEM_COLORS[champ] || '#f5d76e', champSeason: V.season || b.name,
       locked: locked, unlocked: !locked,
