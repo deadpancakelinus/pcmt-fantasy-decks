@@ -18,8 +18,8 @@ VARIANTS = [
     ('claps-variant', 'claps', 'rare', 'claps Clove'),
     ('croc-variant', 'crocman', 'rare', 'Croc Spotlight'),
     # Only Otaka series (EMEA S2; the S1 pair is in PAST_VARIANTS): held back until staff release the series on backend.html
-    ('otaka-only-rare', 'otaka', 'rare', 'Seal Swim'),
-    ('otaka-only-legendary', 'otaka', 'legendary', 'Seally Stare'),
+    ('otaka-only-rare', 'otaka', 'rare', 'Seally'),
+    ('otaka-only-legendary', 'otaka', 'legendary', 'Super Seal'),
     # Champion Rares only exist for the season a player won: past seasons get theirs from trumps-cards.js
     # (see PAST below). Nobody has won NA S3 or EMEA S2 yet; when one ends, add that season's winners here
     # as ('champ-<player id>', '<player id>', 'rare', '<name> Champion') and their art in the Store and Library boards.
@@ -43,8 +43,8 @@ PAST_VARIANTS = [
     ('psyclone-s2-variant', 'nas2-psyclone', 'rare', 'Psyclone Spotlight'),
     ('lazy-s2-variant', 'nas2-lazy', 'rare', 'Detained'),
     # Only Otaka series, EMEA S1
-    ('otaka-s1-only-rare', 'emeas1-otaka', 'rare', 'Nap Time'),
-    ('otaka-s1-only-legendary', 'emeas1-otaka', 'legendary', 'Puppy Eyes'),
+    ('otaka-s1-only-rare', 'emeas1-otaka', 'rare', 'Sleepy Seal'),
+    ('otaka-s1-only-legendary', 'emeas1-otaka', 'legendary', 'Sneaky Seal'),
 ]
 
 here = os.path.dirname(os.path.abspath(__file__))

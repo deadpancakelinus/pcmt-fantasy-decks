@@ -94,14 +94,14 @@ const euShare = k => eu.filter(x => x[0] === k).length / eu.length;
 check(eu.length === 5000 && eu.every(x => x[1] === 'EMEA') && Math.abs(euShare('common') - 0.85) < 0.02 && Math.abs(euShare('rare') - 0.10) < 0.02 && Math.abs(euShare('legendary') - 0.05) < 0.015,
   `EMEA pack odds hold: common ${(euShare('common') * 100).toFixed(1)}%, rare ${(euShare('rare') * 100).toFixed(1)}%, legendary ${(euShare('legendary') * 100).toFixed(1)}%`);
 check(eu.filter(x => x[0] === 'rare').every(x => x[2] === 'v' && x[3] === 'otaka-only-rare') && eu.filter(x => x[0] === 'legendary').every(x => x[3] === 'otaka-only-legendary'),
-  'its Rare is Seal Swim and its Legendary is Seally Stare (the only EMEA S2 Rare and Legendary)');
+  'its Rare is Seally and its Legendary is Super Seal (the only EMEA S2 Rare and Legendary)');
 const order = sql(`select string_agg(r, ',') from (select string_agg(c.x ->> 'rarity', '>' order by c.p) r from public.pack_openings o, lateral jsonb_array_elements(o.cards) with ordinality c(x, p) where o.user_id = '${ADMIN}' group by o.id having bool_or(c.x ->> 'rarity' = 'legendary')) q;`).trim().split(',');
 check(order.length > 100 && order.every(r => /^((common|rare)>)*legendary(>legendary)*$/.test(r)), 'a Legendary is always the last card in the pack (' + order.length + ' packs with one)');
 const rpos = sql(`select string_agg(p::text, ',') from public.pack_openings o, lateral jsonb_array_elements(o.cards) with ordinality c(x, p) where o.user_id = '${ADMIN}' and c.x ->> 'rarity' = 'rare' and not exists (select 1 from jsonb_array_elements(o.cards) y where y ->> 'rarity' = 'legendary');`).trim().split(',').map(Number);
 check([1, 2, 3, 4, 5].every(k => rpos.filter(x => x === k).length / rpos.length > 0.12), 'Rares still land anywhere in the pack');
 check(+sql(`select count(*) from public.cards where active and id like 'v:champ-%' and season is null;`).trim() === 0, 'no champion cards for the current seasons (nobody has won them yet)');
 for (const [pack, season, reg, champs, legs] of [['nas1-pack', 'S1 NA', 'NA', 6, 0], ['nas2-pack', 'S2 NA', 'NA', 8, 0],   // 5 champions + The Lurking Sova + Psyclone Spotlight + Detained
- ['emeas1-pack', 'S1 EMEA', 'EMEA', 6, 1]]) {   // 5 champions + Nap Time; Legendary: Puppy Eyes
+ ['emeas1-pack', 'S1 EMEA', 'EMEA', 6, 1]]) {   // 5 champions + Sleepy Seal; Legendary: Sneaky Seal
   const tb = sql(as(ADMIN, `select string_agg((c ->> 'rarity') || '|' || coalesce(c ->> 'season', '-') || '|' || (c ->> 'region') || '|' || (c ->> 'id'), ',') from generate_series(1, 300) g, lateral jsonb_array_elements(public.buy_pack('${pack}' || left(g::text, 0)) -> 'cards') c;`)).trim().split(',').map(x => x.split('|'));
   const rareIds = new Set(tb.filter(x => x[0] === 'rare').map(x => x[3])), legIds = new Set(tb.filter(x => x[0] === 'legendary').map(x => x[3]));
   check(tb.length === 1500 && tb.every(x => x[1] === season && x[2] === reg) && tb.every(x => x[0] === 'common' ? x[3].startsWith('o:') : x[3].startsWith('v:')) && rareIds.size === champs && legIds.size === legs,

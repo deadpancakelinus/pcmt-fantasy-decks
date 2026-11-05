@@ -219,7 +219,7 @@ function pcmtPastCard(c) {
   return st ? { st: st, team: { code: st.team || 'SUB', name: st.teamName, color: st.color, logo: st.logo ? 'assets/' + st.logo : '' } } : { st: null, team: { code: '', name: c.season, color: '#a5dcdd', logo: '' } };
 }
 // Variant art by variant id (cards table: 'v:<id>').
-var PCMT_VARIANT_ART = { 'teklo-variant': '/_blob/8b1855340f56f72ea07f5447ca167038', 'straight-variant': '/_blob/21ae11daa07a46a08f5d3cf16fd0b2d9', 'claps-variant': '/_blob/bb4db91bdcfb1958431ff90d376d30cb', 'croc-variant': '/_blob/c78f02d9db76bfab051f4c44769a3d17', 'stingray-s2-variant': '/_blob/0b6460a50d263be2466f15c89cb24f7b', 'psyclone-s2-variant': '/_blob/170ab53f9041539ed463055bb039a0ab', 'lazy-s2-variant': '/_blob/837b0e901e5b7c2268a597ff9176be4b', 'lore-variant': '/_blob/6d7189fcc9c2218d0aa67f7572a102e3', 'claps-s2-variant': '/_blob/6db6f0ae75aa2952c16701e3164f4569' , 'otaka-only-rare': '/_blob/5631323951240bd2dc04700dce08369a', 'otaka-only-legendary': '/_blob/813975bd10fc92d144665dffb98e4e00', 'otaka-s1-only-rare': '/_blob/a594dae74be81357c5166e8b6fcfedec', 'otaka-s1-only-legendary': '/_blob/4eaa7eece6d172ff05bc4b8d784bc31f' };
+var PCMT_VARIANT_ART = { 'teklo-variant': '/_blob/8b1855340f56f72ea07f5447ca167038', 'straight-variant': '/_blob/21ae11daa07a46a08f5d3cf16fd0b2d9', 'claps-variant': '/_blob/bb4db91bdcfb1958431ff90d376d30cb', 'croc-variant': '/_blob/c78f02d9db76bfab051f4c44769a3d17', 'stingray-s2-variant': '/_blob/0b6460a50d263be2466f15c89cb24f7b', 'psyclone-s2-variant': '/_blob/170ab53f9041539ed463055bb039a0ab', 'lazy-s2-variant': '/_blob/837b0e901e5b7c2268a597ff9176be4b', 'lore-variant': '/_blob/6d7189fcc9c2218d0aa67f7572a102e3', 'claps-s2-variant': '/_blob/6db6f0ae75aa2952c16701e3164f4569' , 'otaka-only-rare': '/_blob/813975bd10fc92d144665dffb98e4e00', 'otaka-only-legendary': '/_blob/5631323951240bd2dc04700dce08369a', 'otaka-s1-only-rare': '/_blob/a594dae74be81357c5166e8b6fcfedec', 'otaka-s1-only-legendary': '/_blob/4eaa7eece6d172ff05bc4b8d784bc31f' };
 // Art that fills the whole card face (screenshots); the rest sit at the side like a cut-out.
 // lore-variant and claps-s2-variant are no longer in packs; their art stays so copies already pulled still look right.
 var PCMT_VARIANT_FULL = { 'straight-variant': true, 'lore-variant': true, 'claps-s2-variant': true, 'lazy-s2-variant': true,
@@ -271,22 +271,22 @@ var PCMT_STORE_ITEMS = [
     acs: 195, kast: 72, hs: 21, dpr: 0.65, toxic: 1.0 },
   // Only Otaka (Nov 5 2026): a Rare and a Legendary of otaka for each season he played. Held back until staff release
   // the series on backend.html (Rare cards tab).
-  { id: 'otaka-only-rare', card: 'v:otaka-only-rare', rarity: 'rare', pack: 'EMEA Card Pack', series: 'Only Otaka', title: 'Seal Swim', blurb: '',
-    name: 'otaka', team: 'SEAL', teamName: 'Stay Seally', color: '#8fd3e8', season: 'S2 EMEA', maps: 20, role: 'duelist',
-    teamLogo: '/_blob/7f2055fcc7e78ae7d1510fe56608fd83', regionLogo: '/_blob/3c7e7374dceead68d5c58818d0bcfe8a',
-    roleIcon: '/_blob/3911a104cbddaf481d7a7bf070a2e696', art: '/_blob/5631323951240bd2dc04700dce08369a',
-    acs: 149, kast: 65, hs: 13, dpr: 0.79, toxic: 0.73 },
-  { id: 'otaka-only-legendary', card: 'v:otaka-only-legendary', rarity: 'legendary', pack: 'EMEA Card Pack', series: 'Only Otaka', title: 'Seally Stare', blurb: '',
+  { id: 'otaka-only-rare', card: 'v:otaka-only-rare', rarity: 'rare', pack: 'EMEA Card Pack', series: 'Only Otaka', title: 'Seally', blurb: '',
     name: 'otaka', team: 'SEAL', teamName: 'Stay Seally', color: '#8fd3e8', season: 'S2 EMEA', maps: 20, role: 'duelist',
     teamLogo: '/_blob/7f2055fcc7e78ae7d1510fe56608fd83', regionLogo: '/_blob/3c7e7374dceead68d5c58818d0bcfe8a',
     roleIcon: '/_blob/3911a104cbddaf481d7a7bf070a2e696', art: '/_blob/813975bd10fc92d144665dffb98e4e00',
     acs: 149, kast: 65, hs: 13, dpr: 0.79, toxic: 0.73 },
-  { id: 'otaka-s1-only-rare', card: 'v:otaka-s1-only-rare', rarity: 'rare', pack: 'EMEA S1 Throwback Pack', series: 'Only Otaka', title: 'Nap Time', blurb: '',
+  { id: 'otaka-only-legendary', card: 'v:otaka-only-legendary', rarity: 'legendary', pack: 'EMEA Card Pack', series: 'Only Otaka', title: 'Super Seal', blurb: '',
+    name: 'otaka', team: 'SEAL', teamName: 'Stay Seally', color: '#8fd3e8', season: 'S2 EMEA', maps: 20, role: 'duelist',
+    teamLogo: '/_blob/7f2055fcc7e78ae7d1510fe56608fd83', regionLogo: '/_blob/3c7e7374dceead68d5c58818d0bcfe8a',
+    roleIcon: '/_blob/3911a104cbddaf481d7a7bf070a2e696', art: '/_blob/5631323951240bd2dc04700dce08369a',
+    acs: 149, kast: 65, hs: 13, dpr: 0.79, toxic: 0.73 },
+  { id: 'otaka-s1-only-rare', card: 'v:otaka-s1-only-rare', rarity: 'rare', pack: 'EMEA S1 Throwback Pack', series: 'Only Otaka', title: 'Sleepy Seal', blurb: '',
     name: 'Otaka', team: 'MISC', teamName: 'Mischifs', color: '#2e86de', season: 'S1 EMEA', maps: 16, role: 'duelist',
     teamLogo: '/_blob/aae3db0cd217dd92c695a88e0dacb9f0', regionLogo: '/_blob/3c7e7374dceead68d5c58818d0bcfe8a',
     roleIcon: '/_blob/3911a104cbddaf481d7a7bf070a2e696', art: '/_blob/a594dae74be81357c5166e8b6fcfedec',
     acs: 136, kast: 62, hs: 11, dpr: 0.79, toxic: 0.66 },
-  { id: 'otaka-s1-only-legendary', card: 'v:otaka-s1-only-legendary', rarity: 'legendary', pack: 'EMEA S1 Throwback Pack', series: 'Only Otaka', title: 'Puppy Eyes', blurb: '',
+  { id: 'otaka-s1-only-legendary', card: 'v:otaka-s1-only-legendary', rarity: 'legendary', pack: 'EMEA S1 Throwback Pack', series: 'Only Otaka', title: 'Sneaky Seal', blurb: '',
     name: 'Otaka', team: 'MISC', teamName: 'Mischifs', color: '#2e86de', season: 'S1 EMEA', maps: 16, role: 'duelist',
     teamLogo: '/_blob/aae3db0cd217dd92c695a88e0dacb9f0', regionLogo: '/_blob/3c7e7374dceead68d5c58818d0bcfe8a',
     roleIcon: '/_blob/3911a104cbddaf481d7a7bf070a2e696', art: '/_blob/4eaa7eece6d172ff05bc4b8d784bc31f',
