@@ -66,7 +66,10 @@ var PCMT_PICKEMS = [
         "b": "W2",
         "bo": 3,
         "start": "2026-11-05T21:30:00Z",
-        "score": null,
+        "score": [
+          1,
+          0
+        ],
         "url": "https://pcmt.gg/events/s2-emea/nats-vs-nip-s2-playoffs-2026-11-05"
       },
       {
