@@ -27,11 +27,11 @@
     C9: '46ec4a1f510710db9670e64c202b0cee.png', DFM: 'a59455af931db22aaf5f61e2da9f3686.png', EPY: '2b237feaf70d67ef58a84efbab9a3e51.png',
     FNC: '8a102a19e71060bb2dacb6d6b5263457.png', FSG: 'ad1fa170a11534a10c9a953f0a092175.png', FaZe: '9da6e0491a922186cad6bc5daf699626.png',
     HOT: 'e078dfeeea5c9d916197f71d8b7ea80a.jpg', IHOP: '209d81a7df0d79fc71d99063600358ef.png', LARP: 'f06cf372e21c32dbf3754b8bd506e0b5.jpg',
-    NATS: '8cbc4258cff847c1db533f124fd9addf.jpg', NAVI: 'f6b846609af48437299bc42d13d5dad0.png', NIP: 'f953d56be563808b39dbb961891fae8e.png',
+    NATS: '8ff9c895c338d07216b1110d3b73fd8e.png', NAVI: 'f6b846609af48437299bc42d13d5dad0.png', NIP: 'f953d56be563808b39dbb961891fae8e.png',
     NOOT: '195da1efa2549707b6737764479c066c.png', RRQ: '2c8df8598d3c163942e4d347ee4d7e8e.png', SEAL: '7f2055fcc7e78ae7d1510fe56608fd83.png',
     SOG: '85e0857300495ee3133b6acf79e286c0.png', SPG: 'fb1551434b59a200d90d2e9ed6a51e8b.png', SRB: '24ce287349ef3d8ae3c603e22142a375.png',
     SSG: '1e20352a30572a577222d14b6a2389ce.png', T1: 'ce2bf22e2df8751703c00f132b854650.png', TL: '18b0eb4cbe217fc77dda8f01e3ff4c16.png',
-    TS: '56f2be02d04c1bb89902b3eb4f989ac4.png', XTC: '570eadcaf88a4d369017946bff2b0356.png'
+    TS: 'beb0681ed7f4d195bc88376b306a1d3b.png', XTC: '570eadcaf88a4d369017946bff2b0356.png'
   };
 
   // ---------- rules engine (pure; both online players run the same code) ----------

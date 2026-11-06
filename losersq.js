@@ -24,7 +24,7 @@
     FSG: 'ad1fa170a11534a10c9a953f0a092175.png', IHOP: '209d81a7df0d79fc71d99063600358ef.png', NAVI: 'f6b846609af48437299bc42d13d5dad0.png',
     RRQ: '2c8df8598d3c163942e4d347ee4d7e8e.png', SPG: 'fb1551434b59a200d90d2e9ed6a51e8b.png', SRB: '24ce287349ef3d8ae3c603e22142a375.png',
     SSG: '1e20352a30572a577222d14b6a2389ce.png', T1: 'ce2bf22e2df8751703c00f132b854650.png', TL: '18b0eb4cbe217fc77dda8f01e3ff4c16.png',
-    TS: '56f2be02d04c1bb89902b3eb4f989ac4.png'
+    TS: 'beb0681ed7f4d195bc88376b306a1d3b.png'
   };
   var MAPS = ['Lotus', 'Ascent', 'Haven', 'Split', 'Summit', 'Sunset', 'Pearl'];   // the 7 most played S3 maps
   // NA S3 playoff bracket, as in pickems.js (na-s3). W3 = winner of series 3, L1 = loser of series 1.
