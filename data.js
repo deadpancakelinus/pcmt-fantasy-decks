@@ -6,15 +6,6 @@
 
 var PCMT_MATCHES = [
   {
-    "region": "NA",
-    "start": "2026-10-24T00:00:00Z",
-    "a": "T1",
-    "b": "NAVI",
-    "bo": 5,
-    "hours": 5,
-    "url": "https://pcmt.gg/events/s3-na/t1-vs-navi-s3-playoffs-2026-10-24-2"
-  },
-  {
     "region": "EMEA",
     "start": "2026-10-24T17:00:00Z",
     "a": "NATS",
