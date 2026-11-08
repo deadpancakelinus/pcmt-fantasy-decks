@@ -2,7 +2,7 @@
 var PCMT_POWER = {
   "s2-emea": {
     "event": "s2-emea",
-    "updated": "2026-11-05T21:30:00Z",
+    "updated": "2026-11-01T19:00:00Z",
     "teams": [
       {
         "rank": 1,
@@ -18,15 +18,15 @@ var PCMT_POWER = {
       },
       {
         "rank": 2,
-        "code": "NIP",
-        "name": "Name in Progress",
-        "rating": 1554,
-        "change": 27,
-        "last": 4,
+        "code": "NATS",
+        "name": "Never Available To Scrim",
+        "rating": 1552,
+        "change": 0,
+        "last": 2,
         "w": 4,
         "l": 1,
-        "streak": "2W",
-        "lastPlayed": "2026-11-05T21:30:00Z"
+        "streak": "3W",
+        "lastPlayed": "2026-10-24T17:00:00Z"
       },
       {
         "rank": 3,
@@ -42,15 +42,15 @@ var PCMT_POWER = {
       },
       {
         "rank": 4,
-        "code": "NATS",
-        "name": "Never Available To Scrim",
-        "rating": 1525,
-        "change": -27,
-        "last": 2,
-        "w": 4,
-        "l": 2,
-        "streak": "1L",
-        "lastPlayed": "2026-11-05T21:30:00Z"
+        "code": "NIP",
+        "name": "Name in Progress",
+        "rating": 1527,
+        "change": 0,
+        "last": 4,
+        "w": 3,
+        "l": 1,
+        "streak": "1W",
+        "lastPlayed": "2026-09-27T16:00:00Z"
       },
       {
         "rank": 5,
