@@ -134,7 +134,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </div>
 
 <span class="pk-swipe" style="margin-bottom: -14px; font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa">Swipe the bracket sideways to see all of it.</span>
-<section aria-label="Bracket" style="overflow-x: auto; border: 1px solid #2a3a3e; border-radius: 12px; background: #111a1c">
+<section aria-label="Bracket" data-pcmt-season="{{rosterSeason}}" style="overflow-x: auto; border: 1px solid #2a3a3e; border-radius: 12px; background: #111a1c">
 <div style="position: relative; width: 1230px; height: 690px; margin: 0 auto">
 <img src="{{viewLogo}}" alt="" aria-hidden="true" style="position: absolute; left: 50%; top: 50%; width: 520px; height: 520px; transform: translate(-50%, -50%); object-fit: contain; opacity: 0.07; pointer-events: none">
 <svg aria-hidden="true" width="1230" height="690" viewBox="0 0 1230 690" style="position: absolute; left: 0; top: 0">
@@ -680,6 +680,8 @@ class Component extends DCLogic {
     });
     return {
       acc: acc,
+      // Which PCMT.gg season the team windows read (league.js): pickems.js event 's3-na' → 'S3 NA'.
+      rosterSeason: (function (m) { return m ? 'S' + m[1] + ' ' + m[2].toUpperCase() : ''; })(/^s(\d+)-(\w+)$/.exec(b.event || '')),
       tabs: tabs, viewLabel: V.label, viewLogo: V.logo, powerEvent: b.event || '', powerAria: 'Groups. Open the ' + (V.tab || b.region) + ' power rankings', powerTitle: (V.tab || b.region) + ' power rankings',
       isFinished: finished, notFinished: !finished, nextHeading: finished ? 'CHAMPIONS' : 'NEXT UP', champName: champT ? champT.name : (champ || ''), champLogo: champT ? champT.logo : '', champColor: PCMT_PICKEM_COLORS[champ] || '#f5d76e', champSeason: V.season || b.name,
       locked: locked, unlocked: !locked,

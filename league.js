@@ -1209,8 +1209,10 @@
 })();
 
 /* Pick'ems team rosters (Nov 10 2026): hovering (or focusing) a team in the bracket or the groups ([data-pcmt-team])
-   opens a small window with that team's players and their current toxic rating. The numbers are PCMT.gg's, from
-   trumps-cards.js (refreshed hourly from pcmt.gg/stats by the PCMT.gg sync), loaded the first time it's needed.
+   opens a small window with that team's players and their current toxic rating. The numbers come from rosters.js,
+   written from pcmt.gg/stats by tools/pcmt-rosters.js in the same hourly PCMT.gg sync that updates the Pick'ems
+   bracket (pickems.js), for every season. The bracket says which season it is ([data-pcmt-season], e.g. "S3 NA"),
+   so a new season with new teams works on its own. Role icons come from trumps-cards.js where a player has a card.
    The native title tooltip is moved aside while the window is open so the two don't stack. */
 (function () {
   'use strict';
@@ -1219,12 +1221,14 @@
                      sentinel: '006daf34642009c6f6749139f80a613e.png', controller: '783fdcc50fe04d2622938ee185d4ed32.png' };
   var box = null, cur = null, loading = null;
   function esc(x) { return String(x == null ? '' : x).replace(/[&<>"']/g, function (c) { return '&#' + c.charCodeAt(0) + ';'; }); }
-  function load() {
-    if (window.PCMT_TRUMPS_CARDS) return Promise.resolve();
-    if (!loading) loading = new Promise(function (res) {
-      var s = document.createElement('script'); s.src = 'trumps-cards.js'; s.onload = s.onerror = function () { res(); };
+  function script(src) {
+    return new Promise(function (res) {
+      var s = document.createElement('script'); s.src = src; s.onload = s.onerror = function () { res(); };
       document.head.appendChild(s);
     });
+  }
+  function load() {
+    if (!loading) loading = Promise.all([window.PCMT_ROSTERS ? 0 : script('rosters.js'), window.PCMT_TRUMPS_CARDS ? 0 : script('trumps-cards.js')]);
     return loading;
   }
   function css() {
@@ -1237,20 +1241,33 @@
       '#pcmt-roster .rh{display:flex;align-items:center;gap:10px;margin-bottom:10px}#pcmt-roster .rh img{width:30px;height:30px;object-fit:contain;flex:none}' +
       '#pcmt-roster .rh b{font-size:15px;line-height:1.2}#pcmt-roster .rh small{display:block;font-size:11px;color:#93a9aa;letter-spacing:.06em}' +
       '#pcmt-roster ol{list-style:none;margin:0;padding:0;border-top:1px solid #2a3a3e}' +
-      '#pcmt-roster li{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #1d2a2c;font-size:14px}' +
-      '#pcmt-roster li img{width:16px;height:16px;flex:none;opacity:.85}#pcmt-roster li span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}' +
+      '#pcmt-roster li{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #1d2a2c;font-size:14px}#pcmt-roster li:last-child{border-bottom:0}' +
+      '#pcmt-roster li img{width:16px;height:16px;flex:none;opacity:.85}#pcmt-roster li i{width:16px;flex:none}' +
+      '#pcmt-roster li span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}' +
       '#pcmt-roster li em{font-style:normal;font-weight:700;color:#a5dcdd;font-variant-numeric:tabular-nums}' +
       '#pcmt-roster .rk{display:flex;justify-content:space-between;font-size:10px;letter-spacing:.12em;color:#93a9aa;margin:0 0 4px}' +
-      '#pcmt-roster .rf{margin:8px 0 0;font-size:11px;color:#93a9aa}' +
+      '#pcmt-roster .rf{margin:8px 0 0;font-size:12px;color:#93a9aa}' +
       'html.pcmt-light #pcmt-roster{background:#fff;border-color:#b9caca;color:#142322;box-shadow:0 14px 34px rgba(0,0,0,.18)}' +
       'html.pcmt-light #pcmt-roster li{border-color:#e3ecec}html.pcmt-light #pcmt-roster li em{color:#17767a}' +
       '@media (prefers-reduced-motion:reduce){#pcmt-roster{transition:none}}';
     document.head.appendChild(st);
   }
-  function players(code) {
-    var C = window.PCMT_TRUMPS_CARDS || {}, list = [];
-    ['na', 'emea'].forEach(function (k) { (C[k] || []).forEach(function (c) { if (!c.sub && c.team === code) list.push(c); }); });
-    return list.sort(function (a, b) { return (b.toxic || 0) - (a.toxic || 0); });
+  // The season's roster for the team; a season PCMT.gg doesn't list yet falls back to that team's latest season.
+  function roster(code, season) {
+    var R = window.PCMT_ROSTERS || {};
+    if (season && R[season] && R[season][code]) return R[season][code];
+    var best = null;
+    Object.keys(R).forEach(function (s) {
+      if (!R[s][code]) return;
+      var n = +(/^S(\d+)/.exec(s) || [0, 0])[1];
+      if (!best || n > best.n) best = { n: n, list: R[s][code] };
+    });
+    return best ? best.list : [];
+  }
+  function roleOf(name) {
+    var C = window.PCMT_TRUMPS_CARDS || {}, k = String(name).toLowerCase(), r = '';
+    ['na', 'emea'].some(function (g) { return (C[g] || []).some(function (c) { if (String(c.name).toLowerCase() === k) { r = c.role; return true; } }); });
+    return r;
   }
   function place(el) {
     var r = el.getBoundingClientRect(), w = box.offsetWidth, h = box.offsetHeight, vw = innerWidth, vh = innerHeight;
@@ -1264,17 +1281,18 @@
     if (!code) return;
     cur = el;
     if (el.title) { el.setAttribute('data-pcmt-title', el.title); el.removeAttribute('title'); }
+    var sEl = el.closest('[data-pcmt-season]'), season = sEl ? sEl.getAttribute('data-pcmt-season') : '';
     load().then(function () {
       if (cur !== el) return;
-      var list = players(code), c0 = list[0], img = el.querySelector('img');
+      var list = roster(code, season), img = el.querySelector('img');
       if (!box) { css(); box = document.createElement('div'); box.id = 'pcmt-roster'; box.setAttribute('role', 'tooltip'); document.body.appendChild(box); }
-      var name = c0 ? c0.teamName : (el.getAttribute('data-pcmt-title') || code).replace(/ \([^)]*\)$/, '');
+      var name = (el.getAttribute('data-pcmt-title') || code).replace(/ \([^)]*\)$/, '');
       box.innerHTML = '<div class="rh">' + (img ? '<img src="' + esc(img.getAttribute('src')) + '" alt="">' : '') +
-        '<div><b>' + esc(name) + '</b><small>' + esc(code) + '</small></div></div>' +
+        '<div><b>' + esc(name) + '</b><small>' + esc(code) + (season ? ' · ' + esc(season) : '') + '</small></div></div>' +
         (list.length ? '<p class="rk"><span>PLAYER</span><span>TOXIC</span></p><ol>' + list.map(function (p) {
-          return '<li>' + (ROLE_ICONS[p.role] ? '<img src="assets/' + ROLE_ICONS[p.role] + '" alt="">' : '') + '<span>' + esc(p.name) + '</span><em>' + (p.toxic != null ? Number(p.toxic).toFixed(2) : '—') + '</em></li>';
-        }).join('') + '</ol><p class="rf">Toxic rating from PCMT.gg</p>' : '<p class="rf">No players for this team on PCMT.gg yet.</p>');
-      box.id = 'pcmt-roster';
+          var role = roleOf(p.name);
+          return '<li>' + (ROLE_ICONS[role] ? '<img src="assets/' + ROLE_ICONS[role] + '" alt="">' : '<i></i>') + '<span>' + esc(p.name) + '</span><em>' + Number(p.toxic).toFixed(2) + '</em></li>';
+        }).join('') + '</ol>' : '<p class="rf">No players for this team on PCMT.gg yet.</p>');
       el.setAttribute('aria-describedby', 'pcmt-roster');
       place(el);
       box.classList.add('on');
@@ -1291,7 +1309,6 @@
   }
   function team(e) { return e.target && e.target.closest ? e.target.closest('[data-pcmt-team]') : null; }
   document.addEventListener('mouseover', function (e) {
-    if (e.pointerType === 'touch') return;
     var el = team(e);
     if (el && el !== cur) { hide(); show(el); } else if (!el && cur && !cur.contains(e.target)) hide();
   });
