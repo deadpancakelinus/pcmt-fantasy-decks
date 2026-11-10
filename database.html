@@ -50,7 +50,6 @@
   td { padding: 8px 10px; border-top: 1px solid var(--line2); white-space: nowrap; }
   tbody tr:hover { background: rgba(165, 220, 221, .04); }
   .num { text-align: right; }
-  .db-n { color: var(--dim); font: 400 12px 'National Park', system-ui, sans-serif; }
   .db-name { font-weight: 600; color: var(--accent); }
   .db-mono { font-family: 'National Park', system-ui, sans-serif; font-size: 13px; }
   .db-dim { color: var(--dim); }
@@ -138,7 +137,7 @@
       <table>
         <caption class="sr">Player database</caption>
         <thead><tr id="db-cols"></tr></thead>
-        <tbody id="db-rows"><tr><td class="db-msg" colspan="7">Loading…</td></tr></tbody>
+        <tbody id="db-rows"><tr><td class="db-msg" colspan="6">Loading…</td></tr></tbody>
       </table>
     </div>
     <p class="db-key"><span style="margin-left: auto">Last updated <b id="db-updated" style="color: var(--ink); font-weight: 600">—</b></span></p>
@@ -175,7 +174,7 @@
   function na(v) { return v == null || v === '' ? 'NA' : v; }
 
   function head() {
-    $('db-cols').innerHTML = '<th class="num" scope="col"><span class="sr">Number</span></th>' + COLS.map(function (c) {
+    $('db-cols').innerHTML = COLS.map(function (c) {
       var on = sort.k === c.k ? ' aria-sort="' + (sort.dir === 'asc' ? 'ascending' : 'descending') + '"' : '';
       return '<th scope="col" class="' + (c.num ? 'num' : '') + '"' + on + '><button type="button" data-sort="' + c.k + '">' + c.t + '</button></th>';
     }).join('');
@@ -195,11 +194,10 @@
       return (sort.dir === 'asc' ? c : -c) || String(a.display).localeCompare(String(b.display), undefined, { sensitivity: 'base' });
     });
     $('db-count').textContent = list.length === rows.length ? rows.length + ' players' : list.length + ' of ' + rows.length + ' players';
-    if (!list.length) { $('db-rows').innerHTML = '<tr><td class="db-msg" colspan="7">No players match.</td></tr>'; return; }
-    $('db-rows').innerHTML = list.map(function (r, i) {
+    if (!list.length) { $('db-rows').innerHTML = '<tr><td class="db-msg" colspan="6">No players match.</td></tr>'; return; }
+    $('db-rows').innerHTML = list.map(function (r) {
       var tier = (r.peak || '').split(' ')[0], ranked = r.new_rank != null;
       return '<tr>' +
-        '<td class="num db-n">' + (i + 1) + '</td>' +
         '<td class="num"><span class="db-rank' + (ranked ? '' : ' db-na') + '">' + (ranked ? (+r.new_rank).toFixed(2) : 'NA') + '</span></td>' +
         '<td class="db-name">' + esc(r.display) + '</td>' +
         '<td>' + esc(r.team || 'NA') + '</td>' +
@@ -230,7 +228,7 @@
       var last = rows.reduce(function (m, r) { return r.updated_at > m ? r.updated_at : m; }, '');
       if (last) $('db-updated').textContent = new Date(last).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
     })
-    .catch(function () { $('db-rows').innerHTML = '<tr><td class="db-msg" colspan="7">Couldn\'t load the database. Log in again and reload.</td></tr>'; });
+    .catch(function () { $('db-rows').innerHTML = '<tr><td class="db-msg" colspan="6">Couldn\'t load the database. Log in again and reload.</td></tr>'; });
 })();
 </script>
 </body>
