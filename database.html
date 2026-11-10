@@ -121,7 +121,7 @@
   <div class="db-head">
     <div>
       <h1>Database</h1>
-      <p class="db-sub">Every PCMT NA player: their name, team, roles, rank and peak. Players without a rank yet show NA and sit at the bottom. Search, filter by peak rank, and sort by any column.</p>
+      <p class="db-sub">Every PCMT NA player: their name, team, role, rank and peak. Players without a rank yet show NA and sit at the bottom. Search, filter by peak rank, and sort by any column.</p>
     </div>
     <span class="db-staff">STAFF ONLY</span>
   </div>
@@ -130,7 +130,7 @@
     <div class="db-tools">
       <label class="db-field db-grow"><span>Search</span><input id="db-q" type="search" placeholder="Name, team or role" autocomplete="off"></label>
       <label class="db-field"><span>Peak</span><select id="db-peak"><option value="">All ranks</option></select></label>
-      <label class="db-field"><span>Role</span><select id="db-role"><option value="">All roles</option><option>Duel</option><option>Init</option><option>Smoke</option><option>Senti</option><option>Flex</option></select></label>
+      <label class="db-field"><span>Role</span><select id="db-role"><option value="">All roles</option><option>Duelist</option><option>Initiator</option><option>Controller</option><option>Sentinel</option><option value="NA">NA</option></select></label>
       <span class="db-count" id="db-count" aria-live="polite"></span>
     </div>
     <div class="db-wrap">
@@ -159,7 +159,7 @@
     { k: 'new_rank', t: 'New rank', num: 1, first: 'desc' },
     { k: 'display', t: 'Name' },
     { k: 'team', t: 'Team' },
-    { k: 'roles', t: 'Roles' },
+    { k: 'roles', t: 'Role' },
     { k: 'peak', t: 'Peak', first: 'desc' },
     { k: 'tracker', t: 'Tracker', num: 1, first: 'desc' }
   ];
@@ -183,7 +183,7 @@
     var q = $('db-q').value.trim().toLowerCase(), pk = $('db-peak').value, role = $('db-role').value.toLowerCase();
     var list = rows.filter(function (r) {
       if (pk && (r.peak || '').split(' ')[0] !== pk) return false;
-      if (role && (r.roles || '').toLowerCase().indexOf(role) < 0) return false;
+      if (role && (r.roles || 'na').toLowerCase() !== role) return false;
       return !q || [r.display, r.team, r.roles].join(' ').toLowerCase().indexOf(q) >= 0;
     });
     list.sort(function (a, b) {
