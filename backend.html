@@ -199,6 +199,13 @@
   .cx-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
   .cx-foot .btn { min-height: 40px; }
   .btn.warn { background: transparent; color: var(--bad); border-color: var(--bad); }
+  .pn-form textarea { min-height: 200px; padding: 12px; border-radius: 8px; border: 1px solid #3a4f53; background: #0d1416; color: inherit; font: inherit; line-height: 1.55; resize: vertical; width: 100%; box-sizing: border-box; }
+  .pn-form .field input { width: 100%; box-sizing: border-box; }
+  .pn-top { display: grid; grid-template-columns: minmax(0, 1fr) 190px; gap: 14px; }
+  .pn-date input[readonly] { color: var(--dim); }
+  @media (max-width: 620px) { .pn-top { grid-template-columns: 1fr; } }
+  .pn-live { color: #0d1416; background: #8be4b7; border-color: #8be4b7; }
+  .pn-h { margin: 0; font: 700 22px/1.2 'Cabin Sketch', cursive; color: var(--accent); }
   .cx-body { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.55; color: var(--soft); }
   .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   @media (max-width: 520px) { .field input, .field select { min-width: 0; width: 100%; } .field { flex: 1 1 100%; } }
@@ -244,7 +251,7 @@
 <main>
   <div>
     <h1>Backend</h1>
-    <p class="sub">For PCMT Team staff only. Pages waiting for launch, player prices, every card and who owns it, card packs and series (prices, every card in each, launching series), the 4Ks and 5Ks for each series, subs, and the comments and complaints sent from the Home page.</p>
+    <p class="sub">For PCMT Team staff only. Pages waiting for launch, player prices, every card and who owns it, card packs and series (prices, every card in each, launching series), the 4Ks and 5Ks for each series, subs, patch notes, and the comments and complaints sent from the Home page.</p>
   </div>
 
   <section class="panel" id="st-loading" role="status"><p class="msg">Locked. Enter the page password to continue.</p></section>
@@ -264,6 +271,7 @@
       <button type="button" role="tab" id="tab-packs" aria-controls="pane-packs" aria-selected="false" tabindex="-1">Card packs</button>
       <button type="button" role="tab" id="tab-multi" aria-controls="pane-multi" aria-selected="false" tabindex="-1">4Ks &amp; 5Ks</button>
       <button type="button" role="tab" id="tab-subs" aria-controls="pane-subs" aria-selected="false" tabindex="-1">Subs <span class="count" id="sb-badge"></span></button>
+      <button type="button" role="tab" id="tab-notes" aria-controls="pane-notes" aria-selected="false" tabindex="-1">Patch notes</button>
       <button type="button" role="tab" id="tab-complaints" aria-controls="pane-complaints" aria-selected="false" tabindex="-1">Complaints <span class="count" id="cx-badge"></span></button>
     </div>
 
@@ -406,6 +414,21 @@
       </details>
     </section>
 
+    <!-- ===== Patch notes ===== -->
+    <section class="pane" role="tabpanel" id="pane-notes" aria-labelledby="tab-notes" hidden>
+      <p class="note">Write a patch note and press Go live: it shows on the Home page as the Latest Patch Notes for everyone, replacing the one before. The date fills in with today's date when it goes live. A blank line in the note starts a new paragraph.</p>
+      <form class="panel pn-form" id="pn-form" autocomplete="off" novalidate>
+        <div class="pn-top">
+          <label class="field"><span class="kicker">Title</span><input id="pn-title" type="text" maxlength="120" placeholder="Version 1.4" required></label>
+          <label class="field pn-date"><span class="kicker">Date</span><input id="pn-date" type="text" readonly aria-readonly="true"></label>
+        </div>
+        <label class="field"><span class="kicker">Note</span><textarea id="pn-body" maxlength="8000" placeholder="What changed on the site" required></textarea></label>
+        <div class="bar"><button class="btn" id="pn-go" type="submit">Go live</button><span class="msg" id="pn-msg" role="status" aria-live="polite"></span></div>
+      </form>
+      <h2 class="pn-h">Patch notes</h2>
+      <ol class="cx-list" id="pn-list"></ol>
+    </section>
+
     <!-- ===== Complaints ===== -->
     <section class="pane" role="tabpanel" id="pane-complaints" aria-labelledby="tab-complaints" hidden>
       <p class="note">Everything sent from the "comments and complaints always welcome :)" box on the Home page, newest first. Players can write logged in or logged out (up to 50 words). Press Settled once it's dealt with: that deletes it for good (you'll be asked to press again to make sure).</p>
@@ -477,7 +500,7 @@
   })();
 
   // ---------- tabs ----------
-  var TABS = ['pages', 'prices', 'cards', 'packs', 'multi', 'subs', 'complaints'];
+  var TABS = ['pages', 'prices', 'cards', 'packs', 'multi', 'subs', 'notes', 'complaints'];
   function openTab(name, focus) {
     TABS.forEach(function (t) {
       var on = t === name, tab = $('tab-' + t);
@@ -1133,6 +1156,65 @@
     csv('pcmt-complaints.csv', ['Sent', 'From', 'Words', 'Text'], CX.map(function (c) { return [c.created_at, who(c), c.words, c.body]; }));
   });
 
+  // ---------- patch notes (patch_notes table; the newest live one shows on Home) ----------
+  var PN = [], pnErr = '';
+  function pnToday() { return new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'America/New_York' }); }
+  function pnDay(d) { return d ? new Date(d + 'T12:00:00Z').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' }) : ''; }
+  function loadNotes() {
+    return L.apiAll('/rest/v1/patch_notes?select=id,title,body,note_date,live,live_at,created_at&order=live.desc,live_at.desc.nullslast,id.desc')
+      .then(function (r) { PN = r || []; pnErr = ''; })
+      .catch(function (e) { PN = []; pnErr = 'Couldn\'t load patch notes (' + e.message + '). Has setup/patch-notes-setup.sql been run?'; });
+  }
+  function drawNotes() {
+    $('pn-date').value = pnToday();
+    var newest = PN.filter(function (n) { return n.live; })[0];
+    $('pn-list').innerHTML = pnErr ? '<li class="msg err">' + esc(pnErr) + '</li>' : !PN.length ? '<li class="msg">No patch notes yet.</li>' : PN.map(function (n) {
+      var onHome = newest && newest.id === n.id;
+      return '<li class="cx-item"><div class="cx-head"><span><b>' + esc(n.title) + '</b>' + (onHome ? ' <span class="tag pn-live">ON HOME</span>' : n.live ? ' <span class="tag">LIVE</span>' : ' <span class="tag">TAKEN DOWN</span>') + '</span><span>' + esc(pnDay(n.note_date)) + '</span></div>' +
+        '<p class="cx-body">' + esc(n.body) + '</p>' +
+        '<div class="cx-foot">' + (n.live ? '<button type="button" class="btn ghost" data-pn-down="' + n.id + '">Take down</button>' : '<button type="button" class="btn ghost" data-pn-up="' + n.id + '">Go live again</button>') +
+        '<button type="button" class="btn ghost" data-pn-del="' + n.id + '">Delete</button><span class="msg" role="status" aria-live="polite"></span></div></li>';
+    }).join('');
+  }
+  $('pn-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var title = $('pn-title').value.trim(), body = $('pn-body').value.replace(/\s+$/, ''), go = $('pn-go'), msg = $('pn-msg');
+    if (!title || !body.trim()) { msg.className = 'msg err'; msg.textContent = 'Add a title and the note first.'; (title ? $('pn-body') : $('pn-title')).focus(); return; }
+    if (!go.classList.contains('warn')) {
+      go.classList.add('warn'); go.textContent = 'Press again to go live'; msg.className = 'msg'; msg.textContent = 'It shows on Home for everyone straight away.';
+      clearTimeout(go._t); go._t = setTimeout(function () { go.classList.remove('warn'); go.textContent = 'Go live'; msg.textContent = ''; }, 6000);
+      return;
+    }
+    clearTimeout(go._t); go.disabled = true; msg.className = 'msg'; msg.textContent = 'Going live…';
+    var now = new Date(), date = now.toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+    L.api('/rest/v1/patch_notes', { method: 'POST', headers: { Prefer: 'return=representation' }, body: { title: title, body: body, note_date: date, live: true, live_at: now.toISOString(), created_by: L.myId } }).then(function (rows) {
+      if (!rows || !rows.length) throw new Error('not saved (is this account on the staff list?)');
+      PN.unshift(rows[0]); $('pn-title').value = ''; $('pn-body').value = '';
+      drawNotes(); msg.className = 'msg ok'; msg.textContent = '"' + rows[0].title + '" is live on Home.';
+    }).catch(function (err) { msg.className = 'msg err'; msg.textContent = 'Couldn\'t go live: ' + err.message; })
+      .then(function () { go.disabled = false; go.classList.remove('warn'); go.textContent = 'Go live'; });
+  });
+  $('pn-list').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-pn-down], button[data-pn-up], button[data-pn-del]'); if (!b) return;
+    var say = b.parentNode.querySelector('.msg'), del = b.hasAttribute('data-pn-del'), up = b.hasAttribute('data-pn-up');
+    var id = +(b.getAttribute('data-pn-down') || b.getAttribute('data-pn-up') || b.getAttribute('data-pn-del'));
+    if (del && !b.classList.contains('warn')) {
+      b.classList.add('warn'); b.textContent = 'Delete for good?'; say.className = 'msg'; say.textContent = 'Press again to delete it.';
+      clearTimeout(b._t); b._t = setTimeout(function () { b.classList.remove('warn'); b.textContent = 'Delete'; say.textContent = ''; }, 5000);
+      return;
+    }
+    clearTimeout(b._t); b.disabled = true; say.className = 'msg'; say.textContent = 'Saving…';
+    var req = del ? L.api('/rest/v1/patch_notes?id=eq.' + id, { method: 'DELETE', headers: { Prefer: 'return=representation' } })
+                  : L.api('/rest/v1/patch_notes?id=eq.' + id, { method: 'PATCH', headers: { Prefer: 'return=representation' }, body: up ? { live: true, live_at: new Date().toISOString() } : { live: false } });
+    req.then(function (rows) {
+      if (!rows || !rows.length) throw new Error('not saved (is this account on the staff list?)');
+      if (del) PN = PN.filter(function (n) { return n.id !== id; });
+      else PN = PN.map(function (n) { return n.id === id ? rows[0] : n; });
+      PN.sort(function (a, c) { return (c.live ? 1 : 0) - (a.live ? 1 : 0) || String(c.live_at || '').localeCompare(String(a.live_at || '')) || c.id - a.id; });
+      drawNotes();
+    }).catch(function (err) { b.disabled = false; say.className = 'msg err'; say.textContent = 'Couldn\'t save: ' + err.message; });
+  });
+
   // ---------- sign in: page password, then Discord, then the staff list ----------
   function show(id) { ['st-loading', 'st-nostaff', 'st-staff'].forEach(function (s) { $(s).hidden = s !== id; }); }
   $('login').addEventListener('click', function () { L.signIn('backend.html'); });
@@ -1196,12 +1278,12 @@
       if (ok !== true) return show('st-nostaff');
       return Promise.all([
         L.apiAll('/rest/v1/profiles?select=id,name&order=id').then(function (r) { (r || []).forEach(function (p) { NAMES[p.id] = p.name; }); }).catch(function () {}),
-        loadPrices(), loadRemoved(), loadCards(), loadComplaints(), loadPages(), loadSubs()
+        loadPrices(), loadRemoved(), loadCards(), loadComplaints(), loadPages(), loadSubs(), loadNotes()
       ]).then(function () {
         show('st-staff');
         var h = (location.hash || '').slice(1);
         openTab(TABS.indexOf(h) >= 0 ? h : 'pages');
-        drawPages(); drawPrices(); drawCards(); drawRares(); drawPacks(); setupMulti(); drawSubs(); drawComplaints();
+        drawPages(); drawPrices(); drawCards(); drawRares(); drawPacks(); setupMulti(); drawSubs(); drawNotes(); drawComplaints();
       });
     }).catch(function (e) { show('st-staff'); $('p-msg').textContent = 'Something went wrong loading the backend: ' + e.message; $('p-msg').className = 'msg err'; });
   }

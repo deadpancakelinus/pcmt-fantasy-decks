@@ -597,9 +597,13 @@
       var removed = onMain ? apiAll('/rest/v1/store_removed_players?select=player&order=player').catch(function () { return []; }) : Promise.resolve([]);
       // Subs entered on the backend (public; empty until setup/subs-setup.sql has been run)
       var subs = apiAll('/rest/v1/player_subs?select=id,sub,player,week,created_at&order=id').catch(function () { return []; });
-      return Promise.all([decks, profiles, unlocks, vp, multi, admin, packs, mine, catalog, prices, released, staff, picks, pkEvents, pkBoard, removed, subs]);
+      // Home: the newest live patch note (backend.html, Patch notes tab); none falls back to the one on the Home board
+      var onHome = /"data-pcmt-root":"Home"/.test(tree);
+      var note = onHome ? api('/rest/v1/patch_notes?select=title,body,note_date,live_at&live=is.true&order=live_at.desc&limit=1').then(function (r) { return (r && r[0]) || null; }).catch(function () { return null; }) : Promise.resolve(null);
+      return Promise.all([decks, profiles, unlocks, vp, multi, admin, packs, mine, catalog, prices, released, staff, picks, pkEvents, pkBoard, removed, subs, note]);
     }).then(function (res) {
       window.PCMT_SUBS = res[16] || [];
+      window.PCMT_PATCH_NOTE = res[17] || null;
       applySubs(window.PCMT_SUBS);
       attachMulti(res[4] || []);
       PRICE_LOG = (res[9] || []).map(function (c) { return { player: c.player, price: c.price == null ? null : +c.price, t: Date.parse(c.changed_at) }; });

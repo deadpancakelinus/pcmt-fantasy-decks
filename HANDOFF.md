@@ -252,3 +252,10 @@ Supabase's Discord login always asks Discord for the email. Triggers drop it bef
 - Team is `NA` for everyone until teams come in; set `team` per player in Supabase. Peak `NA` means no rank (it was Radiant on the sheet, with no tracker score); it sorts below Iron.
 - The rows live only in Supabase, table `player_database` (setup/database-setup.sql makes the table and its `site_pages` row; the rows themselves aren't in the repo). It also keeps `discord`, `riot` and `mark` (the sheet's gold/red rows), which the page doesn't show. Only site admins and PCMT Team staff can read or change them (RLS), so the page is staff-only even if it's launched. When you edit rows in Supabase, also set `updated_at` to now() so the date moves.
 - Access: `site_pages` row `database`, opened from backend.html (Pages tab → Open). It's in `LAUNCH_PAGES` (tools/league.js) and the copies of that list in mvp-vs.html and losersq.html.
+
+## 26. Patch notes (backend.html, Patch notes tab, added Nov 10 2026)
+
+- Staff write a title and a note; the date fills in with today's date (New York). Go live (press twice) saves it to `patch_notes` with live = true, and the newest live note (by live_at) becomes the Latest Patch Notes panel on Home for everyone, one paragraph per blank line in the note.
+- The list under the form shows every note: ON HOME (the one Home shows), LIVE, or TAKEN DOWN. Take down / Go live again / Delete (press twice). Taking down the one on Home shows the next newest live note; with none live, Home shows the note written into the Home board (`PCMT_HOME_NOTE`).
+- setup/patch-notes-setup.sql makes the table (already run on the live project). league.js loads the newest live note on Home only (`window.PCMT_PATCH_NOTE`).
+

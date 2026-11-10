@@ -195,7 +195,7 @@ a.hm-tile{color:inherit}
 <span style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa">fantasy.pcmt.gg · {{note.date}}</span>
 </div>
 <sc-for list="{{note.paras}}" as="np" hint-placeholder-count="2">
-<p style="margin: 0; color: #c4d4d4; line-height: 1.55; font-size: 16px">{{np.pre}}<sc-if value="{{np.hasLink}}" hint-placeholder-val="{{ false }}"><a href="#comments" onClick="{{ccJump}}" style="color: #a5dcdd">{{np.link}}</a></sc-if>{{np.post}}</p>
+<p style="margin: 0; color: #c4d4d4; line-height: 1.55; font-size: 16px; white-space: pre-line">{{np.pre}}<sc-if value="{{np.hasLink}}" hint-placeholder-val="{{ false }}"><a href="#comments" onClick="{{ccJump}}" style="color: #a5dcdd">{{np.link}}</a></sc-if>{{np.post}}</p>
 </sc-for>
 </article>
 </section>
@@ -393,6 +393,13 @@ class Component extends DCLogic {
   }
 
   _pageVals() {
+    // The newest patch note gone live from the backend (league.js: PCMT_PATCH_NOTE), else the one above.
+    // Its note: one paragraph per blank line.
+    var pn = window.PCMT_PATCH_NOTE, homeNote = pn ? {
+      version: pn.title,
+      date: new Date(pn.note_date + 'T12:00:00Z').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' }),
+      paras: String(pn.body || '').split(/\n\s*\n/).map(function (t) { return { pre: t.trim() }; }).filter(function (x) { return x.pre; })
+    } : PCMT_HOME_NOTE;
     var W = typeof window !== 'undefined' ? window : {};
     var locked = false;   // open to everyone (was admins only)
     var self = this, cc = this.state || {}, ccN = this.ccWords(cc.ccText);
@@ -459,8 +466,8 @@ class Component extends DCLogic {
       lockLabel: lockLabel,
       hasResult: !!last, resultLabel: last ? last.a + ' vs ' + last.b + ', ' + last.winner + ' won' : '',
       menu: PCMT_HOME_MENU,
-      note: PCMT_HOME_NOTE ? Object.assign({}, PCMT_HOME_NOTE, { paras: (PCMT_HOME_NOTE.paras || []).map(function (x) { return { pre: x.pre || '', link: x.link || '', post: x.post || '', hasLink: !!x.link }; }) }) : {},
-      hasNote: !!PCMT_HOME_NOTE,
+      note: homeNote ? Object.assign({}, homeNote, { paras: (homeNote.paras || []).map(function (x) { return { pre: x.pre || '', link: x.link || '', post: x.post || '', hasLink: !!x.link }; }) }) : {},
+      hasNote: !!homeNote,
       hasAccount: !!(window.PCMT_AUTH && window.PCMT_AUTH.signedIn),
       ccJump: function (e) {
         var box = document.getElementById('comments'), ta = document.getElementById('cc-text');
