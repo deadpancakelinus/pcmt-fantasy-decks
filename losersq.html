@@ -14,14 +14,14 @@
 <link rel="icon" href="assets/3bf9d529cabff94109b561693539029f.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cabin+Sketch:wght@400;700&family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cabin+Sketch:wght@400;700&family=National+Park:wght@200..800&display=swap" rel="stylesheet">
 <style>
   :root { color-scheme: dark; --bg: #0d1416; --panel: #172124; --panel2: #1d2a2d; --inset: #111a1c; --line: #2a3a3e; --line2: #1d2a2c; --ink: #eaf4f4; --dim: #8a9a9b; --accent: #a5dcdd; --win: #55ff8f; --lose: #ff5a5a; --q: #ff4655; }
   * { box-sizing: border-box; }
   html, body { margin: 0; background: var(--bg); color: var(--ink); }
-  body { font: 400 15px/1.5 'Space Grotesk', system-ui, sans-serif; min-height: 100vh; }
+  body { font: 400 15px/1.5 'National Park', system-ui, sans-serif; min-height: 100vh; }
   button, input, select { font: inherit; color: inherit; }
-  .mono, .lq-kicker, .tt-btn { font-family: 'JetBrains Mono', monospace; }
+  .mono, .lq-kicker, .tt-btn { font-family: 'National Park', system-ui, sans-serif; }
   .tt-top-in { box-sizing: content-box; padding-block: 14px; padding-left: max(24px, env(safe-area-inset-left, 0px)); padding-right: max(24px, env(safe-area-inset-right, 0px)); }
   .tt-foot-note { padding: 0 max(16px, env(safe-area-inset-right, 0px)) 22px max(16px, env(safe-area-inset-left, 0px)); }
   .tt-foot-in { padding-block: 22px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
@@ -30,7 +30,7 @@
   h1 .lq-q { width: .8em; height: .8em; }
   .lq-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-bottom: 28px; }
   .lq-sub { color: var(--dim); margin: 10px 0 0; max-width: 620px; }
-  .lq-staff { font: 600 11px/1 'JetBrains Mono', monospace; letter-spacing: .12em; color: var(--q); border: 1px solid var(--q); border-radius: 999px; padding: 7px 12px; white-space: nowrap; }
+  .lq-staff { font: 600 11px/1 'National Park', system-ui, sans-serif; letter-spacing: .12em; color: var(--q); border: 1px solid var(--q); border-radius: 999px; padding: 7px 12px; white-space: nowrap; }
   .lq-kicker { display: block; font-size: 11px; letter-spacing: .14em; color: var(--accent); text-transform: uppercase; }
   .lq-dim { color: var(--dim); }
   .lq-small { font-size: 13px; }
@@ -51,18 +51,18 @@
   .lq-mine { position: sticky; top: 16px; }
   .lq-filters { display: flex; flex-direction: column; gap: 12px; margin-bottom: 14px; }
   .lq-chips { display: flex; gap: 6px; flex-wrap: wrap; }
-  .lq-chips button { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--inset); font: 600 12px/1 'JetBrains Mono', monospace; cursor: pointer; }
+  .lq-chips button { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--inset); font: 600 12px/1 'National Park', system-ui, sans-serif; cursor: pointer; }
   .lq-chips button img { width: 16px; height: 16px; }
   .lq-chips button[aria-pressed="true"] { border-color: var(--accent); background: rgba(165, 220, 221, .12); box-shadow: inset 0 0 0 1px var(--accent); }
   .lq-filter-row { display: flex; gap: 10px; flex-wrap: wrap; }
   .lq-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-  .lq-field > span { font: 600 11px/1.3 'JetBrains Mono', monospace; letter-spacing: .1em; color: var(--dim); text-transform: uppercase; }
+  .lq-field > span { font: 600 11px/1.3 'National Park', system-ui, sans-serif; letter-spacing: .1em; color: var(--dim); text-transform: uppercase; }
   .lq-field select, .lq-field input { height: 40px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); max-width: 100%; }
   .lq-grow { flex: 1 1 160px; }
   .lq-table-wrap { overflow-x: auto; border: 1px solid var(--line2); border-radius: 10px; }
   .lq-pool .lq-table-wrap { max-height: 1020px; overflow-y: auto; }
   table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
-  th { position: sticky; top: 0; z-index: 1; background: var(--inset); text-align: left; font: 600 11px/1 'JetBrains Mono', monospace; letter-spacing: .1em; color: var(--dim); text-transform: uppercase; padding: 10px; white-space: nowrap; }
+  th { position: sticky; top: 0; z-index: 1; background: var(--inset); text-align: left; font: 600 11px/1 'National Park', system-ui, sans-serif; letter-spacing: .1em; color: var(--dim); text-transform: uppercase; padding: 10px; white-space: nowrap; }
   td { padding: 8px 10px; border-top: 1px solid var(--line2); white-space: nowrap; }
   .num { text-align: right; }
   .lq-ptable tr { box-shadow: inset 3px 0 0 transparent; }
@@ -79,7 +79,7 @@
   .lq-role-none { display: inline-block; }
   .lq-rt { font: 700 20px/1 'Cabin Sketch', cursive; color: var(--accent); }
   .act { width: 1%; text-align: right; }
-  .lq-mini { width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--line); background: var(--inset); font: 700 18px/1 'JetBrains Mono', monospace; cursor: pointer; }
+  .lq-mini { width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--line); background: var(--inset); font: 700 18px/1 'National Park', system-ui, sans-serif; cursor: pointer; }
   .lq-mini:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
   .lq-mini.on { background: var(--accent); border-color: var(--accent); color: #000; font-size: 14px; }
   .lq-mini:disabled { opacity: .3; cursor: not-allowed; }
@@ -99,18 +99,18 @@
   .lq-rolepick button:hover:not(:disabled) { border-color: var(--accent); }
   .lq-rolepick button[aria-checked="true"] { border-color: var(--accent); background: rgba(165, 220, 221, .16); box-shadow: inset 0 0 0 1px var(--accent); }
   .lq-rolepick button:disabled { opacity: .18; cursor: not-allowed; border-style: dashed; }
-  .lq-role-note { font: 600 11px/1.3 'JetBrains Mono', monospace; color: var(--dim); }
+  .lq-role-note { font: 600 11px/1.3 'National Park', system-ui, sans-serif; color: var(--dim); }
   .lq-role-note.off { color: var(--q); }
   .lq-alts { display: inline-flex; gap: 2px; margin-left: 4px; opacity: .45; flex: none; }
   .lq-alts img { width: 12px; height: 12px; }
   .lq-slot .lq-pl-n { flex: 1; }
-  .lq-slot-n { font: 600 11px/1 'JetBrains Mono', monospace; color: var(--dim); width: 12px; }
+  .lq-slot-n { font: 600 11px/1 'National Park', system-ui, sans-serif; color: var(--dim); width: 12px; }
   .lq-x { width: 32px; height: 32px; border-radius: 8px; border: 1px solid transparent; background: none; color: var(--dim); font-size: 20px; cursor: pointer; }
   .lq-x:hover { color: var(--lose); border-color: var(--line); }
   .lq-quick { display: flex; gap: 8px; margin-top: 10px; }
   .lq-quick .tt-btn { min-height: 36px; padding: 0 14px; font-size: 12px; }
   .lq-h3 { font: 700 22px/1.1 'Cabin Sketch', cursive; margin: 22px 0 10px; }
-  .lq-h3 .lq-dim { font: 400 13px/1 'Space Grotesk', sans-serif; }
+  .lq-h3 .lq-dim { font: 400 13px/1 'National Park', sans-serif; }
   .lq-coaches { display: grid; grid-template-columns: 1fr; gap: 6px; }
   .lq-coaches button { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; text-align: left; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line2); background: var(--inset); cursor: pointer; }
   .lq-coaches button b { font-weight: 600; }
@@ -126,10 +126,10 @@
   .lq-big { font: 700 44px/1 'Cabin Sketch', cursive; color: var(--accent); }
   .lq-break { display: flex; gap: 14px; margin: 0; }
   .lq-break div { text-align: right; }
-  .lq-break dt { font: 600 10px/1 'JetBrains Mono', monospace; letter-spacing: .1em; color: var(--dim); text-transform: uppercase; }
-  .lq-break dd { margin: 4px 0 0; font: 600 15px/1 'JetBrains Mono', monospace; }
+  .lq-break dt { font: 600 10px/1 'National Park', system-ui, sans-serif; letter-spacing: .1em; color: var(--dim); text-transform: uppercase; }
+  .lq-break dd { margin: 4px 0 0; font: 600 15px/1 'National Park', system-ui, sans-serif; }
   .lq-roles { display: flex; gap: 6px; margin: 12px 0 8px; flex-wrap: wrap; }
-  .lq-rolechip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; border-radius: 999px; border: 1px solid var(--line); font: 600 12px/1 'JetBrains Mono', monospace; }
+  .lq-rolechip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; border-radius: 999px; border: 1px solid var(--line); font: 600 12px/1 'National Park', system-ui, sans-serif; }
   .lq-rolechip img { width: 14px; height: 14px; }
   .lq-rolechip.miss { border-color: var(--q); color: var(--q); }
   .lq-warn { color: var(--q) !important; font-size: 13px; margin-bottom: 6px !important; }
@@ -165,7 +165,7 @@
   .lq-series.big { padding: 18px 20px; }
   .lq-series-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; }
   .lq-series-head .lq-kicker { color: var(--dim); font-size: 10px; }
-  .lq-res { font: 700 11px/1 'JetBrains Mono', monospace; letter-spacing: .12em; padding: 4px 8px; border-radius: 4px; }
+  .lq-res { font: 700 11px/1 'National Park', system-ui, sans-serif; letter-spacing: .12em; padding: 4px 8px; border-radius: 4px; }
   .lq-res.w { color: #000; background: var(--win); }
   .lq-res.l { color: #000; background: var(--lose); }
   .lq-vs { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 10px; }
@@ -181,7 +181,7 @@
   .lq-maps { list-style: none; margin: 10px 0 0; padding: 0; display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
   .lq-maps li { display: inline-flex; gap: 6px; align-items: baseline; padding: 3px 8px; border-radius: 6px; border: 1px solid var(--line2); font-size: 12px; }
   .lq-maps li span { color: var(--dim); }
-  .lq-maps li b { font: 600 12px/1 'JetBrains Mono', monospace; }
+  .lq-maps li b { font: 600 12px/1 'National Park', system-ui, sans-serif; }
   .lq-series.mine .lq-maps li.w b { color: var(--win); }
   .lq-series.mine .lq-maps li.l b { color: var(--lose); }
   .lq-call { margin: 14px 0 0; padding-left: 10px; border-left: 2px solid var(--q); color: #c4d4d4; }
@@ -203,7 +203,7 @@
   .lq-bbox .lq-kicker { font-size: 9px; color: var(--dim); margin-bottom: 2px; }
   .lq-bslot { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-radius: 6px; background: var(--inset); border: 1px solid var(--line2); font-size: 13px; min-height: 34px; }
   .lq-bslot span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .lq-bslot b { font: 600 13px/1 'JetBrains Mono', monospace; color: var(--dim); }
+  .lq-bslot b { font: 600 13px/1 'National Park', system-ui, sans-serif; color: var(--dim); }
   .lq-bslot.win b { color: var(--accent); }
   .lq-bslot.win span { font-weight: 600; }
   .lq-bslot.me { border-color: var(--q); }
@@ -216,7 +216,7 @@
   .lq-final > p:first-of-type { font: 700 22px/1.2 'Cabin Sketch', cursive; }
   .lq-final .lq-logo { vertical-align: middle; }
   .lq-final .lq-bot { display: inline-block; text-align: left; max-width: 620px; margin-top: 14px !important; }
-  .lq-mvp { font: 700 9px/1 'JetBrains Mono', monospace; letter-spacing: .12em; color: #000; background: #f5d76e; border-radius: 3px; padding: 3px 5px; }
+  .lq-mvp { font: 700 9px/1 'National Park', system-ui, sans-serif; letter-spacing: .12em; color: #000; background: #f5d76e; border-radius: 3px; padding: 3px 5px; }
   .lq-foot-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--line2); }
   .lq-rules { margin-top: 48px; border-top: 1px solid var(--line2); padding-top: 24px; color: var(--dim); }
   .lq-rules h2 { font: 700 24px/1 'Cabin Sketch', cursive; color: var(--ink); margin: 0 0 12px; }
@@ -229,7 +229,7 @@
   .lq-intro.is-done { opacity: 0; pointer-events: none; }
   .lq-intro[hidden] { display: none; }
   .lq-intro video { width: 100%; height: 100%; object-fit: contain; }
-  .lq-intro button { position: absolute; right: max(20px, env(safe-area-inset-right, 0px)); bottom: max(20px, env(safe-area-inset-bottom, 0px)); min-height: 40px; padding: 0 16px; border-radius: 8px; border: 1px solid rgba(236, 232, 225, .3); background: rgba(15, 25, 35, .6); color: #ece8e1; font: 600 12px/1 'JetBrains Mono', monospace; letter-spacing: .1em; cursor: pointer; }
+  .lq-intro button { position: absolute; right: max(20px, env(safe-area-inset-right, 0px)); bottom: max(20px, env(safe-area-inset-bottom, 0px)); min-height: 40px; padding: 0 16px; border-radius: 8px; border: 1px solid rgba(236, 232, 225, .3); background: rgba(15, 25, 35, .6); color: #ece8e1; font: 600 12px/1 'National Park', system-ui, sans-serif; letter-spacing: .1em; cursor: pointer; }
   .lq-intro button:hover { border-color: #ece8e1; }
 
   @media (max-width: 1040px) {
@@ -302,17 +302,17 @@
 <span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 32px; color: #a5dcdd; line-height: 1">fantasy.pcmt.gg</span>
 </a>
 <nav aria-label="Main" style="display: flex; flex-wrap: wrap; gap: 4px; flex: 1 0 100%; order: 3">
-<a href="home.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Home</a>
-<a href="pickems.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Pick'ems</a>
-<a href="leaderboard.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">The Deck Leaderboard</a>
-<a href="index.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">The Deck</a>
-<a href="customization.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Customization</a>
-<a href="guide.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Guide</a>
-<a href="mvp-vs.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">MVP VS</a>
-<a href="store.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Store</a>
-<a href="library.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Library</a>
-<a id="tt-auth" href="login.html" style="margin-left: auto; order: 2; min-height: 44px; display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; border-radius: 8px; background: #4752C4; color: #fff; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; text-decoration: none"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><path d="M10 17l5-5-5-5"></path><path d="M15 12H3"></path></svg><span id="tt-auth-label">Log in with Discord</span></a>
-<span style="order: -1; flex: 1 0 100%; margin-bottom: -4px; text-align: right; line-height: normal; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.08em; white-space: nowrap">NA S3 · EMEA S2</span>
+<a href="home.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Home</a>
+<a href="pickems.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Pick'ems</a>
+<a href="leaderboard.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">The Deck Leaderboard</a>
+<a href="index.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">The Deck</a>
+<a href="customization.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Customization</a>
+<a href="guide.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Guide</a>
+<a href="mvp-vs.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">MVP VS</a>
+<a href="store.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Store</a>
+<a href="library.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Library</a>
+<a id="tt-auth" href="login.html" style="margin-left: auto; order: 2; min-height: 44px; display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; border-radius: 8px; background: #4752C4; color: #fff; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; font-weight: 600; text-decoration: none"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><path d="M10 17l5-5-5-5"></path><path d="M15 12H3"></path></svg><span id="tt-auth-label">Log in with Discord</span></a>
+<span style="order: -1; flex: 1 0 100%; margin-bottom: -4px; text-align: right; line-height: normal; font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa; letter-spacing: 0.08em; white-space: nowrap">NA S3 · EMEA S2</span>
 </div>
 </header>
 <main>
@@ -339,12 +339,12 @@
   </section>
 </main>
 <footer style="border-top: 1px solid #2a3a3e">
-<div class="tt-foot-in" style="max-width: 1280px; margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">
+<div class="tt-foot-in" style="max-width: 1280px; margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa">
 <span>fantasy.pcmt.gg · Plat Chat Members Tourney</span>
 <span>Version 1.3</span>
 <span style="display: flex; flex-wrap: wrap; gap: 6px 18px"><a href="#privacy" data-pcmt-privacy style="color: #a5dcdd">Privacy notice</a><a href="#settings" data-pcmt-settings style="color: #a5dcdd">Settings</a><a href="https://pcmt.gg" target="_blank" rel="noopener" style="color: #a5dcdd">Stats on PCMT.gg</a></span>
 </div>
-<p class="tt-foot-note" style="max-width: 1280px; margin: 0 auto; font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.6; color: #93a9aa"><span style="display: block; margin-bottom: 6px; font-size: 12px; color: #c4d4d4">A <b style="font-weight: 700; color: #eaf4f4">PCMT</b> product</span>fantasy.pcmt.gg was created under Riot Games' <a href="https://www.riotgames.com/en/legal" target="_blank" rel="noopener" style="color: #a5dcdd">&quot;Legal Jibber Jabber&quot;</a> policy using assets owned by Riot Games. Riot Games does not endorse or sponsor this project.</p>
+<p class="tt-foot-note" style="max-width: 1280px; margin: 0 auto; font-family: 'National Park', system-ui, sans-serif; font-size: 11px; line-height: 1.6; color: #93a9aa"><span style="display: block; margin-bottom: 6px; font-size: 12px; color: #c4d4d4">A <b style="font-weight: 700; color: #eaf4f4">PCMT</b> product</span>fantasy.pcmt.gg was created under Riot Games' <a href="https://www.riotgames.com/en/legal" target="_blank" rel="noopener" style="color: #a5dcdd">&quot;Legal Jibber Jabber&quot;</a> policy using assets owned by Riot Games. Riot Games does not endorse or sponsor this project.</p>
 </footer>
 <script src="trumps-cards.js"></script>
 <script src="losersq-roles.js"></script>

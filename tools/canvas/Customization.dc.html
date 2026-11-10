@@ -9,7 +9,7 @@
 <x-dc>
 <helmet>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cabin+Sketch:wght@400;700&amp;family=JetBrains+Mono:wght@400;600&amp;family=Space+Grotesk:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cabin+Sketch:wght@400;700&amp;family=National+Park:wght@200..800&amp;display=swap" rel="stylesheet">
 <style>
 body{margin:0;background:#0d1416}
 html{color-scheme:dark}
@@ -17,7 +17,7 @@ html{color-scheme:dark}
 @keyframes pcmt-fresh{0%,100%{box-shadow:0 0 0 2px rgba(255,236,170,.55),0 0 14px 2px rgba(255,226,140,.35),0 6px 14px rgba(0,0,0,.45)}50%{box-shadow:0 0 0 2px rgba(255,248,220,.95),0 0 34px 10px rgba(255,226,140,.7),0 6px 14px rgba(0,0,0,.45)}}
 .pcmt-fresh::after{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;border-radius:inherit;background:radial-gradient(circle at 50% 50%,rgba(255,240,190,.4),transparent 65%);animation:pcmt-fresh-in 1.6s ease-in-out infinite}
 @keyframes pcmt-fresh-in{0%,100%{opacity:.2}50%{opacity:.85}}
-.pcmt-fresh-tag{position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:4;padding:3px 8px;border-radius:999px;background:#f5d76e;color:#000;font:600 10px/1.2 'JetBrains Mono',monospace;letter-spacing:.08em;white-space:nowrap;box-shadow:0 0 12px rgba(255,226,140,.8)}
+.pcmt-fresh-tag{position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:4;padding:3px 8px;border-radius:999px;background:#f5d76e;color:#000;font:600 10px/1.2 'National Park',system-ui,sans-serif;letter-spacing:.08em;white-space:nowrap;box-shadow:0 0 12px rgba(255,226,140,.8)}
 @media (prefers-reduced-motion: reduce){.pcmt-fresh{animation:none;box-shadow:0 0 0 2px rgba(255,248,220,.95),0 0 26px 6px rgba(255,226,140,.6)}.pcmt-fresh::after{animation:none;opacity:.6}}
 *{scrollbar-color:#3a4f53 #111a1c}
 ::-webkit-scrollbar{width:12px;height:12px}
@@ -78,12 +78,12 @@ a{color:#a5dcdd}a:hover{color:#d4f0f0}
 input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !important;box-shadow:0 0 0 3px rgba(165,220,221,.3)}
 </style>
 </helmet>
-<div data-pcmt-root="Customization" style="position: relative; min-height: 100vh; background: #0d1416; color: #eaf4f4; font-family: 'Space Grotesk', system-ui, sans-serif; display: flex; flex-direction: column">
+<div data-pcmt-root="Customization" style="position: relative; min-height: 100vh; background: #0d1416; color: #eaf4f4; font-family: 'National Park', system-ui, sans-serif; display: flex; flex-direction: column">
 <sc-if value="{{loaderOn}}" hint-placeholder-val="{{ false }}">
 <div class="pcmt-loading" role="status" aria-live="polite" style="position: absolute; inset: 0; z-index: 9999; background: #0d1416; opacity: {{loaderOpacity}}; pointer-events: {{loaderPointer}}">
 <div style="position: sticky; top: 0; height: 100vh; max-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px">
 <div class="pcmt-loader" aria-hidden="true"><span style="--i:0"></span><span style="--i:1"></span><span style="--i:2"></span><span style="--i:3"></span><span style="--i:4"></span><span style="--i:5"></span><span style="--i:6"></span><span style="--i:7"></span><span style="--i:8"></span><span style="--i:9"></span><span style="--i:10"></span><span style="--i:11"></span><span style="--i:12"></span><span style="--i:13"></span><span style="--i:14"></span></div>
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.12em; color: #a5dcdd">{{loaderLabel}}</span>
+<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.12em; color: #a5dcdd">{{loaderLabel}}</span>
 </div>
 </div>
 </sc-if>
@@ -95,19 +95,19 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 32px; color: #a5dcdd; line-height: 1">fantasy.pcmt.gg</span>
 </a>
 <nav aria-label="Main" style="display: flex; flex-wrap: wrap; gap: 4px; flex: 1 0 100%; order: 3">
-<a href="Home.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Home</a>
-<a href="Pickems.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Pick'ems</a>
-<a href="Leaderboard.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">The Deck Leaderboard</a>
-<a href="Main.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">The Deck</a>
-<a href="Customization.dc.html" aria-current="page" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #000; background: #a5dcdd; font-weight: 600">Customization</a>
-<a href="Rules.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Guide</a>
-<a href="MvpVs.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">MVP VS</a>
-<a href="Store.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Store</a>
-<a href="Library.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Library</a>
+<a href="Home.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Home</a>
+<a href="Pickems.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Pick'ems</a>
+<a href="Leaderboard.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">The Deck Leaderboard</a>
+<a href="Main.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">The Deck</a>
+<a href="Customization.dc.html" aria-current="page" style="padding: 12px 14px; border-radius: 6px; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #000; background: #a5dcdd; font-weight: 600">Customization</a>
+<a href="Rules.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Guide</a>
+<a href="MvpVs.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">MVP VS</a>
+<a href="Store.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Store</a>
+<a href="Library.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Library</a>
 </nav>
-<a href="Login.dc.html" style="margin-left: auto; order: 2; min-height: 44px; display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; border-radius: 8px; background: #4752C4; color: #fff; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; text-decoration: none"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><path d="M10 17l5-5-5-5"></path><path d="M15 12H3"></path></svg>Log in with Discord</a>
+<a href="Login.dc.html" style="margin-left: auto; order: 2; min-height: 44px; display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; border-radius: 8px; background: #4752C4; color: #fff; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; font-weight: 600; text-decoration: none"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><path d="M10 17l5-5-5-5"></path><path d="M15 12H3"></path></svg>Log in with Discord</a>
 <button type="button" data-pcmt-settings aria-label="Settings" title="Settings" style="order: 2; width: 44px; height: 44px; flex: none; display: inline-grid; place-items: center; padding: 0; border-radius: 8px; border: 1px solid #3a4f53; background: transparent; color: #a5dcdd; cursor: pointer"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></button>
-<span style="order: -1; flex: 1 0 100%; margin-bottom: -4px; text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.08em; white-space: nowrap">NA S3 · EMEA S2</span>
+<span style="order: -1; flex: 1 0 100%; margin-bottom: -4px; text-align: right; font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa; letter-spacing: 0.08em; white-space: nowrap">NA S3 · EMEA S2</span>
 </div>
 </header>
 
@@ -119,17 +119,17 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <label for="unlock-code" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap">Unlock code</label>
 <div style="position: relative; flex: 1 1 auto; min-width: 0">
 <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#93a9aa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; left: 12px; top: 50%; margin-top: -8px; pointer-events: none"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
-<input id="unlock-code" type="search" value="{{codeInput}}" onChange="{{setCode}}" onKeyDown="{{codeKey}}" placeholder="Enter code" autocomplete="off" spellcheck="false" style="height: 44px; width: 100%; box-sizing: border-box; padding: 0 12px 0 36px; border-radius: 8px; border: 1px solid #3a4f53; background: #0d1416; color: #eaf4f4; font-family: 'JetBrains Mono', monospace; font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase">
+<input id="unlock-code" type="search" value="{{codeInput}}" onChange="{{setCode}}" onKeyDown="{{codeKey}}" placeholder="Enter code" autocomplete="off" spellcheck="false" style="height: 44px; width: 100%; box-sizing: border-box; padding: 0 12px 0 36px; border-radius: 8px; border: 1px solid #3a4f53; background: #0d1416; color: #eaf4f4; font-family: 'National Park', system-ui, sans-serif; font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase">
 </div>
-<button onClick="{{redeem}}" style="min-height: 44px; padding: 0 16px; flex: none; border-radius: 8px; border: none; background: #a5dcdd; color: #000; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; letter-spacing: 0.04em">REDEEM</button>
+<button onClick="{{redeem}}" style="min-height: 44px; padding: 0 16px; flex: none; border-radius: 8px; border: none; background: #a5dcdd; color: #000; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.04em">REDEEM</button>
 <span role="status" aria-live="polite" style="position: absolute; z-index: 2; top: 100%; left: 0; right: 0; margin-top: 6px; font-size: 13px; line-height: 1.4; text-align: right; color: {{codeMsgColor}}">{{codeMsg}}</span>
 </div>
 </div>
 
 <section aria-labelledby="fav-h" style="display: flex; flex-direction: column; gap: 18px; padding: 22px; border-radius: 12px; background: #172124; border: 1px solid #2a3a3e">
 <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px">
-<h2 id="fav-h" style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">Favorites</h2>
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">{{favCount}} saved</span>
+<h2 id="fav-h" style="margin: 0; font-family: 'National Park', system-ui, sans-serif; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">Favorites</h2>
+<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa">{{favCount}} saved</span>
 </div>
 <sc-if value="{{favEmpty}}" hint-placeholder-val="{{ true }}">
 <div style="min-height: 120px; border: 2px dashed #3a4f53; border-radius: 10px; display: flex; align-items: center; justify-content: center; padding: 20px; text-align: center; color: #93a9aa; font-size: 14px; line-height: 1.5">Tap the star on any unlocked aura or decks to keep them here.</div>
@@ -186,7 +186,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <sc-if value="{{ethan.locked}}" hint-placeholder-val="{{ true }}">
 <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.55); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 12px; box-sizing: border-box; text-align: center">
 <span style="width: 40px; height: 40px; border-radius: 50%; background: #0d1416; border: 1px solid #d4af37; color: #f5d76e; display: grid; place-items: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg></span>
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; color: #f5d76e">LOCKED</span>
+<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; color: #f5d76e">LOCKED</span>
 </div>
 </sc-if>
 </div>
@@ -203,7 +203,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <sc-if value="{{halo.locked}}" hint-placeholder-val="{{ true }}">
 <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.55); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 12px; box-sizing: border-box; text-align: center">
 <span style="width: 40px; height: 40px; border-radius: 50%; background: #0d1416; border: 1px solid #d4af37; color: #f5d76e; display: grid; place-items: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg></span>
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; color: #f5d76e">LOCKED</span>
+<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; color: #f5d76e">LOCKED</span>
 </div>
 </sc-if>
 </div>
@@ -219,15 +219,15 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <sc-if value="{{mistA.locked}}" hint-placeholder-val="{{ true }}">
 <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.55); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 12px; box-sizing: border-box; text-align: center">
 <span style="width: 40px; height: 40px; border-radius: 50%; background: #0d1416; border: 1px solid #d4af37; color: #f5d76e; display: grid; place-items: center"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg></span>
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; color: #f5d76e">LOCKED</span>
+<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; color: #f5d76e">LOCKED</span>
 </div>
 </sc-if>
 </div>
 </sc-if>
 <span style="display: flex; justify-content: space-between; align-items: center; gap: 6px; min-width: 0">
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: {{f.color}}">{{f.name}}</span>
+<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 13px; font-weight: 600; color: {{f.color}}">{{f.name}}</span>
 <sc-if value="{{f.showPill}}" hint-placeholder-val="{{ false }}">
-<span style="padding: 2px 7px; border-radius: 999px; background: {{f.pillBg}}; color: #000; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.04em">{{f.pill}}</span>
+<span style="padding: 2px 7px; border-radius: 999px; background: {{f.pillBg}}; color: #000; font-family: 'National Park', system-ui, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.04em">{{f.pill}}</span>
 </sc-if>
 </span>
 </button>
@@ -244,8 +244,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 
 <section aria-labelledby="defaults-h" style="display: flex; flex-direction: column; gap: 18px; padding: 22px; border-radius: 12px; background: #172124; border: 1px solid #2a3a3e">
 <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px">
-<h2 id="defaults-h" style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">PCMT Decks</h2>
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">{{defaultUnlocked}} of {{defaultCount}} unlocked</span>
+<h2 id="defaults-h" style="margin: 0; font-family: 'National Park', system-ui, sans-serif; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">PCMT Decks</h2>
+<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa">{{defaultUnlocked}} of {{defaultCount}} unlocked</span>
 </div>
 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 18px 14px">
 <sc-for list="{{defaults}}" as="d" hint-placeholder-count="2">
@@ -261,7 +261,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <sc-if value="{{d.locked}}" hint-placeholder-val="{{ false }}">
 <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.6); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px">
 <span style="width: 34px; height: 34px; border-radius: 50%; background: #0d1416; border: 1px solid {{d.color}}; color: {{d.color}}; display: grid; place-items: center"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg></span>
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; color: {{d.color}}">LOCKED</span>
+<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; color: {{d.color}}">LOCKED</span>
 </div>
 </sc-if>
 <sc-if value="{{d.on}}" hint-placeholder-val="{{ false }}">
@@ -271,7 +271,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </sc-if>
 </div>
 <span style="display: flex; justify-content: space-between; align-items: center; gap: 6px; min-width: 0">
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: {{d.color}}">{{d.name}}</span>
+<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 13px; font-weight: 600; color: {{d.color}}">{{d.name}}</span>
 </span>
 <sc-if value="{{d.hasHint}}" hint-placeholder-val="{{ false }}">
 <span style="font-size: 12px; color: #93a9aa; line-height: 1.4">{{d.hint}}</span>
@@ -289,8 +289,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 
 <section aria-labelledby="pride-h" style="display: flex; flex-direction: column; gap: 18px; padding: 22px; border-radius: 12px; background: #172124; border: 1px solid #2a3a3e">
 <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px">
-<h2 id="pride-h" style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">Pride Collection</h2>
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">{{prideStatus}}</span>
+<h2 id="pride-h" style="margin: 0; font-family: 'National Park', system-ui, sans-serif; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">Pride Collection</h2>
+<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa">{{prideStatus}}</span>
 </div>
 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 18px 14px">
 <sc-for list="{{pride}}" as="d" hint-placeholder-count="1">
@@ -306,7 +306,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <sc-if value="{{d.locked}}" hint-placeholder-val="{{ true }}">
 <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.6); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px">
 <span style="width: 34px; height: 34px; border-radius: 50%; background: #0d1416; border: 1px solid {{d.color}}; color: {{d.color}}; display: grid; place-items: center"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg></span>
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; color: {{d.color}}">LOCKED</span>
+<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; color: {{d.color}}">LOCKED</span>
 </div>
 </sc-if>
 <sc-if value="{{d.on}}" hint-placeholder-val="{{ false }}">
@@ -316,7 +316,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </sc-if>
 </div>
 <span style="display: flex; justify-content: space-between; align-items: center; gap: 6px; min-width: 0">
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: {{d.color}}">{{d.name}}</span>
+<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 13px; font-weight: 600; color: {{d.color}}">{{d.name}}</span>
 </span>
 </button>
 <sc-if value="{{d.favShow}}" hint-placeholder-val="{{ true }}">
@@ -331,8 +331,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 
 <section aria-labelledby="eu-decks-h" style="display: flex; flex-direction: column; gap: 18px; padding: 22px; border-radius: 12px; background: #172124; border: 1px solid #2a3a3e">
 <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px">
-<h2 id="eu-decks-h" style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #d5ff1d; letter-spacing: 0.08em">EMEA Team Decks</h2>
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">{{euDeckUnlocked}} of {{euDeckCount}} unlocked</span>
+<h2 id="eu-decks-h" style="margin: 0; font-family: 'National Park', system-ui, sans-serif; font-size: 15px; font-weight: 600; color: #d5ff1d; letter-spacing: 0.08em">EMEA Team Decks</h2>
+<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa">{{euDeckUnlocked}} of {{euDeckCount}} unlocked</span>
 </div>
 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 18px 14px">
 <sc-for list="{{euDecks}}" as="d" hint-placeholder-count="8">
@@ -348,7 +348,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <sc-if value="{{d.locked}}" hint-placeholder-val="{{ true }}">
 <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.6); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px">
 <span style="width: 34px; height: 34px; border-radius: 50%; background: #0d1416; border: 1px solid {{d.color}}; color: {{d.color}}; display: grid; place-items: center"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg></span>
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; color: {{d.color}}">LOCKED</span>
+<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; color: {{d.color}}">LOCKED</span>
 </div>
 </sc-if>
 <sc-if value="{{d.on}}" hint-placeholder-val="{{ false }}">
@@ -358,7 +358,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </sc-if>
 </div>
 <span style="display: flex; justify-content: space-between; align-items: center; gap: 6px; min-width: 0">
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: {{d.color}}">{{d.code}}</span>
+<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 13px; font-weight: 600; color: {{d.color}}">{{d.code}}</span>
 </span>
 <span style="font-size: 13px; color: #93a9aa; line-height: 1.3; min-height: 2.6em">{{d.name}}</span>
 <sc-if value="{{d.locked}}" hint-placeholder-val="{{ true }}">
@@ -367,7 +367,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <sc-if value="{{d.locked}}" hint-placeholder-val="{{ true }}">
 <span style="display: flex; flex-direction: column; gap: 4px; margin-top: auto">
 <span style="height: 4px; border-radius: 999px; background: #2a3a3e; overflow: hidden"><span style="display: block; height: 100%; width: {{d.pct}}; background: {{d.color}}; border-radius: 999px"></span></span>
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #93a9aa">{{d.progress}}</span>
+<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 11px; color: #93a9aa">{{d.progress}}</span>
 </span>
 </sc-if>
 </button>
@@ -383,8 +383,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 
 <section aria-labelledby="decks-h" style="display: flex; flex-direction: column; gap: 18px; padding: 22px; border-radius: 12px; background: #172124; border: 1px solid #2a3a3e">
 <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px">
-<h2 id="decks-h" style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #ff6a1f; letter-spacing: 0.08em">NA Team Decks</h2>
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">{{deckUnlocked}} of {{deckCount}} unlocked</span>
+<h2 id="decks-h" style="margin: 0; font-family: 'National Park', system-ui, sans-serif; font-size: 15px; font-weight: 600; color: #ff6a1f; letter-spacing: 0.08em">NA Team Decks</h2>
+<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa">{{deckUnlocked}} of {{deckCount}} unlocked</span>
 </div>
 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 18px 14px">
 <sc-for list="{{decks}}" as="d" hint-placeholder-count="16">
@@ -400,7 +400,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <sc-if value="{{d.locked}}" hint-placeholder-val="{{ true }}">
 <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.6); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px">
 <span style="width: 34px; height: 34px; border-radius: 50%; background: #0d1416; border: 1px solid {{d.color}}; color: {{d.color}}; display: grid; place-items: center"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg></span>
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; color: {{d.color}}">LOCKED</span>
+<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; color: {{d.color}}">LOCKED</span>
 </div>
 </sc-if>
 <sc-if value="{{d.on}}" hint-placeholder-val="{{ false }}">
@@ -410,7 +410,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </sc-if>
 </div>
 <span style="display: flex; justify-content: space-between; align-items: center; gap: 6px; min-width: 0">
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: {{d.color}}">{{d.code}}</span>
+<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 13px; font-weight: 600; color: {{d.color}}">{{d.code}}</span>
 </span>
 <span style="font-size: 13px; color: #93a9aa; line-height: 1.3; min-height: 2.6em">{{d.name}}</span>
 <sc-if value="{{d.locked}}" hint-placeholder-val="{{ true }}">
@@ -419,7 +419,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <sc-if value="{{d.locked}}" hint-placeholder-val="{{ true }}">
 <span style="display: flex; flex-direction: column; gap: 4px; margin-top: auto">
 <span style="height: 4px; border-radius: 999px; background: #2a3a3e; overflow: hidden"><span style="display: block; height: 100%; width: {{d.pct}}; background: {{d.color}}; border-radius: 999px"></span></span>
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #93a9aa">{{d.progress}}</span>
+<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 11px; color: #93a9aa">{{d.progress}}</span>
 </span>
 </sc-if>
 </button>
@@ -435,8 +435,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 
 <section aria-labelledby="unlock-h" style="display: flex; flex-direction: column; gap: 18px; padding: 22px; border-radius: 12px; background: #172124; border: 1px solid #2a3a3e">
 <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px">
-<h2 id="unlock-h" style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">Aura</h2>
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">{{unlockedCount}} of 5 unlocked</span>
+<h2 id="unlock-h" style="margin: 0; font-family: 'National Park', system-ui, sans-serif; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">Aura</h2>
+<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa">{{unlockedCount}} of 5 unlocked</span>
 </div>
 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 18px 14px">
 <div style="position: relative; display: grid; min-width: 0">
@@ -450,9 +450,9 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </div>
 </div>
 <span style="display: flex; justify-content: space-between; align-items: center; gap: 6px; min-width: 0">
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: #f5d76e">Halo</span>
+<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 13px; font-weight: 600; color: #f5d76e">Halo</span>
 <sc-if value="{{ringA.on}}" hint-placeholder-val="{{ false }}">
-<span style="padding: 2px 7px; border-radius: 999px; background: #d4af37; color: #000; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.04em">ON</span>
+<span style="padding: 2px 7px; border-radius: 999px; background: #d4af37; color: #000; font-family: 'National Park', system-ui, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.04em">ON</span>
 </sc-if>
 </span>
 </button>
@@ -474,9 +474,9 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </div>
 </div>
 <span style="display: flex; justify-content: space-between; align-items: center; gap: 6px; min-width: 0">
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: #f5d76e">Pride // Aura</span>
+<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 13px; font-weight: 600; color: #f5d76e">Pride // Aura</span>
 <sc-if value="{{prideA.on}}" hint-placeholder-val="{{ false }}">
-<span style="padding: 2px 7px; border-radius: 999px; background: #d4af37; color: #000; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.04em">ON</span>
+<span style="padding: 2px 7px; border-radius: 999px; background: #d4af37; color: #000; font-family: 'National Park', system-ui, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.04em">ON</span>
 </sc-if>
 </span>
 </button>
@@ -498,14 +498,14 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <sc-if value="{{ethan.locked}}" hint-placeholder-val="{{ true }}">
 <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.55); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 12px; box-sizing: border-box; text-align: center">
 <span style="width: 40px; height: 40px; border-radius: 50%; background: #0d1416; border: 1px solid #d4af37; color: #f5d76e; display: grid; place-items: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg></span>
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; color: #f5d76e">LOCKED</span>
+<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; color: #f5d76e">LOCKED</span>
 </div>
 </sc-if>
 </div>
 <span style="display: flex; justify-content: space-between; align-items: center; gap: 6px; min-width: 0">
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: #f5d76e">Ethan Arnold</span>
+<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 13px; font-weight: 600; color: #f5d76e">Ethan Arnold</span>
 <sc-if value="{{ethan.on}}" hint-placeholder-val="{{ false }}">
-<span style="padding: 2px 7px; border-radius: 999px; background: #d4af37; color: #000; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.04em">ON</span>
+<span style="padding: 2px 7px; border-radius: 999px; background: #d4af37; color: #000; font-family: 'National Park', system-ui, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.04em">ON</span>
 </sc-if>
 </span>
 <span style="font-size: 12px; color: #93a9aa; line-height: 1.4">{{ethan.hint}}</span>
@@ -529,14 +529,14 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <sc-if value="{{halo.locked}}" hint-placeholder-val="{{ true }}">
 <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.55); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 12px; box-sizing: border-box; text-align: center">
 <span style="width: 40px; height: 40px; border-radius: 50%; background: #0d1416; border: 1px solid #d4af37; color: #f5d76e; display: grid; place-items: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg></span>
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; color: #f5d76e">LOCKED</span>
+<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; color: #f5d76e">LOCKED</span>
 </div>
 </sc-if>
 </div>
 <span style="display: flex; justify-content: space-between; align-items: center; gap: 6px; min-width: 0">
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: #f5d76e">Midlife Crisis</span>
+<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 13px; font-weight: 600; color: #f5d76e">Midlife Crisis</span>
 <sc-if value="{{halo.on}}" hint-placeholder-val="{{ false }}">
-<span style="padding: 2px 7px; border-radius: 999px; background: #d4af37; color: #000; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.04em">ON</span>
+<span style="padding: 2px 7px; border-radius: 999px; background: #d4af37; color: #000; font-family: 'National Park', system-ui, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.04em">ON</span>
 </sc-if>
 </span>
 <span style="font-size: 12px; color: #93a9aa; line-height: 1.4">{{halo.hint}}</span>
@@ -559,14 +559,14 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <sc-if value="{{mistA.locked}}" hint-placeholder-val="{{ true }}">
 <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.55); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 12px; box-sizing: border-box; text-align: center">
 <span style="width: 40px; height: 40px; border-radius: 50%; background: #0d1416; border: 1px solid #d4af37; color: #f5d76e; display: grid; place-items: center"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg></span>
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; color: #f5d76e">LOCKED</span>
+<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; color: #f5d76e">LOCKED</span>
 </div>
 </sc-if>
 </div>
 <span style="display: flex; justify-content: space-between; align-items: center; gap: 6px; min-width: 0">
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: #f5d76e">Missed</span>
+<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 13px; font-weight: 600; color: #f5d76e">Missed</span>
 <sc-if value="{{mistA.on}}" hint-placeholder-val="{{ false }}">
-<span style="padding: 2px 7px; border-radius: 999px; background: #d4af37; color: #000; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.04em">ON</span>
+<span style="padding: 2px 7px; border-radius: 999px; background: #d4af37; color: #000; font-family: 'National Park', system-ui, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.04em">ON</span>
 </sc-if>
 </span>
 <span style="font-size: 12px; color: #93a9aa; line-height: 1.4">{{mistA.hint}}</span>
@@ -585,12 +585,12 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </main>
 
 <footer style="border-top: 1px solid #2a3a3e">
-<div style="max-width: 1280px; margin: 0 auto; padding: 22px 24px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">
+<div style="max-width: 1280px; margin: 0 auto; padding: 22px 24px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa">
 <span>fantasy.pcmt.gg · Plat Chat Members Tourney</span>
 <span>Version 1.3</span>
 <span style="display: flex; flex-wrap: wrap; gap: 6px 18px"><a href="#privacy" data-pcmt-privacy>Privacy notice</a><a href="#settings" data-pcmt-settings>Settings</a><a href="https://pcmt.gg" target="_blank" rel="noopener">Stats on PCMT.gg</a></span>
 </div>
-<p style="max-width: 1280px; margin: 0 auto; padding: 0 24px 22px; font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.6; color: #93a9aa"><span style="display: block; margin-bottom: 6px; font-size: 12px; color: #c4d4d4">A <b style="font-weight: 700; color: #eaf4f4">PCMT</b> product</span>fantasy.pcmt.gg was created under Riot Games' <a href="https://www.riotgames.com/en/legal" target="_blank" rel="noopener" style="color: #a5dcdd">&quot;Legal Jibber Jabber&quot;</a> policy using assets owned by Riot Games. Riot Games does not endorse or sponsor this project.</p>
+<p style="max-width: 1280px; margin: 0 auto; padding: 0 24px 22px; font-family: 'National Park', system-ui, sans-serif; font-size: 11px; line-height: 1.6; color: #93a9aa"><span style="display: block; margin-bottom: 6px; font-size: 12px; color: #c4d4d4">A <b style="font-weight: 700; color: #eaf4f4">PCMT</b> product</span>fantasy.pcmt.gg was created under Riot Games' <a href="https://www.riotgames.com/en/legal" target="_blank" rel="noopener" style="color: #a5dcdd">&quot;Legal Jibber Jabber&quot;</a> policy using assets owned by Riot Games. Riot Games does not endorse or sponsor this project.</p>
 </footer>
 
 </div>
@@ -827,7 +827,7 @@ var PCMT_PACK_CSS = [
   '.pk-face{position:absolute;inset:0;border-radius:12px;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden;box-shadow:0 10px 22px rgba(0,0,0,.45);box-sizing:border-box}',
   '.pk-back{display:grid;place-items:center}',
   '.pk-back *{box-sizing:border-box}',
-  '.pk-front{transform:rotateY(180deg);background:#172124;border:1px solid #2a3a3e;display:flex;flex-direction:column;font-family:"Space Grotesk",system-ui,sans-serif;color:#eaf4f4}',
+  '.pk-front{transform:rotateY(180deg);background:#172124;border:1px solid #2a3a3e;display:flex;flex-direction:column;font-family:"National Park",system-ui,sans-serif;color:#eaf4f4}',
   '.pk-front *{box-sizing:border-box}',
   '.pk-tbar{height:5px;flex:none;position:relative;z-index:1}',
   '.pk-wm{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}',

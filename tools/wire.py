@@ -16,8 +16,8 @@ def tpl(board, t):
     t, n = HEADER_LOGIN.subn(lambda m: m.group(1) + '{{auth.label}}</a>', t)
     assert n == (0 if board == 'Login.dc.html' else 1), (board, n)
     if board == 'Main.dc.html':
-        t = sub1(t, 'font-size: 44px; line-height: 1">0</div>\n<span style="font-family: \'JetBrains Mono\', monospace; font-size: 12px; color: #93a9aa">Rank —</span>',
-                 'font-size: 44px; line-height: 1">{{league.total}}</div>\n<span style="font-family: \'JetBrains Mono\', monospace; font-size: 12px; color: #93a9aa">{{league.rankLabel}}</span>', board)
+        t = sub1(t, 'font-size: 44px; line-height: 1">0</div>\n<span style="font-family: \'National Park\', system-ui, sans-serif; font-size: 12px; color: #93a9aa">Rank —</span>',
+                 'font-size: 44px; line-height: 1">{{league.total}}</div>\n<span style="font-family: \'National Park\', system-ui, sans-serif; font-size: 12px; color: #93a9aa">{{league.rankLabel}}</span>', board)
     if board == 'Login.dc.html':
         t = sub1(t, '>[Discord username]</span>', '>{{auth.name}}</span>', board)
         t = sub1(t, 'font-size: 40px">?</div>', 'font-size: 40px">{{auth.initial}}</div>', board)

@@ -9,7 +9,7 @@
 <x-dc>
 <helmet>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cabin+Sketch:wght@400;700&amp;family=JetBrains+Mono:wght@400;600&amp;family=Space+Grotesk:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cabin+Sketch:wght@400;700&amp;family=National+Park:wght@200..800&amp;display=swap" rel="stylesheet">
 <style>
 body{margin:0;background:#0d1416}
 html{color-scheme:dark}
@@ -32,7 +32,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 .st-art img.st-art-center{left:50%;top:50%;right:auto;bottom:auto;height:86%;width:auto;transform:translate(-50%,-46%);opacity:.24;-webkit-mask-image:none;mask-image:none}
 .st-sheen{position:absolute;inset:0;z-index:2;pointer-events:none;border-radius:inherit;background-size:260% 100%;background-repeat:no-repeat;animation:st-sheen 5s ease-in-out infinite}
 @keyframes st-sheen{0%{background-position:160% 0}55%,100%{background-position:-60% 0}}
-.st-stamp{display:inline-flex;align-items:center;gap:4px;padding:3px 7px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.14em;transform:rotate(-9deg);white-space:nowrap}
+.st-stamp{display:inline-flex;align-items:center;gap:4px;padding:3px 7px;border-radius:4px;font-family:'National Park',system-ui,sans-serif;font-size:10px;font-weight:700;letter-spacing:.14em;transform:rotate(-9deg);white-space:nowrap}
 .st-shine{background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:st-shine 6s ease-in-out infinite}
 @keyframes st-shine{0%{background-position:160% 0}50%,100%{background-position:-60% 0}}
 @media (prefers-reduced-motion: reduce){.st-sheen,.st-shine{animation:none}}
@@ -43,12 +43,12 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 .st-stat{box-sizing:border-box;display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:40px;padding:6px 12px;border-radius:8px;background:rgba(0,0,0,.5)}
 </style>
 </helmet>
-<div data-pcmt-root="Store" style="position: relative; min-height: 100vh; background: #0d1416; color: #eaf4f4; font-family: 'Space Grotesk', system-ui, sans-serif">
+<div data-pcmt-root="Store" style="position: relative; min-height: 100vh; background: #0d1416; color: #eaf4f4; font-family: 'National Park', system-ui, sans-serif">
 <sc-if value="{{loaderOn}}" hint-placeholder-val="{{ false }}">
 <div class="pcmt-loading" role="status" aria-live="polite" style="position: absolute; inset: 0; z-index: 9999; background: #0d1416; opacity: {{loaderOpacity}}; pointer-events: {{loaderPointer}}">
 <div style="position: sticky; top: 0; height: 100vh; max-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px">
 <div class="pcmt-loader" aria-hidden="true"><span style="--i:0"></span><span style="--i:1"></span><span style="--i:2"></span><span style="--i:3"></span><span style="--i:4"></span><span style="--i:5"></span><span style="--i:6"></span><span style="--i:7"></span><span style="--i:8"></span><span style="--i:9"></span><span style="--i:10"></span><span style="--i:11"></span><span style="--i:12"></span><span style="--i:13"></span><span style="--i:14"></span></div>
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.12em; color: #a5dcdd">{{loaderLabel}}</span>
+<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.12em; color: #a5dcdd">{{loaderLabel}}</span>
 </div>
 </div>
 </sc-if>
@@ -60,19 +60,19 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 32px; color: #a5dcdd; line-height: 1">fantasy.pcmt.gg</span>
 </a>
 <nav aria-label="Main" style="display: flex; flex-wrap: wrap; gap: 4px; flex: 1 0 100%; order: 3">
-<a href="Home.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Home</a>
-<a href="Pickems.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Pick'ems</a>
-<a href="Leaderboard.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">The Deck Leaderboard</a>
-<a href="Main.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">The Deck</a>
-<a href="Customization.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Customization</a>
-<a href="Rules.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Guide</a>
-<a href="MvpVs.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">MVP VS</a>
-<a href="Store.dc.html" aria-current="page" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #000; background: #a5dcdd; font-weight: 600">Store</a>
-<a href="Library.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Library</a>
+<a href="Home.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Home</a>
+<a href="Pickems.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Pick'ems</a>
+<a href="Leaderboard.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">The Deck Leaderboard</a>
+<a href="Main.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">The Deck</a>
+<a href="Customization.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Customization</a>
+<a href="Rules.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Guide</a>
+<a href="MvpVs.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">MVP VS</a>
+<a href="Store.dc.html" aria-current="page" style="padding: 12px 14px; border-radius: 6px; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #000; background: #a5dcdd; font-weight: 600">Store</a>
+<a href="Library.dc.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Library</a>
 </nav>
-<a href="Login.dc.html" style="margin-left: auto; order: 2; min-height: 44px; display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; border-radius: 8px; background: #4752C4; color: #fff; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; text-decoration: none"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><path d="M10 17l5-5-5-5"></path><path d="M15 12H3"></path></svg>Log in with Discord</a>
+<a href="Login.dc.html" style="margin-left: auto; order: 2; min-height: 44px; display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; border-radius: 8px; background: #4752C4; color: #fff; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; font-weight: 600; text-decoration: none"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><path d="M10 17l5-5-5-5"></path><path d="M15 12H3"></path></svg>Log in with Discord</a>
 <button type="button" data-pcmt-settings aria-label="Settings" title="Settings" style="order: 2; width: 44px; height: 44px; flex: none; display: inline-grid; place-items: center; padding: 0; border-radius: 8px; border: 1px solid #3a4f53; background: transparent; color: #a5dcdd; cursor: pointer"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></button>
-<span style="order: -1; flex: 1 0 100%; margin-bottom: -4px; text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.08em; white-space: nowrap">NA S3 · EMEA S2</span>
+<span style="order: -1; flex: 1 0 100%; margin-bottom: -4px; text-align: right; font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa; letter-spacing: 0.08em; white-space: nowrap">NA S3 · EMEA S2</span>
 </div>
 </header>
 
@@ -80,7 +80,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <sc-if value="{{locked}}" hint-placeholder-val="{{ true }}">
 <div role="status" style="position: relative; min-height: 62vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; padding: 24px; text-align: center; ">
 <div class="pcmt-loader" aria-hidden="true"><span style="--i:0"></span><span style="--i:1"></span><span style="--i:2"></span><span style="--i:3"></span><span style="--i:4"></span><span style="--i:5"></span><span style="--i:6"></span><span style="--i:7"></span><span style="--i:8"></span><span style="--i:9"></span><span style="--i:10"></span><span style="--i:11"></span><span style="--i:12"></span><span style="--i:13"></span><span style="--i:14"></span></div>
-<p style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; letter-spacing: 0.18em; color: #a5dcdd">COMING SOON...</p>
+<p style="margin: 0; font-family: 'National Park', system-ui, sans-serif; font-size: 15px; letter-spacing: 0.18em; color: #a5dcdd">COMING SOON...</p>
 </div>
 </sc-if>
 <sc-if value="{{unlocked}}" hint-placeholder-val="{{ false }}">
@@ -92,13 +92,13 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <p style="margin: 8px 0 0; max-width: 640px; font-size: 18px; line-height: 1.55; color: #c4d4d4">Spend your Credits on card packs. Every pack has 5 cards from its region.</p>
 </div>
 <div style="display: flex; align-items: baseline; gap: 10px; padding: 12px 18px; border: 1px solid #2a3a3e; border-radius: 12px; background: #172124">
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; letter-spacing: 0.08em; text-transform: uppercase">The Bank</span>
-<span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 32px; line-height: 1; color: #a5dcdd">{{bank}}</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; color: #a5dcdd">Credits</span>
+<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa; letter-spacing: 0.08em; text-transform: uppercase">The Bank</span>
+<span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 32px; line-height: 1; color: #a5dcdd">{{bank}}</span><span style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; font-weight: 600; color: #a5dcdd">Credits</span>
 </div>
 </div>
 
 <section aria-labelledby="packs-h" style="display: flex; flex-direction: column; gap: 16px">
-<h2 id="packs-h" style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">Card packs</h2>
+<h2 id="packs-h" style="margin: 0; font-family: 'National Park', system-ui, sans-serif; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">Card packs</h2>
 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 20px">
 <sc-for list="{{packs}}" as="pk" hint-placeholder-count="2">
 <article style="background: #172124; border: 1px solid #2a3a3e; border-radius: 12px; padding: 22px; display: flex; gap: 20px; align-items: center; flex-wrap: wrap">
@@ -106,17 +106,17 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <div style="flex: 1 1 180px; min-width: 0; display: flex; flex-direction: column; gap: 10px">
 <h3 style="margin: 0; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 30px; line-height: 1.05">{{pk.name}}</h3>
 <span style="color: #c4d4d4; font-size: 15px; line-height: 1.45">{{pk.desc}}</span>
-<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa; line-height: 1.6">{{pk.odds}}</span>
+<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa; line-height: 1.6">{{pk.odds}}</span>
 <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 4px">
-<span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 30px; line-height: 1; color: #a5dcdd">{{pk.priceLabel}} <small style="font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600">Credits</small></span>
+<span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 30px; line-height: 1; color: #a5dcdd">{{pk.priceLabel}} <small style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; font-weight: 600">Credits</small></span>
 <sc-if value="{{pk.confirming}}" hint-placeholder-val="{{ false }}">
 <span style="display: inline-flex; gap: 8px; flex-wrap: wrap">
-<button onClick="{{pk.confirm}}" style="min-height: 44px; padding: 0 16px; border-radius: 8px; border: 1px solid #a5dcdd; background: #a5dcdd; color: #000; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; cursor: pointer">Spend {{pk.price}} Credits</button>
-<button onClick="{{cancelBuy}}" style="min-height: 44px; padding: 0 14px; border-radius: 8px; border: 1px solid #3a4f53; background: transparent; color: #eaf4f4; font-family: 'JetBrains Mono', monospace; font-size: 13px; cursor: pointer">Cancel</button>
+<button onClick="{{pk.confirm}}" style="min-height: 44px; padding: 0 16px; border-radius: 8px; border: 1px solid #a5dcdd; background: #a5dcdd; color: #000; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; font-weight: 600; cursor: pointer">Spend {{pk.price}} Credits</button>
+<button onClick="{{cancelBuy}}" style="min-height: 44px; padding: 0 14px; border-radius: 8px; border: 1px solid #3a4f53; background: transparent; color: #eaf4f4; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; cursor: pointer">Cancel</button>
 </span>
 </sc-if>
 <sc-if value="{{pk.notConfirming}}" hint-placeholder-val="{{ true }}">
-<button onClick="{{pk.buy}}" disabled="{{pk.disabled}}" style="min-height: 44px; padding: 0 18px; border-radius: 8px; border: 1px solid {{pk.btnBorder}}; background: {{pk.btnBg}}; color: {{pk.btnInk}}; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; cursor: {{pk.cursor}}">{{pk.buyLabel}}</button>
+<button onClick="{{pk.buy}}" disabled="{{pk.disabled}}" style="min-height: 44px; padding: 0 18px; border-radius: 8px; border: 1px solid {{pk.btnBorder}}; background: {{pk.btnBg}}; color: {{pk.btnInk}}; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; font-weight: 600; cursor: {{pk.cursor}}">{{pk.buyLabel}}</button>
 </sc-if>
 </div>
 <sc-if value="{{pk.hasNote}}" hint-placeholder-val="{{ false }}">
@@ -129,11 +129,11 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </section>
 
 <section id="credits" aria-labelledby="credits-h" style="display: flex; flex-direction: column; gap: 16px; scroll-margin-top: 24px">
-<h2 id="credits-h" style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">Paychecks and spending</h2>
+<h2 id="credits-h" style="margin: 0; font-family: 'National Park', system-ui, sans-serif; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">Paychecks and spending</h2>
 <sc-if value="{{vpSignedOut}}" hint-placeholder-val="{{ false }}">
 <div style="background: #172124; border: 1px solid #3a4f53; border-radius: 12px; padding: 18px 22px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px">
 <span style="color: #c4d4d4; line-height: 1.5">Log in with Discord to see your paychecks and spending.</span>
-<a href="Login.dc.html" style="min-height: 44px; display: inline-flex; align-items: center; padding: 0 18px; border-radius: 8px; background: #4752C4; color: #fff; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; text-decoration: none">Log in</a>
+<a href="Login.dc.html" style="min-height: 44px; display: inline-flex; align-items: center; padding: 0 18px; border-radius: 8px; background: #4752C4; color: #fff; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; font-weight: 600; text-decoration: none">Log in</a>
 </div>
 </sc-if>
 <sc-if value="{{vpSignedIn}}" hint-placeholder-val="{{ true }}">
@@ -141,7 +141,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <table style="width: 100%; border-collapse: collapse; font-size: 16px">
 <thead>
 <tr>
-<th scope="row" colspan="2" style="padding: 18px 16px; border-bottom: 1px solid #2a3a3e; text-align: left; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; color: #93a9aa; letter-spacing: 0.08em; text-transform: uppercase">Total Credits</th>
+<th scope="row" colspan="2" style="padding: 18px 16px; border-bottom: 1px solid #2a3a3e; text-align: left; font-family: 'National Park', system-ui, sans-serif; font-size: 12px; font-weight: 600; color: #93a9aa; letter-spacing: 0.08em; text-transform: uppercase">Total Credits</th>
 <td style="padding: 18px 16px; border-bottom: 1px solid #2a3a3e; text-align: right"><span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 36px; line-height: 1; color: #a5dcdd; font-variant-numeric: tabular-nums">{{bank}}</span></td>
 </tr>
 <sc-if value="{{hasArriving}}" hint-placeholder-val="{{ false }}">
@@ -149,23 +149,23 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </sc-if>
 </thead>
 <tbody>
-<tr><th scope="colgroup" colspan="3" style="padding: 12px 16px; border-bottom: 1px solid #2a3a3e; background: #111a1c; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; color: #93a9aa; letter-spacing: 0.08em; text-transform: uppercase; text-align: left">Paychecks</th></tr>
+<tr><th scope="colgroup" colspan="3" style="padding: 12px 16px; border-bottom: 1px solid #2a3a3e; background: #111a1c; font-family: 'National Park', system-ui, sans-serif; font-size: 12px; font-weight: 600; color: #93a9aa; letter-spacing: 0.08em; text-transform: uppercase; text-align: left">Paychecks</th></tr>
 <sc-for list="{{history}}" as="h" hint-placeholder-count="3">
 <tr>
 <td style="padding: 14px 16px; border-bottom: 1px solid #2a3a3e">{{h.label}}</td>
 <td style="padding: 14px 16px; border-bottom: 1px solid #2a3a3e; color: #93a9aa">{{h.deck}}</td>
-<td style="padding: 14px 16px; border-bottom: 1px solid #2a3a3e; text-align: right; font-family: 'JetBrains Mono', monospace; font-weight: 600; color: #a5dcdd">+{{h.vp}}</td>
+<td style="padding: 14px 16px; border-bottom: 1px solid #2a3a3e; text-align: right; font-family: 'National Park', system-ui, sans-serif; font-weight: 600; color: #a5dcdd">+{{h.vp}}</td>
 </tr>
 </sc-for>
 <sc-if value="{{noHistory}}" hint-placeholder-val="{{ false }}">
 <tr><td colspan="3" style="padding: 20px 16px; border-bottom: 1px solid #2a3a3e; text-align: center; color: #93a9aa">Your first Credits arrive when a gameweek you played in ends.</td></tr>
 </sc-if>
-<tr><th scope="colgroup" colspan="3" style="padding: 12px 16px; border-bottom: 1px solid #2a3a3e; background: #111a1c; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; color: #93a9aa; letter-spacing: 0.08em; text-transform: uppercase; text-align: left">Spending</th></tr>
+<tr><th scope="colgroup" colspan="3" style="padding: 12px 16px; border-bottom: 1px solid #2a3a3e; background: #111a1c; font-family: 'National Park', system-ui, sans-serif; font-size: 12px; font-weight: 600; color: #93a9aa; letter-spacing: 0.08em; text-transform: uppercase; text-align: left">Spending</th></tr>
 <sc-for list="{{spent}}" as="x" hint-placeholder-count="2">
 <tr>
 <td style="padding: 14px 16px; border-bottom: 1px solid #2a3a3e">{{x.date}}</td>
 <td style="padding: 14px 16px; border-bottom: 1px solid #2a3a3e; color: #93a9aa">{{x.pack}}</td>
-<td style="padding: 14px 16px; border-bottom: 1px solid #2a3a3e; text-align: right; font-family: 'JetBrains Mono', monospace; font-weight: 600; color: #ff8a80">−{{x.vp}}</td>
+<td style="padding: 14px 16px; border-bottom: 1px solid #2a3a3e; text-align: right; font-family: 'National Park', system-ui, sans-serif; font-weight: 600; color: #ff8a80">−{{x.vp}}</td>
 </tr>
 </sc-for>
 <sc-if value="{{noSpent}}" hint-placeholder-val="{{ false }}">
@@ -182,12 +182,12 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </main>
 
 <footer style="border-top: 1px solid #2a3a3e">
-<div style="max-width: 1280px; margin: 0 auto; padding: 22px 24px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #93a9aa">
+<div style="max-width: 1280px; margin: 0 auto; padding: 22px 24px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa">
 <span>fantasy.pcmt.gg · Plat Chat Members Tourney</span>
 <span>Version 1.3</span>
 <span style="display: flex; flex-wrap: wrap; gap: 6px 18px"><a href="#privacy" data-pcmt-privacy>Privacy notice</a><a href="#settings" data-pcmt-settings>Settings</a><a href="https://pcmt.gg" target="_blank" rel="noopener">Stats on PCMT.gg</a></span>
 </div>
-<p style="max-width: 1280px; margin: 0 auto; padding: 0 24px 22px; font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.6; color: #93a9aa"><span style="display: block; margin-bottom: 6px; font-size: 12px; color: #c4d4d4">A <b style="font-weight: 700; color: #eaf4f4">PCMT</b> product</span>fantasy.pcmt.gg was created under Riot Games' <a href="https://www.riotgames.com/en/legal" target="_blank" rel="noopener" style="color: #a5dcdd">&quot;Legal Jibber Jabber&quot;</a> policy using assets owned by Riot Games. Riot Games does not endorse or sponsor this project.</p>
+<p style="max-width: 1280px; margin: 0 auto; padding: 0 24px 22px; font-family: 'National Park', system-ui, sans-serif; font-size: 11px; line-height: 1.6; color: #93a9aa"><span style="display: block; margin-bottom: 6px; font-size: 12px; color: #c4d4d4">A <b style="font-weight: 700; color: #eaf4f4">PCMT</b> product</span>fantasy.pcmt.gg was created under Riot Games' <a href="https://www.riotgames.com/en/legal" target="_blank" rel="noopener" style="color: #a5dcdd">&quot;Legal Jibber Jabber&quot;</a> policy using assets owned by Riot Games. Riot Games does not endorse or sponsor this project.</p>
 </footer>
 
 </div>
@@ -401,7 +401,7 @@ var PCMT_PACK_CSS = [
   '.pk-face{position:absolute;inset:0;border-radius:12px;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden;box-shadow:0 10px 22px rgba(0,0,0,.45);box-sizing:border-box}',
   '.pk-back{display:grid;place-items:center}',
   '.pk-back *{box-sizing:border-box}',
-  '.pk-front{transform:rotateY(180deg);background:#172124;border:1px solid #2a3a3e;display:flex;flex-direction:column;font-family:"Space Grotesk",system-ui,sans-serif;color:#eaf4f4}',
+  '.pk-front{transform:rotateY(180deg);background:#172124;border:1px solid #2a3a3e;display:flex;flex-direction:column;font-family:"National Park",system-ui,sans-serif;color:#eaf4f4}',
   '.pk-front *{box-sizing:border-box}',
   '.pk-tbar{height:5px;flex:none;position:relative;z-index:1}',
   '.pk-wm{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}',
@@ -422,7 +422,7 @@ var PCMT_PACK_CSS = [
   // store packs: rarity glow, rarity tag, variant art, NEW / x-count badge
   '.pk-art{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}',
   '.pk-art img{position:absolute;right:-6%;bottom:-2%;height:104%;width:auto;max-width:none;opacity:.24;-webkit-mask-image:linear-gradient(180deg,#000 55%,transparent 100%);mask-image:linear-gradient(180deg,#000 55%,transparent 100%)}',
-  '.pk-rar{margin-left:auto;padding:4px 8px;border-radius:999px;border:1px solid currentColor;font:600 10px/1 "JetBrains Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:#93a9aa;background:rgba(0,0,0,.4)}',
+  '.pk-rar{margin-left:auto;padding:4px 8px;border-radius:999px;border:1px solid currentColor;font:600 10px/1 "National Park",system-ui,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#93a9aa;background:rgba(0,0,0,.4)}',
   '.pk-root.pk-mvp .pk-card{height:330px;top:207px}',
   '.pk-front-m{display:block}',
   '.pk-m{position:absolute;left:0;top:0;width:300px;height:420px;transform:scale(.7867);transform-origin:0 0;display:flex;flex-direction:column}',
@@ -433,13 +433,13 @@ var PCMT_PACK_CSS = [
   '.pk-m-top{display:flex;align-items:center;height:30px;flex:none}',
   '.pk-m-top .pk-badge{margin-left:10px}',
   '.pk-m-maps{margin-left:auto;font:700 30px/1 "Cabin Sketch",cursive;font-variant-numeric:tabular-nums;display:inline-flex;align-items:baseline;gap:4px}',
-  '.pk-m-maps small{font:600 9px/1 "JetBrains Mono",monospace;letter-spacing:.1em;opacity:.8}',
+  '.pk-m-maps small{font:600 9px/1 "National Park",system-ui,sans-serif;letter-spacing:.1em;opacity:.8}',
   '.pk-m-name{display:flex;align-items:center;gap:6px;height:38px;flex:none;font-family:"Cabin Sketch",cursive;font-weight:700;line-height:1.1;white-space:nowrap;overflow:hidden}',
   '.pk-m-name span{overflow:hidden;min-width:0}.pk-m-name img{width:19px;height:19px;object-fit:contain;flex:none;filter:drop-shadow(0 0 4px rgba(245,215,110,.6))}',
   '.pk-m-team{font-size:10px;line-height:1.2;font-weight:500;opacity:.85;flex:none;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}',
   '.pk-m-stats{display:flex;flex-direction:column;gap:5px;flex:1;justify-content:center}',
   '.pk-m-stat{display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:40px;padding:6px 12px;border-radius:8px;background:rgba(0,0,0,.45);font-size:14px;line-height:1.5}',
-  '.pk-m-stat i{font-style:normal;color:#93a9aa;margin-left:6px;font:600 9px/1 "JetBrains Mono",monospace;letter-spacing:.08em;text-transform:uppercase}',
+  '.pk-m-stat i{font-style:normal;color:#93a9aa;margin-left:6px;font:600 9px/1 "National Park",system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase}',
   '.pk-m-stat b{font-size:17px;font-weight:600;font-variant-numeric:tabular-nums}',
   '.pk-m-foot{display:flex;align-items:center;gap:6px;height:26px;flex:none}',
   '.pk-m-foot>img{width:24px;height:24px;display:block}',
@@ -450,13 +450,13 @@ var PCMT_PACK_CSS = [
   '.pk-root.pk-reveal{cursor:pointer}',
   '.pk-art img.pk-art-full{left:0;top:0;right:auto;bottom:auto;width:100%;height:100%;object-fit:cover;opacity:.32;-webkit-mask-image:radial-gradient(120% 90% at 55% 45%,#000 45%,transparent 100%);mask-image:radial-gradient(120% 90% at 55% 45%,#000 45%,transparent 100%)}',
   '.pk-art img.pk-art-center{left:50%;top:50%;right:auto;bottom:auto;height:86%;width:auto;transform:translate(-50%,-46%);opacity:.24;-webkit-mask-image:none;mask-image:none}',
-  '.pk-rstamp{margin-left:8px;display:inline-flex;align-items:center;gap:4px;padding:3px 7px;border-radius:4px;font:700 10px/1 "JetBrains Mono",monospace;letter-spacing:.14em;transform:rotate(-9deg);white-space:nowrap}',
+  '.pk-rstamp{margin-left:8px;display:inline-flex;align-items:center;gap:4px;padding:3px 7px;border-radius:4px;font:700 10px/1 "National Park",system-ui,sans-serif;letter-spacing:.14em;transform:rotate(-9deg);white-space:nowrap}',
   '.pk-rshine{background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:pk-rshine 6s ease-in-out infinite}',
   '@keyframes pk-rshine{0%{background-position:160% 0}50%,100%{background-position:-60% 0}}',
   '.pk-rsheen{position:absolute;inset:0;z-index:4;pointer-events:none;border-radius:inherit;background-size:260% 100%;background-repeat:no-repeat;animation:pk-rsheen 5s ease-in-out infinite}',
   '@keyframes pk-rsheen{0%{background-position:160% 0}55%,100%{background-position:-60% 0}}',
   '.pk-head .pk-badge{margin-left:10px}',
-  '.pk-badge{margin-left:auto;padding:4px 8px;border-radius:6px;background:#a5dcdd;color:#000;font:600 11px/1 "JetBrains Mono",monospace;letter-spacing:.08em}',
+  '.pk-badge{margin-left:auto;padding:4px 8px;border-radius:6px;background:#a5dcdd;color:#000;font:600 11px/1 "National Park",system-ui,sans-serif;letter-spacing:.08em}',
   '@media (prefers-reduced-motion: reduce){.pk-rshine,.pk-rsheen,.pk-packin,.pk-foil::after,.pk-holo-disc{animation:none}}'
 ].join('\n');
 

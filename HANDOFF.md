@@ -35,6 +35,8 @@ Start here. It covers what exists, how changes are made and shipped, and what's 
 
 Branding: header and titles say **fantasy.pcmt.gg**. The site is a PCMT Team product (Freshbatch is no longer involved, Oct 24 2026); every page footer says "A PCMT product" (plain text; the old Freshbatch credits window, freshbatch.js and its intro video were removed) above Riot's required fan-project notice. Every page footer carries Riot's required fan-project notice ("created under Riot Games' Legal Jibber Jabber policy…", linking riotgames.com/en/legal); keep it on any new page. Colors black + `#a5dcdd`; fonts Cabin Sketch / Space Grotesk / JetBrains Mono.
 
+Fonts (Nov 10 2026): Cabin Sketch for titles and big numbers; National Park (Google Fonts, `National+Park:wght@200..800`) for everything else (it replaced Space Grotesk and JetBrains Mono). Chakra Petch and IBM Plex Mono are only used on a few card designs in the Store and Customization.
+
 ## 3. How the site is built
 
 - The boards in `tools/canvas/` are the design source.
