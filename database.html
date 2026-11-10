@@ -30,6 +30,7 @@
   .db-sub { color: var(--dim); margin: 10px 0 0; max-width: 620px; }
   .db-staff { font: 600 11px/1 'National Park', system-ui, sans-serif; letter-spacing: .12em; color: var(--accent); border: 1px solid var(--accent); border-radius: 999px; padding: 7px 12px; white-space: nowrap; }
   .db-panel { background: var(--panel); border: 1px solid var(--line2); border-radius: 12px; padding: 20px; }
+  .db-region { margin: 0 0 16px; font: 700 26px/1.1 'Cabin Sketch', cursive; color: var(--accent); }
   .db-tools { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 14px; }
   .db-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
   .db-field > span { font: 600 11px/1.3 'National Park', system-ui, sans-serif; letter-spacing: .1em; color: var(--dim); text-transform: uppercase; }
@@ -121,13 +122,14 @@
   <div class="db-head">
     <div>
       <h1>Database</h1>
-      <p class="db-sub">Every player: their name, Discord, roles, rank and games. Search, filter by peak rank, and sort by any column.</p>
+      <p class="db-sub">Every player: their name, team, roles, rank and games. Search, filter by peak rank, and sort by any column.</p>
     </div>
     <span class="db-staff">STAFF ONLY</span>
   </div>
-  <section class="db-panel">
+  <section class="db-panel" aria-labelledby="db-region">
+    <h2 id="db-region" class="db-region">North America PCMT</h2>
     <div class="db-tools">
-      <label class="db-field db-grow"><span>Search</span><input id="db-q" type="search" placeholder="Name, Discord or role" autocomplete="off"></label>
+      <label class="db-field db-grow"><span>Search</span><input id="db-q" type="search" placeholder="Name, team or role" autocomplete="off"></label>
       <label class="db-field"><span>Peak</span><select id="db-peak"><option value="">All ranks</option></select></label>
       <label class="db-field"><span>Role</span><select id="db-role"><option value="">All roles</option><option>Duel</option><option>Init</option><option>Smoke</option><option>Senti</option><option>Flex</option></select></label>
       <span class="db-count" id="db-count" aria-live="polite"></span>
@@ -139,7 +141,7 @@
         <tbody id="db-rows"><tr><td class="db-msg" colspan="10">Loading…</td></tr></tbody>
       </table>
     </div>
-    <p class="db-key"><span>… means it was cut off on the sheet</span></p>
+    <p class="db-key"><span>… means it was cut off on the sheet</span><span style="margin-left: auto">Last updated <b id="db-updated" style="color: var(--ink); font-weight: 600">—</b></span></p>
   </section>
 </main>
 <footer style="border-top: 1px solid #2a3a3e">
@@ -157,7 +159,7 @@
   var COLS = [
     { k: 'new_rank', t: 'New rank', num: 1, first: 'desc' },
     { k: 'display', t: 'Name' },
-    { k: 'discord', t: 'Discord' },
+    { k: 'team', t: 'Team' },
     { k: 'roles', t: 'Roles' },
     { k: 'rank_delta', t: 'Rank Δ', num: 1, first: 'desc' },
     { k: 'peak', t: 'Peak', first: 'desc' },
@@ -165,7 +167,7 @@
     { k: 'maps', t: 'Maps', num: 1, first: 'desc' },
     { k: 'games', t: 'Games', num: 1, first: 'desc' }
   ];
-  var TIERS = ['Iron', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Ascendant', 'Immortal', 'Radiant'];
+  var TIERS = ['Iron', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Ascendant', 'Immortal', 'Radiant'];   // a peak of NA (no rank) sorts below Iron
   var TIER_COL = { Iron: '#5b5b5b', Bronze: '#8a5a2b', Silver: '#8f9aa3', Gold: '#b8901f', Platinum: '#2f7fb8', Diamond: '#7a5bc4', Ascendant: '#2e8b4f', Immortal: '#b8343f', Radiant: '#e8812a' };
   var rows = [], sort = { k: 'new_rank', dir: 'desc' };
   var $ = function (id) { return document.getElementById(id); };
@@ -184,7 +186,7 @@
     var list = rows.filter(function (r) {
       if (pk && (r.peak || '').split(' ')[0] !== pk) return false;
       if (role && (r.roles || '').toLowerCase().indexOf(role) < 0) return false;
-      return !q || [r.display, r.discord, r.roles].join(' ').toLowerCase().indexOf(q) >= 0;
+      return !q || [r.display, r.team, r.roles].join(' ').toLowerCase().indexOf(q) >= 0;
     });
     list.sort(function (a, b) {
       var x = val(a, sort.k), y = val(b, sort.k), c;
@@ -200,7 +202,7 @@
         '<td class="num db-n">' + (i + 1) + '</td>' +
         '<td class="num"><span class="db-rank">' + (+r.new_rank).toFixed(2) + '</span></td>' +
         '<td class="db-name">' + esc(r.display) + '</td>' +
-        '<td>' + esc(r.discord) + '</td>' +
+        '<td>' + esc(r.team || 'NA') + '</td>' +
         '<td class="db-dim">' + esc(r.roles) + '</td>' +
         '<td class="num db-mono ' + (d > 0 ? 'up' : d < 0 ? 'down' : 'db-dim') + '">' + (d > 0 ? '+' : '') + d.toFixed(2) + '</td>' +
         '<td><span class="db-peak" style="--pk:' + (TIER_COL[tier] || '#555') + '">' + esc(r.peak) + '</span></td>' +
@@ -218,15 +220,19 @@
     var nb = document.querySelector('[data-sort="' + k + '"]'); if (nb) nb.focus();
   });
   ['db-q', 'db-peak', 'db-role'].forEach(function (id) { $(id).addEventListener('input', draw); });
-  $('db-peak').innerHTML += TIERS.slice().reverse().map(function (t) { return '<option>' + t + '</option>'; }).join('');
+  $('db-peak').innerHTML += TIERS.slice().reverse().concat('NA').map(function (t) { return '<option>' + t + '</option>'; }).join('');
   head();
 
   var s = null;
   try { s = JSON.parse(localStorage.getItem('pcmt-auth') || 'null'); } catch (e) {}
   if (!s || !s.access_token) return;
-  fetch(URL0 + '/rest/v1/player_database?select=id,display,discord,roles,rank_delta,new_rank,peak,tracker,maps,games&order=new_rank.desc', { headers: { apikey: KEY, Authorization: 'Bearer ' + s.access_token } })
+  fetch(URL0 + '/rest/v1/player_database?select=id,display,team,roles,rank_delta,new_rank,peak,tracker,maps,games,updated_at&order=new_rank.desc', { headers: { apikey: KEY, Authorization: 'Bearer ' + s.access_token } })
     .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-    .then(function (data) { rows = data || []; draw(); })
+    .then(function (data) {
+      rows = data || []; draw();
+      var last = rows.reduce(function (m, r) { return r.updated_at > m ? r.updated_at : m; }, '');
+      if (last) $('db-updated').textContent = new Date(last).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+    })
     .catch(function () { $('db-rows').innerHTML = '<tr><td class="db-msg" colspan="10">Couldn\'t load the database. Log in again and reload.</td></tr>'; });
 })();
 </script>

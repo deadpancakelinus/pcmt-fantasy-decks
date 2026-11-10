@@ -31,7 +31,7 @@ Start here. It covers what exists, how changes are made and shipped, and what's 
 | (hand-written) | admin.html | Old admin page: now just sends people to backend.html (4Ks and 5Ks and card pack prices moved there). |
 | (hand-written) | mvp-vs.html | **MVP VS** card game (see section 9). Its board MvpVs.dc.html is only the old "Coming soon" design and is not built. |
 | (hand-written) | losersq.html | **LosersQ** team simulator, backend-only (see section 23). Not in the menu. |
-| (hand-written) | database.html | **Database**, the player list (names, Discord, roles, rank, peak, games), staff only (see section 25). Not in the menu. |
+| (hand-written) | database.html | **Database**, the player list (name, team, roles, rank, peak, games), staff only (see section 25). Not in the menu. |
 
 Branding: header and titles say **fantasy.pcmt.gg**. The site is a PCMT Team product (Freshbatch is no longer involved, Oct 24 2026); every page footer says "A PCMT product" (plain text; the old Freshbatch credits window, freshbatch.js and its intro video were removed) above Riot's required fan-project notice. Every page footer carries Riot's required fan-project notice ("created under Riot Games' Legal Jibber Jabber policy…", linking riotgames.com/en/legal); keep it on any new page. Colors black + `#a5dcdd`; fonts Cabin Sketch / Space Grotesk / JetBrains Mono.
 
@@ -244,8 +244,8 @@ Supabase's Discord login always asks Discord for the email. Triggers drop it bef
 
 ## 25. Database (database.html, added Nov 10 2026, staff only)
 
-- The player list from the staff sheet: display name, Discord, roles, rank delta, new rank, peak, tracker score, maps played, total games, in one table that scrolls with the page (header row sticks). Search, filter by peak or role, sort by any column. The table also has `riot` and `mark` (the sheet's gold/red rows), which the page doesn't show.
-- The rows live only in Supabase, table `player_database` (setup/database-setup.sql makes the table and its `site_pages` row; the rows themselves aren't in the repo). Only site admins and PCMT Team staff can read or change them (RLS), so the page is staff-only even if it's launched. Edit rows in Supabase (Table Editor) for now.
+- One panel, "North America PCMT": name, team, roles, rank delta, new rank, peak, tracker score, maps played, total games, in one table that scrolls with the page (header row sticks). Search (name, team, roles), filter by peak or role, sort by any column. "Last updated" at the bottom is the newest `updated_at` in the table.
+- Team is `NA` for everyone until teams come in; set `team` per player in Supabase. Peak `NA` means no rank (it was Radiant on the sheet, with no tracker score); it sorts below Iron.
+- The rows live only in Supabase, table `player_database` (setup/database-setup.sql makes the table and its `site_pages` row; the rows themselves aren't in the repo). It also keeps `discord`, `riot` and `mark` (the sheet's gold/red rows), which the page doesn't show. Only site admins and PCMT Team staff can read or change them (RLS), so the page is staff-only even if it's launched. When you edit rows in Supabase, also set `updated_at` to now() so the date moves.
 - Access: `site_pages` row `database`, opened from backend.html (Pages tab → Open). It's in `LAUNCH_PAGES` (tools/league.js) and the copies of that list in mvp-vs.html and losersq.html.
 - Values cut off on the sheet end in … (a few Riot IDs and roles); fix them in Supabase.
-

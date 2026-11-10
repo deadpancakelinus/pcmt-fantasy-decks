@@ -16,8 +16,10 @@ create table if not exists public.player_database (
   maps int,
   games int,
   mark text check (mark in ('gold', 'red')),
+  team text not null default 'NA',                -- NA until teams are drafted
   updated_at timestamptz not null default now()
 );
+alter table public.player_database add column if not exists team text not null default 'NA';
 alter table public.player_database enable row level security;
 drop policy if exists "staff read the database" on public.player_database;
 create policy "staff read the database" on public.player_database for select
