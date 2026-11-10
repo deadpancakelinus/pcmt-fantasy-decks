@@ -122,7 +122,7 @@
   <div class="db-head">
     <div>
       <h1>Database</h1>
-      <p class="db-sub">Every PCMT NA player: their name, team, roles, rank and peak. Players without a rank yet show NA and sit at the top. Search, filter by peak rank, and sort by any column.</p>
+      <p class="db-sub">Every PCMT NA player: their name, team, roles, rank and peak. Players without a rank yet show NA and sit at the bottom. Search, filter by peak rank, and sort by any column.</p>
     </div>
     <span class="db-staff">STAFF ONLY</span>
   </div>
@@ -170,7 +170,7 @@
   var $ = function (id) { return document.getElementById(id); };
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function peakVal(p) { var m = /^(\w+)\s*(\d)?/.exec(p || ''), i = m ? TIERS.indexOf(m[1]) : -1; return i < 0 ? -1 : i * 10 + (+m[2] || 0); }
-  // No rank yet (players added from PCMT.gg): NA, and always above the ranked players when sorting by rank
+  // No rank yet (players added from PCMT.gg): NA, and always below the ranked players when sorting by rank
   function val(r, k) { return k === 'peak' ? peakVal(r.peak) : k === 'new_rank' && r.new_rank == null ? Infinity : r[k]; }
   function na(v) { return v == null || v === '' ? 'NA' : v; }
 
@@ -191,7 +191,7 @@
       var x = val(a, sort.k), y = val(b, sort.k), c;
       if (typeof x === 'string' || typeof y === 'string') c = String(x || '').localeCompare(String(y || ''), undefined, { sensitivity: 'base' });
       else c = x === y ? 0 : (x == null ? -Infinity : +x) - (y == null ? -Infinity : +y);
-      if (sort.k === 'new_rank' && (x === Infinity) !== (y === Infinity)) return x === Infinity ? -1 : 1;
+      if (sort.k === 'new_rank' && (x === Infinity) !== (y === Infinity)) return x === Infinity ? 1 : -1;
       return (sort.dir === 'asc' ? c : -c) || String(a.display).localeCompare(String(b.display), undefined, { sensitivity: 'base' });
     });
     $('db-count').textContent = list.length === rows.length ? rows.length + ' players' : list.length + ' of ' + rows.length + ' players';
@@ -223,7 +223,7 @@
   var s = null;
   try { s = JSON.parse(localStorage.getItem('pcmt-auth') || 'null'); } catch (e) {}
   if (!s || !s.access_token) return;
-  fetch(URL0 + '/rest/v1/player_database?select=id,display,team,roles,new_rank,peak,tracker,updated_at&order=new_rank.desc.nullsfirst', { headers: { apikey: KEY, Authorization: 'Bearer ' + s.access_token } })
+  fetch(URL0 + '/rest/v1/player_database?select=id,display,team,roles,new_rank,peak,tracker,updated_at&order=new_rank.desc.nullslast', { headers: { apikey: KEY, Authorization: 'Bearer ' + s.access_token } })
     .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
     .then(function (data) {
       rows = data || []; draw();
