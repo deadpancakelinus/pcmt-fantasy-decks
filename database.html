@@ -55,7 +55,7 @@
   .db-mono { font-family: 'National Park', system-ui, sans-serif; font-size: 13px; }
   .db-dim { color: var(--dim); }
   .db-rank { font: 700 20px/1 'Cabin Sketch', cursive; color: var(--accent); }
-  .up { color: var(--win); } .down { color: var(--lose); }
+  .db-rank.db-na { color: var(--dim); }
   .db-peak { display: inline-block; min-width: 108px; text-align: center; padding: 3px 10px; border-radius: 999px; font: 600 12px/1.3 'National Park', system-ui, sans-serif; color: #fff; background: var(--pk, #555); }
   .db-key { display: flex; gap: 18px; flex-wrap: wrap; margin: 12px 0 0; font-size: 13px; color: var(--dim); }
   .db-key i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
@@ -122,7 +122,7 @@
   <div class="db-head">
     <div>
       <h1>Database</h1>
-      <p class="db-sub">Every player: their name, team, roles, rank and games. Search, filter by peak rank, and sort by any column.</p>
+      <p class="db-sub">Every PCMT NA player: their name, team, roles, rank and peak. Players without a rank yet show NA and sit at the top. Search, filter by peak rank, and sort by any column.</p>
     </div>
     <span class="db-staff">STAFF ONLY</span>
   </div>
@@ -138,7 +138,7 @@
       <table>
         <caption class="sr">Player database</caption>
         <thead><tr id="db-cols"></tr></thead>
-        <tbody id="db-rows"><tr><td class="db-msg" colspan="10">Loading…</td></tr></tbody>
+        <tbody id="db-rows"><tr><td class="db-msg" colspan="7">Loading…</td></tr></tbody>
       </table>
     </div>
     <p class="db-key"><span style="margin-left: auto">Last updated <b id="db-updated" style="color: var(--ink); font-weight: 600">—</b></span></p>
@@ -161,11 +161,8 @@
     { k: 'display', t: 'Name' },
     { k: 'team', t: 'Team' },
     { k: 'roles', t: 'Roles' },
-    { k: 'rank_delta', t: 'Rank Δ', num: 1, first: 'desc' },
     { k: 'peak', t: 'Peak', first: 'desc' },
-    { k: 'tracker', t: 'Tracker', num: 1, first: 'desc' },
-    { k: 'maps', t: 'Maps', num: 1, first: 'desc' },
-    { k: 'games', t: 'Games', num: 1, first: 'desc' }
+    { k: 'tracker', t: 'Tracker', num: 1, first: 'desc' }
   ];
   var TIERS = ['Iron', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Ascendant', 'Immortal', 'Radiant'];   // a peak of NA (no rank) sorts below Iron
   var TIER_COL = { Iron: '#5b5b5b', Bronze: '#8a5a2b', Silver: '#8f9aa3', Gold: '#b8901f', Platinum: '#2f7fb8', Diamond: '#7a5bc4', Ascendant: '#2e8b4f', Immortal: '#b8343f', Radiant: '#e8812a' };
@@ -173,7 +170,9 @@
   var $ = function (id) { return document.getElementById(id); };
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function peakVal(p) { var m = /^(\w+)\s*(\d)?/.exec(p || ''), i = m ? TIERS.indexOf(m[1]) : -1; return i < 0 ? -1 : i * 10 + (+m[2] || 0); }
-  function val(r, k) { return k === 'peak' ? peakVal(r.peak) : r[k]; }
+  // No rank yet (players added from PCMT.gg): NA, and always above the ranked players when sorting by rank
+  function val(r, k) { return k === 'peak' ? peakVal(r.peak) : k === 'new_rank' && r.new_rank == null ? Infinity : r[k]; }
+  function na(v) { return v == null || v === '' ? 'NA' : v; }
 
   function head() {
     $('db-cols').innerHTML = '<th class="num" scope="col"><span class="sr">Number</span></th>' + COLS.map(function (c) {
@@ -191,24 +190,22 @@
     list.sort(function (a, b) {
       var x = val(a, sort.k), y = val(b, sort.k), c;
       if (typeof x === 'string' || typeof y === 'string') c = String(x || '').localeCompare(String(y || ''), undefined, { sensitivity: 'base' });
-      else c = (x == null ? -Infinity : +x) - (y == null ? -Infinity : +y);
-      return (sort.dir === 'asc' ? c : -c) || (+b.new_rank - +a.new_rank);
+      else c = x === y ? 0 : (x == null ? -Infinity : +x) - (y == null ? -Infinity : +y);
+      if (sort.k === 'new_rank' && (x === Infinity) !== (y === Infinity)) return x === Infinity ? -1 : 1;
+      return (sort.dir === 'asc' ? c : -c) || String(a.display).localeCompare(String(b.display), undefined, { sensitivity: 'base' });
     });
     $('db-count').textContent = list.length === rows.length ? rows.length + ' players' : list.length + ' of ' + rows.length + ' players';
-    if (!list.length) { $('db-rows').innerHTML = '<tr><td class="db-msg" colspan="10">No players match.</td></tr>'; return; }
+    if (!list.length) { $('db-rows').innerHTML = '<tr><td class="db-msg" colspan="7">No players match.</td></tr>'; return; }
     $('db-rows').innerHTML = list.map(function (r, i) {
-      var d = +r.rank_delta, tier = (r.peak || '').split(' ')[0];
+      var tier = (r.peak || '').split(' ')[0], ranked = r.new_rank != null;
       return '<tr>' +
         '<td class="num db-n">' + (i + 1) + '</td>' +
-        '<td class="num"><span class="db-rank">' + (+r.new_rank).toFixed(2) + '</span></td>' +
+        '<td class="num"><span class="db-rank' + (ranked ? '' : ' db-na') + '">' + (ranked ? (+r.new_rank).toFixed(2) : 'NA') + '</span></td>' +
         '<td class="db-name">' + esc(r.display) + '</td>' +
         '<td>' + esc(r.team || 'NA') + '</td>' +
-        '<td class="db-dim">' + esc(r.roles) + '</td>' +
-        '<td class="num db-mono ' + (d > 0 ? 'up' : d < 0 ? 'down' : 'db-dim') + '">' + (d > 0 ? '+' : '') + d.toFixed(2) + '</td>' +
+        '<td class="db-dim">' + esc(na(r.roles)) + '</td>' +
         '<td><span class="db-peak" style="--pk:' + (TIER_COL[tier] || '#555') + '">' + esc(r.peak) + '</span></td>' +
-        '<td class="num db-mono">' + esc(r.tracker) + '</td>' +
-        '<td class="num db-mono">' + esc(r.maps) + '</td>' +
-        '<td class="num db-mono">' + esc(r.games) + '</td></tr>';
+        '<td class="num db-mono">' + esc(na(r.tracker)) + '</td></tr>';
     }).join('');
   }
   document.addEventListener('click', function (e) {
@@ -226,14 +223,14 @@
   var s = null;
   try { s = JSON.parse(localStorage.getItem('pcmt-auth') || 'null'); } catch (e) {}
   if (!s || !s.access_token) return;
-  fetch(URL0 + '/rest/v1/player_database?select=id,display,team,roles,rank_delta,new_rank,peak,tracker,maps,games,updated_at&order=new_rank.desc', { headers: { apikey: KEY, Authorization: 'Bearer ' + s.access_token } })
+  fetch(URL0 + '/rest/v1/player_database?select=id,display,team,roles,new_rank,peak,tracker,updated_at&order=new_rank.desc.nullsfirst', { headers: { apikey: KEY, Authorization: 'Bearer ' + s.access_token } })
     .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
     .then(function (data) {
       rows = data || []; draw();
       var last = rows.reduce(function (m, r) { return r.updated_at > m ? r.updated_at : m; }, '');
       if (last) $('db-updated').textContent = new Date(last).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
     })
-    .catch(function () { $('db-rows').innerHTML = '<tr><td class="db-msg" colspan="10">Couldn\'t load the database. Log in again and reload.</td></tr>'; });
+    .catch(function () { $('db-rows').innerHTML = '<tr><td class="db-msg" colspan="7">Couldn\'t load the database. Log in again and reload.</td></tr>'; });
 })();
 </script>
 </body>
