@@ -244,8 +244,7 @@ Supabase's Discord login always asks Discord for the email. Triggers drop it bef
 
 ## 25. Database (database.html, added Nov 10 2026, staff only)
 
-- One panel, "North America PCMT": name, team, roles, rank delta, new rank, peak, tracker score, maps played, total games, in one table that scrolls with the page (header row sticks). Search (name, team, roles), filter by peak or role, sort by any column. "Last updated" at the bottom is the newest `updated_at` in the table.
+- One panel, "PCMT NA" (with the NA logo): name, team, roles, rank delta, new rank, peak, tracker score, maps played, total games, in one table that scrolls with the page (header row sticks). Search (name, team, roles), filter by peak or role, sort by any column. "Last updated" at the bottom is the newest `updated_at` in the table.
 - Team is `NA` for everyone until teams come in; set `team` per player in Supabase. Peak `NA` means no rank (it was Radiant on the sheet, with no tracker score); it sorts below Iron.
 - The rows live only in Supabase, table `player_database` (setup/database-setup.sql makes the table and its `site_pages` row; the rows themselves aren't in the repo). It also keeps `discord`, `riot` and `mark` (the sheet's gold/red rows), which the page doesn't show. Only site admins and PCMT Team staff can read or change them (RLS), so the page is staff-only even if it's launched. When you edit rows in Supabase, also set `updated_at` to now() so the date moves.
 - Access: `site_pages` row `database`, opened from backend.html (Pages tab → Open). It's in `LAUNCH_PAGES` (tools/league.js) and the copies of that list in mvp-vs.html and losersq.html.
-- Values cut off on the sheet end in … (a few Riot IDs and roles); fix them in Supabase.
