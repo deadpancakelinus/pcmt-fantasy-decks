@@ -227,7 +227,7 @@
 // until MVP VS is launched (backend.html, Pages tab) only site admins and PCMT Team staff can open it, everyone else goes to Home.
 (function () {
   var d = document.documentElement, css = document.createElement('style');
-  var PAGES = { 'mvp-vs': ['mvp-vs'], store: ['store', 'transactions', 'collection'], library: ['library'], losersq: ['losersq'] }, rules = [];
+  var PAGES = { 'mvp-vs': ['mvp-vs'], store: ['store', 'transactions', 'collection'], library: ['library'], losersq: ['losersq'], database: ['database'] }, rules = [];
   Object.keys(PAGES).forEach(function (id) { PAGES[id].forEach(function (f) { rules.push('html.pcmt-hide-' + id + ' a[href^="' + f + '.html"]:not([data-pcmt-keep])'); }); d.classList.add('pcmt-hide-' + id); });
   css.textContent = rules.join(',') + '{display:none!important}html.pcmt-gate body{visibility:hidden}';
   document.head.appendChild(css);
