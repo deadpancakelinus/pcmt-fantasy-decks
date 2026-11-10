@@ -168,6 +168,8 @@ Checked Oct 31 2026: every setup file is live on Supabase (VP, cards, MVP VS roo
 - Open to the public (`open = true` in `pickem_events`, Oct 24 2026). `update public.pickem_events set open = false where id = 'emea-s2';` closes it again (players then see "Coming soon"; staff and admins still see and use it).
 - Test: `node tools/pickems-test.js "psql -h /tmp/pg -p 5499 -U postgres"`.
 
+- Team rosters (Nov 10 2026): hovering or focusing a team in the bracket or the groups opens a small window with its players (no subs) and their current toxic rating, best first. Each team cell has `data-pcmt-team="<code>"`; the window is in tools/league.js ("Pick'ems team rosters"), which loads trumps-cards.js (refreshed hourly from pcmt.gg/stats by the PCMT.gg sync) the first time it's needed. On a phone, tapping a team shows it too.
+
 ## 13. Pages waiting for launch (Oct 24 2026)
 
 - **MVP VS, Store, Library and LosersQ wait for launch on backend.html (Pages tab, the first tab).** Each has an Open link (staff can open it) and a Launch button (press twice). Launching makes the page live for everyone: it shows in the menu and the Home tiles and leaves the list. Launching the Store also opens every card pack to everyone.

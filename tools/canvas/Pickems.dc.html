@@ -153,7 +153,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <sc-for list="{{groupRows}}" as="gr" hint-placeholder-count="5">
 <tr>
 <sc-for list="{{gr.cells}}" as="gc" hint-placeholder-count="2">
-<td title="{{gc.full}}" style="height: 40px; padding: 0 12px; border: 2px solid #3a4f53">
+<td title="{{gc.full}}" data-pcmt-team="{{gc.code}}" style="height: 40px; padding: 0 12px; border: 2px solid #3a4f53">
 <span style="display: flex; align-items: center; gap: 8px">
 <span style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: {{gc.seedColor}}; min-width: 20px">{{gc.seed}}</span>
 <img src="{{gc.logo}}" alt="" style="width: 22px; height: 22px; object-fit: contain">
@@ -171,13 +171,13 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <div role="group" aria-label="{{bx.aria}}" style="position: absolute; left: {{bx.x}}px; top: {{bx.y}}px; width: 150px; box-sizing: border-box; border: 2px solid {{bx.border}}; border-radius: 6px; background: #172124; overflow: visible">
 <sc-for list="{{bx.rows}}" as="t" hint-placeholder-count="2">
 <sc-if value="{{t.canPick}}" hint-placeholder-val="{{ true }}">
-<button type="button" onClick="{{t.pick}}" aria-pressed="{{t.picked}}" aria-label="{{t.aria}}" title="{{t.full}}" style="display: flex; align-items: center; gap: 8px; width: 100%; height: 40px; padding: 0 10px; box-sizing: border-box; border: 0; border-top: {{t.divider}}; border-radius: {{t.radius}}; background: {{t.bg}}; color: {{t.color}}; font: inherit; font-size: 15px; font-weight: {{t.weight}}; text-align: left; cursor: pointer">
+<button type="button" onClick="{{t.pick}}" aria-pressed="{{t.picked}}" aria-label="{{t.aria}}" title="{{t.full}}" data-pcmt-team="{{t.code}}" style="display: flex; align-items: center; gap: 8px; width: 100%; height: 40px; padding: 0 10px; box-sizing: border-box; border: 0; border-top: {{t.divider}}; border-radius: {{t.radius}}; background: {{t.bg}}; color: {{t.color}}; font: inherit; font-size: 15px; font-weight: {{t.weight}}; text-align: left; cursor: pointer">
 <sc-if value="{{t.hasLogo}}" hint-placeholder-val="{{ true }}"><img src="{{t.logo}}" alt="" style="width: 22px; height: 22px; flex: 0 0 22px; object-fit: contain"></sc-if>
 <span style="flex: 1 1 auto; font-style: {{t.italic}}">{{t.label}}</span>
 </button>
 </sc-if>
 <sc-if value="{{t.fixed}}" hint-placeholder-val="{{ false }}">
-<div aria-label="{{t.aria}}" title="{{t.full}}" style="display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 10px; box-sizing: border-box; border-top: {{t.divider}}; border-radius: {{t.radius}}; background: {{t.bg}}; color: {{t.color}}; font-size: 15px; font-weight: {{t.weight}}">
+<div aria-label="{{t.aria}}" title="{{t.full}}" data-pcmt-team="{{t.code}}" style="display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 10px; box-sizing: border-box; border-top: {{t.divider}}; border-radius: {{t.radius}}; background: {{t.bg}}; color: {{t.color}}; font-size: 15px; font-weight: {{t.weight}}">
 <sc-if value="{{t.hasLogo}}" hint-placeholder-val="{{ true }}"><img src="{{t.logo}}" alt="" style="width: 22px; height: 22px; flex: 0 0 22px; object-fit: contain; opacity: {{t.logoOpacity}}"></sc-if>
 <span style="flex: 1 1 auto; font-style: {{t.italic}}">{{t.label}}</span>
 <sc-if value="{{t.hasScore}}" hint-placeholder-val="{{ false }}"><span style="font-family: 'National Park', system-ui, sans-serif; font-size: 14px; font-weight: 700">{{t.score}}</span></sc-if>
@@ -584,7 +584,7 @@ class Component extends DCLogic {
       var name = t ? t.name : code;
       var state = !code ? '' : info.done ? (isWinner ? ', won' : ', lost') + (picked ? ', your pick' : '') : picked ? ', your pick' : '';
       return {
-        label: code || ref, full: t ? t.name + ' (' + code + ')' : (/^W/.test(ref) ? 'Winner of series ' : 'Loser of series ') + ref.slice(1),
+        label: code || ref, code: code || '', full: t ? t.name + ' (' + code + ')' : (/^W/.test(ref) ? 'Winner of series ' : 'Loser of series ') + ref.slice(1),
         hasLogo: !!t, logo: t ? t.logo : '', logoPad: t && t.small ? '3px' : '0', logoOpacity: info.done && !isWinner ? 0.6 : 1,
         italic: code && !real ? 'italic' : 'normal',   // italic = there because of your own picks
         canPick: !info.locked && !!code, fixed: info.locked || !code, picked: picked,
