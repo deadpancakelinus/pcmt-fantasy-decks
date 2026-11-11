@@ -107,6 +107,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <sc-if value="{{acc.login}}" hint-placeholder-val="{{ false }}"><a href="login.html" style="align-self: flex-start; font-family: 'National Park', system-ui, sans-serif; font-size: 13px">Log in with Discord</a></sc-if>
 </sc-if>
 </section>
+<sc-if value="{{notSoon}}" hint-placeholder-val="{{ true }}">
 <section aria-labelledby="next-h" style="flex: 0 1 440px; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px; padding: 18px 20px; border: 1px solid #2a3a3e; border-radius: 12px; background: #172124">
 <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px">
 <h2 id="next-h" style="margin: 0; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.1em; color: #a5dcdd; white-space: nowrap">{{nextHeading}}</h2>
@@ -131,7 +132,17 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </sc-if>
 <sc-if value="{{noNext}}" hint-placeholder-val="{{ false }}"><sc-if value="{{notFinished}}" hint-placeholder-val="{{ false }}"><p style="margin: 0; color: #c4d4d4; line-height: 1.5">{{noNextText}}</p></sc-if></sc-if>
 </section>
+</sc-if>
 </div>
+<sc-if value="{{naSoon}}" hint-placeholder-val="{{ false }}">
+<section aria-labelledby="soon-h" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; min-height: 420px; padding: 40px 20px; text-align: center; border: 1px solid #2a3a3e; border-radius: 12px; background: radial-gradient(circle at 50% 30%, rgba(255,106,31,.10), transparent 60%), #111a1c">
+<img src="/_blob/c265e976f8968e60e4a2bdd32542b499" alt="" style="width: 84px; height: 84px; object-fit: contain">
+<p style="margin: 0; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.14em; color: #ff6a1f">NA SEASON 4</p>
+<h2 id="soon-h" style="margin: 0; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 56px; line-height: 1; color: #eaf4f4">Coming soon</h2>
+<p style="margin: 0; max-width: 460px; color: #c4d4d4; font-size: 16px; line-height: 1.55">The NA Season 4 playoff bracket opens here once the playoffs are set. Get ready to make your picks.</p>
+</section>
+</sc-if>
+<sc-if value="{{notSoon}}" hint-placeholder-val="{{ true }}">
 
 <span class="pk-swipe" style="margin-bottom: -14px; font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa">Swipe the bracket sideways to see all of it.</span>
 <section aria-label="Bracket" data-pcmt-season="{{rosterSeason}}" style="overflow-x: auto; border: 1px solid #2a3a3e; border-radius: 12px; background: #111a1c">
@@ -237,6 +248,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </table>
 </div>
 </section>
+</sc-if>
 
 </div>
 </sc-if>
@@ -295,6 +307,11 @@ var PCMT_PICKEMS_DATA = window.PCMT_PICKEMS || [{
 }];
 // Where each series sits in each bracket (same layout as the PCMT bracket pictures): box top-left x, y.
 // Boxes are 150 x 84; box middles are y + 42. lines: the connectors between boxes. logo: the region mark behind it.
+// NA Season 3 playoffs retired (Nov 11 2026): not shown even though pickems.js still has it. The NA tab shows
+// "Coming soon" for NA Season 4 until a new NA bracket is in pickems.js.
+var PCMT_RETIRED_BRACKETS = ['na-s3'];
+PCMT_PICKEMS_DATA = PCMT_PICKEMS_DATA.filter(function (b) { return PCMT_RETIRED_BRACKETS.indexOf(b.id) < 0; });
+var PCMT_NA_SOON = 'na-s4-soon';
 var PCMT_PICKEM_VIEWS = {
   'emea-s2': {
     tab: 'EMEA', label: 'EMEA · Season 2 Playoffs', season: 'EMEA Season 2', logo: '/_blob/3c7e7374dceead68d5c58818d0bcfe8a',
@@ -426,7 +443,7 @@ class Component extends DCLogic {
       savedBy[b.id] = JSON.stringify(pcmtPickMap(stored));
     });
     var view = PCMT_PICKEMS_DATA[0].id;
-    try { var v = window.localStorage.getItem('pcmt-pickems-view'); if (v && PCMT_PICKEMS_DATA.some(function (b) { return b.id === v; })) view = v; } catch (e) {}
+    try { var v = window.localStorage.getItem('pcmt-pickems-view'); if (v && (v === PCMT_NA_SOON || PCMT_PICKEMS_DATA.some(function (b) { return b.id === v; }))) view = v; } catch (e) {}
     this.state = { view: view, picksBy: picksBy, savedBy: savedBy, saving: false, search: '' };
   }
   bracket(id) {
@@ -673,13 +690,19 @@ class Component extends DCLogic {
     // The champion of a finished bracket: the grand final (the highest series number) winner.
     var gf = b.series.reduce(function (m, s) { return !m || s.n > m.n ? s : m; }, null), champ = gf && R[gf.n] ? R[gf.n].winner : null;
     var champT = champ ? PCMT_PICKEM_TEAMS[champ] : null;
+    // NA Season 3 playoffs retired (Nov 11 2026): its tab is now NA Season 4, "Coming soon" until that bracket is in pickems.js.
+    var soon = this.state.view === PCMT_NA_SOON;
     var tabs = PCMT_PICKEMS_DATA.map(function (x) {
-      var on = x.id === b.id, v = PCMT_PICKEM_VIEWS[x.id] || {};
+      var on = !soon && x.id === b.id, v = PCMT_PICKEM_VIEWS[x.id] || {};
       return { id: x.id, label: v.tab || x.region, logo: v.logo || '', pressed: on ? 'true' : 'false',
         bg: on ? '#a5dcdd' : 'transparent', fg: on ? '#000' : '#eaf4f4', weight: on ? 700 : 500,
         pick: function () { self.setView(x.id); } };
     });
+    if (!PCMT_PICKEMS_DATA.some(function (x) { return x.region === 'NA'; })) tabs.push({ id: PCMT_NA_SOON, label: 'NA', logo: '/_blob/c265e976f8968e60e4a2bdd32542b499',
+      pressed: soon ? 'true' : 'false', bg: soon ? '#a5dcdd' : 'transparent', fg: soon ? '#000' : '#eaf4f4', weight: soon ? 700 : 500,
+      pick: function () { self.setView(PCMT_NA_SOON); } });
     return {
+      naSoon: soon, notSoon: !soon,
       acc: acc,
       // Which PCMT.gg season the team windows read (league.js): pickems.js event 's3-na' → 'S3 NA'.
       rosterSeason: (function (m) { return m ? 'S' + m[1] + ' ' + m[2].toUpperCase() : ''; })(/^s(\d+)-(\w+)$/.exec(b.event || '')),
