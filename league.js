@@ -1322,3 +1322,10 @@
   window.addEventListener('scroll', function () { if (cur) hide(); }, { passive: true });
   document.addEventListener('pointerdown', function (e) { if (e.pointerType !== 'mouse' && cur) hide(); }, true);
 })();
+
+/* Site version in the footer: version.js (shared with the hand-written pages). */
+(function () {
+  if (window.PCMT_VERSION_JS || !document.createElement) return;
+  var s = document.createElement('script'); s.src = 'version.js'; s.async = true;
+  (document.head || document.documentElement).appendChild(s);
+})();

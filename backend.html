@@ -451,7 +451,15 @@
 
     <!-- ===== Patch notes ===== -->
     <section class="pane" role="tabpanel" id="pane-notes" aria-labelledby="tab-notes" hidden>
-      <p class="note">Write a patch note and press Go live: it shows on the Home page as the Latest Patch Notes for everyone, replacing the one before. The date fills in with today's date when it goes live. A blank line in the note starts a new paragraph.</p>
+      <p class="note">Write a patch note and press Go live: it shows at the top of the Home page for everyone, replacing the one before. The date fills in with today's date when it goes live. A blank line in the note starts a new paragraph.</p>
+      <form class="panel" id="ver-form" autocomplete="off" novalidate>
+        <div class="bar" style="align-items: flex-end">
+          <label class="field" style="flex: 0 1 260px"><span class="kicker">Current version</span><input id="ver-input" type="text" maxlength="20" placeholder="1.4" aria-describedby="ver-help"></label>
+          <button class="btn" id="ver-save" type="submit">Update version</button>
+          <span class="msg" id="ver-msg" role="status" aria-live="polite"></span>
+        </div>
+        <p class="note" id="ver-help" style="margin: 0">Shows at the bottom of every page as "Version …". Type just the number, like 1.4.</p>
+      </form>
       <form class="panel pn-form" id="pn-form" autocomplete="off" novalidate>
         <div class="pn-top">
           <label class="field"><span class="kicker">Title</span><input id="pn-title" type="text" maxlength="120" placeholder="Version 1.4" required></label>
@@ -1229,6 +1237,24 @@
       .then(function (r) { PN = r || []; pnErr = ''; })
       .catch(function (e) { PN = []; pnErr = 'Couldn\'t load patch notes (' + e.message + '). Has setup/patch-notes-setup.sql been run?'; });
   }
+  // ---------- current version (site_settings 'version'; version.js puts it in every page's footer) ----------
+  function loadVersion() {
+    return L.api('/rest/v1/site_settings?select=value&key=eq.version').then(function (r) { $('ver-input').value = (r && r[0] && r[0].value) || ''; }).catch(function () {});
+  }
+  $('ver-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var v = $('ver-input').value.trim().replace(/^v(ersion)?\s*/i, ''), btn = $('ver-save'), msg = $('ver-msg');
+    if (!v) { msg.className = 'msg err'; msg.textContent = 'Type the version first.'; $('ver-input').focus(); return; }
+    btn.disabled = true; msg.className = 'msg'; msg.textContent = 'Saving…';
+    L.api('/rest/v1/site_settings?on_conflict=key', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=representation' },
+      body: { key: 'version', value: v, updated_at: new Date().toISOString(), updated_by: L.myId } }).then(function (rows) {
+      if (!rows || !rows.length) throw new Error('not saved (is this account on the staff list?)');
+      $('ver-input').value = rows[0].value;
+      if (window.PCMT_SET_VERSION) window.PCMT_SET_VERSION(rows[0].value);
+      msg.className = 'msg ok'; msg.textContent = 'Every page now says Version ' + rows[0].value + '.';
+    }).catch(function (err) { msg.className = 'msg err'; msg.textContent = 'Couldn\'t save: ' + err.message; })
+      .then(function () { btn.disabled = false; });
+  });
   function drawNotes() {
     $('pn-date').value = pnToday();
     var newest = PN.filter(function (n) { return n.live; })[0];
@@ -1446,7 +1472,7 @@
       if (ok !== true) return show('st-nostaff');
       return Promise.all([
         L.apiAll('/rest/v1/profiles?select=id,name&order=id').then(function (r) { (r || []).forEach(function (p) { NAMES[p.id] = p.name; }); }).catch(function () {}),
-        loadPrices(), loadRemoved(), loadCards(), loadComplaints(), loadPages(), loadSubs(), loadNotes()
+        loadPrices(), loadRemoved(), loadCards(), loadComplaints(), loadPages(), loadSubs(), loadNotes(), loadVersion()
       ]).then(function () {
         show('st-staff');
         var h = (location.hash || '').slice(1);
