@@ -168,7 +168,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </table>
 
 <sc-for list="{{boxes}}" as="bx" hint-placeholder-count="14">
-<div role="group" aria-label="{{bx.aria}}" style="position: absolute; left: {{bx.x}}px; top: {{bx.y}}px; width: 150px; box-sizing: border-box; border: 2px solid {{bx.border}}; border-radius: 6px; background: #172124; overflow: visible">
+<div role="group" aria-label="{{bx.aria}}" data-pcmt-series="{{bx.series}}" style="position: absolute; left: {{bx.x}}px; top: {{bx.y}}px; width: 150px; box-sizing: border-box; border: 2px solid {{bx.border}}; border-radius: 6px; background: #172124; overflow: visible">
 <sc-for list="{{bx.rows}}" as="t" hint-placeholder-count="2">
 <sc-if value="{{t.canPick}}" hint-placeholder-val="{{ true }}">
 <button type="button" onClick="{{t.pick}}" aria-pressed="{{t.picked}}" aria-label="{{t.aria}}" title="{{t.full}}" data-pcmt-team="{{t.code}}" style="display: flex; align-items: center; gap: 8px; width: 100%; height: 40px; padding: 0 10px; box-sizing: border-box; border: 0; border-top: {{t.divider}}; border-radius: {{t.radius}}; background: {{t.bg}}; color: {{t.color}}; font: inherit; font-size: 15px; font-weight: {{t.weight}}; text-align: left; cursor: pointer">
@@ -608,6 +608,7 @@ class Component extends DCLogic {
       return {
         n: L.label === false ? '' : String(L.n), x: L.x, y: L.y, lx: L.lx, ly: L.ly, border: border,
         aria: info.s.round + ', series ' + info.s.n + (info.locked && !info.done ? ', locked' : ''),
+        series: info.s.url || '',   // league.js: the team window shows this series' KDA once it's played
         rows: [row(info.ga, !!info.a, info, 'a', true), row(info.gb, !!info.b, info, 'b', false)]
       };
     });
