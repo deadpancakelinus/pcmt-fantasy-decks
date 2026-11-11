@@ -1214,7 +1214,8 @@
 
 /* Pick'ems team rosters (Nov 10 2026): hovering (or focusing) a team in the bracket or the groups ([data-pcmt-team])
    opens a small window with that team's players and their KDA. In a bracket series that's been played
-   ([data-pcmt-series] = its pcmt.gg url, matched to PCMT_RESULTS in data.js) it's each player's KDA in that series,
+   ([data-pcmt-series] = its pcmt.gg url, looked up in series-stats.js from the hourly sync, or else PCMT_RESULTS in
+   data.js) it's each player's KDA in that series,
    (kills + assists) / deaths, with their K/D/A; anywhere else, or before the series is played, it's their season KDA
    (PCMT.gg's KDA column). The season numbers come from rosters.js,
    written from pcmt.gg/stats by tools/pcmt-rosters.js in the same hourly PCMT.gg sync that updates the Pick'ems
@@ -1235,7 +1236,8 @@
     });
   }
   function load() {
-    if (!loading) loading = Promise.all([window.PCMT_ROSTERS ? 0 : script('rosters.js'), window.PCMT_TRUMPS_CARDS ? 0 : script('trumps-cards.js')]);
+    if (!loading) loading = Promise.all([window.PCMT_ROSTERS ? 0 : script('rosters.js'), window.PCMT_SERIES_STATS ? 0 : script('series-stats.js'),
+                                         window.PCMT_TRUMPS_CARDS ? 0 : script('trumps-cards.js')]);
     return loading;
   }
   function css() {
@@ -1274,6 +1276,12 @@
   // This team's players in one played series: [{ name, kda, kills, deaths, assists }], best KDA first. Stats are keyed by
   // players.js id; a sub ("~name") goes to whichever team is short of five.
   function seriesRoster(code, url) {
+    var ss = (window.PCMT_SERIES_STATS || {})[url];
+    if (ss && ss.teams && ss.teams[code]) {
+      return { opp: ss.a === code ? ss.b : ss.a, list: ss.teams[code].map(function (p) {
+        return { name: p.name, kills: p.k, deaths: p.d, assists: p.a, kda: (p.k + p.a) / Math.max(1, p.d) };
+      }).sort(function (a, b) { return b.kda - a.kda || a.name.localeCompare(b.name); }) };
+    }
     var res = (window.PCMT_RESULTS || []).filter(function (r) { return r.url && r.url === url; })[0];
     if (!res || !res.stats || (res.a !== code && res.b !== code)) return null;
     var P = {}, mine = [], subs = [], other = 0;
