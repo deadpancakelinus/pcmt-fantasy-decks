@@ -466,7 +466,7 @@
 
     <!-- ===== Champions panel (posted as a patch note) ===== -->
     <section class="pane" role="tabpanel" id="pane-champs" aria-labelledby="tab-champs" hidden>
-      <p class="note">Make a champions panel and post it as a patch note: when it goes live it's the patch note on Home (the newest live patch note shows there), with the team's logo, name, maps and stats like below, and your note under it. Pick a team to fill in its name, logo and colour; Fill players puts in that team's PCMT.gg roster. It shows in the Patch notes list, where it can be taken down or deleted.</p>
+      <p class="note">Make a champions panel and post it as a patch note: when it goes live it's the patch note on Home (the newest live patch note shows there), with the team's logo, name, maps and stats like below, and your note under it. Pick a team to fill in its name, logo and colour; Fill players puts in that team's PCMT.gg roster. Posted panels are listed under the form (and in Patch notes) with Take down, Go live again and Delete.</p>
       <form class="panel" id="ch-form" autocomplete="off" novalidate>
         <div class="ch-grid">
           <label class="field"><span class="kicker">Patch note title</span><input id="ch-title" type="text" maxlength="120" value="NA Season 3 Champions"></label>
@@ -489,6 +489,8 @@
         <div class="ch-preview" id="ch-preview" aria-live="off"></div>
         <div class="bar"><button class="btn" id="ch-go" type="submit">Go live</button><span class="msg" id="ch-msg" role="status" aria-live="polite"></span></div>
       </form>
+      <h2 class="pn-h">Posted champions panels</h2>
+      <ol class="cx-list" id="ch-list"></ol>
     </section>
 
     <!-- ===== Complaints ===== -->
@@ -1230,13 +1232,17 @@
   function drawNotes() {
     $('pn-date').value = pnToday();
     var newest = PN.filter(function (n) { return n.live; })[0];
-    $('pn-list').innerHTML = pnErr ? '<li class="msg err">' + esc(pnErr) + '</li>' : !PN.length ? '<li class="msg">No patch notes yet.</li>' : PN.map(function (n) {
+    function item(n) {
       var onHome = newest && newest.id === n.id;
       return '<li class="cx-item"><div class="cx-head"><span><b>' + esc(n.title) + '</b>' + (n.champ ? ' <span class="tag">CHAMPIONS · ' + esc(n.champ.name || '') + '</span>' : '') + (onHome ? ' <span class="tag pn-live">ON HOME</span>' : n.live ? ' <span class="tag">LIVE</span>' : ' <span class="tag">TAKEN DOWN</span>') + '</span><span>' + esc(pnDay(n.note_date)) + '</span></div>' +
         (n.body ? '<p class="cx-body">' + esc(n.body) + '</p>' : '') +
         '<div class="cx-foot">' + (n.live ? '<button type="button" class="btn ghost" data-pn-down="' + n.id + '">Take down</button>' : '<button type="button" class="btn ghost" data-pn-up="' + n.id + '">Go live again</button>') +
         '<button type="button" class="btn ghost" data-pn-del="' + n.id + '">Delete</button><span class="msg" role="status" aria-live="polite"></span></div></li>';
-    }).join('');
+    }
+    var champs = PN.filter(function (n) { return n.champ; });
+    $('pn-list').innerHTML = pnErr ? '<li class="msg err">' + esc(pnErr) + '</li>' : !PN.length ? '<li class="msg">No patch notes yet.</li>' : PN.map(item).join('');
+    // Champions tab: the same buttons (Take down takes the panel off Home; the next newest live note shows instead)
+    $('ch-list').innerHTML = pnErr ? '<li class="msg err">' + esc(pnErr) + '</li>' : !champs.length ? '<li class="msg">No champions panels posted yet.</li>' : champs.map(item).join('');
   }
   $('pn-form').addEventListener('submit', function (e) {
     e.preventDefault();
@@ -1256,7 +1262,7 @@
     }).catch(function (err) { msg.className = 'msg err'; msg.textContent = 'Couldn\'t go live: ' + err.message; })
       .then(function () { go.disabled = false; go.classList.remove('warn'); go.textContent = 'Go live'; });
   });
-  $('pn-list').addEventListener('click', function (e) {
+  function pnClick(e) {
     var b = e.target.closest('button[data-pn-down], button[data-pn-up], button[data-pn-del]'); if (!b) return;
     var say = b.parentNode.querySelector('.msg'), del = b.hasAttribute('data-pn-del'), up = b.hasAttribute('data-pn-up');
     var id = +(b.getAttribute('data-pn-down') || b.getAttribute('data-pn-up') || b.getAttribute('data-pn-del'));
@@ -1275,7 +1281,9 @@
       PN.sort(function (a, c) { return (c.live ? 1 : 0) - (a.live ? 1 : 0) || String(c.live_at || '').localeCompare(String(a.live_at || '')) || c.id - a.id; });
       drawNotes();
     }).catch(function (err) { b.disabled = false; say.className = 'msg err'; say.textContent = 'Couldn\'t save: ' + err.message; });
-  });
+  }
+  $('pn-list').addEventListener('click', pnClick);
+  $('ch-list').addEventListener('click', pnClick);
 
   // ---------- champions panel, posted as a patch note (patch_notes.champ; Home draws it) ----------
   // Teams to pick from (logo, name, colour), as on the Home board; Other lets you type a new team in.
