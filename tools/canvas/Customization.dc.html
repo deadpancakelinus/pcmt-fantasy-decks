@@ -383,9 +383,31 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 
 <section aria-labelledby="decks-h" style="display: flex; flex-direction: column; gap: 18px; padding: 22px; border-radius: 12px; background: #172124; border: 1px solid #2a3a3e">
 <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px">
-<h2 id="decks-h" style="margin: 0; font-family: 'National Park', system-ui, sans-serif; font-size: 15px; font-weight: 600; color: #ff6a1f; letter-spacing: 0.08em">NA Team Decks</h2>
-<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa">{{deckUnlocked}} of {{deckCount}} unlocked</span>
+<h2 id="decks-h" style="margin: 0; font-family: 'National Park', system-ui, sans-serif; font-size: 15px; font-weight: 600; color: #ff6a1f; letter-spacing: 0.08em">NA Team Decks · Season 4</h2>
+<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa">{{deckStatus}}</span>
 </div>
+<sc-if value="{{naSoon}}" hint-placeholder-val="{{ true }}">
+<div style="position: relative; border-radius: 10px; overflow: hidden">
+<div aria-hidden="true" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 18px 14px; filter: blur(7px) saturate(.6); opacity: .55; pointer-events: none; user-select: none">
+<sc-for list="{{decks}}" as="d" hint-placeholder-count="16">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="position: relative; width: 100%; aspect-ratio: 5 / 7; border-radius: 10px; border: 1px solid {{d.edge}}; background: {{d.bg}}; display: grid; place-items: center; overflow: hidden">
+<div style="position: absolute; inset: 6px; border: 1px solid {{d.frame}}; border-radius: 7px"></div>
+<div style="width: 62%; aspect-ratio: 1; border-radius: 50%; border: 1.5px solid {{d.color}}; background: #080b0c"></div>
+</div>
+<span style="font-size: 13px; font-weight: 600; color: {{d.color}}">{{d.code}}</span>
+<span style="font-size: 13px; color: #93a9aa">{{d.name}}</span>
+</div>
+</sc-for>
+</div>
+<div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; text-align: center; padding: 20px; background: radial-gradient(circle at 50% 45%, rgba(13,20,22,.72), rgba(13,20,22,.35) 70%)">
+<span aria-hidden="true" style="width: 52px; height: 52px; border-radius: 50%; background: #0d1416; border: 1px solid #ff6a1f; color: #ff6a1f; display: grid; place-items: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg></span>
+<p style="margin: 0; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 44px; line-height: 1; color: #ff6a1f">Coming soon</p>
+<p style="margin: 0; max-width: 420px; color: #c4d4d4; font-size: 15px; line-height: 1.5">New team decks for NA Season 4 are on the way. The Season 3 team decks have been retired.</p>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{naReady}}" hint-placeholder-val="{{ false }}">
 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 18px 14px">
 <sc-for list="{{decks}}" as="d" hint-placeholder-count="16">
 <div style="position: relative; display: grid; min-width: 0">
@@ -431,6 +453,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </div>
 </sc-for>
 </div>
+</sc-if>
 </section>
 
 <section aria-labelledby="unlock-h" style="display: flex; flex-direction: column; gap: 18px; padding: 22px; border-radius: 12px; background: #172124; border: 1px solid #2a3a3e">
@@ -674,24 +697,29 @@ var PCMT_TEAM_POINTS = {};
 var PCMT_DECK_UNLOCK = 100;
 // This manager's best single-gameweek score. Midlife Crisis unlocks at 200. The live site fills this in.
 var PCMT_BEST_WEEK = 0;
+// NA Season 4 team decks (Nov 11 2026): being built. The panel is locked and blurred with "Coming soon" until they're done.
+// Fill in each team's tricode (label), name, colour and logo as they come in; codes stay 'S4-…' so they never clash with
+// an old deck code. The NA Season 3 team decks are retired (PCMT_RETIRED_DECKS): anyone who had one equipped is on PCMT Blue.
 var PCMT_DECK_TEAMS = [
-  { code: 'T1', name: 'Team 1', color: '#FF0000', logo: '/_blob/ce2bf22e2df8751703c00f132b854650' },
-  { code: 'TL', name: 'Team Dyslexia', color: '#1c9ad8', logo: '/_blob/18b0eb4cbe217fc77dda8f01e3ff4c16' },
-  { code: 'IHOP', name: 'I Hate Odin Party', color: '#3d95dc', logo: '/_blob/209d81a7df0d79fc71d99063600358ef' },
-  { code: 'FSG', name: 'Furry Squirrels Gaming', color: '#e8603c', logo: '/_blob/ad1fa170a11534a10c9a953f0a092175' },
-  { code: 'FNC', name: 'cow paulo FaN Club', color: '#ff8a1f', logo: '/_blob/8a102a19e71060bb2dacb6d6b5263457' },
-  { code: 'SSG', name: 'Squirtle Squad Gaming', color: '#f2b01e', logo: '/_blob/1e20352a30572a577222d14b6a2389ce' },
-  { code: 'RRQ', name: 'Rage Re-Queuers', color: '#f5d90a', logo: '/_blob/2c8df8598d3c163942e4d347ee4d7e8e' },
-  { code: 'C9', name: 'Clown9', color: '#4dc3ef', logo: '/_blob/46ec4a1f510710db9670e64c202b0cee' },
-  { code: 'SRB', name: 'Sunshine and Rainbows', color: '#58c47a', logo: '/_blob/24ce287349ef3d8ae3c603e22142a375' },
-  { code: 'TS', name: 'Team Slugshow', color: '#9b6be8', logo: '/_blob/beb0681ed7f4d195bc88376b306a1d3b' },
-  { code: 'EPY', name: 'Team Entropy', color: '#e6e6e6', logo: '/_blob/2b237feaf70d67ef58a84efbab9a3e51' },
-  { code: 'DFM', name: 'Dementia Found Me', color: '#5a78ff', logo: '/_blob/a59455af931db22aaf5f61e2da9f3686' },
-  { code: 'BAKA', name: 'Beautiful and Kinda Adorable', color: '#b98ad9', logo: '/_blob/09e5595acee6eb70652c84027ef2e6d6' },
-  { code: 'NAVI', name: 'No Actual Valorant Intelligence', color: '#FF6EB4', logo: '/_blob/f6b846609af48437299bc42d13d5dad0' },
-  { code: '100T', name: "100 Tony's", color: '#45dfe8', logo: '/_blob/2afecaefb84157c171a79e0bae8932b5' },
-  { code: 'SPG', name: 'Spank Ptheory Gaming', color: '#ff7f66', logo: '/_blob/fb1551434b59a200d90d2e9ed6a51e8b' }
+  { code: 'S4-T1', label: 'T1', name: 'Team 1', color: '#8a9a9b', logo: null },
+  { code: 'S4-T2', label: 'T2', name: 'Team 2', color: '#8a9a9b', logo: null },
+  { code: 'S4-T3', label: 'T3', name: 'Team 3', color: '#8a9a9b', logo: null },
+  { code: 'S4-T4', label: 'T4', name: 'Team 4', color: '#8a9a9b', logo: null },
+  { code: 'S4-DEI', label: 'DEI', name: 'Doofenshmirtz Evil Inc.', color: '#8a9a9b', logo: null },
+  { code: 'S4-EDM', label: 'EDM', name: 'Everyone Dance Meow', color: '#8a9a9b', logo: null },
+  { code: 'S4-T7', label: 'T7', name: 'Team 7', color: '#8a9a9b', logo: null },
+  { code: 'S4-T8', label: 'T8', name: 'Team 8', color: '#8a9a9b', logo: null },
+  { code: 'S4-T9', label: 'T9', name: 'Team 9', color: '#8a9a9b', logo: null },
+  { code: 'S4-T10', label: 'T10', name: 'Team 10', color: '#8a9a9b', logo: null },
+  { code: 'S4-BLG', label: 'BLG', name: 'Bartho Lemew Gaming', color: '#8a9a9b', logo: null },
+  { code: 'S4-T12', label: 'T12', name: 'Team 12', color: '#8a9a9b', logo: null },
+  { code: 'S4-T13', label: 'T13', name: 'Team 13', color: '#8a9a9b', logo: null },
+  { code: 'S4-T14', label: 'T14', name: 'Team 14', color: '#8a9a9b', logo: null },
+  { code: 'S4-XLG', label: 'XLG', name: 'Xtremely Lacking Gamesense', color: '#8a9a9b', logo: null },
+  { code: 'S4-T16', label: 'T16', name: 'Team 16', color: '#8a9a9b', logo: null }
 ];
+var PCMT_NA_S4_READY = false;   // true once the S4 decks are done: unlocks the panel
+var PCMT_RETIRED_DECKS = ['T1', 'TL', 'IHOP', 'FSG', 'FNC', 'SSG', 'RRQ', 'C9', 'SRB', 'TS', 'EPY', 'DFM', 'BAKA', 'NAVI', '100T', 'SPG'];
 // EMEA Season 2 team decks: same unlock rule as NA. logo: null shows the tricode until a logo is added.
 var PCMT_EMEA_DECK_TEAMS = [
   { code: 'FaZe', name: 'Fabulous and Zesty', color: '#f28bd8', logo: '/_blob/9da6e0491a922186cad6bc5daf699626' },
@@ -712,7 +740,7 @@ var PCMT_REGION_DECKS = {
   NA: { color: '#ff6a1f', edge: '#5a2a10', logo: PCMT_REGION_LOGOS.NA },
   EMEA: { color: '#d5ff1d', edge: '#4a5a10', logo: PCMT_REGION_LOGOS.EMEA }
 };
-var PCMT_ALL_DECK_TEAMS = PCMT_DECK_TEAMS.concat(PCMT_EMEA_DECK_TEAMS);
+var PCMT_ALL_DECK_TEAMS = PCMT_EMEA_DECK_TEAMS.concat(PCMT_NA_S4_READY ? PCMT_DECK_TEAMS : []);
 function pcmtRgba(hex, a) {
   var h = hex.replace('#', '');
   return 'rgba(' + parseInt(h.slice(0, 2), 16) + ',' + parseInt(h.slice(2, 4), 16) + ',' + parseInt(h.slice(4, 6), 16) + ',' + a + ')';
@@ -1225,6 +1253,7 @@ class Component extends DCLogic {
     super(props);
     var saved = 'BLUE';
     try { saved = window.localStorage.getItem('pcmt-deck') || 'BLUE'; } catch (e) {}
+    if (PCMT_RETIRED_DECKS.indexOf(saved) >= 0) { saved = 'BLUE'; try { window.localStorage.setItem('pcmt-deck', 'BLUE'); } catch (e) {} }
     var aura = '';
     try { aura = window.localStorage.getItem('pcmt-aura') || ''; if (aura === '1') aura = 'ethan'; } catch (e) {}
     var codes = [];
@@ -1429,7 +1458,7 @@ class Component extends DCLogic {
     if (prideLocked && PCMT_PRIDE_DECKS.indexOf(eq) >= 0) { try { window.localStorage.setItem('pcmt-deck', 'BLUE'); } catch (e) {} eq = 'BLUE'; }
     function teamDeckView(t, i) {
       var on = eq === t.code;
-      var pts = Math.min(teamPts(t.code, i), PCMT_DECK_UNLOCK), locked = teamLocked[t.code];
+      var pts = Math.min(teamPts(t.code, i), PCMT_DECK_UNLOCK), locked = teamLocked[t.code] || (/^S4-/.test(t.code) && !PCMT_NA_S4_READY);
       return {
         locked: locked,
         cursor: locked ? 'not-allowed' : 'pointer',
@@ -1438,7 +1467,7 @@ class Component extends DCLogic {
         hint: 'Earn ' + PCMT_DECK_UNLOCK + ' points from ' + t.code + ' players to unlock.',
         label: t.name + ' deck' + (locked ? ', locked. ' + pts + ' of ' + PCMT_DECK_UNLOCK + ' points from ' + t.code + ' players.' : ''),
         title: locked ? 'Earn ' + PCMT_DECK_UNLOCK + ' points from ' + t.code + ' players to unlock (' + pts + ' so far)' : t.name,
-        code: t.code, name: t.name, color: t.color, logo: t.logo || '', noLogo: !t.logo, on: on, logoMax: PCMT_SMALL_LOGOS[t.code] ? '54%' : '70%',
+        code: t.label || t.code, name: t.name, color: t.color, logo: t.logo || '', noLogo: !t.logo, on: on, logoMax: PCMT_SMALL_LOGOS[t.code] ? '54%' : '70%',
         edge: pcmtRgba(t.color, 0.35),
         frame: pcmtRgba(t.color, 0.8),
         frameSoft: pcmtRgba(t.color, 0.4),
@@ -1663,6 +1692,8 @@ class Component extends DCLogic {
       decks: decks,
       deckCount: decks.length,
       deckUnlocked: decks.filter(function (d) { return !d.locked; }).length,
+      naSoon: !PCMT_NA_S4_READY, naReady: PCMT_NA_S4_READY,
+      deckStatus: PCMT_NA_S4_READY ? decks.filter(function (d) { return !d.locked; }).length + ' of ' + decks.length + ' unlocked' : 'Locked · coming soon',
       euDecks: euDecks,
       euDeckCount: euDecks.length,
       euDeckUnlocked: euDecks.filter(function (d) { return !d.locked; }).length,

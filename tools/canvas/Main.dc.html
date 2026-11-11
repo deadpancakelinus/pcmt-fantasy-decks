@@ -978,8 +978,14 @@ function pcmtSaveMyDeck(s) {
   pcmtSaveMyDeck.last = json;
   try { window.localStorage.setItem('pcmt-mydeck', json); } catch (e) {}
 }
+// NA Season 3 team decks were retired on Nov 11 2026 (Customization: NA Season 4 decks coming soon): back to PCMT Blue.
+var PCMT_RETIRED_DECKS = ['T1', 'TL', 'IHOP', 'FSG', 'FNC', 'SSG', 'RRQ', 'C9', 'SRB', 'TS', 'EPY', 'DFM', 'BAKA', 'NAVI', '100T', 'SPG'];
 function pcmtReadDeck() {
-  try { var v = window.localStorage.getItem('pcmt-deck'); return v && v !== 'ETHAN' ? v : 'BLUE'; } catch (e) { return 'BLUE'; }
+  try {
+    var v = window.localStorage.getItem('pcmt-deck');
+    if (v && PCMT_RETIRED_DECKS.indexOf(v) >= 0) { window.localStorage.setItem('pcmt-deck', 'BLUE'); return 'BLUE'; }
+    return v && v !== 'ETHAN' ? v : 'BLUE';
+  } catch (e) { return 'BLUE'; }
 }
 var PCMT_ROLE_ICONS = {
   duelist: '/_blob/3911a104cbddaf481d7a7bf070a2e696',
