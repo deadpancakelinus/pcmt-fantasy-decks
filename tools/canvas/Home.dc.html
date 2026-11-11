@@ -142,36 +142,53 @@ a.hm-tile{color:inherit}
 </div>
 </section>
 
-<section aria-labelledby="champ-h" class="hm-cb">
+<sc-if value="{{hasNote}}" hint-placeholder-val="{{ true }}">
+<section aria-label="Latest patch notes" style="display: flex; flex-direction: column; gap: 16px; min-width: 0">
+<article class="hm-panel" style="display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px">
+<h2 style="margin: 0; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 32px; line-height: 1; color: #a5dcdd">{{note.version}}</h2>
+<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa">fantasy.pcmt.gg · {{note.date}}</span>
+</div>
+<sc-if value="{{note.hasChamp}}" hint-placeholder-val="{{ false }}">
+<div class="hm-cb" style="border-top-color: {{note.champ.color}}">
 <img class="hm-cb-trophy" src="/_blob/a8390c53c5aa10a347b6af0841aa6835" alt="" aria-hidden="true">
 <div>
 <div class="hm-cb-head">
-<img class="hm-cb-logo" src="/_blob/fb1551434b59a200d90d2e9ed6a51e8b" alt="">
+<sc-if value="{{note.champ.hasLogo}}" hint-placeholder-val="{{ true }}"><img class="hm-cb-logo" src="{{note.champ.logo}}" alt=""></sc-if>
 <div style="min-width: 0">
-<p class="hm-cb-kick">NA Season 3 champions</p>
-<h2 id="champ-h" class="hm-cb-name">Spank Ptheory Gaming</h2>
+<p class="hm-cb-kick">{{note.champ.kicker}}</p>
+<h3 class="hm-cb-name" style="color: {{note.champ.color}}">{{note.champ.name}}</h3>
 </div>
 </div>
-<table class="hm-cb-maps" aria-label="Grand Final maps">
+<sc-if value="{{note.champ.hasMaps}}" hint-placeholder-val="{{ true }}">
+<table class="hm-cb-maps" aria-label="{{note.champ.mapsLabel}}">
 <tbody>
-<tr><th scope="row">Abyss</th><td><b>13</b>–3</td></tr>
-<tr><th scope="row">Summit</th><td><b>13</b>–5</td></tr>
-<tr><th scope="row">Lotus</th><td><b>16</b>–14</td></tr>
+<sc-for list="{{note.champ.maps}}" as="cm" hint-placeholder-count="3">
+<tr><th scope="row">{{cm.map}}</th><td><b>{{cm.w}}</b>–{{cm.l}}</td></tr>
+</sc-for>
 </tbody>
 </table>
+</sc-if>
 </div>
+<sc-if value="{{note.champ.hasStats}}" hint-placeholder-val="{{ true }}">
 <table class="hm-cb-roster">
-<caption>Grand Final stats</caption>
+<caption>{{note.champ.statsLabel}}</caption>
 <thead><tr><th scope="col">Player</th><th scope="col">K/D/A</th><th scope="col">ACS</th><th scope="col">Rating</th></tr></thead>
 <tbody>
-<tr class="hm-cb-top"><th scope="row">Cooleo</th><td>65/39/16</td><td>272</td><td>1.30</td></tr>
-<tr><th scope="row">Phuzzythecat</th><td>54/35/17</td><td>233</td><td>1.24</td></tr>
-<tr><th scope="row">Lil Thighs</th><td>49/35/11</td><td>202</td><td>1.12</td></tr>
-<tr><th scope="row">Dunkn</th><td>40/36/31</td><td>179</td><td>1.05</td></tr>
-<tr><th scope="row">Derpina</th><td>40/48/10</td><td>177</td><td>0.84</td></tr>
+<sc-for list="{{note.champ.stats}}" as="cs" hint-placeholder-count="5">
+<tr class="{{cs.cls}}"><th scope="row">{{cs.player}}</th><td>{{cs.kda}}</td><td>{{cs.acs}}</td><td>{{cs.rating}}</td></tr>
+</sc-for>
 </tbody>
 </table>
+</sc-if>
+</div>
+</sc-if>
+<sc-for list="{{note.paras}}" as="np" hint-placeholder-count="2">
+<p style="margin: 0; color: #c4d4d4; line-height: 1.55; font-size: 16px; white-space: pre-line">{{np.pre}}<sc-if value="{{np.hasLink}}" hint-placeholder-val="{{ false }}"><a href="#comments" onClick="{{ccJump}}" style="color: #a5dcdd">{{np.link}}</a></sc-if>{{np.post}}</p>
+</sc-for>
+</article>
 </section>
+</sc-if>
 
 <section aria-label="All pages" style="display: flex; flex-direction: column; gap: 16px">
 <nav aria-label="All pages" class="hm-menu">
@@ -186,20 +203,6 @@ a.hm-tile{color:inherit}
 </nav>
 </section>
 
-<sc-if value="{{hasNote}}" hint-placeholder-val="{{ false }}">
-<section aria-labelledby="notes-h" style="display: flex; flex-direction: column; gap: 16px; min-width: 0">
-<h2 id="notes-h" style="margin: 0; font-family: 'National Park', system-ui, sans-serif; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">Latest Patch Notes</h2>
-<article class="hm-panel" style="display: flex; flex-direction: column; gap: 10px">
-<div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px">
-<h3 style="margin: 0; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 32px; line-height: 1; color: #a5dcdd">{{note.version}}</h3>
-<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa">fantasy.pcmt.gg · {{note.date}}</span>
-</div>
-<sc-for list="{{note.paras}}" as="np" hint-placeholder-count="2">
-<p style="margin: 0; color: #c4d4d4; line-height: 1.55; font-size: 16px; white-space: pre-line">{{np.pre}}<sc-if value="{{np.hasLink}}" hint-placeholder-val="{{ false }}"><a href="#comments" onClick="{{ccJump}}" style="color: #a5dcdd">{{np.link}}</a></sc-if>{{np.post}}</p>
-</sc-for>
-</article>
-</section>
-</sc-if>
 
 <section id="comments" aria-labelledby="cc-h" class="hm-panel hm-cc" style="display: flex; flex-direction: column; gap: 14px">
 <h2 id="cc-h" style="margin: 0; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 32px; line-height: 1.1; color: #eaf4f4">comments and complaints always welcome :)</h2>
@@ -398,8 +401,19 @@ class Component extends DCLogic {
     var pn = window.PCMT_PATCH_NOTE, homeNote = pn ? {
       version: pn.title,
       date: new Date(pn.note_date + 'T12:00:00Z').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' }),
-      paras: String(pn.body || '').split(/\n\s*\n/).map(function (t) { return { pre: t.trim() }; }).filter(function (x) { return x.pre; })
+      paras: String(pn.body || '').split(/\n\s*\n/).map(function (t) { return { pre: t.trim() }; }).filter(function (x) { return x.pre; }),
+      champ: pn.champ || null
     } : PCMT_HOME_NOTE;
+    // A champions panel made on the backend (Champions tab): { kicker, name, logo, color, mapsLabel, maps: [{ map, w, l }],
+    // statsLabel, stats: [{ player, kda, acs, rating }] }. The best rating is picked out in gold.
+    var ch = homeNote && homeNote.champ, best = -Infinity;
+    if (ch) (ch.stats || []).forEach(function (r) { var v = parseFloat(r.rating); if (v > best) best = v; });
+    var champView = ch ? {
+      kicker: ch.kicker || '', name: ch.name || '', logo: ch.logo || '', hasLogo: !!ch.logo, color: ch.color || '#ff7f66',
+      mapsLabel: ch.mapsLabel || 'Grand Final maps', maps: ch.maps || [], hasMaps: !!(ch.maps && ch.maps.length),
+      statsLabel: ch.statsLabel || 'Grand Final stats', hasStats: !!(ch.stats && ch.stats.length),
+      stats: (ch.stats || []).map(function (r) { return { player: r.player || '', kda: r.kda || '', acs: r.acs || '', rating: r.rating || '', cls: parseFloat(r.rating) === best ? 'hm-cb-top' : '' }; })
+    } : {};
     var W = typeof window !== 'undefined' ? window : {};
     var locked = false;   // open to everyone (was admins only)
     var self = this, cc = this.state || {}, ccN = this.ccWords(cc.ccText);
@@ -466,7 +480,7 @@ class Component extends DCLogic {
       lockLabel: lockLabel,
       hasResult: !!last, resultLabel: last ? last.a + ' vs ' + last.b + ', ' + last.winner + ' won' : '',
       menu: PCMT_HOME_MENU,
-      note: homeNote ? Object.assign({}, homeNote, { paras: (homeNote.paras || []).map(function (x) { return { pre: x.pre || '', link: x.link || '', post: x.post || '', hasLink: !!x.link }; }) }) : {},
+      note: homeNote ? Object.assign({}, homeNote, { champ: champView, hasChamp: !!ch, paras: (homeNote.paras || []).map(function (x) { return { pre: x.pre || '', link: x.link || '', post: x.post || '', hasLink: !!x.link }; }) }) : {},
       hasNote: !!homeNote,
       hasAccount: !!(window.PCMT_AUTH && window.PCMT_AUTH.signedIn),
       ccJump: function (e) {

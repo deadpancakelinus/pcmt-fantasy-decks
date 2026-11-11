@@ -206,6 +206,40 @@
   @media (max-width: 620px) { .pn-top { grid-template-columns: 1fr; } }
   .pn-live { color: #0d1416; background: #8be4b7; border-color: #8be4b7; }
   .pn-h { margin: 0; font: 700 22px/1.2 'Cabin Sketch', cursive; color: var(--accent); }
+  .hm-cb{position:relative;overflow:hidden;isolation:isolate;background:#172124;border:1px solid #2a3a3e;border-top:4px solid #ff7f66;border-radius:12px;padding:24px 26px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:28px 36px;color:#eaf4f4}
+  .hm-cb-trophy{position:absolute;z-index:-1;left:50%;top:50%;height:92%;width:auto;transform:translate(-50%,-50%);opacity:.16;pointer-events:none}
+  .hm-cb-head{display:flex;gap:20px;align-items:center;min-width:0}
+  .hm-cb-logo{width:96px;height:96px;flex:none;object-fit:contain}
+  .hm-cb-kick{margin:0;font:600 12px/1.3 'National Park',system-ui,sans-serif;color:#f5d76e}
+  .hm-cb-name{margin:4px 0 0;font-family:'Cabin Sketch',cursive;font-weight:700;font-size:clamp(32px,4.4vw,52px);line-height:1;color:#ff7f66}
+  .hm-cb-maps{margin:22px 0 0;width:100%;border-collapse:collapse;font-size:15px}
+  .hm-cb-maps th{text-align:left;font-weight:400;color:#c4d4d4;padding:8px 0;border-top:1px solid #2a3a3e}
+  .hm-cb-maps td{text-align:right;padding:8px 0;border-top:1px solid #2a3a3e;font-family:'National Park',system-ui,sans-serif;color:#93a9aa}
+  .hm-cb-maps td b{color:#eaf4f4;font-weight:600}
+  .hm-cb-roster{width:100%;border-collapse:collapse;font-size:14px;align-self:start}
+  .hm-cb-roster caption{text-align:left;font:600 12px/1.3 'National Park',system-ui,sans-serif;color:#93a9aa;padding-bottom:8px}
+  .hm-cb-roster th,.hm-cb-roster td{padding:9px 0;border-top:1px solid #2a3a3e;text-align:right;font-family:'National Park',system-ui,sans-serif;font-weight:400;color:#93a9aa}
+  .hm-cb-roster thead th{border-top:0;font-size:11px;padding:0 0 6px}
+  .hm-cb-roster th[scope=row],.hm-cb-roster thead th:first-child{text-align:left;font-family:inherit;color:#eaf4f4;font-size:15px}
+  .hm-cb-roster thead th:first-child{font-size:11px;color:#93a9aa;font-family:'National Park',system-ui,sans-serif}
+  .hm-cb-roster td{padding-left:14px}
+  .hm-cb-roster td:last-child{color:#eaf4f4}
+  .hm-cb-roster .hm-cb-top th[scope=row]{color:#f5d76e}
+  .hm-cb-roster .hm-cb-top td:last-child{color:#f5d76e;font-weight:600}
+  @media (max-width:860px){.hm-cb{grid-template-columns:minmax(0,1fr);padding:20px 18px}.hm-cb-trophy{height:44%;top:auto;bottom:3%;transform:translateX(-50%)}.hm-cb-logo{width:72px;height:72px}}
+  .ch-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+  .ch-grid .field input, .ch-grid .field select { width: 100%; box-sizing: border-box; min-width: 0; }
+  .ch-rows { width: 100%; border-collapse: collapse; }
+  .ch-rows th { text-align: left; font: 600 11px/1.3 'National Park', system-ui, sans-serif; letter-spacing: .08em; color: var(--dim); padding: 0 8px 6px 0; text-transform: uppercase; }
+  .ch-rows td { padding: 4px 8px 4px 0; }
+  .ch-rows input { min-height: 40px; padding: 0 10px; border-radius: 8px; border: 1px solid #3a4f53; background: #0d1416; width: 100%; box-sizing: border-box; color: inherit; font: inherit; }
+  .ch-rows td.x { width: 44px; padding-right: 0; }
+  .ch-rows td.x button { width: 40px; min-height: 40px; padding: 0; }
+  .ch-sub { margin: 4px 0 0; font: 700 20px/1.2 'Cabin Sketch', cursive; color: var(--accent); }
+  .ch-color { display: flex; gap: 8px; align-items: center; } .ch-color input[type=color] { width: 52px; min-width: 52px; height: 44px; padding: 2px; border-radius: 8px; border: 1px solid #3a4f53; background: #0d1416; }
+  .ch-preview { margin-top: 4px; }
+  .ch-preview th, .ch-preview td { text-transform: none; letter-spacing: normal; background: none; position: static; font-size: inherit; line-height: normal; }
+  .ch-preview .hm-cb-roster thead th { font-size: 11px; }
   .cx-body { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.55; color: var(--soft); }
   .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   @media (max-width: 520px) { .field input, .field select { min-width: 0; width: 100%; } .field { flex: 1 1 100%; } }
@@ -251,7 +285,7 @@
 <main>
   <div>
     <h1>Backend</h1>
-    <p class="sub">For PCMT Team staff only. Pages waiting for launch, player prices, every card and who owns it, card packs and series (prices, every card in each, launching series), the 4Ks and 5Ks for each series, subs, patch notes, and the comments and complaints sent from the Home page.</p>
+    <p class="sub">For PCMT Team staff only. Pages waiting for launch, player prices, every card and who owns it, card packs and series (prices, every card in each, launching series), the 4Ks and 5Ks for each series, subs, patch notes, the champions panel maker, and the comments and complaints sent from the Home page.</p>
   </div>
 
   <section class="panel" id="st-loading" role="status"><p class="msg">Locked. Enter the page password to continue.</p></section>
@@ -272,6 +306,7 @@
       <button type="button" role="tab" id="tab-multi" aria-controls="pane-multi" aria-selected="false" tabindex="-1">4Ks &amp; 5Ks</button>
       <button type="button" role="tab" id="tab-subs" aria-controls="pane-subs" aria-selected="false" tabindex="-1">Subs <span class="count" id="sb-badge"></span></button>
       <button type="button" role="tab" id="tab-notes" aria-controls="pane-notes" aria-selected="false" tabindex="-1">Patch notes</button>
+      <button type="button" role="tab" id="tab-champs" aria-controls="pane-champs" aria-selected="false" tabindex="-1">Champions</button>
       <button type="button" role="tab" id="tab-complaints" aria-controls="pane-complaints" aria-selected="false" tabindex="-1">Complaints <span class="count" id="cx-badge"></span></button>
     </div>
 
@@ -429,6 +464,33 @@
       <ol class="cx-list" id="pn-list"></ol>
     </section>
 
+    <!-- ===== Champions panel (posted as a patch note) ===== -->
+    <section class="pane" role="tabpanel" id="pane-champs" aria-labelledby="tab-champs" hidden>
+      <p class="note">Make a champions panel and post it as a patch note: when it goes live it's the patch note on Home (the newest live patch note shows there), with the team's logo, name, maps and stats like below, and your note under it. Pick a team to fill in its name, logo and colour; Fill players puts in that team's PCMT.gg roster. It shows in the Patch notes list, where it can be taken down or deleted.</p>
+      <form class="panel" id="ch-form" autocomplete="off" novalidate>
+        <div class="ch-grid">
+          <label class="field"><span class="kicker">Patch note title</span><input id="ch-title" type="text" maxlength="120" value="NA Season 3 Champions"></label>
+          <label class="field"><span class="kicker">Team</span><select id="ch-team"></select></label>
+          <label class="field"><span class="kicker">Team name</span><input id="ch-name" type="text" maxlength="80"></label>
+          <label class="field"><span class="kicker">Line above the name</span><input id="ch-kicker" type="text" maxlength="80" value="NA Season 3 champions"></label>
+          <div class="field"><label class="kicker" for="ch-color">Team colour</label><span class="ch-color"><input id="ch-color" type="color" value="#ff7f66"><input id="ch-color-t" type="text" maxlength="7" aria-label="Team colour (hex)" style="width: 110px; min-width: 0"></span></div>
+          <label class="field"><span class="kicker">Date</span><input id="ch-date" type="text" readonly aria-readonly="true"></label>
+        </div>
+        <h3 class="ch-sub">Maps</h3>
+        <label class="field" style="max-width: 320px"><span class="kicker">Maps heading (for screen readers)</span><input id="ch-maps-label" type="text" maxlength="60" value="Grand Final maps"></label>
+        <table class="ch-rows"><thead><tr><th scope="col">Map</th><th scope="col">Their rounds</th><th scope="col">Other team's rounds</th><th><span class="sr-only">Remove</span></th></tr></thead><tbody id="ch-maps"></tbody></table>
+        <div class="bar"><button class="btn ghost" type="button" id="ch-add-map">Add a map</button></div>
+        <h3 class="ch-sub">Stats</h3>
+        <label class="field" style="max-width: 320px"><span class="kicker">Stats heading</span><input id="ch-stats-label" type="text" maxlength="60" value="Grand Final stats"></label>
+        <table class="ch-rows"><thead><tr><th scope="col">Player</th><th scope="col">K/D/A</th><th scope="col">ACS</th><th scope="col">Rating</th><th><span class="sr-only">Remove</span></th></tr></thead><tbody id="ch-stats"></tbody></table>
+        <div class="bar"><button class="btn ghost" type="button" id="ch-add-stat">Add a player</button><button class="btn ghost" type="button" id="ch-fill">Fill players from PCMT.gg</button></div>
+        <label class="field"><span class="kicker">Note under the panel (optional)</span><textarea id="ch-body" maxlength="8000" style="min-height: 110px; padding: 12px; border-radius: 8px; border: 1px solid #3a4f53; background: #0d1416; color: inherit; font: inherit; line-height: 1.55; resize: vertical; width: 100%; box-sizing: border-box"></textarea></label>
+        <h3 class="ch-sub">Preview</h3>
+        <div class="ch-preview" id="ch-preview" aria-live="off"></div>
+        <div class="bar"><button class="btn" id="ch-go" type="submit">Go live</button><span class="msg" id="ch-msg" role="status" aria-live="polite"></span></div>
+      </form>
+    </section>
+
     <!-- ===== Complaints ===== -->
     <section class="pane" role="tabpanel" id="pane-complaints" aria-labelledby="tab-complaints" hidden>
       <p class="note">Everything sent from the "comments and complaints always welcome :)" box on the Home page, newest first. Players can write logged in or logged out (up to 50 words). Press Settled once it's dealt with: that deletes it for good (you'll be asked to press again to make sure).</p>
@@ -500,7 +562,7 @@
   })();
 
   // ---------- tabs ----------
-  var TABS = ['pages', 'prices', 'cards', 'packs', 'multi', 'subs', 'notes', 'complaints'];
+  var TABS = ['pages', 'prices', 'cards', 'packs', 'multi', 'subs', 'notes', 'champs', 'complaints'];
   function openTab(name, focus) {
     TABS.forEach(function (t) {
       var on = t === name, tab = $('tab-' + t);
@@ -1161,7 +1223,7 @@
   function pnToday() { return new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'America/New_York' }); }
   function pnDay(d) { return d ? new Date(d + 'T12:00:00Z').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' }) : ''; }
   function loadNotes() {
-    return L.apiAll('/rest/v1/patch_notes?select=id,title,body,note_date,live,live_at,created_at&order=live.desc,live_at.desc.nullslast,id.desc')
+    return L.apiAll('/rest/v1/patch_notes?select=id,title,body,note_date,live,live_at,created_at,champ&order=live.desc,live_at.desc.nullslast,id.desc')
       .then(function (r) { PN = r || []; pnErr = ''; })
       .catch(function (e) { PN = []; pnErr = 'Couldn\'t load patch notes (' + e.message + '). Has setup/patch-notes-setup.sql been run?'; });
   }
@@ -1170,8 +1232,8 @@
     var newest = PN.filter(function (n) { return n.live; })[0];
     $('pn-list').innerHTML = pnErr ? '<li class="msg err">' + esc(pnErr) + '</li>' : !PN.length ? '<li class="msg">No patch notes yet.</li>' : PN.map(function (n) {
       var onHome = newest && newest.id === n.id;
-      return '<li class="cx-item"><div class="cx-head"><span><b>' + esc(n.title) + '</b>' + (onHome ? ' <span class="tag pn-live">ON HOME</span>' : n.live ? ' <span class="tag">LIVE</span>' : ' <span class="tag">TAKEN DOWN</span>') + '</span><span>' + esc(pnDay(n.note_date)) + '</span></div>' +
-        '<p class="cx-body">' + esc(n.body) + '</p>' +
+      return '<li class="cx-item"><div class="cx-head"><span><b>' + esc(n.title) + '</b>' + (n.champ ? ' <span class="tag">CHAMPIONS · ' + esc(n.champ.name || '') + '</span>' : '') + (onHome ? ' <span class="tag pn-live">ON HOME</span>' : n.live ? ' <span class="tag">LIVE</span>' : ' <span class="tag">TAKEN DOWN</span>') + '</span><span>' + esc(pnDay(n.note_date)) + '</span></div>' +
+        (n.body ? '<p class="cx-body">' + esc(n.body) + '</p>' : '') +
         '<div class="cx-foot">' + (n.live ? '<button type="button" class="btn ghost" data-pn-down="' + n.id + '">Take down</button>' : '<button type="button" class="btn ghost" data-pn-up="' + n.id + '">Go live again</button>') +
         '<button type="button" class="btn ghost" data-pn-del="' + n.id + '">Delete</button><span class="msg" role="status" aria-live="polite"></span></div></li>';
     }).join('');
@@ -1213,6 +1275,104 @@
       PN.sort(function (a, c) { return (c.live ? 1 : 0) - (a.live ? 1 : 0) || String(c.live_at || '').localeCompare(String(a.live_at || '')) || c.id - a.id; });
       drawNotes();
     }).catch(function (err) { b.disabled = false; say.className = 'msg err'; say.textContent = 'Couldn\'t save: ' + err.message; });
+  });
+
+  // ---------- champions panel, posted as a patch note (patch_notes.champ; Home draws it) ----------
+  // Teams to pick from (logo, name, colour), as on the Home board; Other lets you type a new team in.
+  var CH_TEAMS = [{"code": "T1", "name": "Team 1", "color": "#FF0000", "logo": "assets/ce2bf22e2df8751703c00f132b854650.png", "region": "NA"}, {"code": "TL", "name": "Team Dyslexia", "color": "#1c9ad8", "logo": "assets/18b0eb4cbe217fc77dda8f01e3ff4c16.png", "region": "NA"}, {"code": "IHOP", "name": "I Hate Odin Party", "color": "#3d95dc", "logo": "assets/209d81a7df0d79fc71d99063600358ef.png", "region": "NA"}, {"code": "FSG", "name": "Furry Squirrels Gaming", "color": "#e8603c", "logo": "assets/ad1fa170a11534a10c9a953f0a092175.png", "region": "NA"}, {"code": "FNC", "name": "cow paulo FaN Club", "color": "#ff8a1f", "logo": "assets/8a102a19e71060bb2dacb6d6b5263457.png", "region": "NA"}, {"code": "SSG", "name": "Squirtle Squad Gaming", "color": "#f2b01e", "logo": "assets/1e20352a30572a577222d14b6a2389ce.png", "region": "NA"}, {"code": "RRQ", "name": "Rage Re-Queuers", "color": "#f5d90a", "logo": "assets/2c8df8598d3c163942e4d347ee4d7e8e.png", "region": "NA"}, {"code": "C9", "name": "Clown9", "color": "#4dc3ef", "logo": "assets/46ec4a1f510710db9670e64c202b0cee.png", "region": "NA"}, {"code": "SRB", "name": "Sunshine and Rainbows", "color": "#58c47a", "logo": "assets/24ce287349ef3d8ae3c603e22142a375.png", "region": "NA"}, {"code": "TS", "name": "Team Slugshow", "color": "#9b6be8", "logo": "assets/beb0681ed7f4d195bc88376b306a1d3b.png", "region": "NA"}, {"code": "EPY", "name": "Team Entropy", "color": "#e6e6e6", "logo": "assets/2b237feaf70d67ef58a84efbab9a3e51.png", "region": "NA"}, {"code": "DFM", "name": "Dementia Found Me", "color": "#5a78ff", "logo": "assets/a59455af931db22aaf5f61e2da9f3686.png", "region": "NA"}, {"code": "BAKA", "name": "Beautiful and Kinda Adorable", "color": "#b98ad9", "logo": "assets/09e5595acee6eb70652c84027ef2e6d6.png", "region": "NA"}, {"code": "NAVI", "name": "No Actual Valorant Intelligence", "color": "#FF6EB4", "logo": "assets/f6b846609af48437299bc42d13d5dad0.png", "region": "NA"}, {"code": "100T", "name": "100 Tony's", "color": "#45dfe8", "logo": "assets/2afecaefb84157c171a79e0bae8932b5.png", "region": "NA"}, {"code": "SPG", "name": "Spank Ptheory Gaming", "color": "#ff7f66", "logo": "assets/fb1551434b59a200d90d2e9ed6a51e8b.png", "region": "NA"}, {"code": "FaZe", "name": "Fabulous and Zesty", "color": "#f28bd8", "logo": "assets/9da6e0491a922186cad6bc5daf699626.png", "region": "EMEA"}, {"code": "ATLC", "name": "ATLNTIC Esports", "color": "#e04848", "logo": "assets/086abe908c829ddcb51bee4b1db16b83.png", "region": "EMEA"}, {"code": "SEAL", "name": "Stay Seally", "color": "#8fd3e8", "logo": "assets/7f2055fcc7e78ae7d1510fe56608fd83.png", "region": "EMEA"}, {"code": "HOT", "name": "Honestly Outrageous Temperatures", "color": "#4f8ef7", "logo": "assets/e078dfeeea5c9d916197f71d8b7ea80a.jpg", "region": "EMEA"}, {"code": "NIP", "name": "Name in Progress", "color": "#c2478f", "logo": "assets/f953d56be563808b39dbb961891fae8e.png", "region": "EMEA"}, {"code": "LARP", "name": "Larpiat\u00e1n", "color": "#6f8fe0", "logo": "assets/f06cf372e21c32dbf3754b8bd506e0b5.jpg", "region": "EMEA"}, {"code": "XTC", "name": "Xually Terribly Cursed", "color": "#f0913a", "logo": "assets/570eadcaf88a4d369017946bff2b0356.png", "region": "EMEA"}, {"code": "SOG", "name": "The SOG", "color": "#b8814a", "logo": "assets/85e0857300495ee3133b6acf79e286c0.png", "region": "EMEA"}, {"code": "NOOT", "name": "Penguin Patrol", "color": "#3fb6a8", "logo": "assets/195da1efa2549707b6737764479c066c.png", "region": "EMEA"}, {"code": "NATS", "name": "Never Available To Scrim", "color": "#ef8f8f", "logo": "assets/8ff9c895c338d07216b1110d3b73fd8e.png", "region": "EMEA"}];
+  function chRow(kind, v) {
+    v = v || {};
+    var cells = kind === 'map' ? [['map', 'Map', 'Abyss'], ['w', 'Their rounds', '13'], ['l', 'Other team\'s rounds', '7']]
+                               : [['player', 'Player', 'Name'], ['kda', 'K/D/A', '0/0/0'], ['acs', 'ACS', '0'], ['rating', 'Rating', '1.00']];
+    var tr = document.createElement('tr');
+    tr.innerHTML = cells.map(function (c) { return '<td><input type="text" data-k="' + c[0] + '" aria-label="' + c[1] + '" placeholder="' + c[2] + '" value="' + esc(v[c[0]] == null ? '' : v[c[0]]) + '" maxlength="40"></td>'; }).join('') +
+      '<td class="x"><button type="button" class="btn ghost" data-ch-x aria-label="Remove this row">×</button></td>';
+    return tr;
+  }
+  function chRead(id) {
+    return Array.prototype.map.call($(id).children, function (tr) {
+      var o = {}; tr.querySelectorAll('input[data-k]').forEach(function (i) { o[i.getAttribute('data-k')] = i.value.trim(); }); return o;
+    }).filter(function (o) { return Object.keys(o).some(function (k) { return o[k]; }); });
+  }
+  function chTeam() { var c = $('ch-team').value; return CH_TEAMS.filter(function (t) { return t.code === c; })[0] || null; }
+  function chData() {
+    var t = chTeam();
+    return {
+      kicker: $('ch-kicker').value.trim(), name: $('ch-name').value.trim(), team: t ? t.code : '', logo: t ? t.logo : '',
+      color: /^#[0-9a-f]{6}$/i.test($('ch-color').value) ? $('ch-color').value : '#ff7f66',
+      mapsLabel: $('ch-maps-label').value.trim() || 'Grand Final maps', maps: chRead('ch-maps'),
+      statsLabel: $('ch-stats-label').value.trim() || 'Grand Final stats', stats: chRead('ch-stats')
+    };
+  }
+  function chPreview() {
+    var d = chData(), best = -Infinity;
+    d.stats.forEach(function (r) { var v = parseFloat(r.rating); if (v > best) best = v; });
+    $('ch-color-t').value = d.color;
+    $('ch-preview').innerHTML = '<div class="hm-cb" style="border-top-color:' + d.color + '"><img class="hm-cb-trophy" src="assets/a8390c53c5aa10a347b6af0841aa6835.png" alt="" aria-hidden="true"><div>' +
+      '<div class="hm-cb-head">' + (d.logo ? '<img class="hm-cb-logo" src="' + esc(d.logo) + '" alt="">' : '') + '<div style="min-width:0"><p class="hm-cb-kick">' + esc(d.kicker) + '</p><p class="hm-cb-name" style="color:' + d.color + '">' + esc(d.name || 'Team name') + '</p></div></div>' +
+      (d.maps.length ? '<table class="hm-cb-maps"><tbody>' + d.maps.map(function (m) { return '<tr><th scope="row">' + esc(m.map) + '</th><td><b>' + esc(m.w) + '</b>–' + esc(m.l) + '</td></tr>'; }).join('') + '</tbody></table>' : '') + '</div>' +
+      (d.stats.length ? '<table class="hm-cb-roster"><caption>' + esc(d.statsLabel) + '</caption><thead><tr><th scope="col">Player</th><th scope="col">K/D/A</th><th scope="col">ACS</th><th scope="col">Rating</th></tr></thead><tbody>' +
+        d.stats.map(function (r) { return '<tr class="' + (parseFloat(r.rating) === best ? 'hm-cb-top' : '') + '"><th scope="row">' + esc(r.player) + '</th><td>' + esc(r.kda) + '</td><td>' + esc(r.acs) + '</td><td>' + esc(r.rating) + '</td></tr>'; }).join('') + '</tbody></table>' : '') +
+      '</div>' + ($('ch-body').value.trim() ? '<p class="cx-body" style="margin-top:12px">' + esc($('ch-body').value.trim()) + '</p>' : '');
+  }
+  function setupChamps() {
+    $('ch-date').value = pnToday();
+    $('ch-team').innerHTML = ['NA', 'EMEA'].map(function (r) {
+      return '<optgroup label="' + r + '">' + CH_TEAMS.filter(function (t) { return t.region === r; }).map(function (t) { return '<option value="' + esc(t.code) + '">' + esc(t.name) + ' (' + esc(t.code) + ')</option>'; }).join('') + '</optgroup>';
+    }).join('') + '<option value="">Other (type the name, no logo)</option>';
+    $('ch-team').value = 'SPG';
+    function pickTeam() { var t = chTeam(); if (t) { $('ch-name').value = t.name; $('ch-color').value = t.color.length === 7 ? t.color.toLowerCase() : '#ff7f66'; } chPreview(); }
+    $('ch-team').addEventListener('change', pickTeam);
+    $('ch-maps').innerHTML = ''; $('ch-stats').innerHTML = '';
+    for (var i = 0; i < 3; i++) $('ch-maps').appendChild(chRow('map'));
+    for (var j = 0; j < 5; j++) $('ch-stats').appendChild(chRow('stat'));
+    pickTeam();
+  }
+  $('ch-add-map').addEventListener('click', function () { $('ch-maps').appendChild(chRow('map')); $('ch-maps').lastChild.querySelector('input').focus(); });
+  $('ch-add-stat').addEventListener('click', function () { $('ch-stats').appendChild(chRow('stat')); $('ch-stats').lastChild.querySelector('input').focus(); });
+  $('ch-color-t').addEventListener('change', function () { if (/^#[0-9a-f]{6}$/i.test(this.value.trim())) $('ch-color').value = this.value.trim().toLowerCase(); chPreview(); });
+  $('ch-form').addEventListener('input', chPreview);
+  $('ch-form').addEventListener('click', function (e) {
+    var x = e.target.closest('button[data-ch-x]'); if (!x) return;
+    var tr = x.closest('tr'), body = tr.parentNode; tr.remove(); chPreview();
+    var f = body.querySelector('input'); if (f) f.focus();
+  });
+  // Fill players: the team's newest PCMT.gg roster (rosters.js, from the hourly sync), best toxic rating first
+  $('ch-fill').addEventListener('click', function () {
+    var t = chTeam(), msg = $('ch-msg');
+    function fill() {
+      var R = window.PCMT_ROSTERS || {}, best = null;
+      Object.keys(R).forEach(function (s) { if (t && R[s][t.code]) { var n = +(/^S(\d+)/.exec(s) || [0, 0])[1]; if (!best || n > best.n) best = { n: n, list: R[s][t.code] }; } });
+      if (!best) { msg.className = 'msg err'; msg.textContent = t ? 'No PCMT.gg roster for ' + t.name + ' yet.' : 'Pick a team first.'; return; }
+      var keep = chRead('ch-stats');
+      $('ch-stats').innerHTML = '';
+      best.list.forEach(function (p) { var k = keep.filter(function (r) { return r.player.toLowerCase() === p.name.toLowerCase(); })[0]; $('ch-stats').appendChild(chRow('stat', k || { player: p.name })); });
+      msg.className = 'msg'; msg.textContent = 'Filled ' + best.list.length + ' players. Add their K/D/A, ACS and rating.';
+      chPreview();
+    }
+    if (window.PCMT_ROSTERS) return fill();
+    var sc = document.createElement('script'); sc.src = 'rosters.js'; sc.onload = fill; sc.onerror = function () { msg.className = 'msg err'; msg.textContent = 'Couldn\'t load the rosters.'; };
+    document.head.appendChild(sc);
+  });
+  $('ch-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var d = chData(), title = $('ch-title').value.trim(), go = $('ch-go'), msg = $('ch-msg');
+    if (!title || !d.name) { msg.className = 'msg err'; msg.textContent = 'Add a patch note title and the team name first.'; (title ? $('ch-name') : $('ch-title')).focus(); return; }
+    if (!go.classList.contains('warn')) {
+      go.classList.add('warn'); go.textContent = 'Press again to go live'; msg.className = 'msg'; msg.textContent = 'It becomes the patch note on Home for everyone straight away.';
+      clearTimeout(go._t); go._t = setTimeout(function () { go.classList.remove('warn'); go.textContent = 'Go live'; msg.textContent = ''; }, 6000);
+      return;
+    }
+    clearTimeout(go._t); go.disabled = true; msg.className = 'msg'; msg.textContent = 'Going live…';
+    var now = new Date();
+    L.api('/rest/v1/patch_notes', { method: 'POST', headers: { Prefer: 'return=representation' }, body: {
+      title: title, body: $('ch-body').value.replace(/\s+$/, ''), champ: d, note_date: now.toLocaleDateString('en-CA', { timeZone: 'America/New_York' }),
+      live: true, live_at: now.toISOString(), created_by: L.myId } }).then(function (rows) {
+      if (!rows || !rows.length) throw new Error('not saved (is this account on the staff list?)');
+      PN.unshift(rows[0]); drawNotes();
+      msg.className = 'msg ok'; msg.textContent = '"' + rows[0].title + '" is live on Home. It\'s in the Patch notes list.';
+    }).catch(function (err) { msg.className = 'msg err'; msg.textContent = 'Couldn\'t go live: ' + err.message; })
+      .then(function () { go.disabled = false; go.classList.remove('warn'); go.textContent = 'Go live'; });
   });
 
   // ---------- sign in: page password, then Discord, then the staff list ----------
@@ -1283,7 +1443,7 @@
         show('st-staff');
         var h = (location.hash || '').slice(1);
         openTab(TABS.indexOf(h) >= 0 ? h : 'pages');
-        drawPages(); drawPrices(); drawCards(); drawRares(); drawPacks(); setupMulti(); drawSubs(); drawNotes(); drawComplaints();
+        drawPages(); drawPrices(); drawCards(); drawRares(); drawPacks(); setupMulti(); drawSubs(); drawNotes(); setupChamps(); drawComplaints();
       });
     }).catch(function (e) { show('st-staff'); $('p-msg').textContent = 'Something went wrong loading the backend: ' + e.message; $('p-msg').className = 'msg err'; });
   }

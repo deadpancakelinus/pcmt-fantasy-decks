@@ -5,13 +5,17 @@
 create table if not exists public.patch_notes (
   id bigserial primary key,
   title text not null check (length(title) between 1 and 120),
-  body text not null check (length(body) between 1 and 8000),                    -- a blank line starts a new paragraph
+  body text not null,                                                             -- a blank line starts a new paragraph
   note_date date not null default ((now() at time zone 'America/New_York')::date),
   live boolean not null default false,
   live_at timestamptz,
   created_at timestamptz not null default now(),
   created_by uuid default auth.uid()
 );
+-- champ: a champions panel made on the Champions tab (team logo, name, colour, maps, stats); with one the note text is optional
+alter table public.patch_notes add column if not exists champ jsonb;
+alter table public.patch_notes drop constraint if exists patch_notes_body_check;
+alter table public.patch_notes add constraint patch_notes_body_check check (length(body) <= 8000 and (length(body) >= 1 or champ is not null));
 alter table public.patch_notes enable row level security;
 drop policy if exists "anyone reads live patch notes" on public.patch_notes;
 create policy "anyone reads live patch notes" on public.patch_notes for select using (live);
