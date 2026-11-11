@@ -188,7 +188,7 @@
     });
     list.sort(function (a, b) {
       var x = val(a, sort.k), y = val(b, sort.k), c;
-      if (typeof x === 'string' || typeof y === 'string') c = String(x || '').localeCompare(String(y || ''), undefined, { sensitivity: 'base' });
+      if (typeof x === 'string' || typeof y === 'string') c = String(x || '').localeCompare(String(y || ''), undefined, { sensitivity: 'base', numeric: true });
       else c = x === y ? 0 : (x == null ? -Infinity : +x) - (y == null ? -Infinity : +y);
       if (sort.k === 'new_rank' && (x === Infinity) !== (y === Infinity)) return x === Infinity ? 1 : -1;
       return (sort.dir === 'asc' ? c : -c) || String(a.display).localeCompare(String(b.display), undefined, { sensitivity: 'base' });
