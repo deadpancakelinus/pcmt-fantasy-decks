@@ -1,5 +1,5 @@
 // Writes series-stats.js: every finished series of the Pick'ems events (pickems.js), with each team's players and their
-// K/D/A in that series, for the Pick'ems team windows. Read from PCMT.gg's API (/api/matches/<event>.json).
+// K/D/A and ACS in that series, for the Pick'ems team windows. Read from PCMT.gg's API (/api/matches/<event>.json).
 //
 //   node tools/pcmt-series.js series-stats.js
 //   node tools/pcmt-series.js series-stats.js --from <dir>    (read <dir>/<event>.json instead of PCMT.gg, for tests)
@@ -28,7 +28,7 @@ for (const ev of events) {
     const teams = {};
     for (const t of M.combinedStats) {
       if (!t.team || !Array.isArray(t.players) || !t.players.length) continue;
-      teams[t.team] = t.players.map(p => ({ name: String(p.Player), k: +p.K || 0, d: +p.D || 0, a: +p.A || 0 }));
+      teams[t.team] = t.players.map(p => ({ name: String(p.Player), k: +p.K || 0, d: +p.D || 0, a: +p.A || 0, acs: Math.round(+p.ACS || 0) }));
     }
     if (Object.keys(teams).length < 2) continue;
     out[A.pageUrl(ev, M.id)] = { a: M.team1, b: M.team2, score: [M.score1, M.score2], teams };
@@ -36,7 +36,7 @@ for (const ev of events) {
 }
 const keys = Object.keys(out).sort(), sorted = {};
 keys.forEach(k => { sorted[k] = out[k]; });
-const txt = '// Finished Pick\'ems series with each team\'s K/D/A per player, from PCMT.gg (Pick\'ems team windows).\n' +
+const txt = '// Finished Pick\'ems series with each team\'s K/D/A and ACS per player, from PCMT.gg (Pick\'ems team windows).\n' +
   '// Written by tools/pcmt-series.js in the hourly PCMT.gg sync. Do not edit by hand.\n' +
   'var PCMT_SERIES_STATS = ' + JSON.stringify(sorted) + ';\n';
 let old = '';

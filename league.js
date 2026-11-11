@@ -1213,11 +1213,10 @@
 })();
 
 /* Pick'ems team rosters (Nov 10 2026): hovering (or focusing) a team in the bracket or the groups ([data-pcmt-team])
-   opens a small window with that team's players and their KDA. In a bracket series that's been played
+   opens a small window with that team's players and their ACS. In a bracket series that's been played
    ([data-pcmt-series] = its pcmt.gg url, looked up in series-stats.js from the hourly sync, or else PCMT_RESULTS in
-   data.js) it's each player's KDA in that series,
-   (kills + assists) / deaths, with their K/D/A; anywhere else, or before the series is played, it's their season KDA
-   (PCMT.gg's KDA column). The season numbers come from rosters.js,
+   data.js) it's each player's ACS in that series;
+   anywhere else, or before the series is played, it's their season ACS (PCMT.gg's stats page). The season numbers come from rosters.js,
    written from pcmt.gg/stats by tools/pcmt-rosters.js in the same hourly PCMT.gg sync that updates the Pick'ems
    bracket (pickems.js), for every season. The bracket says which season it is ([data-pcmt-season], e.g. "S3 NA"),
    so a new season with new teams works on its own. Role icons come from trumps-cards.js where a player has a card.
@@ -1255,7 +1254,7 @@
       '#pcmt-roster li span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}' +
       '#pcmt-roster li em{font-style:normal;font-weight:700;color:#a5dcdd;font-variant-numeric:tabular-nums}' +
       '#pcmt-roster .rk{display:flex;justify-content:space-between;font-size:10px;letter-spacing:.12em;color:#93a9aa;margin:0 0 4px}' +
-      '#pcmt-roster .rf{margin:8px 0 0;font-size:12px;color:#93a9aa}#pcmt-roster li small.kda{font-size:11px;color:#93a9aa;margin-left:4px}' +
+      '#pcmt-roster .rf{margin:8px 0 0;font-size:12px;color:#93a9aa}' +
       'html.pcmt-light #pcmt-roster{background:#fff;border-color:#b9caca;color:#142322;box-shadow:0 14px 34px rgba(0,0,0,.18)}' +
       'html.pcmt-light #pcmt-roster li{border-color:#e3ecec}html.pcmt-light #pcmt-roster li em{color:#17767a}' +
       '@media (prefers-reduced-motion:reduce){#pcmt-roster{transition:none}}';
@@ -1273,28 +1272,27 @@
     });
     return best ? best.list : [];
   }
-  // This team's players in one played series: [{ name, kda, kills, deaths, assists }], best KDA first. Stats are keyed by
+  // This team's players in one played series: [{ name, acs }], best ACS first. data.js stats are keyed by
   // players.js id; a sub ("~name") goes to whichever team is short of five.
   function seriesRoster(code, url) {
     var ss = (window.PCMT_SERIES_STATS || {})[url];
     if (ss && ss.teams && ss.teams[code]) {
       return { opp: ss.a === code ? ss.b : ss.a, list: ss.teams[code].map(function (p) {
-        return { name: p.name, kills: p.k, deaths: p.d, assists: p.a, kda: (p.k + p.a) / Math.max(1, p.d) };
-      }).sort(function (a, b) { return b.kda - a.kda || a.name.localeCompare(b.name); }) };
+        return { name: p.name, acs: +p.acs || 0 };
+      }).sort(function (a, b) { return b.acs - a.acs || a.name.localeCompare(b.name); }) };
     }
     var res = (window.PCMT_RESULTS || []).filter(function (r) { return r.url && r.url === url; })[0];
     if (!res || !res.stats || (res.a !== code && res.b !== code)) return null;
     var P = {}, mine = [], subs = [], other = 0;
     (window.PCMT_SITE_PLAYERS || []).forEach(function (p) { P[p.id] = p; });
     Object.keys(res.stats).forEach(function (id) {
-      var x = res.stats[id], p = P[id], row = { name: p ? p.name : id.replace(/^~/, ''), kills: +x[0] || 0, deaths: +x[1] || 0, assists: +x[2] || 0 };
-      row.kda = (row.kills + row.assists) / Math.max(1, row.deaths);
+      var x = res.stats[id], p = P[id], row = { name: p ? p.name : id.replace(/^~/, ''), acs: +x[4] || 0 };
       if (id.charAt(0) === '~' || !p) subs.push(row); else if (p.team === code) mine.push(row); else other++;
     });
     if (mine.length < 5 && other >= 5) mine = mine.concat(subs); else if (mine.length < 5 && other < 5 && subs.length) mine = mine.concat(subs.slice(0, 5 - mine.length));
     if (!mine.length) return null;
     var opp = res.a === code ? res.b : res.a;
-    return { opp: opp, list: mine.sort(function (a, b) { return b.kda - a.kda || a.name.localeCompare(b.name); }) };
+    return { opp: opp, list: mine.sort(function (a, b) { return b.acs - a.acs || a.name.localeCompare(b.name); }) };
   }
   function roleOf(name) {
     var C = window.PCMT_TRUMPS_CARDS || {}, k = String(name).toLowerCase(), r = '';
@@ -1322,10 +1320,9 @@
       var name = (el.getAttribute('data-pcmt-title') || code).replace(/ \([^)]*\)$/, '');
       box.innerHTML = '<div class="rh">' + (img ? '<img src="' + esc(img.getAttribute('src')) + '" alt="">' : '') +
         '<div><b>' + esc(name) + '</b><small>' + esc(code) + (game ? ' · vs ' + esc(game.opp) : season ? ' · ' + esc(season) : '') + '</small></div></div>' +
-        (list.length ? '<p class="rk"><span>PLAYER</span><span>' + (game ? 'KDA THIS SERIES' : url ? 'SEASON KDA (NOT PLAYED YET)' : 'SEASON KDA') + '</span></p><ol>' + list.map(function (p) {
+        (list.length ? '<p class="rk"><span>PLAYER</span><span>ACS</span></p><ol>' + list.map(function (p) {
           var role = roleOf(p.name);
-          return '<li>' + (ROLE_ICONS[role] ? '<img src="assets/' + ROLE_ICONS[role] + '" alt="">' : '<i></i>') + '<span>' + esc(p.name) +
-            (game ? ' <small class="kda">' + p.kills + '/' + p.deaths + '/' + p.assists + '</small>' : '') + '</span><em>' + Number(p.kda).toFixed(2) + '</em></li>';
+          return '<li>' + (ROLE_ICONS[role] ? '<img src="assets/' + ROLE_ICONS[role] + '" alt="">' : '<i></i>') + '<span>' + esc(p.name) + '</span><em>' + Math.round(Number(p.acs) || 0) + '</em></li>';
         }).join('') + '</ol>' : '<p class="rf">No players for this team on PCMT.gg yet.</p>');
       el.setAttribute('aria-describedby', 'pcmt-roster');
       place(el);
