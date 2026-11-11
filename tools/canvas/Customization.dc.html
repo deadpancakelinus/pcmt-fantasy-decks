@@ -1424,7 +1424,8 @@ class Component extends DCLogic {
     var champLocked = !(cMode === 'Unlocked' || (cMode === 'Live' && (PCMT_CHAMPION_WIN || byCode('TROPHY'))));
     if (champLocked && eq === 'TROPHY') { try { window.localStorage.setItem('pcmt-deck', 'BLUE'); } catch (e) {} eq = 'BLUE'; }
     if (goldLocked && eq === 'GOLD') { try { window.localStorage.setItem('pcmt-deck', 'BLUE'); } catch (e) {} eq = 'BLUE'; }
-    var prideLocked = !(codeSet.PRIDE || codeSet.ALL);
+    // The Pride Collection is free for everyone (Nov 11 2026); the PRIDE code still works but isn't needed.
+    var prideLocked = false;
     if (prideLocked && PCMT_PRIDE_DECKS.indexOf(eq) >= 0) { try { window.localStorage.setItem('pcmt-deck', 'BLUE'); } catch (e) {} eq = 'BLUE'; }
     function teamDeckView(t, i) {
       var on = eq === t.code;
