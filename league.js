@@ -1213,7 +1213,7 @@
 })();
 
 /* Pick'ems team rosters (Nov 10 2026): hovering (or focusing) a team in the bracket or the groups ([data-pcmt-team])
-   opens a small window with that team's players and their current toxic rating. The numbers come from rosters.js,
+   opens a small window with that team's players and their current KDA (PCMT.gg's KDA column). The numbers come from rosters.js,
    written from pcmt.gg/stats by tools/pcmt-rosters.js in the same hourly PCMT.gg sync that updates the Pick'ems
    bracket (pickems.js), for every season. The bracket says which season it is ([data-pcmt-season], e.g. "S3 NA"),
    so a new season with new teams works on its own. Role icons come from trumps-cards.js where a player has a card.
@@ -1293,9 +1293,9 @@
       var name = (el.getAttribute('data-pcmt-title') || code).replace(/ \([^)]*\)$/, '');
       box.innerHTML = '<div class="rh">' + (img ? '<img src="' + esc(img.getAttribute('src')) + '" alt="">' : '') +
         '<div><b>' + esc(name) + '</b><small>' + esc(code) + (season ? ' · ' + esc(season) : '') + '</small></div></div>' +
-        (list.length ? '<p class="rk"><span>PLAYER</span><span>TOXIC</span></p><ol>' + list.map(function (p) {
+        (list.length ? '<p class="rk"><span>PLAYER</span><span>KDA</span></p><ol>' + list.map(function (p) {
           var role = roleOf(p.name);
-          return '<li>' + (ROLE_ICONS[role] ? '<img src="assets/' + ROLE_ICONS[role] + '" alt="">' : '<i></i>') + '<span>' + esc(p.name) + '</span><em>' + Number(p.toxic).toFixed(2) + '</em></li>';
+          return '<li>' + (ROLE_ICONS[role] ? '<img src="assets/' + ROLE_ICONS[role] + '" alt="">' : '<i></i>') + '<span>' + esc(p.name) + '</span><em>' + Number(p.kda).toFixed(2) + '</em></li>';
         }).join('') + '</ol>' : '<p class="rf">No players for this team on PCMT.gg yet.</p>');
       el.setAttribute('aria-describedby', 'pcmt-roster');
       place(el);
