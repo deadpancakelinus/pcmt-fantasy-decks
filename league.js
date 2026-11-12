@@ -231,6 +231,18 @@
     }
     return cost <= BUDGET + 1e-9;
   }
+  // Why a deck can't be entered right now ('' = it can), in words for the player.
+  function deckProblem(slots) {
+    var ids = deckIds(slots), cost = 0, missing = false;
+    if (ids.length !== ROLES.length * 2 + 3) return 'Your deck needs all ' + (ROLES.length * 2 + 3) + ' players before it can be saved.';
+    ids.forEach(function (id) { if (!BY_ID[id]) missing = true; else cost += priceAt(id, Date.now()); });
+    if (missing) return 'A player in your deck isn\'t in the store any more. Swap them out, then lock in again.';
+    if (cost > BUDGET + 1e-9) {
+      var over = Math.round((cost - BUDGET) * 10) / 10;
+      return 'Your deck is ' + over + ' over the ' + BUDGET + ' budget at today\'s prices (prices went up since you locked it in), so changes can\'t be saved. Your locked-in deck still scores. Swap players until it fits the budget to save changes.';
+    }
+    return validDeck(slots) ? '' : 'Your deck breaks a rule (roles, or more than ' + TEAM_LIMIT + ' players from one team), so it can\'t be saved.';
+  }
   function transfersBetween(prevSlots, slots) {
     if (!prevSlots) return 0;
     var prev = {};
@@ -443,6 +455,8 @@
     },
     statusNote: function (slots, text, locked) {
       if (!me || locked) return text;
+      // A full deck that can't be entered (usually over budget after a price rise): say so instead of "locked in".
+      if (deckIds(slots).length === ROLES.length * 2 + 3) { var why = deckProblem(slots); if (why) return why; }
       var base = L.lastLockedDeck();
       if (!base) return text;
       return text;   // transfers are unlimited, so there's no count to show
@@ -479,7 +493,8 @@
     if (submitting) { sendAgain = true; return; }
     var json = JSON.stringify(d);
     pendingDeck = null;
-    if (json === lastSubmitted || !validDeck(d.slots)) return;
+    if (json === lastSubmitted) return;
+    if (!validDeck(d.slots)) { if (!leaving) toast(deckProblem(d.slots) || 'Your deck couldn\'t be saved. Check it follows every rule.'); return; }   // never fail silently
     var prev = lastSubmitted ? JSON.parse(lastSubmitted) : null;
     var nameOnly = prev && JSON.stringify(prev.slots) === JSON.stringify(d.slots) && prev.igl === d.igl;
     submitting = true;
