@@ -40,3 +40,30 @@ begin
 end $$;
 revoke all on function public.fb_launch_page(text) from public, anon;
 grant execute on function public.fb_launch_page(text) to authenticated;
+
+-- ===================== Every page on the Pages tab (Nov 12 2026) =====================
+-- The pages that were always public are listed too (live), so staff see every page and can take one down.
+-- Home and Log in aren't listed: Home is where hidden pages send people, and Log in has to stay open.
+insert into public.site_pages (id, name, path, sort, launched, launched_at) values
+  ('pickems', 'Pick''ems', 'pickems.html', -6, true, now()),
+  ('leaderboard', 'The Deck Leaderboard', 'leaderboard.html', -5, true, now()),
+  ('deck', 'The Deck', 'index.html', -4, true, now()),
+  ('customization', 'Customization', 'customization.html', -3, true, now()),
+  ('guide', 'Guide', 'guide.html', -2, true, now())
+on conflict (id) do nothing;
+
+-- fb_hide_page(page): staff only. Takes a live page down again: out of the menu and the Home tiles, and closed to
+-- everyone but staff and admins (they're sent to Home). Launch puts it back.
+create or replace function public.fb_hide_page(p_page text) returns text
+language plpgsql volatile security definer set search_path = public as $$
+declare pg public.site_pages;
+begin
+  if not public.is_freshbatch() then raise exception 'PCMT Team staff only.'; end if;
+  select * into pg from public.site_pages where id = p_page for update;
+  if not found then raise exception 'That page isn''t on the list.'; end if;
+  if not pg.launched then return pg.name || ' is already hidden.'; end if;
+  update public.site_pages set launched = false, launched_at = null, launched_by = null where id = p_page;
+  return pg.name || ' is hidden. Only staff can open it now.';
+end $$;
+revoke all on function public.fb_hide_page(text) from public;
+grant execute on function public.fb_hide_page(text) to authenticated;

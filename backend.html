@@ -175,6 +175,8 @@
   .rar-common { color: #93a9aa; } .rar-rare { color: #7cc2ff; } .rar-epic { color: #c99bff; } .rar-legendary { color: #f5d76e; }
   .link { all: unset; cursor: pointer; color: var(--accent); font: 400 13px/1.2 'National Park', system-ui, sans-serif; text-decoration: underline; white-space: nowrap; padding: 10px 0; }
   .link.danger { color: #ff8a80; }
+  .tag.live { color: #8be4b7; border-color: rgba(139,228,183,.45); }
+  .btn.ghost.danger { color: #ff8a80; border-color: rgba(255,138,128,.5); }
   .link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .sticky { position: sticky; bottom: 0; background: var(--bg); padding: 12px 0; border-top: 1px solid var(--line); }
   .stats { display: flex; flex-wrap: wrap; gap: 10px; }
@@ -286,7 +288,7 @@
 <main>
   <div>
     <h1>Backend</h1>
-    <p class="sub">For PCMT Team staff only. Pages waiting for launch, player prices, every card and who owns it, card packs and series (prices, every card in each, launching series), the 4Ks and 5Ks for each series, subs, patch notes, the champions panel maker, and the comments and complaints sent from the Home page.</p>
+    
   </div>
 
   <section class="panel" id="st-loading" role="status"><p class="msg">Locked. Enter the page password to continue.</p></section>
@@ -313,7 +315,6 @@
 
     <!-- ===== Pages waiting for launch ===== -->
     <section class="pane" role="tabpanel" id="pane-pages" aria-labelledby="tab-pages">
-      <p class="note">Pages that aren't public yet. Players can't see them or open them; you can, with Open. Press Launch (then press again to make sure) to make a page live for everyone: it goes into the menu and the Home tiles and leaves this list. Launching the Store also opens every card pack to everyone.</p>
       <ul class="pg-list" id="pg-list"></ul>
       <p class="msg" id="pg-msg" role="status" aria-live="polite"></p>
     </section>
@@ -1162,30 +1163,35 @@
       .then(function (r) { PAGES = r || []; pgErr = ''; })
       .catch(function (e) { PAGES = []; pgErr = 'Couldn\'t load the list (' + e.message + '). Has setup/pages-setup.sql been run?'; });
   }
+  // Every page, live and hidden. Hidden: only staff can open it. Launch / Take down (press twice) switch it.
+  // Launching the Store also opens every card pack to everyone. Home and Log in aren't listed: they always stay open.
   function drawPages() {
     var waiting = PAGES.filter(function (p) { return !p.launched; });
     $('pg-badge').textContent = waiting.length ? '(' + waiting.length + ')' : '';
-    $('pg-list').innerHTML = waiting.map(function (p) {
-      var armed = pgArmed === p.id;
-      return '<li class="pg-item"><h3>' + esc(p.name) + '</h3><span class="spacer"></span>' +
+    $('pg-list').innerHTML = PAGES.map(function (p) {
+      var armed = pgArmed === p.id, live = !!p.launched;
+      return '<li class="pg-item"><h3>' + esc(p.name) + '</h3><span class="tag' + (live ? ' live' : '') + '">' + (live ? 'Live' : 'Hidden') + '</span><span class="spacer"></span>' +
         '<a class="btn ghost" data-pcmt-keep href="' + esc(p.path) + '" target="_blank" rel="noopener">Open</a>' +
-        '<button class="btn' + (armed ? ' armed' : '') + '" type="button" data-launch="' + esc(p.id) + '"' + (pgBusy ? ' disabled' : '') + '>' +
-        (armed ? 'Press again to launch' : 'Launch') + '</button></li>';
+        '<button class="btn' + (live ? ' ghost danger' : '') + (armed ? ' armed' : '') + '" type="button" data-' + (live ? 'hide' : 'launch') + '="' + esc(p.id) + '"' + (pgBusy ? ' disabled' : '') + '>' +
+        (armed ? (live ? 'Press again to take down' : 'Press again to launch') : (live ? 'Take down' : 'Launch')) + '</button></li>';
     }).join('');
     $('pg-msg').className = 'msg' + (pgErr ? ' err' : '');
-    if (pgErr || !waiting.length) $('pg-msg').textContent = pgErr || 'Every page is live.';
+    if (pgErr) $('pg-msg').textContent = pgErr;
   }
   $('pg-list').addEventListener('click', function (e) {
-    var b = e.target.closest('[data-launch]');
+    var b = e.target.closest('[data-launch],[data-hide]');
     if (!b || pgBusy) return;
-    var id = b.getAttribute('data-launch'), page = PAGES.filter(function (p) { return p.id === id; })[0];
-    if (pgArmed !== id) { pgArmed = id; $('pg-msg').className = 'msg'; $('pg-msg').textContent = 'Press again to launch ' + page.name + ' for everyone.'; return drawPages(); }
+    var hide = b.hasAttribute('data-hide'), id = b.getAttribute(hide ? 'data-hide' : 'data-launch'), page = PAGES.filter(function (p) { return p.id === id; })[0];
+    if (pgArmed !== id) {
+      pgArmed = id; $('pg-msg').className = 'msg';
+      $('pg-msg').textContent = hide ? 'Press again to take ' + page.name + ' down: only staff will be able to open it.' : 'Press again to launch ' + page.name + ' for everyone.';
+      return drawPages();
+    }
     pgBusy = true; drawPages();
-    L.api('/rest/v1/rpc/fb_launch_page', { method: 'POST', body: { p_page: id } }).then(function (msg) {
-      page.launched = true; pgArmed = null; pgBusy = false;
-      $('pg-msg').className = 'msg ok'; $('pg-msg').textContent = String(msg || page.name + ' is live for everyone.');
+    L.api('/rest/v1/rpc/' + (hide ? 'fb_hide_page' : 'fb_launch_page'), { method: 'POST', body: { p_page: id } }).then(function (msg) {
+      page.launched = !hide; pgArmed = null; pgBusy = false;
+      $('pg-msg').className = 'msg ok'; $('pg-msg').textContent = String(msg || (hide ? page.name + ' is hidden.' : page.name + ' is live for everyone.'));
       drawPages();
-      if (PAGES.every(function (p) { return p.launched; })) { $('pg-msg').textContent += ' Every page is live.'; }
     }, function (err) {
       pgArmed = null; pgBusy = false; drawPages();
       $('pg-msg').className = 'msg err'; $('pg-msg').textContent = err && err.message ? err.message : 'That didn\'t work. Try again.';

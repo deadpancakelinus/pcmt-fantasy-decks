@@ -13,7 +13,7 @@
   // backend), and anyone but staff and site admins who opens one is sent to Home. (mvp-vs.html has its own copy.)
   var LAUNCH_PAGES = { 'mvp-vs': ['mvp-vs'], store: ['store', 'transactions', 'collection'], library: ['library'], losersq: ['losersq'], database: ['database'] };
   function launchId(path) {
-    var f = String(path || '').split('/').pop().replace(/\.html$/, '');
+    var f = String(path || '').split('/').pop().replace(/\.html$/, '') || 'index';
     for (var id in LAUNCH_PAGES) if (LAUNCH_PAGES[id].indexOf(f) >= 0) return id;
     return null;
   }
@@ -30,7 +30,7 @@
   })();
   var pagesReq = null;   // the launch list, read once per page
   function launchList() {
-    if (!pagesReq) pagesReq = fetch(SB_URL + '/rest/v1/site_pages?select=id,launched', { headers: { apikey: SB_KEY } })
+    if (!pagesReq) pagesReq = fetch(SB_URL + '/rest/v1/site_pages?select=id,path,launched', { headers: { apikey: SB_KEY } })
       .then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
     return pagesReq;
   }
@@ -38,6 +38,16 @@
     return launchList().then(function (rows) {
       var d = document.documentElement, live = {};
       (rows || []).forEach(function (r) { if (r.launched) live[r.id] = true; });   // can't read it: everything stays hidden
+      // Any other page staff took down on the backend (Pages tab): hidden from the menu, and closed to everyone but staff.
+      var extra = [];
+      (rows || []).forEach(function (r) {
+        if (r.launched || LAUNCH_PAGES[r.id] || !r.path) return;
+        var f = String(r.path).replace(/\.html$/, '');
+        LAUNCH_PAGES[r.id] = [f];
+        extra.push('html.pcmt-hide-' + r.id + ' a[href^="' + f + '.html"]:not([data-pcmt-keep])');
+        d.classList.add('pcmt-hide-' + r.id);
+      });
+      if (extra.length) { var st = document.createElement('style'); st.textContent = extra.join(',') + '{display:none!important}'; (document.head || d).appendChild(st); }
       window.PCMT_LAUNCHED = live;
       Object.keys(LAUNCH_PAGES).forEach(function (id) { if (live[id]) d.classList.remove('pcmt-hide-' + id); });
       var here = launchId(location.pathname);
