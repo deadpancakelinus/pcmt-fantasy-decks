@@ -262,7 +262,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <button type="button" onClick="{{bd.pick}}" aria-pressed="{{bd.pressed}}" style="min-height: 40px; display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; border: 0; border-radius: 7px; background: {{bd.bg}}; color: {{bd.fg}}; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; font-weight: {{bd.weight}}; letter-spacing: 0.04em; cursor: pointer"><sc-if value="{{bd.logo}}" hint-placeholder-val="{{ false }}"><img src="{{bd.logo}}" alt="" style="width: 20px; height: 20px; object-fit: contain"></sc-if>{{bd.label}}</button>
 </sc-for>
 </div>
-<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa">{{boardNote}}</span>
+<sc-if value="{{boardNote}}" hint-placeholder-val="{{ false }}"><span style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa">{{boardNote}}</span></sc-if>
 </div>
 <div style="display: flex; flex-direction: column; gap: 4px; flex: 0 1 300px">
 <label for="pk-search" style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa; text-transform: uppercase; letter-spacing: 0.06em">Find a manager</label>
@@ -859,7 +859,7 @@ class Component extends DCLogic {
         return { label: x.label, logo: x.logo || '', pressed: on ? 'true' : 'false', bg: on ? '#a5dcdd' : 'transparent', fg: on ? '#000' : '#eaf4f4', weight: on ? 700 : 500,
           pick: function () { try { window.localStorage.setItem('pcmt-pickems-board', x.id); } catch (e) {} self.setState({ board: x.id, search: '' }); } };
       }),
-      boardNote: niche ? 'Every ' + board + ' Pick\'ems event: one point for each right pick.' : (V.label || b.name) + ' standings.',
+      boardNote: board === 'NA' ? 'Pick\'ems Season 4' : board === 'EMEA' ? 'Pick\'ems Season 2' : '',
       emptyText: data.length === 0 && niche ? 'Standings appear once a game someone picked in ' + board + ' Pick\'ems has been played.' : data.length === 0 ? (games ? 'Standings appear once a game someone picked has been played.' : finished && !ev.open ? 'No standings: Pick\'ems weren\'t open for these playoffs.' : 'Standings appear once a picked series is finished.') : 'No managers match that search.',
       hasMe: !!mine, me: mine ? { rank: mine.rank, points: mine.m.points, picked: mine.m.picked == null ? '—' : mine.m.picked } : {},
       search: this.state.search || '',
