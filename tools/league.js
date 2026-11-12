@@ -1120,48 +1120,6 @@
 })();
 
 
-/* Panel borders (Customization, Borders panel): a picture frame drawn around the site's panels, from the artwork in
-   assets/: Rosey (html.pcmt-border-rose, roses and vines, bd5d7260…) and Splatty (html.pcmt-border-splat, neon paint
-   splatter, 1bd831ad…). Each is a 9-slice border-image: the corners keep their shape, the edges stretch to the panel.
-   Saved in this browser (localStorage 'pcmt-border' = 'rose' | 'splat'). Only top-level panels get one (not panels
-   inside panels), and not ones that scroll or clip (overflow), which would cut it off. The Customization board has the
-   same numbers for its previews (.bd-demo-rose / .bd-demo-splat). */
-(function () {
-  'use strict';
-  var KEY = 'pcmt-border', d = document.documentElement;
-  // slice: px of the artwork kept as corners (top right bottom left); w: drawn border width; out: how far it reaches
-  // past the panel's edge, so the frame's inner line sits on the panel's own border. Phones get them at 70%.
-  var BORDERS = {
-    rose: { img: 'assets/bd5d7260cae4071db67840ac5f5e0616.webp', slice: '150 170', w: [48, 52], out: [30, 34], filter: 'drop-shadow(0 0 1px rgba(255,255,255,.55))' },
-    splat: { img: 'assets/1bd831ad09c97c4489395818390383d0.webp', slice: '140 85 135 85', w: [70, 50, 70, 50], out: [50, 38, 54, 38] }
-  };
-  var PANEL = ':is(section[style*="border-radius: 12px"],[style*="background: #172124"][style*="border-radius: 12px"],.hm-panel)';
-  var css = '';
-  Object.keys(BORDERS).forEach(function (k) {
-    var B = BORDERS[k], H = 'html.pcmt-border-' + k + ' ';
-    var SEL = H + PANEL + ':not([style*="overflow"]):not([style*="position: absolute"]):not(' + PANEL + ' *)';
-    function px(a, f) { return a.map(function (v) { return Math.round(v * f) + 'px'; }).join(' '); }
-    function neg(a, f) { return a.map(function (v) { return -Math.round(v * f) + 'px'; }).join(' '); }
-    css += H + 'body,' + H + '[data-pcmt-root]{overflow-x:clip}' +
-      SEL + '{position:relative;isolation:isolate}' +   // the frame sits on the panel's background but under its text
-      SEL + '::after{content:"";position:absolute;inset:' + neg(B.out, 1) + ';z-index:-1;pointer-events:none;border-style:solid;border-color:transparent;border-width:' + px(B.w, 1) +
-      ';border-image:url("' + B.img + '") ' + B.slice + ' stretch' + (B.filter ? ';filter:' + B.filter : '') + '}' +
-      '@media (max-width:600px){' + SEL + '::after{inset:' + neg(B.out, 0.7) + ';border-width:' + px(B.w, 0.7) + '}}';
-  });
-  var st = document.createElement('style');
-  st.textContent = css;
-  (document.head || d).appendChild(st);
-  function read() { try { return localStorage.getItem(KEY) || ''; } catch (e) { return ''; } }
-  function apply(v) { Object.keys(BORDERS).forEach(function (k) { d.classList.toggle('pcmt-border-' + k, v === k); }); }
-  apply(read());
-  window.PCMT_BORDER = {
-    get: function () { return read(); },
-    set: function (v) { v = BORDERS[v] ? v : ''; apply(v); try { if (v) localStorage.setItem(KEY, v); else localStorage.removeItem(KEY); } catch (e) {} }
-  };
-  window.addEventListener('storage', function (e) { if (e.key === KEY) apply(e.newValue || ''); });   // other open tabs follow
-})();
-
-
 /* Light mode (Settings): html.pcmt-light swaps the dark palette for a light one. The pages keep their colours inline,
    so each dark colour the site uses is mapped to a light one below (backgrounds, text, borders). Card backs, team
    colours, logos and buttons keep their own colours. Light and Glass can't be on together (same 'theme' group).
