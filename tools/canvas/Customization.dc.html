@@ -76,6 +76,11 @@ a{color:#a5dcdd}a:hover{color:#d4f0f0}
 @keyframes mist-spin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion: reduce){.mist-p,.mist-swirl{animation:none}.mist-p{opacity:.5;transform:translate(-50%,-50%) rotate(var(--a)) translate(0,-60%) scale(.8)}}
 input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !important;box-shadow:0 0 0 3px rgba(165,220,221,.3)}
+/* Borders panel previews: the same frames league.js draws on every panel (html.pcmt-border-rose / -splat), at half size */
+.bd-demo-rose,.bd-demo-splat{position:relative;isolation:isolate}
+.bd-demo-rose::after,.bd-demo-splat::after{content:"";position:absolute;z-index:-1;pointer-events:none;border-style:solid;border-color:transparent}
+.bd-demo-rose::after{inset:-15px -17px;border-width:24px 26px;border-image:url("/_blob/bd5d7260cae4071db67840ac5f5e0616") 150 170 stretch;filter:drop-shadow(0 0 1px rgba(255,255,255,.55))}
+.bd-demo-splat::after{inset:-25px -19px -27px;border-width:35px 25px;border-image:url("/_blob/1bd831ad09c97c4489395818390383d0") 140 85 135 85 stretch}
 </style>
 </helmet>
 <div data-pcmt-root="Customization" style="position: relative; min-height: 100vh; background: #0d1416; color: #eaf4f4; font-family: 'National Park', system-ui, sans-serif; display: flex; flex-direction: column">
@@ -601,6 +606,45 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </sc-if>
 </div>
 
+</div>
+</section>
+
+<section aria-labelledby="border-h" style="display: flex; flex-direction: column; gap: 18px; padding: 22px; border-radius: 12px; background: #172124; border: 1px solid #2a3a3e">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px">
+<h2 id="border-h" style="margin: 0; font-family: 'National Park', system-ui, sans-serif; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">Borders</h2>
+<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa">Frames every panel on the site</span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 18px 14px">
+<button type="button" onClick="{{roseB.toggle}}" aria-pressed="{{roseB.on}}" aria-label="{{roseB.label}}" title="{{roseB.title}}" style="display: flex; flex-direction: column; gap: 10px; padding: 0; border: none; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; min-width: 0">
+<span style="display: block; padding: 34px 30px; border-radius: 10px; background: #0d1416; box-shadow: {{roseB.ring}}; overflow: hidden">
+<span class="bd-demo-rose" style="display: flex; flex-direction: column; gap: 8px; height: 104px; box-sizing: border-box; padding: 18px 20px; border-radius: 12px; background: #172124; border: 1px solid #2a3a3e">
+<span style="display: block; width: 46%; height: 8px; border-radius: 999px; background: #3a4f53"></span>
+<span style="display: block; width: 72%; height: 6px; border-radius: 999px; background: #2a3a3e"></span>
+<span style="display: block; width: 58%; height: 6px; border-radius: 999px; background: #2a3a3e"></span>
+</span>
+</span>
+<span style="display: flex; justify-content: space-between; align-items: center; gap: 6px; min-width: 0">
+<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 13px; font-weight: 600; color: #f5d76e">Rosey</span>
+<sc-if value="{{roseB.on}}" hint-placeholder-val="{{ false }}">
+<span style="padding: 2px 7px; border-radius: 999px; background: #d4af37; color: #000; font-family: 'National Park', system-ui, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.04em">ON</span>
+</sc-if>
+</span>
+</button>
+<button type="button" onClick="{{splatB.toggle}}" aria-pressed="{{splatB.on}}" aria-label="{{splatB.label}}" title="{{splatB.title}}" style="display: flex; flex-direction: column; gap: 10px; padding: 0; border: none; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; min-width: 0">
+<span style="display: block; padding: 34px 30px; border-radius: 10px; background: #0d1416; box-shadow: {{splatB.ring}}; overflow: hidden">
+<span class="bd-demo-splat" style="display: flex; flex-direction: column; gap: 8px; height: 104px; box-sizing: border-box; padding: 18px 20px; border-radius: 12px; background: #172124; border: 1px solid #2a3a3e">
+<span style="display: block; width: 46%; height: 8px; border-radius: 999px; background: #3a4f53"></span>
+<span style="display: block; width: 72%; height: 6px; border-radius: 999px; background: #2a3a3e"></span>
+<span style="display: block; width: 58%; height: 6px; border-radius: 999px; background: #2a3a3e"></span>
+</span>
+</span>
+<span style="display: flex; justify-content: space-between; align-items: center; gap: 6px; min-width: 0">
+<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 13px; font-weight: 600; color: #f5d76e">Splatty</span>
+<sc-if value="{{splatB.on}}" hint-placeholder-val="{{ false }}">
+<span style="padding: 2px 7px; border-radius: 999px; background: #d4af37; color: #000; font-family: 'National Park', system-ui, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.04em">ON</span>
+</sc-if>
+</span>
+</button>
 </div>
 </section>
 
@@ -1262,7 +1306,9 @@ class Component extends DCLogic {
     try { favs = JSON.parse(window.localStorage.getItem('pcmt-favs') || '[]'); if (!Array.isArray(favs)) favs = []; } catch (e) { favs = []; }
     var opened = [];
     try { opened = JSON.parse(window.localStorage.getItem('pcmt-opened') || '[]'); if (!Array.isArray(opened)) opened = []; } catch (e) { opened = []; }
-    this.state = { equipped: saved, aura: aura, codes: codes, codeInput: '', codeMsg: '', codeOk: false, favs: favs, opened: opened };
+    var border = '';
+    try { border = window.localStorage.getItem('pcmt-border') || ''; } catch (e) {}
+    this.state = { equipped: saved, aura: aura, border: border, codes: codes, codeInput: '', codeMsg: '', codeOk: false, favs: favs, opened: opened };
   }
   toggleFav(key) {
     var list = (this.state.favs || []).slice(), i = list.indexOf(key);
@@ -1437,6 +1483,25 @@ class Component extends DCLogic {
       try { window.localStorage.setItem('pcmt-aura', next); } catch (e) {}
       self.setState({ aura: next });
     }
+    // Borders panel: Rosey and Splatty, frames around every panel on the site (league.js: window.PCMT_BORDER,
+    // localStorage 'pcmt-border'). One at a time; tap the one that's on to turn it off.
+    function borderOpt(id, name, what) {
+      var on = self.state.border === id;
+      return {
+        on: on,
+        label: name + ' border, ' + (on ? 'on' : 'off') + '. ' + what,
+        title: on ? name + ' is on. Tap to turn off' : 'Tap to turn on ' + name,
+        ring: on ? '0 0 0 2px #f5d76e, 0 0 22px rgba(245,215,110,.25)' : 'inset 0 0 0 1px #2a3a3e',
+        toggle: function () {
+          var next = self.state.border === id ? '' : id;
+          if (window.PCMT_BORDER) window.PCMT_BORDER.set(next);
+          else { try { if (next) window.localStorage.setItem('pcmt-border', next); else window.localStorage.removeItem('pcmt-border'); } catch (e) {} }
+          self.setState({ border: next });
+        }
+      };
+    }
+    var roseB = borderOpt('rose', 'Rosey', 'Frames every panel on the site with roses and vines.');
+    var splatB = borderOpt('splat', 'Splatty', 'Frames every panel on the site with neon paint splatter.');
     var tdMode = this.props.teamDeckPreview ?? 'Live';
     function teamPts(code, i) {
       if (tdMode === 'Unlocked') return PCMT_DECK_UNLOCK;
@@ -1684,6 +1749,7 @@ class Component extends DCLogic {
       ethan: ethan,
       halo: Object.assign(halo, this._haloTraces || (this._haloTraces = pcmtHaloTraces())),
       cur: cur,
+      roseB: roseB, splatB: splatB,
       unlockedCount: 2 + (unlocked ? 1 : 0) + (haloUnlocked ? 1 : 0) + (mistUnlocked ? 1 : 0),
       aura: this._auraTraces || (this._auraTraces = pcmtAuraTraces()),
       defaults: defaults,
