@@ -90,7 +90,7 @@ var PCMT_VARIANT_CENTER = { 'champ-longclaw': true, 'champ-devil': true, 'champ-
 var PCMT_VARIANT_SHEEN = { 'champ-longclaw': '#f5d76e', 'champ-devil': '#f5d76e', 'champ-platinum': '#f5d76e', 'champ-igneous': '#f5d76e', 'champ-james': '#f5d76e', 'champ-stingray': '#f5d76e', 'champ-faye': '#f5d76e', 'champ-charlotte': '#f5d76e', 'champ-mide': '#f5d76e', 'champ-king': '#f5d76e', 'champ-tonnoman': '#f5d76e', 'champ-amara': '#f5d76e' };
 // Splatty (Nov 12 2026): a Rare of every player, every season ('v:splatty-<player id>' / 'v:splatty-<MVP VS card id>'),
 // all with the same neon paint splatter background, drawn bright behind the card face. Filled in as cards come up.
-var PCMT_SPLATTY_ART = 'assets/c0c011f88b7c3beeff4c98163cdef373.webp';
+var PCMT_SPLATTY_ART = 'assets/4e48017b22b2982b4dc1131a5b2f5884.webp';
 var PCMT_VARIANT_BG = {};
 function pcmtSplatty(v) {
   if (v && v.indexOf('splatty-') === 0 && !PCMT_VARIANT_ART[v]) { PCMT_VARIANT_ART[v] = PCMT_SPLATTY_ART; PCMT_VARIANT_FULL[v] = true; PCMT_VARIANT_BG[v] = true; }
@@ -293,6 +293,7 @@ var PCMT_PACK_CSS = [
   '.pk-front-m{display:block}',
   '.pk-m{position:absolute;left:0;top:0;width:300px;height:420px;transform:scale(.7867);transform-origin:0 0;display:flex;flex-direction:column}',
   '.pk-m-wm{position:absolute;inset:0;z-index:0;pointer-events:none;display:grid;place-items:center}',
+  '.pk-team-wm img{opacity:.38}',
   '.pk-m-wm img{width:78%;max-width:230px;aspect-ratio:1;object-fit:contain;opacity:.12;transform:translateY(10px)}',
   '.pk-m-edge{display:block;height:5px;flex:none;position:relative;z-index:1}',
   '.pk-m-body{position:relative;z-index:1;flex:1;padding:14px;display:flex;flex-direction:column;gap:8px;min-width:0}',
@@ -359,6 +360,7 @@ function pcmtPackMvpFace(p, t, rar, shiny, col, stamp) {
   return '<div class="pk-m">' +
     '<div class="pk-m-wm"><img src="' + e(p.regionLogo) + '" alt=""></div>' +
     (p.art ? '<div class="pk-art"><img' + (p.artBg ? ' class="pk-art-full pk-art-bg"' : p.artFull ? ' class="pk-art-full"' : p.artCenter ? ' class="pk-art-center"' : '') + ' src="' + e(p.art) + '" alt=""></div>' : '') +
+    (p.artBg && t.logo ? '<div class="pk-m-wm pk-team-wm"><img src="' + e(t.logo) + '" alt=""></div>' : '') +   // Splatty: the team logo behind the card
     '<span class="pk-m-edge" style="background:' + e(col) + '"></span>' +
     '<div class="pk-m-body">' +
       '<div class="pk-m-top">' + head + (p.badge ? '<span class="pk-badge">' + e(p.badge) + '</span>' : '') +
