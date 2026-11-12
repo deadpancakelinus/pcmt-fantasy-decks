@@ -208,6 +208,7 @@ open(os.path.join(OUT, 'variant-art.js'), 'w', encoding='utf-8').write(
     'var PCMT_VARIANT_ART_MAP = ' + fix_refs(_obj('PCMT_VARIANT_ART')) + ';\n'
     'var PCMT_VARIANT_ART_CHAMP = ' + fix_refs(_obj('PCMT_VARIANT_ART_CHAMPS')) + ';\n'
     'var PCMT_VARIANT_SERIES = ' + json.dumps(_series) + ';\n'
+    'var PCMT_SPLATTY_ART = ' + fix_refs(re.search(r"var PCMT_SPLATTY_ART = ('[^']+')", _store).group(1)) + ';   // every Splatty card (v:splatty-...)\n'
     '// Art that fills the whole card (photos and screenshots); the rest sits at the side like a cut-out.\n'
     'var PCMT_VARIANT_FULL = ' + _obj('PCMT_VARIANT_FULL') + ';\n')
 for f in ('dc-lite.js', 'league.js'):

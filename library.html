@@ -32,6 +32,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 .st-card{position:relative;box-sizing:border-box;width:300px;zoom:.75;aspect-ratio:5/7;background:#172124;border:1px solid #2a3a3e;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 10px 24px rgba(0,0,0,.55)}
 .st-art{position:absolute;inset:0;z-index:0;pointer-events:none}
 .st-art img.st-art-full{left:0;top:0;right:auto;bottom:auto;width:100%;height:100%;object-fit:cover;opacity:.32;-webkit-mask-image:radial-gradient(120% 90% at 55% 45%,#000 45%,transparent 100%);mask-image:radial-gradient(120% 90% at 55% 45%,#000 45%,transparent 100%)}
+.st-art img.st-art-full.st-art-bg{opacity:.95;-webkit-mask-image:none;mask-image:none}
 .st-art img.st-art-center{left:50%;top:50%;right:auto;bottom:auto;height:86%;width:auto;transform:translate(-50%,-46%);opacity:.24;-webkit-mask-image:none;mask-image:none}
 .st-sheen{position:absolute;inset:0;z-index:2;pointer-events:none;border-radius:inherit;background-size:260% 100%;background-repeat:no-repeat;animation:st-sheen 5s ease-in-out infinite}
 
@@ -84,9 +85,10 @@ body.lib-dragging,body.lib-dragging *{cursor:grabbing !important;user-select:non
 // PCMT_CARD_CATALOG = [{ id, player, variant, rarity, region, title }]. Stats come from the MVP VS cards
 // (trumps-cards.js, PCMT_TRUMPS_CARDS). The canvas shows the sample below.
 var PCMT_LIBRARY_SAMPLE = {
-  mine: { 'v:teklo-variant': 1, 'c:claps': 2, 'c:crocman': 1, 'c:haych': 3, 'c:becosh': 1 },
+  mine: { 'v:teklo-variant': 1, 'v:splatty-claps': 1, 'c:claps': 2, 'c:crocman': 1, 'c:haych': 3, 'c:becosh': 1 },
   catalog: [
     { id: 'v:teklo-variant', player: 'teklo', variant: 'teklo-variant', rarity: 'rare', region: 'NA', title: 'The Role of Yoru' },
+    { id: 'v:splatty-claps', player: 'claps', variant: 'splatty-claps', rarity: 'rare', region: 'NA', title: 'claps Splatty' },
     { id: 'c:claps', player: 'claps', variant: null, rarity: 'common', region: 'NA', title: 'claps' },
     { id: 'c:crocman', player: 'crocman', variant: null, rarity: 'common', region: 'NA', title: 'mrcrocman' },
     { id: 'c:haych', player: 'haych', variant: null, rarity: 'common', region: 'NA', title: 'haych' },
@@ -130,6 +132,14 @@ var PCMT_VARIANT_ART_CHAMPS = { 'champ-longclaw': 'assets/a8390c53c5aa10a347b6af
 Object.keys(PCMT_VARIANT_ART_CHAMPS).forEach(function (k) { PCMT_VARIANT_ART[k] = PCMT_VARIANT_ART_CHAMPS[k]; });
 var PCMT_VARIANT_CENTER = { 'champ-longclaw': true, 'champ-devil': true, 'champ-platinum': true, 'champ-igneous': true, 'champ-james': true, 'champ-stingray': true, 'champ-faye': true, 'champ-charlotte': true, 'champ-mide': true, 'champ-king': true, 'champ-tonnoman': true, 'champ-amara': true };
 var PCMT_VARIANT_SHEEN = { 'champ-longclaw': '#f5d76e', 'champ-devil': '#f5d76e', 'champ-platinum': '#f5d76e', 'champ-igneous': '#f5d76e', 'champ-james': '#f5d76e', 'champ-stingray': '#f5d76e', 'champ-faye': '#f5d76e', 'champ-charlotte': '#f5d76e', 'champ-mide': '#f5d76e', 'champ-king': '#f5d76e', 'champ-tonnoman': '#f5d76e', 'champ-amara': '#f5d76e' };
+// Splatty (Nov 12 2026): a Rare of every player, every season ('v:splatty-<player id>' / 'v:splatty-<MVP VS card id>'),
+// all with the same neon paint splatter background, drawn bright behind the card face. Filled in as cards come up.
+var PCMT_SPLATTY_ART = 'assets/c0c011f88b7c3beeff4c98163cdef373.webp';
+var PCMT_VARIANT_BG = {};
+function pcmtSplatty(v) {
+  if (v && v.indexOf('splatty-') === 0 && !PCMT_VARIANT_ART[v]) { PCMT_VARIANT_ART[v] = PCMT_SPLATTY_ART; PCMT_VARIANT_FULL[v] = true; PCMT_VARIANT_BG[v] = true; }
+  return v;
+}
 var PCMT_CHAMPS = ['longclaw', 'devil', 'platinum', 'igneous', 'james', 'stingray', 'faye', 'charlotte', 'mide', 'king', 'tonnoman', 'amara']; // NA S1/S2 and EMEA S1 champions, treated the same
 var PCMT_DECK_TEAMS = [
   { code: 'T1', name: 'Team 1', color: '#FF0000', logo: 'assets/ce2bf22e2df8751703c00f132b854650.png' },
@@ -361,7 +371,7 @@ class Component extends DCLogic {
         name: p.name, team: tm.code, teamName: tm.name, teamLogo: tm.logo || '', hasLogo: !!tm.logo, noLogo: !tm.logo, color: col,
         season: past ? c.season : (PCMT_SEASON_LABEL[c.region] || c.region), maps: st ? String(st.maps) : '—',
         regionLogo: PCMT_REGION_LOGOS[c.region] || PCMT_REGION_LOGOS.NA,
-        art: c.variant && PCMT_VARIANT_ART[c.variant] ? PCMT_VARIANT_ART[c.variant] : '', hasArt: !!(c.variant && PCMT_VARIANT_ART[c.variant]), artClass: c.variant && PCMT_VARIANT_FULL[c.variant] ? 'st-art-full' : c.variant && PCMT_VARIANT_CENTER[c.variant] ? 'st-art-center' : '',
+        art: pcmtSplatty(c.variant) && PCMT_VARIANT_ART[c.variant] ? PCMT_VARIANT_ART[c.variant] : '', hasArt: !!(c.variant && PCMT_VARIANT_ART[c.variant]), artClass: pcmtSplatty(c.variant) && PCMT_VARIANT_BG[c.variant] ? 'st-art-full st-art-bg' : c.variant && PCMT_VARIANT_FULL[c.variant] ? 'st-art-full' : c.variant && PCMT_VARIANT_CENTER[c.variant] ? 'st-art-center' : '',
         roleIcon: role ? (PCMT_PACK_ROLE_ICONS[role] || PCMT_PACK_ROLE_ICONS.duelist) : '', roleLabel: role.charAt(0).toUpperCase() + role.slice(1), hasRole: !!role, noRole: !role,
         champ: past ? !!(ps && ps.champ) : PCMT_CHAMPS.indexOf(p.id) >= 0,   // past-season card: won that season; current card: a past PCMT champion
         nameSize: Math.max(18, Math.min(34, Math.floor(230 / Math.max(4, String(p.name).length * 0.62)))),

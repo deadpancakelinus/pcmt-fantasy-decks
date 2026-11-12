@@ -67,6 +67,11 @@ for v in VARIANTS:
     assert v[1] in ids, 'unknown player in variant: %s' % v[1]
 
 lit = lambda s: 'null' if s is None else "'" + str(s).replace("'", "''") + "'"
+# Splatty (Nov 12 2026): a Rare of every player, every season, all with the same neon paint splatter background
+# (the art is set by id in the Store and Library boards and trumps.js, so nothing per player is needed there).
+# This season's are 'v:splatty-<player id>' in that region's pack; past seasons' are 'v:splatty-<MVP VS card id>' in
+# that season's throwback pack. Held back until staff launch the Splatty series on backend.html.
+VARIANTS = VARIANTS + [('splatty-' + p['id'], p['id'], 'rare', p['name'] + ' Splatty') for p in players]
 card_ids = ['c:' + p['id'] for p in players] + ['v:' + v[0] for v in VARIANTS]
 rows = ['(%s, %s, null, %s, %s, %s, null)' % (lit('c:' + p['id']), lit(p['id']), lit('common'), lit(p['name']), lit(region[p['id']])) for p in players]
 rows += ['(%s, %s, %s, %s, %s, %s, null)' % (lit('v:' + v[0]), lit(v[1]), lit(v[0]), lit(v[2]), lit(v[3]), lit(region[v[1]])) for v in VARIANTS]
@@ -92,6 +97,9 @@ for season, key in PAST.items():
         assert any(c['id'] == v[1] for c in deck), 'unknown past-season card in variant: %s' % v[1]
         card_ids.append('v:' + v[0])
         rows.append('(%s, %s, %s, %s, %s, %s, %s)' % (lit('v:' + v[0]), lit(v[1]), lit(v[0]), lit(v[2]), lit(v[3]), lit(reg), lit(season)))
+    for c in deck:   # Splatty
+        card_ids.append('v:splatty-' + c['id'])
+        rows.append('(%s, %s, %s, %s, %s, %s, %s)' % (lit('v:splatty-' + c['id']), lit(c['id']), lit('splatty-' + c['id']), lit('rare'), lit(c['name'] + ' Splatty'), lit(reg), lit(season)))
     past_count[season] = (len(deck), sum(1 for c in deck if c['champ']))
 packs = ['(%s, %s, %s, %d, %s::jsonb, 0, %s)' % (lit(p[0]), lit(p[1]), lit(p[2]), p[3], lit(json.dumps(p[4])), lit(p[5])) for p in PACKS]
 

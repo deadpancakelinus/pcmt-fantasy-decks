@@ -230,6 +230,14 @@ var PCMT_VARIANT_ART_CHAMPS = { 'champ-longclaw': '/_blob/a8390c53c5aa10a347b6af
 Object.keys(PCMT_VARIANT_ART_CHAMPS).forEach(function (k) { PCMT_VARIANT_ART[k] = PCMT_VARIANT_ART_CHAMPS[k]; });
 var PCMT_VARIANT_CENTER = { 'champ-longclaw': true, 'champ-devil': true, 'champ-platinum': true, 'champ-igneous': true, 'champ-james': true, 'champ-stingray': true, 'champ-faye': true, 'champ-charlotte': true, 'champ-mide': true, 'champ-king': true, 'champ-tonnoman': true, 'champ-amara': true };
 var PCMT_VARIANT_SHEEN = { 'champ-longclaw': '#f5d76e', 'champ-devil': '#f5d76e', 'champ-platinum': '#f5d76e', 'champ-igneous': '#f5d76e', 'champ-james': '#f5d76e', 'champ-stingray': '#f5d76e', 'champ-faye': '#f5d76e', 'champ-charlotte': '#f5d76e', 'champ-mide': '#f5d76e', 'champ-king': '#f5d76e', 'champ-tonnoman': '#f5d76e', 'champ-amara': '#f5d76e' };
+// Splatty (Nov 12 2026): a Rare of every player, every season ('v:splatty-<player id>' / 'v:splatty-<MVP VS card id>'),
+// all with the same neon paint splatter background, drawn bright behind the card face. Filled in as cards come up.
+var PCMT_SPLATTY_ART = '/_blob/c0c011f88b7c3beeff4c98163cdef373';
+var PCMT_VARIANT_BG = {};
+function pcmtSplatty(v) {
+  if (v && v.indexOf('splatty-') === 0 && !PCMT_VARIANT_ART[v]) { PCMT_VARIANT_ART[v] = PCMT_SPLATTY_ART; PCMT_VARIANT_FULL[v] = true; PCMT_VARIANT_BG[v] = true; }
+  return v;
+}
 var PCMT_RARITY_INK = { common: '#93a9aa', rare: '#7cc2ff', epic: '#c99bff', legendary: '#f5d76e' };
 var PCMT_LEGENDARY_GOLD = '#f5d76e';   // a Legendary's glow, stamp and reveal in the pack opening
 // Variants shown on the page (stats match the player's MVP VS card in trumps-cards.js).
@@ -449,6 +457,7 @@ var PCMT_PACK_CSS = [
   '.pk-root.pk-going.pk-reveal .pk-tap{opacity:1;animation:pk-tap 1.8s ease-in-out infinite}',
   '.pk-root.pk-reveal{cursor:pointer}',
   '.pk-art img.pk-art-full{left:0;top:0;right:auto;bottom:auto;width:100%;height:100%;object-fit:cover;opacity:.32;-webkit-mask-image:radial-gradient(120% 90% at 55% 45%,#000 45%,transparent 100%);mask-image:radial-gradient(120% 90% at 55% 45%,#000 45%,transparent 100%)}',
+  '.pk-art img.pk-art-full.pk-art-bg{opacity:.95;-webkit-mask-image:none;mask-image:none}',
   '.pk-art img.pk-art-center{left:50%;top:50%;right:auto;bottom:auto;height:86%;width:auto;transform:translate(-50%,-46%);opacity:.24;-webkit-mask-image:none;mask-image:none}',
   '.pk-rstamp{margin-left:8px;display:inline-flex;align-items:center;gap:4px;padding:3px 7px;border-radius:4px;font:700 10px/1 "National Park",system-ui,sans-serif;letter-spacing:.14em;transform:rotate(-9deg);white-space:nowrap}',
   '.pk-rshine{background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:pk-rshine 6s ease-in-out infinite}',
@@ -491,7 +500,7 @@ function pcmtPackMvpFace(p, t, rar, shiny, col, stamp) {
   }).join('');
   return '<div class="pk-m">' +
     '<div class="pk-m-wm"><img src="' + e(p.regionLogo) + '" alt=""></div>' +
-    (p.art ? '<div class="pk-art"><img' + (p.artFull ? ' class="pk-art-full"' : p.artCenter ? ' class="pk-art-center"' : '') + ' src="' + e(p.art) + '" alt=""></div>' : '') +
+    (p.art ? '<div class="pk-art"><img' + (p.artBg ? ' class="pk-art-full pk-art-bg"' : p.artFull ? ' class="pk-art-full"' : p.artCenter ? ' class="pk-art-center"' : '') + ' src="' + e(p.art) + '" alt=""></div>' : '') +
     '<span class="pk-m-edge" style="background:' + e(col) + '"></span>' +
     '<div class="pk-m-body">' +
       '<div class="pk-m-top">' + head + (p.badge ? '<span class="pk-badge">' + e(p.badge) + '</span>' : '') +
@@ -969,13 +978,14 @@ function pcmtStoreCards(pulled) {
   if (site) site.forEach(function (p) { byId[p.id] = { id: p.id, name: p.name, team: p.team, role: String(p.role).split('/')[0], price: p.price }; });
   else PCMT_PACK_PLAYERS.forEach(function (r) { byId[r[0]] = { id: r[0], name: r[1], team: r[2], role: r[3], price: r[4] }; });
   return pulled.map(function (c) {
+    pcmtSplatty(c.variant);
     var past = pcmtPastCard(c);
     if (past) {   // a throwback card: that season's player, team and stats
       var ps = past.st || {}, prole = ps.role || '', ptm = past.team, f = function (v, fn) { return ps.acs != null && v != null ? fn(v) : '—'; };
       return {
         name: ps.name || c.title, role: prole ? prole.charAt(0).toUpperCase() + prole.slice(1) : '', roleIcon: prole ? abs(PCMT_PACK_ROLE_ICONS[prole]) : '',
         price: '', champ: !!ps.champ, rarity: c.rarity,
-        art: c.variant && PCMT_VARIANT_ART[c.variant] ? abs(PCMT_VARIANT_ART[c.variant]) : '', artFull: !!(c.variant && PCMT_VARIANT_FULL[c.variant]), artCenter: !!(c.variant && PCMT_VARIANT_CENTER[c.variant]), sheenColor: (c.variant && PCMT_VARIANT_SHEEN[c.variant]) || '',
+        art: c.variant && PCMT_VARIANT_ART[c.variant] ? abs(PCMT_VARIANT_ART[c.variant]) : '', artFull: !!(c.variant && PCMT_VARIANT_FULL[c.variant]), artBg: !!(c.variant && PCMT_VARIANT_BG[c.variant]), artCenter: !!(c.variant && PCMT_VARIANT_CENTER[c.variant]), sheenColor: (c.variant && PCMT_VARIANT_SHEEN[c.variant]) || '',
         badge: c.new ? 'NEW' : '×' + c.count, regionLogo: abs(PCMT_REGION_LOGOS[c.region] || PCMT_REGION_LOGOS.NA),
         trophy: abs(PCMT_TROPHY_ICON),
         mvp: { maps: ps.maps != null ? String(ps.maps) : '—', season: c.season, stats: [
@@ -994,7 +1004,7 @@ function pcmtStoreCards(pulled) {
     return {
       name: p.name, role: role.charAt(0).toUpperCase() + role.slice(1), roleIcon: abs(PCMT_PACK_ROLE_ICONS[role] || PCMT_PACK_ROLE_ICONS.duelist),
       price: pr % 1 === 0 ? String(pr) : pr.toFixed(1), champ: PCMT_CHAMPS.indexOf(p.id) >= 0,   // trophy: a past PCMT champion
-      rarity: c.rarity, art: c.variant && PCMT_VARIANT_ART[c.variant] ? abs(PCMT_VARIANT_ART[c.variant]) : '', artFull: !!(c.variant && PCMT_VARIANT_FULL[c.variant]), artCenter: !!(c.variant && PCMT_VARIANT_CENTER[c.variant]), sheenColor: (c.variant && PCMT_VARIANT_SHEEN[c.variant]) || '',
+      rarity: c.rarity, art: c.variant && PCMT_VARIANT_ART[c.variant] ? abs(PCMT_VARIANT_ART[c.variant]) : '', artFull: !!(c.variant && PCMT_VARIANT_FULL[c.variant]), artBg: !!(c.variant && PCMT_VARIANT_BG[c.variant]), artCenter: !!(c.variant && PCMT_VARIANT_CENTER[c.variant]), sheenColor: (c.variant && PCMT_VARIANT_SHEEN[c.variant]) || '',
       badge: c.new ? 'NEW' : '×' + c.count, regionLogo: abs(PCMT_REGION_LOGOS[c.region] || PCMT_REGION_LOGOS.NA),
       trophy: abs(PCMT_TROPHY_ICON), mvp: pcmtMvpStats(c.region, p.name, c.player),
       team: { code: tm.code, name: tm.name, color: tm.color, logo: abs(tm.logo || ''), logoH: PCMT_PACK_LOGO_H[tm.code] || (PCMT_SMALL_LOGOS[tm.code] ? 26 : 30) }
