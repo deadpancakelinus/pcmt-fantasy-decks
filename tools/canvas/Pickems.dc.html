@@ -257,12 +257,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <section aria-label="Standings" style="width: 100%; display: flex; flex-direction: column; gap: 14px">
 <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 12px">
 <div style="display: flex; flex-direction: column; gap: 8px; min-width: 0">
-<div role="group" aria-label="Standings" style="display: inline-flex; flex-wrap: wrap; align-self: flex-start; gap: 4px; padding: 4px; border: 1px solid #2a3a3e; border-radius: 10px; background: #111a1c">
-<sc-for list="{{boards}}" as="bd" hint-placeholder-count="3">
-<button type="button" onClick="{{bd.pick}}" aria-pressed="{{bd.pressed}}" style="min-height: 40px; display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; border: 0; border-radius: 7px; background: {{bd.bg}}; color: {{bd.fg}}; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; font-weight: {{bd.weight}}; letter-spacing: 0.04em; cursor: pointer"><sc-if value="{{bd.logo}}" hint-placeholder-val="{{ false }}"><img src="{{bd.logo}}" alt="" style="width: 20px; height: 20px; object-fit: contain"></sc-if>{{bd.label}}</button>
-</sc-for>
-</div>
-<sc-if value="{{boardNote}}" hint-placeholder-val="{{ false }}"><span style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa">{{boardNote}}</span></sc-if>
+<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.1em; color: #a5dcdd">{{boardNote}}</span>
 </div>
 <div style="display: flex; flex-direction: column; gap: 4px; flex: 0 1 300px">
 <label for="pk-search" style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa; text-transform: uppercase; letter-spacing: 0.06em">Find a manager</label>
@@ -483,12 +478,8 @@ function pcmtBracketLockAt(b, ev) {
   b.series.forEach(function (s) { if (!s.score && s.start) { var v = Date.parse(s.start); if (t === null || v < t) t = v; } });
   return t === null ? null : t - 6 * 3600000;
 }
-// Standings under the picks: a region's "niche" (every Pick'ems event of that region, one point per right pick;
-// window.PCMT_NICHE from league.js). Opens on the region of the tab you're on until you pick one.
-var PCMT_PICKEM_BOARDS = [
-  { id: 'NA', label: 'NA Niche', logo: '/_blob/c265e976f8968e60e4a2bdd32542b499' },
-  { id: 'EMEA', label: 'EMEA Niche', logo: '/_blob/3c7e7374dceead68d5c58818d0bcfe8a' }
-];
+// Standings under the picks: the region of the tab you're on, every Pick'ems event of that region, one point per right
+// pick (window.PCMT_NICHE from league.js). The region toggle at the top switches both.
 function pcmtSampleNiche(region) {
   var out = [];
   for (var i = 0; i < 8; i++) out.push({ id: region + i, name: i === 3 ? '[Your Discord name]' : '[Manager ' + (i + 1) + ']', points: 14 - i - (i % 2), picked: 16 - (i % 3), me: i === 3 });
@@ -520,9 +511,7 @@ class Component extends DCLogic {
     });
     var view = PCMT_PICKEMS_DATA[0].id;
     try { var v = window.localStorage.getItem('pcmt-pickems-view'); if (v === 'na-s4-soon') v = 'na-s4'; if (v && PCMT_PICKEMS_DATA.some(function (b) { return b.id === v; })) view = v; } catch (e) {}
-    var board = null;
-    try { var bv = window.localStorage.getItem('pcmt-pickems-board'); if (PCMT_PICKEM_BOARDS.some(function (x) { return x.id === bv; })) board = bv; } catch (e) {}
-    this.state = { view: view, picksBy: picksBy, savedBy: savedBy, saving: false, search: '', board: board };
+    this.state = { view: view, picksBy: picksBy, savedBy: savedBy, saving: false, search: '' };
   }
   bracket(id) {
     id = id || this.state.view;
@@ -778,7 +767,7 @@ class Component extends DCLogic {
       }) };
     });
     // Standings, styled like the Leaderboard: gold #1, silver and bronze ranks, your row pinned when a search hides it.
-    var board = this.state.board || (b.region === 'EMEA' ? 'EMEA' : 'NA'), niche = true;
+    var board = b.region === 'EMEA' ? 'EMEA' : 'NA', niche = true;
     var data = (niche ? (live ? (W.PCMT_NICHE || {})[board] || [] : pcmtSampleNiche(board)) : (W.PCMT_PICKEM_STANDINGS || {})[b.id] || []).slice().sort(function (x, y) { return y.points - x.points || String(x.name).localeCompare(String(y.name)); });
     var rank = 0, prev = null;
     var ranked = data.map(function (r, i) {
@@ -853,12 +842,7 @@ class Component extends DCLogic {
       groupRows: groupRows,
       boxes: boxes,
       standings: standings, noRows: standings.length === 0,
-      boards: PCMT_PICKEM_BOARDS.map(function (x) {
-        var on = x.id === board;
-        return { label: x.label, logo: x.logo || '', pressed: on ? 'true' : 'false', bg: on ? '#a5dcdd' : 'transparent', fg: on ? '#000' : '#eaf4f4', weight: on ? 700 : 500,
-          pick: function () { try { window.localStorage.setItem('pcmt-pickems-board', x.id); } catch (e) {} self.setState({ board: x.id, search: '' }); } };
-      }),
-      boardNote: board === 'NA' ? 'Pick\'ems Season 4' : board === 'EMEA' ? 'Pick\'ems Season 2' : '',
+      boardNote: board === 'NA' ? 'PICK\'EMS SEASON 4' : 'PICK\'EMS SEASON 2',
       emptyText: data.length === 0 && niche ? 'Standings appear once a game someone picked in ' + board + ' Pick\'ems has been played.' : data.length === 0 ? (games ? 'Standings appear once a game someone picked has been played.' : finished && !ev.open ? 'No standings: Pick\'ems weren\'t open for these playoffs.' : 'Standings appear once a picked series is finished.') : 'No managers match that search.',
       hasMe: !!mine, me: mine ? { rank: mine.rank, points: mine.m.points, picked: mine.m.picked == null ? '—' : mine.m.picked } : {},
       search: this.state.search || '',
