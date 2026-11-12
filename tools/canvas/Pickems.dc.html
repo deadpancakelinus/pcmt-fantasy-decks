@@ -255,7 +255,15 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </sc-if>
 
 <section aria-label="Standings" style="width: 100%; display: flex; flex-direction: column; gap: 14px">
-<div style="display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 12px">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 8px; min-width: 0">
+<div role="group" aria-label="Standings" style="display: inline-flex; flex-wrap: wrap; align-self: flex-start; gap: 4px; padding: 4px; border: 1px solid #2a3a3e; border-radius: 10px; background: #111a1c">
+<sc-for list="{{boards}}" as="bd" hint-placeholder-count="3">
+<button type="button" onClick="{{bd.pick}}" aria-pressed="{{bd.pressed}}" style="min-height: 40px; display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; border: 0; border-radius: 7px; background: {{bd.bg}}; color: {{bd.fg}}; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; font-weight: {{bd.weight}}; letter-spacing: 0.04em; cursor: pointer"><sc-if value="{{bd.logo}}" hint-placeholder-val="{{ false }}"><img src="{{bd.logo}}" alt="" style="width: 20px; height: 20px; object-fit: contain"></sc-if>{{bd.label}}</button>
+</sc-for>
+</div>
+<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa">{{boardNote}}</span>
+</div>
 <div style="display: flex; flex-direction: column; gap: 4px; flex: 0 1 300px">
 <label for="pk-search" style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa; text-transform: uppercase; letter-spacing: 0.06em">Find a manager</label>
 <input id="pk-search" type="search" value="{{search}}" onChange="{{setSearch}}" autocomplete="off" placeholder="Name" style="height: 44px; box-sizing: border-box; padding: 0 14px; border-radius: 8px; border: 1px solid #3a4f53; background: #172124; color: #eaf4f4; font-size: 15px">
@@ -475,6 +483,18 @@ function pcmtBracketLockAt(b, ev) {
   b.series.forEach(function (s) { if (!s.score && s.start) { var v = Date.parse(s.start); if (t === null || v < t) t = v; } });
   return t === null ? null : t - 6 * 3600000;
 }
+// Standings views under the picks: this event's standings, or a region's "niche" (every Pick'ems event of that region,
+// one point per right pick; window.PCMT_NICHE from league.js).
+var PCMT_PICKEM_BOARDS = [
+  { id: 'event', label: 'Leaderboard' },
+  { id: 'NA', label: 'NA niche', logo: '/_blob/c265e976f8968e60e4a2bdd32542b499' },
+  { id: 'EMEA', label: 'EMEA niche', logo: '/_blob/3c7e7374dceead68d5c58818d0bcfe8a' }
+];
+function pcmtSampleNiche(region) {
+  var out = [];
+  for (var i = 0; i < 8; i++) out.push({ id: region + i, name: i === 3 ? '[Your Discord name]' : '[Manager ' + (i + 1) + ']', points: 14 - i - (i % 2), picked: 16 - (i % 3), me: i === 3 });
+  return out;
+}
 var PCMT_PICKEM_COLORS = { FaZe: '#f28bd8', ATLC: '#e04848', SEAL: '#8fd3e8', HOT: '#4f8ef7', NIP: '#c2478f', LARP: '#6f8fe0', XTC: '#f0913a', SOG: '#b8814a', NOOT: '#3fb6a8', NATS: '#ef8f8f',
   T1: '#FF0000', TL: '#1c9ad8', FSG: '#e8603c', C9: '#4dc3ef', SRB: '#58c47a', TS: '#9b6be8', NAVI: '#FF6EB4', SPG: '#ff7f66' };
 function pcmtPickemWhen(iso) {
@@ -501,7 +521,9 @@ class Component extends DCLogic {
     });
     var view = PCMT_PICKEMS_DATA[0].id;
     try { var v = window.localStorage.getItem('pcmt-pickems-view'); if (v === 'na-s4-soon') v = 'na-s4'; if (v && PCMT_PICKEMS_DATA.some(function (b) { return b.id === v; })) view = v; } catch (e) {}
-    this.state = { view: view, picksBy: picksBy, savedBy: savedBy, saving: false, search: '' };
+    var board = 'event';
+    try { var bv = window.localStorage.getItem('pcmt-pickems-board'); if (PCMT_PICKEM_BOARDS.some(function (x) { return x.id === bv; })) board = bv; } catch (e) {}
+    this.state = { view: view, picksBy: picksBy, savedBy: savedBy, saving: false, search: '', board: board };
   }
   bracket(id) {
     id = id || this.state.view;
@@ -757,7 +779,8 @@ class Component extends DCLogic {
       }) };
     });
     // Standings, styled like the Leaderboard: gold #1, silver and bronze ranks, your row pinned when a search hides it.
-    var data = ((W.PCMT_PICKEM_STANDINGS || {})[b.id] || []).slice().sort(function (x, y) { return y.points - x.points || String(x.name).localeCompare(String(y.name)); });
+    var board = this.state.board || 'event', niche = board !== 'event';
+    var data = (niche ? (live ? (W.PCMT_NICHE || {})[board] || [] : pcmtSampleNiche(board)) : (W.PCMT_PICKEM_STANDINGS || {})[b.id] || []).slice().sort(function (x, y) { return y.points - x.points || String(x.name).localeCompare(String(y.name)); });
     var rank = 0, prev = null;
     var ranked = data.map(function (r, i) {
       if (prev === null || r.points !== prev) { rank = i + 1; prev = r.points; }
@@ -782,14 +805,16 @@ class Component extends DCLogic {
     // Your Pick'ems (top of the page): % of your picks on played series that were right, and where that puts you in the
     // standings (top X% by points). Logged out: a log-in link. The canvas preview uses the sample picks.
     var Lg = W.PCMT_LEAGUE, signedIn = Lg ? !!Lg.signedIn : true;   // canvas: shown as a signed-in player with the sample picks
-    var meRow = ranked.find(function (x) { return x.m.me; }), acc = { has: false, none: true, login: false, note: '' };
+    // (always this event's standings, whichever standings view is showing below)
+    var evData = ((W.PCMT_PICKEM_STANDINGS || {})[b.id] || []), evMe = evData.find(function (r) { return r.me; });
+    var meRow = evMe ? { rank: 1 + evData.filter(function (r) { return r.points > evMe.points; }).length } : null, acc = { has: false, none: true, login: false, note: '' };
     if (!signedIn) { acc.login = true; acc.note = 'Log in to see what percentage of your picks are right.'; }
     else if (!totals.decided) acc.note = finished && !totals.made ? 'You didn\'t make picks for these playoffs.' : (games ? 'Your percentage shows once a game you picked has been played.' : 'Your percentage shows once a series you picked has been played.');
     else {
       var pct = Math.round(100 * totals.correct / totals.decided);
       acc = { has: true, none: false, login: false, pct: pct,
         color: pct >= 70 ? '#8be4b7' : pct >= 40 ? '#a5dcdd' : '#ff8a80',
-        rankLine: meRow && ranked.length > 1 ? 'Top ' + Math.max(1, Math.ceil(100 * meRow.rank / ranked.length)) + '% of ' + ranked.length + ' players · #' + meRow.rank : '' };
+        rankLine: meRow && evData.length > 1 ? 'Top ' + Math.max(1, Math.ceil(100 * meRow.rank / evData.length)) + '% of ' + evData.length + ' players · #' + meRow.rank : '' };
     }
     // The champion of a finished bracket: the grand final (the highest series number) winner.
     var gf = b.series.reduce(function (m, s) { return !m || s.n > m.n ? s : m; }, null), champ = gf && R[gf.n] ? R[gf.n].winner : null;
@@ -829,7 +854,13 @@ class Component extends DCLogic {
       groupRows: groupRows,
       boxes: boxes,
       standings: standings, noRows: standings.length === 0,
-      emptyText: data.length === 0 ? (games ? 'Standings appear once a game someone picked has been played.' : finished && !ev.open ? 'No standings: Pick\'ems weren\'t open for these playoffs.' : 'Standings appear once a picked series is finished.') : 'No managers match that search.',
+      boards: PCMT_PICKEM_BOARDS.map(function (x) {
+        var on = x.id === board;
+        return { label: x.label, logo: x.logo || '', pressed: on ? 'true' : 'false', bg: on ? '#a5dcdd' : 'transparent', fg: on ? '#000' : '#eaf4f4', weight: on ? 700 : 500,
+          pick: function () { try { window.localStorage.setItem('pcmt-pickems-board', x.id); } catch (e) {} self.setState({ board: x.id, search: '' }); } };
+      }),
+      boardNote: niche ? 'Every ' + board + ' Pick\'ems event: one point for each right pick.' : (V.label || b.name) + ' standings.',
+      emptyText: data.length === 0 && niche ? 'Standings appear once a game someone picked in ' + board + ' Pick\'ems has been played.' : data.length === 0 ? (games ? 'Standings appear once a game someone picked has been played.' : finished && !ev.open ? 'No standings: Pick\'ems weren\'t open for these playoffs.' : 'Standings appear once a picked series is finished.') : 'No managers match that search.',
       hasMe: !!mine, me: mine ? { rank: mine.rank, points: mine.m.points, picked: mine.m.picked == null ? '—' : mine.m.picked } : {},
       search: this.state.search || '',
       setSearch: function (e) { self.setState({ search: e && e.target ? e.target.value : '' }); }

@@ -600,9 +600,8 @@
       // Home: the newest live patch note (backend.html, Patch notes tab); none falls back to the one on the Home board
       var onHome = /"data-pcmt-root":"Home"/.test(tree);
       var note = onHome ? api('/rest/v1/patch_notes?select=title,body,note_date,live_at&live=is.true&order=live_at.desc&limit=1').then(function (r) { return (r && r[0]) || null; }).catch(function () { return null; }) : Promise.resolve(null);
-      // Leaderboard: the "NA niche" and "EMEA niche" views, everyone's Pick'ems for one region (setup/pickems-games-setup.sql)
-      var onBoard = /"data-pcmt-root":"Leaderboard"/.test(tree);
-      var niche = onBoard ? Promise.all(['NA', 'EMEA'].map(function (rg) {
+      // Pick'ems standings: the "NA niche" and "EMEA niche" views, everyone's Pick'ems for one region (setup/pickems-games-setup.sql)
+      var niche = onPickems ? Promise.all(['NA', 'EMEA'].map(function (rg) {
         return api('/rest/v1/rpc/pickem_region_standings', { method: 'POST', body: { p_region: rg } }).then(function (r) { return [rg, r || []]; }, function () { return [rg, []]; });
       })) : Promise.resolve([]);
       return Promise.all([decks, profiles, unlocks, vp, multi, admin, packs, mine, catalog, prices, released, staff, picks, pkEvents, pkBoard, removed, subs, note, niche]);
