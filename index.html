@@ -440,7 +440,7 @@ var PCMT_PLAYERS = [
 // Players PCMT Team took out of the store on the backend (store_removed_players): they can't be bought or dealt.
 // Anyone who already has one keeps them in their deck.
 function pcmtInStore(p) { return !(window.PCMT_REMOVED_PLAYERS || {})[p.id] && !PCMT_RETIRED_TEAM[p.team]; }
-// NA Season 3 teams' players are retired from the store (Nov 11 2026); anyone who has one keeps them in their deck.
+// NA Season 3 teams' players are retired (Nov 11 2026): out of the store, the deal and saved decks.
 var PCMT_RETIRED_TEAM = {};
 // The same person on two region cards: only one of the pair can be in a deck at a time.
 var PCMT_TWIN = { 'night': 'night-emea', 'night-emea': 'night-s4', 'night-s4': 'night-emea' };
@@ -610,8 +610,8 @@ function pcmtCensorName(name) {
   return { bad: bad, text: text };
 }
 function pcmtReadMyDeck() {
-  var ok = {};
-  PCMT_PLAYERS.forEach(function (p) { ok[p.id] = true; });
+  var ok = {};   // NA Season 3 players (retired teams) are out of decks (Nov 12 2026)
+  PCMT_PLAYERS.forEach(function (p) { if (!PCMT_RETIRED_TEAM[p.team]) ok[p.id] = true; });
   function clean(v, saved) {
     var out = { slots: {}, igl: null, squadName: '', saved: !!saved };
     Object.keys(v.slots || {}).forEach(function (k) { if (ok[v.slots[k]]) out.slots[k] = v.slots[k]; });
@@ -638,6 +638,9 @@ function pcmtSaveMyDeck(s) {
   if (window.PCMT_LEAGUE) window.PCMT_LEAGUE.onDeck(s);
 }
 function pcmtReadDeck() {
+  // NA Season 3 team decks were retired on Nov 11 2026 (Customization: NA Season 4 decks coming soon): back to PCMT Blue.
+  // (Kept inside this function: tools/wire.py swaps out everything between pcmtReadMyDeck and here on the live site.)
+  var PCMT_RETIRED_DECKS = ['T1', 'TL', 'IHOP', 'FSG', 'FNC', 'SSG', 'RRQ', 'C9', 'SRB', 'TS', 'EPY', 'DFM', 'BAKA', 'NAVI', '100T', 'SPG'];
   try {
     var v = window.localStorage.getItem('pcmt-deck');
     if (v && PCMT_RETIRED_DECKS.indexOf(v) >= 0) { window.localStorage.setItem('pcmt-deck', 'BLUE'); return 'BLUE'; }

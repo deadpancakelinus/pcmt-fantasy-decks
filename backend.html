@@ -528,8 +528,11 @@
 (function () {
   'use strict';
   var L = window.PCMT_LEAGUE, $ = function (id) { return document.getElementById(id); };
-  var PLAYERS = window.PCMT_SITE_PLAYERS || [], BY_ID = {};
-  PLAYERS.forEach(function (p) { BY_ID[p.id] = p; });
+  // NA Season 3 teams are retired (Nov 12 2026): their players stay in players.js for past results but aren't listed here.
+  var RETIRED_TEAMS = { T1: 1, TL: 1, IHOP: 1, FSG: 1, FNC: 1, SSG: 1, RRQ: 1, C9: 1, SRB: 1, TS: 1, EPY: 1, DFM: 1, BAKA: 1, NAVI: 1, '100T': 1, SPG: 1 };
+  var ALL_PLAYERS = window.PCMT_SITE_PLAYERS || [], BY_ID = {};
+  var PLAYERS = ALL_PLAYERS.filter(function (p) { return !RETIRED_TEAMS[p.team]; });
+  ALL_PLAYERS.forEach(function (p) { BY_ID[p.id] = p; });
   var BASE = {};   // starting prices from players.js (filled once league.js has loaded)
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function day(t) { return new Date(t).toLocaleString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }); }
@@ -1456,7 +1459,7 @@
   }
   ready.then(function () {
     BASE = window.PCMT_BASE_PRICES || {};
-    PLAYERS.forEach(function (p) { if (BASE[p.id] == null) BASE[p.id] = p.price; });
+    ALL_PLAYERS.forEach(function (p) { if (BASE[p.id] == null) BASE[p.id] = p.price; });
     if (unlocked()) afterPassword(); else openGate('pw');
   });
 
