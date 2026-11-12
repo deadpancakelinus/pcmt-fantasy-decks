@@ -26,9 +26,33 @@ def tpl(board, t):
 
 def logic(board, js):
     if board == 'Main.dc.html':
+        # Teams and players edited or added on the backend (deck_teams / deck_players, loaded by league.js)
+        s = js.index('var PCMT_TEAM_LIST = [')
+        e = js.index('\n];', s) + 3
+        js = js[:e] + r"""
+(function () {   // teams edited or added on the backend (Teams tab)
+  (window.PCMT_DECK_TEAMS || []).forEach(function (d) {
+    var t = PCMT_TEAM_LIST.find(function (x) { return x.code === d.code; });
+    if (!t) { t = { code: d.code }; PCMT_TEAM_LIST.push(t); }
+    t.name = d.name; t.color = d.color; t.retired = !!d.retired;
+    if (d.region === 'EMEA') t.region = 'EMEA'; else delete t.region;
+    if (d.season) t.season = d.season;
+  });
+})();""" + js[e:]
         s = js.index('var PCMT_PLAYERS = [')
         e = js.index('\n];', s) + 3
-        js = js[:e] + "\n(function () { var P = window.PCMT_PRICES || {}; PCMT_PLAYERS.forEach(function (p) { if (P[p.id] != null) p.price = P[p.id]; }); })();  // prices edited on the backend" + js[e:]
+        js = js[:e] + r"""
+(function () {   // players edited or added on the backend (Player prices tab); league.js applies the same rows to players.js
+  (window.PCMT_DECK_PLAYERS || []).forEach(function (d) {
+    var p = PCMT_PLAYERS.find(function (x) { return x.id === d.id; });
+    if (!p) { p = { id: d.id }; PCMT_PLAYERS.push(p); }
+    p.name = d.name; p.team = d.team; p.role = d.role; p.price = +d.price;
+    if (d.region) p.regions = [d.region]; else delete p.regions;
+  });
+})();""" + "\n(function () { var P = window.PCMT_PRICES || {}; PCMT_PLAYERS.forEach(function (p) { if (P[p.id] != null) p.price = P[p.id]; }); })();  // prices edited on the backend" + js[e:]
+        s = js.index('var PCMT_LOGOS = {')
+        e = js.index('\n};', s) + 3
+        js = js[:e] + "\n(window.PCMT_DECK_TEAMS || []).forEach(function (d) { if (d.logo) PCMT_LOGOS[d.code] = d.logo; });  // logos from the backend's Teams tab" + js[e:]
         js = sub1(js, 'var PCMT_AURA = { holderId: null, me: null };', 'var PCMT_AURA = window.PCMT_AURA_LIVE || { holderId: null, me: null };', board)
         s = js.index('function pcmtReadMyDeck() {')
         e = js.index('function pcmtReadDeck() {')
@@ -123,7 +147,26 @@ def players_js(main_logic):
     twin = dict(re.findall(r"'([^']+)':\s*'([^']+)'", tw))
     champs = {k: True for k in re.findall(r"'?([A-Za-z0-9_-]+)'?\s*:\s*true", ch)}
     rows_js = ',\n'.join('  ' + json.dumps(p, ensure_ascii=False) for p in players)
+    # The Deck's teams (code, name, colour, region, season, retired, logo), for the backend's Teams tab.
+    tl = main_logic[main_logic.index('var PCMT_TEAM_LIST = ['):]
+    tl = tl[:tl.index('\n];')]
+    lg = main_logic[main_logic.index('var PCMT_LOGOS = {'):]
+    lg = dict(re.findall(r"'?([A-Za-z0-9]+)'?:\s*'([^']+)'", lg[:lg.index('\n};')]))
+    teams = []
+    for line in tl.split('\n'):
+        m = re.match(r"\s*\{ code: '([^']+)', name: (?:'([^']*)'|\"([^\"]*)\"), color: '([^']+)'(.*)\}", line)
+        if not m:
+            continue
+        rest = m.group(5)
+        reg = re.search(r"region: '([A-Z]+)'", rest)
+        sea = re.search(r"season: '([^']+)'", rest)
+        teams.append({'code': m.group(1), 'name': m.group(2) if m.group(2) is not None else m.group(3), 'color': m.group(4),
+                      'region': reg.group(1) if reg else 'NA', 'season': sea.group(1) if sea else None,
+                      'retired': 'retired: true' in rest, 'logo': lg.get(m.group(1))})
+    assert len(teams) == tl.count('{ code:'), 'players.js: a team in PCMT_TEAM_LIST is not in the expected shape'
+    teams_js = ',\n'.join('  ' + json.dumps(t, ensure_ascii=False) for t in teams)
     return ('// Player list used for scoring (generated from The Deck). Kept as JSON so the server can read it too.\n'
             'var PCMT_SITE_PLAYERS = [\n' + rows_js + '\n];\n'
+            'var PCMT_SITE_TEAMS = [\n' + teams_js + '\n];\n'
             'var PCMT_SITE_TWIN = ' + json.dumps(twin) + ';\n'
             'var PCMT_SITE_CHAMPS = ' + json.dumps(champs) + ';\n')

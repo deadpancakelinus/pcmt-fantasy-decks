@@ -193,6 +193,15 @@ var PCMT_TEAM_LIST = [
   { code: 'NOOT', name: 'Penguin Patrol', color: '#3fb6a8', region: 'EMEA' },
   { code: 'NATS', name: 'Never Available To Scrim', color: '#ef8f8f', region: 'EMEA' }
 ];
+(function () {   // teams edited or added on the backend (Teams tab)
+  (window.PCMT_DECK_TEAMS || []).forEach(function (d) {
+    var t = PCMT_TEAM_LIST.find(function (x) { return x.code === d.code; });
+    if (!t) { t = { code: d.code }; PCMT_TEAM_LIST.push(t); }
+    t.name = d.name; t.color = d.color; t.retired = !!d.retired;
+    if (d.region === 'EMEA') t.region = 'EMEA'; else delete t.region;
+    if (d.season) t.season = d.season;
+  });
+})();
 // Text marked data-pcmt-fit="<largest px>" stays on one line: its font shrinks until the whole name fits (14px at the smallest).
 (function () {
   function fit() {
@@ -436,6 +445,14 @@ var PCMT_PLAYERS = [
   { id: 'hades-s4', name: 'Hades', team: 'TM16', role: 'controller', price: 11.0 },
   { id: 'valentia-s4', name: 'Valentia', team: 'TM16', role: 'sentinel', price: 10.0 }
 ];
+(function () {   // players edited or added on the backend (Player prices tab); league.js applies the same rows to players.js
+  (window.PCMT_DECK_PLAYERS || []).forEach(function (d) {
+    var p = PCMT_PLAYERS.find(function (x) { return x.id === d.id; });
+    if (!p) { p = { id: d.id }; PCMT_PLAYERS.push(p); }
+    p.name = d.name; p.team = d.team; p.role = d.role; p.price = +d.price;
+    if (d.region) p.regions = [d.region]; else delete p.regions;
+  });
+})();
 (function () { var P = window.PCMT_PRICES || {}; PCMT_PLAYERS.forEach(function (p) { if (P[p.id] != null) p.price = P[p.id]; }); })();  // prices edited on the backend
 // Players PCMT Team took out of the store on the backend (store_removed_players): they can't be bought or dealt.
 // Anyone who already has one keeps them in their deck.
@@ -487,6 +504,7 @@ var PCMT_LOGOS = {
   NOOT: 'assets/195da1efa2549707b6737764479c066c.png',
   NATS: 'assets/8ff9c895c338d07216b1110d3b73fd8e.png'
 };
+(window.PCMT_DECK_TEAMS || []).forEach(function (d) { if (d.logo) PCMT_LOGOS[d.code] = d.logo; });  // logos from the backend's Teams tab
 // Region logos (NA orange shield, EMEA lime X) and their two PCMT decks.
 var PCMT_SMALL_LOGOS = { HOT: 1, LARP: 1 }; // photo logos: shown smaller so they sit inside the ring
 var PCMT_REGION_LOGOS = { NA: 'assets/c265e976f8968e60e4a2bdd32542b499.png', EMEA: 'assets/3c7e7374dceead68d5c58818d0bcfe8a.png' };

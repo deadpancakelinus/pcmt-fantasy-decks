@@ -144,11 +144,30 @@
   var TWIN = window.PCMT_SITE_TWIN || {};
   var CHAMPS = window.PCMT_SITE_CHAMPS || {};
   var LOWEST = {};
-  (function () {
+  function findLowest() {
     var min = {};
+    LOWEST = {};
     PLAYERS.forEach(function (p) { if (min[p.team] == null || p.price < min[p.team]) min[p.team] = p.price; });
     PLAYERS.forEach(function (p) { if (p.price === min[p.team]) LOWEST[p.id] = true; });
-  })();
+  }
+  findLowest();
+  // Players and teams edited or added on the backend (deck_players / deck_teams, setup/deck-edits-setup.sql): a row with
+  // a players.js id changes that player's name, team, region, role and start price; any other id adds a player. Applied
+  // to players.js's list in place (window.PCMT_SITE_PLAYERS), so every page and the scoring see the same players; the
+  // server applies the same rows when it scores (deck_merge_players). The boards read window.PCMT_DECK_TEAMS and
+  // window.PCMT_DECK_PLAYERS when they start (tools/wire.py).
+  function applyDeckEdits(teams, rows) {
+    window.PCMT_DECK_TEAMS = teams || [];
+    window.PCMT_DECK_PLAYERS = rows || [];
+    (rows || []).forEach(function (d) {
+      var row = { id: d.id, name: d.name, team: d.team, role: d.role, price: +d.price };
+      var p = BY_ID[d.id];
+      if (p) { Object.assign(p, row); if (d.region) p.regions = [d.region]; else delete p.regions; }
+      else { if (d.region) row.regions = [d.region]; PLAYERS.push(row); BY_ID[d.id] = row; }
+      BASE_PRICE[d.id] = +d.price;
+    });
+    if ((rows || []).length) findLowest();
+  }
 
   // One series: { <player id>: points }. r.stats[id] = [K, D, A, FK, ACS, KAST, ADR, RT] (series totals),
   // r.maps = [{ map, a: rounds won by team a, b: rounds won by team b, k: { <player id>: kills on that map } }],
@@ -614,8 +633,12 @@
       var niche = onPickems ? Promise.all(['NA', 'EMEA'].map(function (rg) {
         return api('/rest/v1/rpc/pickem_region_standings', { method: 'POST', body: { p_region: rg } }).then(function (r) { return [rg, r || []]; }, function () { return [rg, []]; });
       })) : Promise.resolve([]);
-      return Promise.all([decks, profiles, unlocks, vp, multi, admin, packs, mine, catalog, prices, released, staff, picks, pkEvents, pkBoard, removed, subs, note, niche]);
+      // Teams and players edited or added on the backend (empty until setup/deck-edits-setup.sql has been run)
+      var dTeams = apiAll('/rest/v1/deck_teams?select=code,name,color,region,season,logo,retired&order=code').catch(function () { return []; });
+      var dPlayers = apiAll('/rest/v1/deck_players?select=id,name,team,region,role,price&order=id').catch(function () { return []; });
+      return Promise.all([decks, profiles, unlocks, vp, multi, admin, packs, mine, catalog, prices, released, staff, picks, pkEvents, pkBoard, removed, subs, note, niche, dTeams, dPlayers]);
     }).then(function (res) {
+      applyDeckEdits(res[19], res[20]);
       window.PCMT_SUBS = res[16] || [];
       window.PCMT_PATCH_NOTE = res[17] || null;
       window.PCMT_NICHE = {};

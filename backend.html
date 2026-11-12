@@ -169,6 +169,25 @@
   table.grid .dim { color: var(--dim); font-size: 13px; }
   table.grid input[type=number] { width: 84px; height: 40px; }
   table.grid input.moved { border-color: #f5d76e; color: #f5d76e; }
+  /* Player prices and Teams: editable cells */
+  table.grid input.cell, table.grid select.cell { height: 40px; min-height: 40px; padding: 0 10px; border-radius: 8px; border: 1px solid #3a4f53; background: #0d1416; box-sizing: border-box; }
+  table.grid input.cell { width: 100%; min-width: 110px; }
+  table.grid input.cell.code { min-width: 74px; width: 84px; text-transform: none; }
+  table.grid select.cell { width: auto; min-width: 104px; }
+  table.grid .cell.moved { border-color: #f5d76e; color: #f5d76e; }
+  table.grid tfoot td { position: sticky; bottom: 0; z-index: 1; border-top: 2px solid var(--line); background: #1b2629; }   /* the Add a player row stays in view under the list */
+  table.grid tfoot .kicker { display: block; margin-bottom: 6px; }
+  .tm-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; align-items: end; }
+  .tm-grid .field input, .tm-grid .field select { width: 100%; box-sizing: border-box; min-width: 0; }
+  .tm-logo { width: 72px; height: 72px; border-radius: 10px; border: 1px solid #3a4f53; background: #0d1416; display: grid; place-items: center; overflow: hidden; flex: none; }
+  .tm-logo img { width: 100%; height: 100%; object-fit: contain; }
+  .tm-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+  .tm-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: #172124; }
+  .tm-item .tm-logo { width: 44px; height: 44px; border-radius: 8px; }
+  .tm-item .tm-main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+  .tm-item .tm-main b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tm-swatch { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+  .imp-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
   table.grid tr.edited td { background: rgba(245,215,110,.07); }
   table.grid tr.retired td { opacity: .55; }
   .tag { font: 600 11px/1 'National Park', system-ui, sans-serif; color: var(--dim); border: 1px solid #3a4f53; border-radius: 4px; padding: 2px 5px; margin-left: 6px; vertical-align: middle; }
@@ -305,6 +324,7 @@
     <div class="tabs" role="tablist" aria-label="Backend sheets">
       <button type="button" role="tab" id="tab-pages" aria-controls="pane-pages" aria-selected="true">Pages <span class="count" id="pg-badge"></span></button>
       <button type="button" role="tab" id="tab-prices" aria-controls="pane-prices" aria-selected="false" tabindex="-1">Player prices</button>
+      <button type="button" role="tab" id="tab-teams" aria-controls="pane-teams" aria-selected="false" tabindex="-1">Teams</button>
       <button type="button" role="tab" id="tab-cards" aria-controls="pane-cards" aria-selected="false" tabindex="-1">Cards</button>
       <button type="button" role="tab" id="tab-packs" aria-controls="pane-packs" aria-selected="false" tabindex="-1">Card packs</button>
       <button type="button" role="tab" id="tab-multi" aria-controls="pane-multi" aria-selected="false" tabindex="-1">4Ks &amp; 5Ks</button>
@@ -322,6 +342,7 @@
 
     <!-- ===== Player prices ===== -->
     <section class="pane" role="tabpanel" id="pane-prices" aria-labelledby="tab-prices" hidden>
+      <p class="note">Every cell is editable: the player's name, team, region, role and start price, and their price. Press Save to keep the changes; the site uses them the next time a page loads. Add a player with the row at the bottom of the table.</p>
       <p class="note">Change a price and press Save. The site uses the new price the next time a page loads: The Deck's prices and budget, and the cards in packs. Decks already saved keep counting with the prices from when they were saved, so a price rise never breaks someone's deck; it only applies to new changes. Prices go from 0 to 30 in steps of 0.5.</p>
       <p class="note">Remove takes a player out of The Deck's store straight away: nobody can buy them or get them from a random deal. Managers who already have them keep them in their deck. Put back undoes it.</p>
       <div class="toolbar">
@@ -345,11 +366,77 @@
           <th><button type="button" class="sort" data-k="removed">Store</button></th>
         </tr></thead>
         <tbody id="p-rows"></tbody>
+        <tfoot><tr id="p-add">
+          <td><span class="kicker">Add a player</span><input class="cell" id="pa-name" type="text" maxlength="40" placeholder="Name" autocomplete="off" aria-label="New player's name"></td>
+          <td><span class="kicker">&nbsp;</span><input class="cell code" id="pa-team" type="text" maxlength="8" list="team-codes" placeholder="Team" autocomplete="off" aria-label="New player's team code"></td>
+          <td><span class="kicker">&nbsp;</span><select class="cell" id="pa-region" aria-label="New player's region"><option value="">Team's</option><option>NA</option><option>EMEA</option></select></td>
+          <td><span class="kicker">&nbsp;</span><select class="cell" id="pa-role" aria-label="New player's role"><option value="duelist">Duelist</option><option value="initiator">Initiator</option><option value="controller">Controller</option><option value="sentinel">Sentinel</option></select></td>
+          <td class="num"><span class="kicker">&nbsp;</span><input id="pa-price" type="number" inputmode="decimal" min="0" max="30" step="0.5" value="8.0" aria-label="New player's start price"></td>
+          <td colspan="4"><span class="kicker">&nbsp;</span><button class="btn" id="pa-go" type="button">Add player</button></td>
+        </tr></tfoot>
       </table></div>
+      <datalist id="team-codes"></datalist>
       <div class="bar sticky">
         <button class="btn" id="p-save" type="button" disabled>Save prices</button>
         <button class="btn ghost" id="p-undo" type="button" disabled>Undo edits</button>
         <p class="msg" id="p-msg" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+
+    <!-- ===== Teams ===== -->
+    <section class="pane" role="tabpanel" id="pane-teams" aria-labelledby="tab-teams" hidden>
+      <p class="note">Teams for The Deck: each team's code, name, region, logo and players with their roles. Import a team from PCMT.gg to fill everything in from its team page (name, code, logo, roster, and each player's role from the agents they play most), check it, then save. Saved teams and players show on the site the next time a page loads. The code has to match the team's code on PCMT.gg, or its results won't reach the players.</p>
+
+      <div class="panel" style="display: flex; flex-direction: column; gap: 14px">
+        <h2 class="kicker" style="margin: 0">Import from PCMT.gg</h2>
+        <div class="toolbar">
+          <label class="field"><span class="kicker">Event</span><select id="im-event"><option value="">Loading events…</option></select></label>
+          <label class="field"><span class="kicker">Or event id</span><input type="text" id="im-event-id" placeholder="s4-na" autocomplete="off"></label>
+          <button class="btn ghost" id="im-load" type="button">Load teams</button>
+        </div>
+        <ul class="imp-list" id="im-teams"></ul>
+        <p class="msg" id="im-msg" role="status" aria-live="polite"></p>
+      </div>
+
+      <div class="panel" style="display: flex; flex-direction: column; gap: 16px" id="tm-form">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px">
+          <h2 class="kicker" style="margin: 0" id="tm-title">New team</h2>
+          <button class="btn ghost" id="tm-new" type="button">Start a new team</button>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end">
+          <div class="tm-logo" id="tm-logo-box"><span class="dim">Logo</span></div>
+          <div class="tm-grid" style="flex: 1 1 520px">
+            <label class="field"><span class="kicker">Code (PCMT.gg)</span><input type="text" id="tm-code" maxlength="8" autocomplete="off" placeholder="SEAL"></label>
+            <label class="field"><span class="kicker">Team name</span><input type="text" id="tm-name" maxlength="60" autocomplete="off"></label>
+            <label class="field"><span class="kicker">Region</span><select id="tm-region"><option>NA</option><option>EMEA</option></select></label>
+            <label class="field"><span class="kicker">Season</span><input type="text" id="tm-season" maxlength="8" placeholder="S4" autocomplete="off"></label>
+            <label class="field"><span class="kicker">Colour</span><input type="color" id="tm-color" value="#a5dcdd" style="padding: 4px; height: 44px"></label>
+            <label class="check" style="align-self: center"><input type="checkbox" id="tm-retired"> Retired (out of the store)</label>
+          </div>
+        </div>
+        <div class="tm-grid">
+          <label class="field" style="grid-column: span 2"><span class="kicker">Logo link</span><input type="url" id="tm-logo" placeholder="https://pcmt.gg/icons/…" autocomplete="off"></label>
+          <label class="field"><span class="kicker">Or upload a logo</span><input type="file" id="tm-logo-file" accept="image/*"></label>
+        </div>
+        <div class="sheet"><table class="grid" id="tm-table">
+          <thead><tr><th class="plain">Player</th><th class="plain">Role</th><th class="plain num">Start price</th><th class="plain">On the site</th><th class="plain"><span class="sr">Remove</span></th></tr></thead>
+          <tbody id="tm-rows"></tbody>
+        </table></div>
+        <div class="bar">
+          <button class="btn ghost" id="tm-addrow" type="button">Add a player</button>
+          <span class="spacer"></span>
+          <button class="btn" id="tm-save" type="button">Save team</button>
+          <p class="msg" id="tm-msg" role="status" aria-live="polite"></p>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <div class="toolbar">
+          <h2 class="kicker" style="margin: 0">Teams on the site</h2>
+          <span class="spacer"></span>
+          <label class="check"><input type="checkbox" id="tm-show-retired"> Show retired teams</label>
+        </div>
+        <ul class="tm-list" id="tm-list"></ul>
       </div>
     </section>
 
@@ -533,9 +620,21 @@
   var L = window.PCMT_LEAGUE, $ = function (id) { return document.getElementById(id); };
   // NA Season 3 teams are retired (Nov 12 2026): their players stay in players.js for past results but aren't listed here.
   var RETIRED_TEAMS = { T1: 1, TL: 1, IHOP: 1, FSG: 1, FNC: 1, SSG: 1, RRQ: 1, C9: 1, SRB: 1, TS: 1, EPY: 1, DFM: 1, BAKA: 1, NAVI: 1, '100T': 1, SPG: 1 };
+  // ALL_PLAYERS is players.js's list with the backend's player edits already applied (league.js, deck_players).
   var ALL_PLAYERS = window.PCMT_SITE_PLAYERS || [], BY_ID = {};
-  var PLAYERS = ALL_PLAYERS.filter(function (p) { return !RETIRED_TEAMS[p.team]; });
   ALL_PLAYERS.forEach(function (p) { BY_ID[p.id] = p; });
+  // Teams: The Deck's list (players.js) with the backend's team edits on top (deck_teams). DECK_ROWS: deck_players by id.
+  var DECK_TEAMS = {}, DECK_ROWS = {};
+  function teamList() {
+    var by = {};
+    (window.PCMT_SITE_TEAMS || []).forEach(function (t) { by[t.code] = Object.assign({}, t); });
+    Object.keys(DECK_TEAMS).forEach(function (c) { var d = DECK_TEAMS[c]; by[c] = Object.assign(by[c] || { code: c }, { name: d.name, color: d.color, region: d.region, season: d.season, retired: d.retired, logo: d.logo || (by[c] && by[c].logo) || null, saved: true }); });
+    return Object.keys(by).map(function (k) { return by[k]; });
+  }
+  function teamOf(code) { var t = null; teamList().forEach(function (x) { if (x.code === code) t = x; }); return t; }
+  function retiredTeam(code) { var t = teamOf(code); return t ? !!t.retired : !!RETIRED_TEAMS[code]; }
+  function PLAYERS_NOW() { return ALL_PLAYERS.filter(function (p) { return !retiredTeam(p.team); }); }
+  function regionOf(p) { var d = DECK_ROWS[p.id], t = teamOf(p.team); return (d && d.region) || (p.regions && p.regions[0]) || (t && t.region) || REGION[p.id] || 'NA'; }
   var BASE = {};   // starting prices from players.js (filled once league.js has loaded)
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function day(t) { return new Date(t).toLocaleString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }); }
@@ -578,7 +677,7 @@
   })();
 
   // ---------- tabs ----------
-  var TABS = ['pages', 'prices', 'cards', 'packs', 'multi', 'subs', 'notes', 'champs', 'complaints'];
+  var TABS = ['pages', 'prices', 'teams', 'cards', 'packs', 'multi', 'subs', 'notes', 'champs', 'complaints'];
   function openTab(name, focus) {
     TABS.forEach(function (t) {
       var on = t === name, tab = $('tab-' + t);
@@ -598,15 +697,16 @@
   });
 
   // ---------- player prices ----------
-  var LOG = [], edits = {}, pSort = { key: 'team', dir: 1 };
+  var LOG = [], edits = {}, info = {}, pSort = { key: 'team', dir: 1 };   // info: { <id>: { name, team, region, role, base } } edits to the player
   var REMOVED = {}, removedReady = true, storeBusy = {};   // REMOVED: { <player id>: { removed_at, removed_by } }
   function latest(id) { var c = null; LOG.forEach(function (x) { if (x.player === id) c = x; }); return c; }
   function current(id) { var c = latest(id); return c && c.price != null ? +c.price : BASE[id]; }
   function priceRows() {
-    return PLAYERS.map(function (p) {
-      var c = latest(p.id), cur = current(p.id), ed = edits[p.id];
-      return { id: p.id, name: p.name, team: p.team, region: REGION[p.id] || '', role: cap(role(p)), base: BASE[p.id], price: cur,
-               value: ed === undefined ? cur : (ed === null ? BASE[p.id] : ed), edited: ed !== undefined, changed: cur !== BASE[p.id],
+    return PLAYERS_NOW().map(function (p) {
+      var c = latest(p.id), cur = current(p.id), ed = edits[p.id], inf = info[p.id] || {};
+      var f = function (k, v) { return inf[k] !== undefined ? inf[k] : v; };
+      return { id: p.id, name: f('name', p.name), team: f('team', p.team), region: f('region', regionOf(p)), role: cap(f('role', role(p))), base: f('base', BASE[p.id]), price: cur,
+               value: ed === undefined ? cur : (ed === null ? BASE[p.id] : ed), edited: ed !== undefined || !!info[p.id], changed: cur !== BASE[p.id], inf: inf,
                when: c ? Date.parse(c.changed_at) : null, by: c ? (NAMES[c.changed_by] || 'staff') : '',
                removed: REMOVED[p.id] ? 1 : 0, removedBy: REMOVED[p.id] ? (NAMES[REMOVED[p.id].removed_by] || 'staff') : '', removedAt: REMOVED[p.id] ? Date.parse(REMOVED[p.id].removed_at) : null };
     });
@@ -618,9 +718,12 @@
     }), pSort.key, pSort.dir);
     $('p-rows').innerHTML = rows.length ? rows.map(function (r) {
       return '<tr data-id="' + esc(r.id) + '"' + (r.edited ? ' class="edited"' : r.removed ? ' class="retired"' : '') + '>' +
-        '<td class="strong">' + esc(r.name) + (r.removed ? '<span class="tag">Removed</span>' : '') + '</td><td>' + esc(r.team) + '</td><td>' + esc(r.region) + '</td><td>' + esc(r.role) + '</td>' +
-        '<td class="num mono">' + r.base.toFixed(1) + '</td>' +
-        '<td class="num"><input type="number" inputmode="decimal" min="0" max="30" step="0.5" value="' + r.value.toFixed(1) + '" aria-label="' + esc(r.name) + ' price"' + (r.value !== r.base ? ' class="moved"' : '') + '></td>' +
+        '<td class="strong"><input class="cell' + (r.inf.name !== undefined ? ' moved' : '') + '" type="text" maxlength="40" data-f="name" value="' + esc(r.name) + '" aria-label="' + esc(r.name) + '\'s name">' + (r.removed ? '<span class="tag">Removed</span>' : '') + '</td>' +
+        '<td><input class="cell code' + (r.inf.team !== undefined ? ' moved' : '') + '" type="text" maxlength="8" list="team-codes" data-f="team" value="' + esc(r.team) + '" aria-label="' + esc(r.name) + '\'s team code"></td>' +
+        '<td><select class="cell' + (r.inf.region !== undefined ? ' moved' : '') + '" data-f="region" aria-label="' + esc(r.name) + '\'s region">' + ['NA', 'EMEA'].map(function (x) { return '<option' + (x === r.region ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select></td>' +
+        '<td><select class="cell' + (r.inf.role !== undefined ? ' moved' : '') + '" data-f="role" aria-label="' + esc(r.name) + '\'s role">' + ROLES.map(function (x) { return '<option value="' + x + '"' + (cap(x) === r.role ? ' selected' : '') + '>' + cap(x) + '</option>'; }).join('') + '</select></td>' +
+        '<td class="num"><input type="number" inputmode="decimal" min="0" max="30" step="0.5" data-f="base" value="' + (+r.base).toFixed(1) + '" aria-label="' + esc(r.name) + ' start price"' + (r.inf.base !== undefined ? ' class="moved"' : '') + '></td>' +
+        '<td class="num"><input type="number" inputmode="decimal" min="0" max="30" step="0.5" data-f="price" value="' + r.value.toFixed(1) + '" aria-label="' + esc(r.name) + ' price"' + (r.value !== BASE[r.id] ? ' class="moved"' : '') + '></td>' +
         '<td class="dim">' + (r.when ? esc(day(r.when)) + ' · ' + esc(r.by) : '—') + '</td>' +
         '<td>' + ((r.changed && !(r.edited && edits[r.id] === null)) || (r.edited && edits[r.id] !== null) ? '<button type="button" class="link" data-reset="' + esc(r.id) + '">Back to ' + r.base.toFixed(1) + '</button>' : '') + '</td>' +
         '<td>' + (storeBusy[r.id] ? '<span class="dim">Saving…</span>'
@@ -628,13 +731,28 @@
           : '<button type="button" class="link danger" data-store="remove" data-pid="' + esc(r.id) + '" aria-label="Remove ' + esc(r.name) + ' from the store">Remove</button>') + '</td></tr>';
     }).join('') : '<tr><td colspan="9" class="dim">No players match.</td></tr>';
     markSort($('p-table'), pSort);
-    var n = Object.keys(edits).length;
-    $('p-save').disabled = !n; $('p-undo').disabled = !n;
-    $('p-save').textContent = n ? 'Save ' + n + ' price' + (n === 1 ? '' : 's') : 'Save prices';
+    var n = Object.keys(edits).length, m = Object.keys(info).length;
+    $('p-save').disabled = !(n + m); $('p-undo').disabled = !(n + m);
+    $('p-save').textContent = n + m ? 'Save ' + (m ? m + ' player' + (m === 1 ? '' : 's') : '') + (m && n ? ' and ' : '') + (n ? n + ' price' + (n === 1 ? '' : 's') : '') : 'Save changes';
+    $('team-codes').innerHTML = teamList().filter(function (t) { return !t.retired; }).map(function (t) { return '<option value="' + esc(t.code) + '">' + esc(t.name) + '</option>'; }).join('');
   }
   function pSay(t, cls) { $('p-msg').textContent = t; $('p-msg').className = 'msg' + (cls ? ' ' + cls : ''); }
+  // Name, team, region, role and start price: kept as edits until Save (deck_players).
   $('p-rows').addEventListener('change', function (e) {
-    var inp = e.target.closest('input[type=number]'); if (!inp) return;
+    var el = e.target.closest('[data-f]'); if (!el || el.getAttribute('data-f') === 'price') return;
+    var id = el.closest('tr').getAttribute('data-id'), k = el.getAttribute('data-f'), p = BY_ID[id], v = el.value.trim(), was;
+    if (k === 'name') { if (!v) { pSay('A player needs a name.', 'err'); el.value = p.name; return; } was = p.name; }
+    if (k === 'team') { v = v.replace(/\s+/g, ''); if (!/^[A-Za-z0-9]{1,8}$/.test(v)) { pSay('Team codes are 1 to 8 letters or numbers, as on PCMT.gg.', 'err'); el.value = p.team; return; } was = p.team; }
+    if (k === 'region') was = regionOf(p);
+    if (k === 'role') was = role(p);
+    if (k === 'base') { var n = +v; if (v === '' || !(n >= 0 && n <= 30) || Math.round(n * 2) !== n * 2) { pSay('Prices go from 0 to 30 in steps of 0.5.', 'err'); el.value = (+BASE[id]).toFixed(1); return; } v = n; was = BASE[id]; }
+    var inf = Object.assign({}, info[id]);
+    if (v === was) delete inf[k]; else inf[k] = v;
+    if (Object.keys(inf).length) info[id] = inf; else delete info[id];
+    pSay(''); drawPrices();
+  });
+  $('p-rows').addEventListener('change', function (e) {
+    var inp = e.target.closest('input[data-f="price"]'); if (!inp) return;
     var id = inp.closest('tr').getAttribute('data-id'), v = inp.value.trim(), n = +v;
     if (v === '' || !(n >= 0 && n <= 30) || Math.round(n * 2) !== n * 2) { pSay('Prices go from 0 to 30 in steps of 0.5.', 'err'); inp.value = current(id).toFixed(1); return; }
     if (n === current(id)) delete edits[id]; else edits[id] = n === BASE[id] && current(id) !== BASE[id] ? null : n;
@@ -663,15 +781,67 @@
   // Search boxes redraw as you type; not again when they lose focus, or a click on a row button would be lost mid-redraw.
   ['p-search', 'p-region', 'p-changed', 'p-removed'].forEach(function (id) { $(id).addEventListener($(id).type === 'search' ? 'input' : 'change', drawPrices); });
   wireSort($('p-table'), pSort, drawPrices);
-  $('p-undo').addEventListener('click', function () { edits = {}; pSay(''); drawPrices(); });
+  $('p-undo').addEventListener('click', function () { edits = {}; info = {}; pSay(''); drawPrices(); });
+  // One player as a deck_players row (the full row: the server keeps whole players, not single fields).
+  function deckRow(p, inf) {
+    inf = inf || {};
+    var team = inf.team !== undefined ? inf.team : p.team, t = teamOf(team), reg = inf.region !== undefined ? inf.region : regionOf(p);
+    return { id: p.id, name: inf.name !== undefined ? inf.name : p.name, team: team, role: inf.role !== undefined ? inf.role : role(p),
+             region: t && t.region === reg ? null : reg, price: inf.base !== undefined ? inf.base : BASE[p.id] };
+  }
+  // Saved rows go into this page's own lists too, so the table shows them straight away.
+  function applyRow(d) {
+    DECK_ROWS[d.id] = d;
+    var p = BY_ID[d.id];
+    if (!p) { p = { id: d.id }; ALL_PLAYERS.push(p); BY_ID[d.id] = p; }
+    p.name = d.name; p.team = d.team; p.role = d.role; p.price = +d.price;
+    if (d.region) p.regions = [d.region]; else delete p.regions;
+    BASE[d.id] = +d.price;
+  }
+  function saveRows(rows) {
+    if (!rows.length) return Promise.resolve();
+    return L.api('/rest/v1/deck_players?on_conflict=id', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: rows })
+      .then(function () { rows.forEach(applyRow); });
+  }
   $('p-save').addEventListener('click', function () {
     var body = Object.keys(edits).map(function (id) { return { player: id, price: edits[id] }; });
-    if (!body.length) return;
+    var rows = Object.keys(info).map(function (id) { return deckRow(BY_ID[id], info[id]); });
+    if (!body.length && !rows.length) return;
     $('p-save').disabled = true; pSay('Saving…');
-    L.api('/rest/v1/player_price_changes', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: body })
-      .then(function () { return loadPrices(); })
-      .then(function () { edits = {}; drawPrices(); pSay('Saved ' + body.length + ' price' + (body.length === 1 ? '' : 's') + '. The site uses them from the next page load.', 'ok'); })
-      .catch(function (e) { $('p-save').disabled = false; pSay('Couldn\'t save: ' + e.message, 'err'); });
+    saveRows(rows).then(function () {
+      info = {};
+      if (!body.length) return;
+      return L.api('/rest/v1/player_price_changes', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: body })
+        .then(function () { return loadPrices(); }).then(function () { edits = {}; });
+    }).then(function () {
+      drawPrices(); drawTeams();
+      pSay('Saved' + (rows.length ? ' ' + rows.length + ' player' + (rows.length === 1 ? '' : 's') : '') + (rows.length && body.length ? ' and' : '') + (body.length ? ' ' + body.length + ' price' + (body.length === 1 ? '' : 's') : '') + '. The site uses them from the next page load.', 'ok');
+    }).catch(function (e) { drawPrices(); pSay('Couldn\'t save: ' + e.message + (/deck_players/.test(e.message) ? ' (run setup/deck-edits-setup.sql in Supabase)' : ''), 'err'); });
+  });
+  // A new player's id: their name in lower case plus the team's season or region ("night-s4"), never one already used.
+  function newId(name, team) {
+    var t = teamOf(team), base = String(name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 30) || 'player';
+    var tail = t && t.season ? t.season.toLowerCase() : (t && t.region === 'EMEA' ? 'emea' : team.toLowerCase());
+    var id = (base + '-' + tail).replace(/[^a-z0-9-]/g, '').slice(0, 40), n = 2;
+    while (BY_ID[id]) id = (base + '-' + tail).slice(0, 36) + '-' + n++;
+    return id;
+  }
+  $('pa-team').addEventListener('change', function () { var t = teamOf($('pa-team').value.trim()); if (t) $('pa-region').value = ''; });
+  $('pa-go').addEventListener('click', function () {
+    var name = $('pa-name').value.trim(), team = $('pa-team').value.replace(/\s+/g, ''), price = +$('pa-price').value, reg = $('pa-region').value || null;
+    if (!name) return pSay('Give the new player a name.', 'err');
+    if (!/^[A-Za-z0-9]{1,8}$/.test(team)) return pSay('Give the new player a team code (1 to 8 letters or numbers, as on PCMT.gg).', 'err');
+    if (!(price >= 0 && price <= 30) || Math.round(price * 2) !== price * 2) return pSay('Prices go from 0 to 30 in steps of 0.5.', 'err');
+    var dupe = ALL_PLAYERS.filter(function (p) { return p.team === team && p.name.toLowerCase() === name.toLowerCase(); })[0];
+    if (dupe) return pSay(name + ' is already on ' + team + '.', 'err');
+    var t = teamOf(team);
+    if (!t && !reg) return pSay(team + ' isn\'t a team yet: pick the region, or add the team on the Teams tab first.', 'err');
+    var row = { id: newId(name, team), name: name, team: team, role: $('pa-role').value, region: t && t.region === reg ? null : reg, price: price };
+    $('pa-go').disabled = true; pSay('Adding ' + name + '…');
+    saveRows([row]).then(function () {
+      $('pa-name').value = ''; drawPrices(); drawTeams();
+      pSay(name + ' is added to ' + team + '. The Deck\'s store shows them from the next page load.', 'ok');
+    }, function (e) { pSay('Couldn\'t add ' + name + ': ' + e.message, 'err'); }).then(function () { $('pa-go').disabled = false; });
   });
   $('p-csv').addEventListener('click', function () {
     csv('pcmt-player-prices.csv', ['Player', 'Player id', 'Team', 'Region', 'Role', 'Start price', 'Price', 'Last change', 'Changed by', 'In the store'],
@@ -686,7 +856,262 @@
     return L.apiAll('/rest/v1/player_price_changes?select=player,price,changed_at,changed_by&order=changed_at.asc,id.asc')
       .then(function (r) { LOG = r || []; });
   }
-  window.addEventListener('beforeunload', function (e) { if (Object.keys(edits).length || multiDirty) { e.preventDefault(); e.returnValue = ''; } });
+  window.addEventListener('beforeunload', function (e) { if (Object.keys(edits).length || Object.keys(info).length || tmDirty || multiDirty) { e.preventDefault(); e.returnValue = ''; } });
+  var ROLES = ['duelist', 'initiator', 'controller', 'sentinel'];
+  function loadDeck() {
+    return Promise.all([
+      L.apiAll('/rest/v1/deck_teams?select=code,name,color,region,season,logo,retired&order=code').then(function (r) { DECK_TEAMS = {}; (r || []).forEach(function (t) { DECK_TEAMS[t.code] = t; }); }, function () {}),
+      L.apiAll('/rest/v1/deck_players?select=id,name,team,region,role,price&order=id').then(function (r) { DECK_ROWS = {}; (r || []).forEach(function (d) { DECK_ROWS[d.id] = d; }); }, function () {})
+    ]);
+  }
+
+  // ---------- Teams (The Deck's teams: code, name, region, logo, players and roles) ----------
+  // A team is saved to deck_teams, its players to deck_players (setup/deck-edits-setup.sql). Players already on the
+  // site (same team and name) keep their id, so their points and decks carry on; new names become new players.
+  var tm = null, tmDirty = false, tmBusy = false;   // tm: the team in the form { code, name, region, season, color, logo, retired, players: [{ id, name, role, price }] }
+  var AGENT_ROLE = {
+    jett: 'duelist', reyna: 'duelist', raze: 'duelist', phoenix: 'duelist', yoru: 'duelist', neon: 'duelist', iso: 'duelist', waylay: 'duelist',
+    sova: 'initiator', breach: 'initiator', skye: 'initiator', kayo: 'initiator', fade: 'initiator', gekko: 'initiator', tejo: 'initiator',
+    brimstone: 'controller', viper: 'controller', omen: 'controller', astra: 'controller', harbor: 'controller', clove: 'controller',
+    killjoy: 'sentinel', cypher: 'sentinel', sage: 'sentinel', chamber: 'sentinel', deadlock: 'sentinel', vyse: 'sentinel', veto: 'sentinel'
+  };
+  function tmSay(t, cls) { $('tm-msg').textContent = t; $('tm-msg').className = 'msg' + (cls ? ' ' + cls : ''); }
+  function imSay(t, cls) { $('im-msg').textContent = t; $('im-msg').className = 'msg' + (cls ? ' ' + cls : ''); }
+  function blankTeam() { return { code: '', name: '', region: 'NA', season: '', color: '#a5dcdd', logo: '', retired: false, players: [], isNew: true }; }
+  function deckTeamPlayers(code) {
+    return ALL_PLAYERS.filter(function (p) { return p.team === code; })
+      .map(function (p) { return { id: p.id, name: p.name, role: role(p), price: BASE[p.id] != null ? +BASE[p.id] : +p.price }; });
+  }
+  function editTeam(code) {
+    var t = teamOf(code);
+    tm = { code: t.code, name: t.name || '', region: t.region || 'NA', season: t.season || '', color: t.color || '#a5dcdd', logo: t.logo || '', retired: !!t.retired, players: deckTeamPlayers(t.code), isNew: false };
+    tmDirty = false; drawForm(); tmSay('');
+    $('tm-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  function logoSrc(u) { return !u ? '' : /^(data:|https?:|assets\/)/.test(u) ? u : u; }
+  function drawLogo() {
+    $('tm-logo-box').innerHTML = tm.logo ? '<img src="' + esc(logoSrc(tm.logo)) + '" alt="">' : '<span class="dim">Logo</span>';
+  }
+  function drawForm() {
+    $('tm-title').textContent = tm.isNew ? (tm.code ? 'New team: ' + tm.code : 'New team') : 'Edit ' + tm.code;
+    $('tm-code').value = tm.code; $('tm-code').readOnly = !tm.isNew;
+    $('tm-name').value = tm.name; $('tm-region').value = tm.region; $('tm-season').value = tm.season;
+    $('tm-color').value = /^#[0-9a-fA-F]{6}$/.test(tm.color) ? tm.color : '#a5dcdd';
+    $('tm-retired').checked = tm.retired;
+    $('tm-logo').value = /^data:/.test(tm.logo) ? '' : tm.logo; $('tm-logo').placeholder = /^data:/.test(tm.logo) ? 'Uploaded picture' : 'https://pcmt.gg/icons/…';
+    drawLogo(); drawRows();
+  }
+  function drawRows() {
+    $('tm-rows').innerHTML = tm.players.length ? tm.players.map(function (p, i) {
+      var on = p.id && BY_ID[p.id];
+      return '<tr data-i="' + i + '"><td><input class="cell" type="text" maxlength="40" data-k="name" value="' + esc(p.name) + '" aria-label="Player ' + (i + 1) + ' name"></td>' +
+        '<td><select class="cell" data-k="role" aria-label="' + esc(p.name || 'Player ' + (i + 1)) + '\'s role">' + ROLES.map(function (r) { return '<option value="' + r + '"' + (r === p.role ? ' selected' : '') + '>' + cap(r) + '</option>'; }).join('') + '</select></td>' +
+        '<td class="num"><input type="number" inputmode="decimal" min="0" max="30" step="0.5" data-k="price" value="' + (+p.price).toFixed(1) + '" aria-label="' + esc(p.name || 'Player ' + (i + 1)) + ' start price"></td>' +
+        '<td class="dim">' + (on ? 'Yes · ' + esc(p.id) : p.matched ? 'Yes, from ' + esc(p.matched) : 'New') + (p.note ? ' · ' + esc(p.note) : '') + '</td>' +
+        '<td>' + (on ? '' : '<button type="button" class="link danger" data-del="' + i + '">Remove</button>') + '</td></tr>';
+    }).join('') : '<tr><td colspan="5" class="dim">No players yet. Add them below, or import the team from PCMT.gg.</td></tr>';
+  }
+  function drawTeams() {
+    var all = $('tm-show-retired').checked;
+    var list = teamList().filter(function (t) { return all || !t.retired; })
+      .sort(function (a, b) { return (a.retired ? 1 : 0) - (b.retired ? 1 : 0) || String(a.region).localeCompare(String(b.region)) || String(a.code).localeCompare(String(b.code), undefined, { numeric: true }); });
+    $('tm-list').innerHTML = list.map(function (t) {
+      var n = ALL_PLAYERS.filter(function (p) { return p.team === t.code; }).length;
+      return '<li class="tm-item"><span class="tm-logo">' + (t.logo ? '<img src="' + esc(logoSrc(t.logo)) + '" alt="">' : '') + '</span>' +
+        '<span class="tm-main"><b><span class="tm-swatch" style="background:' + esc(t.color || '#a5dcdd') + '"></span>' + esc(t.code) + ' · ' + esc(t.name || '') + '</b>' +
+        '<span class="dim">' + esc(t.region || 'NA') + (t.season ? ' · ' + esc(t.season) : '') + ' · ' + n + ' player' + (n === 1 ? '' : 's') + (t.retired ? ' · retired' : '') + (t.saved ? ' · edited here' : '') + '</span></span>' +
+        '<button type="button" class="link" data-edit="' + esc(t.code) + '">Edit</button></li>';
+    }).join('') || '<li class="dim">No teams.</li>';
+  }
+  function setupTeams() {
+    tm = blankTeam(); drawForm(); drawTeams(); loadEvents();
+  }
+  // Form fields
+  ['tm-code', 'tm-name', 'tm-region', 'tm-season', 'tm-color', 'tm-retired', 'tm-logo'].forEach(function (id) {
+    $(id).addEventListener('change', function () {
+      var el = $(id);
+      if (id === 'tm-code') tm.code = el.value.replace(/\s+/g, '');
+      if (id === 'tm-name') tm.name = el.value.trim();
+      if (id === 'tm-region') tm.region = el.value;
+      if (id === 'tm-season') tm.season = el.value.trim().toUpperCase();
+      if (id === 'tm-color') tm.color = el.value;
+      if (id === 'tm-retired') tm.retired = el.checked;
+      if (id === 'tm-logo') { tm.logo = el.value.trim(); drawLogo(); }
+      tmDirty = true; if (id === 'tm-code') $('tm-title').textContent = 'New team: ' + tm.code;
+    });
+  });
+  // An uploaded logo is shrunk to 256 px and kept with the team (as a data: URL).
+  $('tm-logo-file').addEventListener('change', function () {
+    var f = this.files && this.files[0]; if (!f) return;
+    var img = new Image(), url = URL.createObjectURL(f);
+    img.onload = function () {
+      var k = Math.min(1, 256 / Math.max(img.width, img.height)), c = document.createElement('canvas');
+      c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      tm.logo = c.toDataURL('image/webp', 0.9); if (tm.logo.indexOf('data:image/webp') !== 0) tm.logo = c.toDataURL('image/png');
+      URL.revokeObjectURL(url); tmDirty = true; drawForm();
+      if (tm.logo.length > 400000) tmSay('That picture is too big. Try a smaller one.', 'err');
+    };
+    img.onerror = function () { tmSay('That file isn\'t a picture this browser can read.', 'err'); };
+    img.src = url;
+  });
+  $('tm-rows').addEventListener('change', function (e) {
+    var el = e.target.closest('[data-k]'); if (!el) return;
+    var p = tm.players[+el.closest('tr').getAttribute('data-i')], k = el.getAttribute('data-k');
+    if (k === 'price') { var n = +el.value; if (!(n >= 0 && n <= 30) || Math.round(n * 2) !== n * 2) { tmSay('Prices go from 0 to 30 in steps of 0.5.', 'err'); el.value = (+p.price).toFixed(1); return; } p.price = n; }
+    else p[k] = el.value.trim();
+    tmDirty = true;
+  });
+  $('tm-rows').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-del]'); if (!b) return;
+    tm.players.splice(+b.getAttribute('data-del'), 1); tmDirty = true; drawRows();
+  });
+  $('tm-addrow').addEventListener('click', function () { tm.players.push({ id: null, name: '', role: 'duelist', price: 8 }); tmDirty = true; drawRows(); var r = $('tm-rows').querySelectorAll('input[data-k="name"]'); if (r.length) r[r.length - 1].focus(); });
+  $('tm-new').addEventListener('click', function () {
+    if (tmDirty && !window.confirm('Drop the unsaved changes to this team?')) return;
+    tm = blankTeam(); tmDirty = false; drawForm(); tmSay('');
+  });
+  $('tm-list').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-edit]'); if (!b) return;
+    if (tmDirty && !window.confirm('Drop the unsaved changes to ' + (tm.code || 'this team') + '?')) return;
+    editTeam(b.getAttribute('data-edit'));
+  });
+  $('tm-show-retired').addEventListener('change', drawTeams);
+  $('tm-save').addEventListener('click', function () {
+    if (tmBusy) return;
+    var code = tm.code;
+    if (!/^[A-Za-z0-9]{1,8}$/.test(code)) return tmSay('The code is 1 to 8 letters or numbers, the same as the team\'s code on PCMT.gg.', 'err');
+    if (!tm.name) return tmSay('Give the team a name.', 'err');
+    if (tm.isNew && teamOf(code)) return tmSay(code + ' is already a team. Edit it from the list below.', 'err');
+    if (tm.logo && tm.logo.length > 400000) return tmSay('The logo is too big. Use a smaller picture or a link.', 'err');
+    var names = {}, rows = [], bad = '';
+    tm.players.forEach(function (p) {
+      if (!p.name) return;
+      var k = p.name.toLowerCase(); if (names[k]) bad = p.name; names[k] = true;
+      // Same name already on this team (or the player matched on import): keep their id.
+      var id = p.id || (ALL_PLAYERS.filter(function (q) { return q.team === code && q.name.toLowerCase() === k; })[0] || {}).id || null;
+      rows.push({ p: p, id: id });
+    });
+    if (bad) return tmSay(bad + ' is on the team twice.', 'err');
+    var team = { code: code, name: tm.name, color: tm.color, region: tm.region, season: tm.season || null, logo: tm.logo || null, retired: tm.retired };
+    tmBusy = true; $('tm-save').disabled = true; tmSay('Saving ' + code + '…');
+    var pending = {};   // ids handed out in this save, so two new players can't get the same one
+    var players = rows.map(function (r) {
+      var id = r.id;
+      if (!id) { id = newIdFor(r.p.name, code, team, pending); pending[id] = true; }
+      var base = BY_ID[id];
+      var reg = base && base.regions ? base.regions[0] : null;
+      return { id: id, name: r.p.name, team: code, role: r.p.role, region: reg && reg !== tm.region ? reg : null, price: +r.p.price };
+    });
+    L.api('/rest/v1/deck_teams?on_conflict=code', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: [team] })
+      .then(function () { DECK_TEAMS[code] = team; return saveRows(players); })
+      .then(function () {
+        tmDirty = false; editTeam(code); drawTeams(); drawPrices();
+        tmSay('Saved ' + code + ' with ' + players.length + ' player' + (players.length === 1 ? '' : 's') + '. The site shows them from the next page load.', 'ok');
+      }, function (e) { tmSay('Couldn\'t save ' + code + ': ' + e.message + (/deck_/.test(e.message) ? ' (run setup/deck-edits-setup.sql in Supabase)' : ''), 'err'); })
+      .then(function () { tmBusy = false; $('tm-save').disabled = false; });
+  });
+  function newIdFor(name, code, team, pending) {
+    var base = String(name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 30) || 'player';
+    var tail = team.season ? team.season.toLowerCase() : team.region === 'EMEA' ? 'emea' : code.toLowerCase();
+    var id = (base + '-' + tail).replace(/[^a-z0-9-]/g, '').slice(0, 40), n = 2;
+    while (BY_ID[id] || pending[id]) id = (base + '-' + tail).slice(0, 36) + '-' + n++;
+    return id;
+  }
+
+  // ---------- Import from PCMT.gg (read on the server: pcmt_fetch, staff only) ----------
+  function pcmt(path) { return L.api('/rest/v1/rpc/pcmt_fetch', { method: 'POST', body: { p_path: path } }); }
+  function unhtml(t) { var a = document.createElement('textarea'); a.innerHTML = t; return a.value; }
+  // Astro's island props: { key: [0, value] } with arrays as [1, [...]].
+  function astro(v) {
+    if (Array.isArray(v) && v.length === 2 && typeof v[0] === 'number') {
+      if (v[0] === 1) return (v[1] || []).map(astro);
+      if (v[0] === 0 && v[1] && typeof v[1] === 'object' && !Array.isArray(v[1])) { var o = {}; Object.keys(v[1]).forEach(function (k) { o[k] = astro(v[1][k]); }); return o; }
+      return v[1];
+    }
+    return v;
+  }
+  function islandProps(html, comp) {
+    var m = html.match(new RegExp('component-url="/_astro/' + comp + '[^"]*"[^>]*props="([^"]*)"'));
+    if (!m) return null;
+    var raw = JSON.parse(unhtml(m[1])), o = {};
+    Object.keys(raw).forEach(function (k) { o[k] = astro(raw[k]); });
+    return o;
+  }
+  var EVENTS = [];
+  function loadEvents() {
+    pcmt('/api/matches.json').then(function (list) {
+      EVENTS = (JSON.parse(list) || []).filter(function (e) { return !e.showmatch; }).sort(function (a, b) { return (b.season - a.season) || String(a.region).localeCompare(String(b.region)); });
+      $('im-event').innerHTML = '<option value="">Pick an event</option>' + EVENTS.map(function (e) { return '<option value="' + esc(e.id) + '">' + esc(e.name) + (e.status ? ' (' + esc(e.status) + ')' : '') + '</option>'; }).join('');
+    }).catch(function (e) {
+      $('im-event').innerHTML = '<option value="">Couldn\'t load events</option>';
+      imSay('Couldn\'t read PCMT.gg: ' + e.message + (/pcmt_fetch/.test(e.message) ? ' (run setup/deck-edits-setup.sql in Supabase)' : ''), 'err');
+    });
+  }
+  $('im-load').addEventListener('click', function () {
+    var ev = ($('im-event-id').value.trim() || $('im-event').value).toLowerCase();
+    if (!/^[a-z0-9-]+$/.test(ev)) return imSay('Pick an event, or type its id (like s4-na).', 'err');
+    imSay('Reading ' + ev + ' on PCMT.gg…'); $('im-teams').innerHTML = '';
+    pcmt('/events/' + ev).then(function (html) {
+      var seen = {}, teams = [], re = new RegExp('href="/events/' + ev + '/teams/([a-z0-9-]+)"[^>]*>([^<]+)</a>', 'g'), m;
+      while ((m = re.exec(html))) if (!seen[m[1]]) { seen[m[1]] = true; teams.push({ slug: m[1], name: unhtml(m[2]).trim() }); }
+      if (!teams.length) return imSay('No teams listed for ' + ev + ' on PCMT.gg yet.', 'err');
+      $('im-teams').innerHTML = teams.map(function (t) { return '<li><button class="btn ghost" type="button" data-ev="' + esc(ev) + '" data-slug="' + esc(t.slug) + '">' + esc(t.name) + '</button></li>'; }).join('');
+      imSay(teams.length + ' teams in ' + ev + '. Pick one to import it into the form below.');
+    }).catch(function (e) { imSay('Couldn\'t read ' + ev + ' on PCMT.gg: ' + e.message, 'err'); });
+  });
+  $('im-teams').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-slug]'); if (!b || tmBusy) return;
+    if (tmDirty && !window.confirm('Replace the unsaved team in the form with this import?')) return;
+    importTeam(b.getAttribute('data-ev'), b.getAttribute('data-slug'));
+  });
+  // Most played agent on PCMT.gg (the Agents table on the player's page, by maps) gives the role.
+  function roleFromPage(html) {
+    var re = /<img src="\/agents\/([A-Za-z_\/%-]+)_icon\.png"[^>]*\/?>\s*([^<]+)<\/div><\/td>([\s\S]*?)<\/tr>/g, m, best = null;
+    while ((m = re.exec(html))) {
+      var maps = (m[3].match(/\((\d+)\)/) || [])[1];
+      var key = String(m[2]).toLowerCase().replace(/[^a-z]/g, '');
+      if (maps != null && AGENT_ROLE[key] && (!best || +maps > best.maps)) best = { agent: m[2].trim(), maps: +maps, role: AGENT_ROLE[key] };
+    }
+    return best;
+  }
+  function importTeam(ev, slug) {
+    tmBusy = true; imSay('Importing ' + slug + ' from PCMT.gg…');
+    pcmt('/events/' + ev + '/teams/' + slug).then(function (html) {
+      var p = islandProps(html, 'TeamPage') || {}, t = p.team || {}, evInfo = p.event || {};
+      if (!t.name) throw new Error('the team page didn\'t have the team in it');
+      // Roster links on the page: name -> player page slug
+      var links = {}, re = /href="\/players\/([^"]+)">([^<]+)<\/a>/g, m;
+      var part = html.slice(html.indexOf('Current Roster'));
+      while ((m = re.exec(part))) links[unhtml(m[2]).trim().toLowerCase()] = m[1];
+      var code = String(t.abbr || '').replace(/\s+/g, ''), region = String(evInfo.region || (ev.indexOf('emea') >= 0 ? 'emea' : 'na')).toUpperCase() === 'EMEA' ? 'EMEA' : 'NA';
+      var existing = teamOf(code);
+      tm = { code: code, name: t.name, region: region, season: evInfo.season ? 'S' + evInfo.season : (existing && existing.season) || '', color: (existing && existing.color) || '#a5dcdd',
+             logo: t.logo ? 'https://pcmt.gg' + encodeURI(t.logo) : (existing && existing.logo) || '', retired: false, players: [], isNew: !existing };
+      var current = existing ? deckTeamPlayers(code) : [];
+      return Promise.all((t.players || []).map(function (name) {
+        var row = { id: null, name: name, role: 'duelist', price: 8, note: '' };
+        var same = current.filter(function (q) { return q.name.toLowerCase() === name.toLowerCase(); })[0];
+        if (same) { row.id = same.id; row.price = same.price; row.role = same.role; }
+        else {   // the same person on another team this season (moved teams): offer their price
+          var else_ = ALL_PLAYERS.filter(function (q) { return q.name.toLowerCase() === name.toLowerCase() && !retiredTeam(q.team); })[0];
+          if (else_) { row.price = BASE[else_.id] != null ? +BASE[else_.id] : +else_.price; row.matched = else_.team; }
+        }
+        var link = links[name.toLowerCase()];
+        if (!link) { row.note = 'role not found'; return row; }
+        return pcmt('/players/' + link).then(function (ph) {
+          var best = roleFromPage(ph);
+          if (best) { row.role = best.role; row.note = 'plays ' + best.agent + ' most'; } else row.note = 'role not found';
+          return row;
+        }, function () { row.note = 'role not found'; return row; });
+      })).then(function (rows) {
+        tm.players = rows; tmDirty = true; drawForm();
+        imSay('Imported ' + t.name + ' (' + code + ') with ' + rows.length + ' players. Check the roles and prices, then press Save team.', 'ok');
+        $('tm-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }).catch(function (e) { imSay('Couldn\'t import ' + slug + ': ' + e.message, 'err'); })
+      .then(function () { tmBusy = false; });
+  }
 
   // ---------- cards ----------
   var COUNTS = {}, cSort = { key: 'rarity', dir: 1 }, RANK = { legendary: 0, epic: 1, rare: 2, common: 3 };
@@ -761,7 +1186,7 @@
   }
   function teamPlayers(s, team) {
     var ids = s.result ? Object.keys(s.result.stats || {}).filter(function (id) { return BY_ID[id] && BY_ID[id].team === team; }) : [];
-    if (!ids.length) ids = PLAYERS.filter(function (p) { return p.team === team; }).map(function (p) { return p.id; });
+    if (!ids.length) ids = PLAYERS_NOW().filter(function (p) { return p.team === team; }).map(function (p) { return p.id; });
     return ids;
   }
   function drawMulti() {
@@ -1042,7 +1467,7 @@
       have[n] = true;
       out.push({ value: n, label: n, meta: 'played in ' + seen[n].map(sbSeries).join(', ') });
     });
-    PLAYERS.forEach(function (p) {
+    PLAYERS_NOW().forEach(function (p) {
       var n = p.name.toLowerCase();
       if (have[n] || (q && n.indexOf(q) < 0 && p.id.indexOf(q) < 0)) return;
       have[n] = true;
@@ -1055,8 +1480,8 @@
     q = q.trim().toLowerCase();
     var where = sbPick.sub ? (sbSeen()[sbPick.sub] || []) : [], first = {};
     // Listed players of the teams in the series the sub played in, who sat it out, come first.
-    where.forEach(function (r) { PLAYERS.forEach(function (p) { if ((p.team === r.a || p.team === r.b) && !(p.id in (r.stats || {}))) first[p.id] = r; }); });
-    return PLAYERS.filter(function (p) { return !q || p.name.toLowerCase().indexOf(q) >= 0 || p.id.indexOf(q) >= 0 || p.team.toLowerCase() === q; })
+    where.forEach(function (r) { PLAYERS_NOW().forEach(function (p) { if ((p.team === r.a || p.team === r.b) && !(p.id in (r.stats || {}))) first[p.id] = r; }); });
+    return PLAYERS_NOW().filter(function (p) { return !q || p.name.toLowerCase().indexOf(q) >= 0 || p.id.indexOf(q) >= 0 || p.team.toLowerCase() === q; })
       .sort(function (a, b) { return (first[b.id] ? 1 : 0) - (first[a.id] ? 1 : 0) || a.name.toLowerCase().localeCompare(b.name.toLowerCase()); })
       .slice(0, 40).map(function (p) { return { value: p.id, label: p.name, meta: p.team + ' · ' + p.role + (first[p.id] ? ' · sat out ' + sbSeries(first[p.id]) : '') }; });
   }
@@ -1092,7 +1517,7 @@
     if (!s || !p) { el.textContent = ''; return; }
     var b = sbWeekFor(s, id), iso = new Date(b).toISOString();
     $('sb-week').textContent = 'Gameweek ' + sbWeekLabel(b) + ' · ' + sbStatus(b) + '.';
-    if (PLAYERS.some(function (q) { return q.team === p.team && q.name.toLowerCase() === s; })) { el.innerHTML = '<span style="color: var(--bad)">' + esc(s) + ' is listed on ' + esc(p.team) + ', so they already score their own points.</span>'; return; }
+    if (PLAYERS_NOW().some(function (q) { return q.team === p.team && q.name.toLowerCase() === s; })) { el.innerHTML = '<span style="color: var(--bad)">' + esc(s) + ' is listed on ' + esc(p.team) + ', so they already score their own points.</span>'; return; }
     if (SUBS.some(function (r) { return r.sub === s && r.player === id && sbWk(r) === b; })) { el.textContent = 'That sub is already in the list for this gameweek.'; return; }
     var copy = JSON.parse(JSON.stringify(sbResults())), hit = L.applySubs([{ sub: s, player: id, week: iso }], copy);
     el.innerHTML = hit.length ? '<span class="sb-on">' + esc(p.name) + ' gets ' + esc(s) + '\'s points in ' + esc(hit.map(sbSeries).join(', ')) + '.</span>'
@@ -1123,7 +1548,7 @@
     e.preventDefault();
     var s = sbPick.sub, id = sbPick.player, p = BY_ID[id];
     if (!s || !p || sbBusy) return;
-    if (PLAYERS.some(function (q) { return q.team === p.team && q.name.toLowerCase() === s; })) return;
+    if (PLAYERS_NOW().some(function (q) { return q.team === p.team && q.name.toLowerCase() === s; })) return;
     var wk = new Date(sbWeekFor(s, id)).toISOString();
     if (SUBS.some(function (r) { return r.sub === s && r.player === id && sbWk(r) === Date.parse(wk); })) return;
     sbBusy = true; drawSubs();
@@ -1483,12 +1908,12 @@
       if (ok !== true) return show('st-nostaff');
       return Promise.all([
         L.apiAll('/rest/v1/profiles?select=id,name&order=id').then(function (r) { (r || []).forEach(function (p) { NAMES[p.id] = p.name; }); }).catch(function () {}),
-        loadPrices(), loadRemoved(), loadCards(), loadComplaints(), loadPages(), loadSubs(), loadNotes(), loadVersion()
+        loadPrices(), loadRemoved(), loadCards(), loadDeck(), loadComplaints(), loadPages(), loadSubs(), loadNotes(), loadVersion()
       ]).then(function () {
         show('st-staff');
         var h = (location.hash || '').slice(1);
         openTab(TABS.indexOf(h) >= 0 ? h : 'pages');
-        drawPages(); drawPrices(); drawCards(); drawRares(); drawPacks(); setupMulti(); drawSubs(); drawNotes(); setupChamps(); drawComplaints();
+        drawPages(); drawPrices(); setupTeams(); drawCards(); drawRares(); drawPacks(); setupMulti(); drawSubs(); drawNotes(); setupChamps(); drawComplaints();
       });
     }).catch(function (e) { show('st-staff'); $('p-msg').textContent = 'Something went wrong loading the backend: ' + e.message; $('p-msg').className = 'msg err'; });
   }
