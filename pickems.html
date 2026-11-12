@@ -211,10 +211,9 @@ function pcmtBracketLockAt(b, ev) {
   b.series.forEach(function (s) { if (!s.score && s.start) { var v = Date.parse(s.start); if (t === null || v < t) t = v; } });
   return t === null ? null : t - 6 * 3600000;
 }
-// Standings views under the picks: this event's standings, or a region's "niche" (every Pick'ems event of that region,
-// one point per right pick; window.PCMT_NICHE from league.js).
+// Standings under the picks: a region's "niche" (every Pick'ems event of that region, one point per right pick;
+// window.PCMT_NICHE from league.js). Opens on the region of the tab you're on until you pick one.
 var PCMT_PICKEM_BOARDS = [
-  { id: 'event', label: 'Leaderboard' },
   { id: 'NA', label: 'NA niche', logo: 'assets/c265e976f8968e60e4a2bdd32542b499.png' },
   { id: 'EMEA', label: 'EMEA niche', logo: 'assets/3c7e7374dceead68d5c58818d0bcfe8a.png' }
 ];
@@ -249,7 +248,7 @@ class Component extends DCLogic {
     });
     var view = PCMT_PICKEMS_DATA[0].id;
     try { var v = window.localStorage.getItem('pcmt-pickems-view'); if (v === 'na-s4-soon') v = 'na-s4'; if (v && PCMT_PICKEMS_DATA.some(function (b) { return b.id === v; })) view = v; } catch (e) {}
-    var board = 'event';
+    var board = null;
     try { var bv = window.localStorage.getItem('pcmt-pickems-board'); if (PCMT_PICKEM_BOARDS.some(function (x) { return x.id === bv; })) board = bv; } catch (e) {}
     this.state = { view: view, picksBy: picksBy, savedBy: savedBy, saving: false, search: '', board: board };
   }
@@ -507,7 +506,7 @@ class Component extends DCLogic {
       }) };
     });
     // Standings, styled like the Leaderboard: gold #1, silver and bronze ranks, your row pinned when a search hides it.
-    var board = this.state.board || 'event', niche = board !== 'event';
+    var board = this.state.board || (b.region === 'EMEA' ? 'EMEA' : 'NA'), niche = true;
     var data = (niche ? (live ? (W.PCMT_NICHE || {})[board] || [] : pcmtSampleNiche(board)) : (W.PCMT_PICKEM_STANDINGS || {})[b.id] || []).slice().sort(function (x, y) { return y.points - x.points || String(x.name).localeCompare(String(y.name)); });
     var rank = 0, prev = null;
     var ranked = data.map(function (r, i) {
