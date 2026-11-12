@@ -598,22 +598,41 @@ AUTHENTIC
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"lockPreview":{"editor":"enum","options":["Live","Open","Locked"],"default":"Live","section":"Preview"},"samplePoints":{"editor":"boolean","default":false,"section":"Preview"},"auraPreview":{"editor":"enum","options":["Live","On","Off"],"default":"Live","section":"Preview","label":"Champion's Aura"},"budget":{"editor":"float","default":100,"min":50,"max":300,"step":0.5,"unit":"cr","section":"Rules"},"teamLimit":{"editor":"int","default":2,"min":1,"max":5,"section":"Rules"},"mvpPlayer":{"editor":"text","default":"","section":"Preview"},"mvpWeek":{"editor":"int","default":1,"min":1,"max":20,"section":"Preview"},"topPlayer":{"editor":"text","default":"","section":"Preview"},"$preview":{"width":1440,"height":2200}}'>
 var PCMT_TEAM_LIST = [
-  { code: 'T1', name: 'Team 1', color: '#FF0000' },
-  { code: 'TL', name: 'Team Dyslexia', color: '#1c9ad8' },
-  { code: 'IHOP', name: 'I Hate Odin Party', color: '#3d95dc' },
-  { code: 'FSG', name: 'Furry Squirrels Gaming', color: '#e8603c' },
-  { code: 'FNC', name: 'cow paulo FaN Club', color: '#ff8a1f' },
-  { code: 'SSG', name: 'Squirtle Squad Gaming', color: '#f2b01e' },
-  { code: 'RRQ', name: 'Rage Re-Queuers', color: '#f5d90a' },
-  { code: 'C9', name: 'Clown9', color: '#4dc3ef' },
-  { code: 'SRB', name: 'Sunshine and Rainbows', color: '#58c47a' },
-  { code: 'TS', name: 'Team Slugshow', color: '#9b6be8' },
-  { code: 'EPY', name: 'Team Entropy', color: '#e6e6e6' },
-  { code: 'DFM', name: 'Dementia Found Me', color: '#5a78ff' },
-  { code: 'BAKA', name: 'Beautiful and Kinda Adorable', color: '#b98ad9' },
-  { code: 'NAVI', name: 'No Actual Valorant Intelligence', color: '#FF6EB4' },
-  { code: '100T', name: "100 Tony's", color: '#45dfe8' },
-  { code: 'SPG', name: 'Spank Ptheory Gaming', color: '#ff7f66' },
+  // NA Season 3 teams: retired Nov 11 2026. Kept so past results and decks still score; their players aren't in the store.
+  { code: 'T1', name: 'Team 1', color: '#FF0000', retired: true },
+  { code: 'TL', name: 'Team Dyslexia', color: '#1c9ad8', retired: true },
+  { code: 'IHOP', name: 'I Hate Odin Party', color: '#3d95dc', retired: true },
+  { code: 'FSG', name: 'Furry Squirrels Gaming', color: '#e8603c', retired: true },
+  { code: 'FNC', name: 'cow paulo FaN Club', color: '#ff8a1f', retired: true },
+  { code: 'SSG', name: 'Squirtle Squad Gaming', color: '#f2b01e', retired: true },
+  { code: 'RRQ', name: 'Rage Re-Queuers', color: '#f5d90a', retired: true },
+  { code: 'C9', name: 'Clown9', color: '#4dc3ef', retired: true },
+  { code: 'SRB', name: 'Sunshine and Rainbows', color: '#58c47a', retired: true },
+  { code: 'TS', name: 'Team Slugshow', color: '#9b6be8', retired: true },
+  { code: 'EPY', name: 'Team Entropy', color: '#e6e6e6', retired: true },
+  { code: 'DFM', name: 'Dementia Found Me', color: '#5a78ff', retired: true },
+  { code: 'BAKA', name: 'Beautiful and Kinda Adorable', color: '#b98ad9', retired: true },
+  { code: 'NAVI', name: 'No Actual Valorant Intelligence', color: '#FF6EB4', retired: true },
+  { code: '100T', name: "100 Tony's", color: '#45dfe8', retired: true },
+  { code: 'SPG', name: 'Spank Ptheory Gaming', color: '#ff7f66', retired: true },
+  // NA Season 4 teams (Nov 11 2026). Placeholder codes and colours until PCMT.gg lists the season: the codes must match
+  // PCMT.gg's team codes for its results to reach these players (tools/pcmt-api.js matches players by team code + name).
+  { code: 'TM1', name: 'Team 1', color: '#e05a5a', season: 'S4' },
+  { code: 'TM2', name: 'Team 2', color: '#4dc3ef', season: 'S4' },
+  { code: 'TM3', name: 'Team 3', color: '#f2b01e', season: 'S4' },
+  { code: 'TM4', name: 'Team 4', color: '#58c47a', season: 'S4' },
+  { code: 'DEI', name: 'Doofenshmirtz Evil Inc.', color: '#9b6be8', season: 'S4' },
+  { code: 'EDM', name: 'Everyone Dance Meow', color: '#ff6eb4', season: 'S4' },
+  { code: 'TM7', name: 'Team 7', color: '#3d95dc', season: 'S4' },
+  { code: 'TM8', name: 'Team 8', color: '#e8603c', season: 'S4' },
+  { code: 'TM9', name: 'Team 9', color: '#45dfe8', season: 'S4' },
+  { code: 'TM10', name: 'Team 10', color: '#b98ad9', season: 'S4' },
+  { code: 'BLG', name: 'Bartho Lemew Gaming', color: '#ff8a1f', season: 'S4' },
+  { code: 'TM12', name: 'Team 12', color: '#5a78ff', season: 'S4' },
+  { code: 'TM13', name: 'Team 13', color: '#8be4b7', season: 'S4' },
+  { code: 'TM14', name: 'Team 14', color: '#f5d90a', season: 'S4' },
+  { code: 'XLG', name: 'Xtremely Lacking Gamesense', color: '#1c9ad8', season: 'S4' },
+  { code: 'TM16', name: 'Team 16', color: '#ff7f66', season: 'S4' },
   // EMEA Season 2 teams
   { code: 'FaZe', name: 'Fabulous and Zesty', color: '#f28bd8', region: 'EMEA' },
   { code: 'ATLC', name: 'ATLNTIC Esports', color: '#e04848', region: 'EMEA' },
@@ -784,16 +803,101 @@ var PCMT_PLAYERS = [
   { id: 'spolen', name: 'Spolen', team: 'NATS', role: 'sentinel', price: 6.0 },
   { id: 'danaxa', name: 'danaxa', team: 'NATS', role: 'initiator', price: 7.0 }, // no PCMT.gg stats yet: placeholder price and role
   { id: 'sy', name: 'sy', team: 'NATS', role: 'duelist', price: 7.0 }, // no PCMT.gg stats yet: placeholder price and role
-  { id: 'denial', name: 'denial', team: 'NATS', role: 'initiator', price: 10.0 } // added Oct 25 2026, price from PCMT.gg toxic rating
+  { id: 'denial', name: 'denial', team: 'NATS', role: 'initiator', price: 10.0 }, // added Oct 25 2026, price from PCMT.gg toxic rating
+  // NA Season 4 (Nov 11 2026): the S4 rosters. Returning players are new cards ('<S3 id>-s4') so their Season 3 card keeps
+  // its team and price for past results. Prices from the staff Database rank (8.0 lowest to 14.5 highest; no rank: 8.0).
+  { id: 'claps-s4', name: 'claps', team: 'TM1', role: 'controller', price: 14.5 },
+  { id: 'psyclone-s4', name: 'psyclone', team: 'TM1', role: 'sentinel', price: 12.0 },
+  { id: 'nameless-s4', name: 'nameless', team: 'TM1', role: 'initiator', price: 10.5 },
+  { id: 'sylos-s4', name: 'Sylos', team: 'TM1', role: 'duelist', price: 10.5 },
+  { id: 'radical-s4', name: 'radical', team: 'TM1', role: 'duelist', price: 10.0 },
+  { id: 'crocman-s4', name: 'MrCrocMan', team: 'TM2', role: 'duelist', price: 14.0 },
+  { id: 'jaden-s4', name: 'Jaden', team: 'TM2', role: 'sentinel', price: 12.0 },
+  { id: 'toastemup-s4', name: 'ToastEmUp', team: 'TM2', role: 'controller', price: 12.0 },
+  { id: 'tawn-s4', name: 'tawn', team: 'TM2', role: 'duelist', price: 11.0 },
+  { id: 'hankyjanky-s4', name: 'hankyjanky', team: 'TM2', role: 'initiator', price: 9.0 },
+  { id: 'josh-s4', name: 'Josh', team: 'TM3', role: 'controller', price: 13.5 },
+  { id: 'art-s4', name: 'art', team: 'TM3', role: 'duelist', price: 11.5 },
+  { id: 'makya-s4', name: 'makya', team: 'TM3', role: 'controller', price: 11.5 },
+  { id: 'platy-s4', name: 'platy', team: 'TM3', role: 'sentinel', price: 11.0 },
+  { id: 'lore-s4', name: 'lore', team: 'TM3', role: 'initiator', price: 9.0 },
+  { id: 'avi-s4', name: 'avi', team: 'TM4', role: 'duelist', price: 13.5 },
+  { id: 'sizeable-s4', name: 'Sizeable', team: 'TM4', role: 'controller', price: 12.0 },
+  { id: 'dino-s4', name: 'dino', team: 'TM4', role: 'controller', price: 10.5 },
+  { id: 'roro-s4', name: 'roro', team: 'TM4', role: 'controller', price: 10.5 },
+  { id: 'tenyaku-s4', name: 'tenyaku', team: 'TM4', role: 'sentinel', price: 10.5 },
+  { id: 'haych-s4', name: 'haych', team: 'DEI', role: 'sentinel', price: 13.5 },
+  { id: 'snowfall-s4', name: 'snowfall', team: 'DEI', role: 'duelist', price: 12.0 },
+  { id: 'lazy-s4', name: 'lazynottired', team: 'DEI', role: 'duelist', price: 11.5 },
+  { id: 'slow-s4', name: 'slow', team: 'DEI', role: 'duelist', price: 10.5 },
+  { id: 'teklo-s4', name: 'teklologik', team: 'DEI', role: 'duelist', price: 10.0 },
+  { id: 'panda-s4', name: 'Panda', team: 'DEI', role: 'controller', price: 9.0 },
+  { id: 'james-s4', name: 'james', team: 'EDM', role: 'duelist', price: 13.5 },
+  { id: 'jaypee-s4', name: 'jaypee', team: 'EDM', role: 'duelist', price: 12.5 },
+  { id: 'li-s4', name: 'li', team: 'EDM', role: 'sentinel', price: 11.0 },
+  { id: 'corina-s4', name: 'corina', team: 'EDM', role: 'duelist', price: 10.0 },
+  { id: 'hascan-s4', name: 'hascan', team: 'EDM', role: 'initiator', price: 10.0 },
+  { id: 'izz-s4', name: 'izz', team: 'TM7', role: 'duelist', price: 13.5 },
+  { id: 'ethan-s4', name: 'ethan', team: 'TM7', role: 'controller', price: 12.5 },
+  { id: 'dunkn-s4', name: 'dunkn', team: 'TM7', role: 'controller', price: 10.5 },
+  { id: 'xyn-s4', name: 'xyn', team: 'TM7', role: 'controller', price: 10.5 },
+  { id: 'neckolas-s4', name: 'Neckolas', team: 'TM7', role: 'controller', price: 10.0 },
+  { id: 'lucas-s4', name: 'lucas', team: 'TM8', role: 'duelist', price: 13.5 },
+  { id: 'pavel-s4', name: 'pavel', team: 'TM8', role: 'duelist', price: 12.0 },
+  { id: 'caleb-s4', name: 'caleb', team: 'TM8', role: 'initiator', price: 11.5 },
+  { id: 'igneous-s4', name: 'igneous', team: 'TM8', role: 'initiator', price: 11.5 },
+  { id: 'tery-s4', name: 'tery', team: 'TM8', role: 'controller', price: 9.0 },
+  { id: 'angus-s4', name: 'angus', team: 'TM9', role: 'duelist', price: 13.0 },
+  { id: 'ahsum-s4', name: 'Ahsum', team: 'TM9', role: 'controller', price: 12.0 },
+  { id: 'kaydeg-s4', name: 'kaydeg', team: 'TM9', role: 'duelist', price: 11.0 },
+  { id: 'linus-s4', name: 'linus', team: 'TM9', role: 'controller', price: 11.0 },
+  { id: 'androobee-s4', name: 'androobee', team: 'TM9', role: 'controller', price: 10.5 },
+  { id: 'abstracq-s4', name: 'abstracq', team: 'TM10', role: 'duelist', price: 13.0 },
+  { id: 'masao-s4', name: 'masao', team: 'TM10', role: 'initiator', price: 12.5 },
+  { id: 'derpid-s4', name: 'Derpid', team: 'TM10', role: 'controller', price: 11.0 },
+  { id: 'timothy-s4', name: 'timothy', team: 'TM10', role: 'initiator', price: 10.0 },
+  { id: 'krspy-s4', name: 'Krspy', team: 'TM10', role: 'sentinel', price: 8.0 },
+  { id: 'stingray-s4', name: 'stingray', team: 'BLG', role: 'initiator', price: 13.0 },
+  { id: 'amara-s4', name: 'amara', team: 'BLG', role: 'initiator', price: 11.5 },
+  { id: 'phuzzy-s4', name: 'phuzzy', team: 'BLG', role: 'sentinel', price: 11.5 },
+  { id: 'asher-s4', name: 'asher', team: 'BLG', role: 'initiator', price: 11.0 },
+  { id: 'caesparz-s4', name: 'caesparz', team: 'BLG', role: 'sentinel', price: 10.0 },
+  { id: 'colt-s4', name: 'colt', team: 'TM12', role: 'duelist', price: 13.0 },
+  { id: 'pietamoon-s4', name: 'pietamoon', team: 'TM12', role: 'duelist', price: 12.5 },
+  { id: 'pumpkin-s4', name: 'Pumpkin', team: 'TM12', role: 'controller', price: 12.0 },
+  { id: 'platinum-s4', name: 'platinum', team: 'TM12', role: 'initiator', price: 11.5 },
+  { id: 'paul-s4', name: 'pants', team: 'TM12', role: 'sentinel', price: 8.0 },
+  { id: 'cooleo-s4', name: 'cooleo', team: 'TM13', role: 'controller', price: 13.0 },
+  { id: 'derpina-s4', name: 'derpina', team: 'TM13', role: 'duelist', price: 11.5 },
+  { id: 'rudra-s4', name: 'rudra', team: 'TM13', role: 'controller', price: 11.0 },
+  { id: 'woup-s4', name: 'Woup', team: 'TM13', role: 'duelist', price: 11.0 },
+  { id: 'twon-s4', name: 'twon', team: 'TM13', role: 'initiator', price: 10.5 },
+  { id: 'apple-s4', name: 'apple', team: 'TM14', role: 'sentinel', price: 12.5 },
+  { id: 'nolan-s4', name: 'nolan', team: 'TM14', role: 'sentinel', price: 12.5 },
+  { id: 'jooah-s4', name: 'Jooah', team: 'TM14', role: 'controller', price: 11.5 },
+  { id: 'ceiliuir-s4', name: 'Ceiliuir', team: 'TM14', role: 'sentinel', price: 11.0 },
+  { id: 'nut-s4', name: 'Nut', team: 'TM14', role: 'duelist', price: 9.5 },
+  { id: 'night-s4', name: 'night', team: 'XLG', role: 'duelist', price: 12.5 },
+  { id: 'skye-s4', name: 'skye', team: 'XLG', role: 'duelist', price: 12.0 },
+  { id: 'ender-s4', name: 'Ender', team: 'XLG', role: 'duelist', price: 11.5 },
+  { id: 'longclaw-s4', name: 'longclaw', team: 'XLG', role: 'controller', price: 10.5 },
+  { id: 'nova-s4', name: 'nova', team: 'XLG', role: 'controller', price: 10.5 },
+  { id: 'darshan-s4', name: 'darshan', team: 'TM16', role: 'duelist', price: 12.5 },
+  { id: 'blitz-s4', name: 'blitz', team: 'TM16', role: 'duelist', price: 12.0 },
+  { id: 'dorito-s4', name: 'Dorito', team: 'TM16', role: 'initiator', price: 11.5 },
+  { id: 'hades-s4', name: 'Hades', team: 'TM16', role: 'controller', price: 11.0 },
+  { id: 'valentia-s4', name: 'Valentia', team: 'TM16', role: 'sentinel', price: 10.0 }
 ];
 // Players PCMT Team took out of the store on the backend (store_removed_players): they can't be bought or dealt.
 // Anyone who already has one keeps them in their deck.
-function pcmtInStore(p) { return !(window.PCMT_REMOVED_PLAYERS || {})[p.id]; }
+function pcmtInStore(p) { return !(window.PCMT_REMOVED_PLAYERS || {})[p.id] && !PCMT_RETIRED_TEAM[p.team]; }
+// NA Season 3 teams' players are retired from the store (Nov 11 2026); anyone who has one keeps them in their deck.
+var PCMT_RETIRED_TEAM = {};
 // The same person on two region cards: only one of the pair can be in a deck at a time.
-var PCMT_TWIN = { 'night': 'night-emea', 'night-emea': 'night' };
+var PCMT_TWIN = { 'night': 'night-emea', 'night-emea': 'night-s4', 'night-s4': 'night-emea' };
 var PCMT_TEAMS = {};
 var PCMT_TEAM_REGION = {};
-PCMT_TEAM_LIST.forEach(function (t) { PCMT_TEAM_REGION[t.code] = t.region || 'NA'; });
+PCMT_TEAM_LIST.forEach(function (t) { PCMT_TEAM_REGION[t.code] = t.region || 'NA'; if (t.retired) PCMT_RETIRED_TEAM[t.code] = true; });
 function pcmtRegions(p) { return p.regions || [PCMT_TEAM_REGION[p.team] || 'NA']; }
 function pcmtRegionLabel(p) { return pcmtRegions(p).join(' · '); }
 function pcmtReadDealRegions() {
@@ -994,7 +1098,8 @@ var PCMT_ROLE_ICONS = {
   controller: '/_blob/783fdcc50fe04d2622938ee185d4ed32'
 };
 // Past PCMT champions (NA Seasons 1 and 2, EMEA Season 1), all treated the same.
-var PCMT_CHAMPS = { longclaw: true, devil: true, platinum: true, igneous: true, james: true, stingray: true, faye: true, charlotte: true, mide: true, king: true, tonnoman: true, amara: true };
+var PCMT_CHAMPS = { 'longclaw-s4': true, 'platinum-s4': true, 'igneous-s4': true, 'james-s4': true, 'stingray-s4': true, 'amara-s4': true,
+  longclaw: true, devil: true, platinum: true, igneous: true, james: true, stingray: true, faye: true, charlotte: true, mide: true, king: true, tonnoman: true, amara: true };
 var PCMT_LOGO_H = { T1: 20, IHOP: 20, RRQ: 26, SSG: 26 };
 var PCMT_ROLES = [
   { key: 'duelist', label: 'Duelist' },
@@ -2146,6 +2251,7 @@ class Component extends DCLogic {
     var q = (s.search || '').trim().toLowerCase();
     var teamHit = {};
     if (q) PCMT_TEAM_LIST.forEach(function (t) {
+      if (t.retired) return;
       var code = t.code.toLowerCase(), name = t.name.toLowerCase();
       if (code === q || (q.length >= 3 && (code.indexOf(q) === 0 || name.indexOf(q) >= 0))) teamHit[t.code] = true;
     });
@@ -2326,7 +2432,7 @@ class Component extends DCLogic {
     else if (!iglPlayer) statusText = 'Click the crown, then pick a card to make your IGL.';
     else statusText = 'Ready to lock in.';
 
-    var teamOptions = [{ key: 'ALL', label: 'All teams' }].concat(PCMT_TEAM_LIST.map(function (t) {
+    var teamOptions = [{ key: 'ALL', label: 'All teams' }].concat(PCMT_TEAM_LIST.filter(function (t) { return !t.retired; }).map(function (t) {
       return { key: t.code, label: t.code + ' · ' + t.name };
     }));
 
