@@ -17,8 +17,14 @@ vm.runInNewContext(fs.readFileSync(path.join(__dirname, '..', 'pickems.js'), 'ut
 const events = [...new Set((ctx.window.PCMT_PICKEMS || []).map(b => b.event).filter(Boolean))].sort();
 if (!events.length) { console.error('no Pick\'ems events in pickems.js'); process.exit(1); }
 
+// Events PCMT.gg doesn't list yet (NA Season 4 before its first game) are skipped.
+let listed = null;
+if (!from) {
+  try { listed = A.getJson('/api/matches.json').map(e => e.id); } catch (e) { console.error('matches.json: ' + e.message); process.exit(1); }
+}
 const out = {};
 for (const ev of events) {
+  if (listed ? listed.indexOf(ev) < 0 : !fs.existsSync(path.join(from, ev + '.json'))) continue;
   let list;
   try { list = from ? JSON.parse(fs.readFileSync(path.join(from, ev + '.json'), 'utf8')) : A.getJson('/api/matches/' + ev + '.json'); }
   catch (e) { console.error(ev + ': ' + e.message); process.exit(1); }

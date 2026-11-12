@@ -600,10 +600,17 @@
       // Home: the newest live patch note (backend.html, Patch notes tab); none falls back to the one on the Home board
       var onHome = /"data-pcmt-root":"Home"/.test(tree);
       var note = onHome ? api('/rest/v1/patch_notes?select=title,body,note_date,live_at&live=is.true&order=live_at.desc&limit=1').then(function (r) { return (r && r[0]) || null; }).catch(function () { return null; }) : Promise.resolve(null);
-      return Promise.all([decks, profiles, unlocks, vp, multi, admin, packs, mine, catalog, prices, released, staff, picks, pkEvents, pkBoard, removed, subs, note]);
+      // Leaderboard: the "NA niche" and "EMEA niche" views, everyone's Pick'ems for one region (setup/pickems-games-setup.sql)
+      var onBoard = /"data-pcmt-root":"Leaderboard"/.test(tree);
+      var niche = onBoard ? Promise.all(['NA', 'EMEA'].map(function (rg) {
+        return api('/rest/v1/rpc/pickem_region_standings', { method: 'POST', body: { p_region: rg } }).then(function (r) { return [rg, r || []]; }, function () { return [rg, []]; });
+      })) : Promise.resolve([]);
+      return Promise.all([decks, profiles, unlocks, vp, multi, admin, packs, mine, catalog, prices, released, staff, picks, pkEvents, pkBoard, removed, subs, note, niche]);
     }).then(function (res) {
       window.PCMT_SUBS = res[16] || [];
       window.PCMT_PATCH_NOTE = res[17] || null;
+      window.PCMT_NICHE = {};
+      (res[18] || []).forEach(function (x) { window.PCMT_NICHE[x[0]] = x[1].map(function (r) { return { id: r.user_id, name: r.name, points: r.points, picked: r.picked, me: !!me && r.user_id === me.id }; }); });
       applySubs(window.PCMT_SUBS);
       attachMulti(res[4] || []);
       PRICE_LOG = (res[9] || []).map(function (c) { return { player: c.player, price: c.price == null ? null : +c.price, t: Date.parse(c.changed_at) }; });

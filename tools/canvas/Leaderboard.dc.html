@@ -72,13 +72,21 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <main style="max-width: 1280px; margin: 0 auto; padding: 36px 24px 64px; display: flex; flex-direction: column; gap: 28px">
 
 <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 20px">
-<div style="display: flex; flex-direction: column; gap: 6px">
-<h1 style="margin: 0; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 60px; line-height: 1">The Deck Leaderboard</h1>
+<div style="display: flex; flex-direction: column; gap: 16px; min-width: 0">
+<h1 style="margin: 0; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 60px; line-height: 1">{{boardTitle}}</h1>
+<div role="group" aria-label="Leaderboard" style="display: inline-flex; flex-wrap: wrap; align-self: flex-start; gap: 4px; padding: 4px; border: 1px solid #2a3a3e; border-radius: 10px; background: #111a1c">
+<sc-for list="{{boards}}" as="bd" hint-placeholder-count="3">
+<button type="button" onClick="{{bd.pick}}" aria-pressed="{{bd.pressed}}" style="min-height: 40px; display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; border: 0; border-radius: 7px; background: {{bd.bg}}; color: {{bd.fg}}; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; font-weight: {{bd.weight}}; letter-spacing: 0.04em; cursor: pointer"><sc-if value="{{bd.logo}}" hint-placeholder-val="{{ false }}"><img src="{{bd.logo}}" alt="" style="width: 20px; height: 20px; object-fit: contain"></sc-if>{{bd.label}}</button>
+</sc-for>
 </div>
+<sc-if value="{{nicheOn}}" hint-placeholder-val="{{ false }}"><p style="margin: 0; max-width: 560px; color: #c4d4d4; line-height: 1.5">{{nicheNote}}</p></sc-if>
+</div>
+<sc-if value="{{deckOn}}" hint-placeholder-val="{{ true }}">
 <div role="group" aria-label="Standings view" style="display: flex; gap: 8px">
 <button onClick="{{showOverall}}" aria-pressed="{{overallOn}}" style="min-height: 44px; padding: 0 18px; border-radius: 999px; border: 1px solid {{overallBorder}}; background: {{overallBg}}; color: {{overallColor}}; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; font-weight: {{overallWeight}}">Overall</button>
 <button onClick="{{showWeek}}" aria-pressed="{{weekOn}}" style="min-height: 44px; padding: 0 18px; border-radius: 999px; border: 1px solid {{weekBorder}}; background: {{weekBg}}; color: {{weekColor}}; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; font-weight: {{weekWeight}}">This gameweek</button>
 </div>
+</sc-if>
 </div>
 
 <div style="display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start">
@@ -91,6 +99,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </div>
 </div>
 
+<sc-if value="{{deckOn}}" hint-placeholder-val="{{ true }}">
 <div style="overflow-x: auto; border: 1px solid #2a3a3e; border-radius: 12px; background: #172124">
 <table style="width: 100%; min-width: 640px; border-collapse: collapse; font-size: 15px">
 <thead>
@@ -130,7 +139,43 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </tbody>
 </table>
 </div>
-<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa">Standings update after each match is scored.</span>
+</sc-if>
+<sc-if value="{{nicheOn}}" hint-placeholder-val="{{ false }}">
+<div style="overflow-x: auto; border: 1px solid #2a3a3e; border-radius: 12px; background: #172124">
+<table style="width: 100%; border-collapse: collapse; font-size: 15px">
+<thead>
+<tr style="text-align: left; font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa; letter-spacing: 0.06em; text-transform: uppercase">
+<th scope="col" style="padding: 14px 18px; border-bottom: 1px solid #2a3a3e; width: 56px">#</th>
+<th scope="col" style="padding: 14px 18px; border-bottom: 1px solid #2a3a3e">Manager</th>
+<th scope="col" style="padding: 14px 18px; border-bottom: 1px solid #2a3a3e; text-align: right">Picked</th>
+<th scope="col" aria-sort="descending" style="padding: 14px 18px; border-bottom: 1px solid #2a3a3e; text-align: right; color: #a5dcdd">Points</th>
+</tr>
+</thead>
+<tbody>
+<sc-for list="{{nicheRows}}" as="r" hint-placeholder-count="6">
+<tr class="{{r.cls}}" style="background: {{r.bg}}">
+<td style="padding: 16px 18px; border-bottom: 1px solid #2a3a3e; font-family: {{r.rankFont}}; font-weight: 700; font-size: {{r.rankSize}}; color: {{r.rankColor}}; text-shadow: {{r.rankShadow}}">{{r.rank}}</td>
+<td style="padding: 16px 18px; border-bottom: 1px solid #2a3a3e; font-weight: 600; color: {{r.nameColor}}; overflow-wrap: anywhere">{{r.manager}}</td>
+<td style="padding: 16px 18px; border-bottom: 1px solid #2a3a3e; text-align: right; font-family: 'National Park', system-ui, sans-serif; color: #93a9aa">{{r.picked}}</td>
+<td style="padding: 16px 18px; border-bottom: 1px solid #2a3a3e; text-align: right; font-family: 'National Park', system-ui, sans-serif; font-weight: 600">{{r.points}}</td>
+</tr>
+</sc-for>
+<sc-if value="{{nicheNoRows}}" hint-placeholder-val="{{ false }}">
+<tr><td colspan="4" style="padding: 28px 18px; border-bottom: 1px solid #2a3a3e; text-align: center; color: #93a9aa">{{nicheEmpty}}</td></tr>
+</sc-if>
+<sc-if value="{{nicheHasMe}}" hint-placeholder-val="{{ false }}">
+<tr style="background: #13292b">
+<td style="padding: 16px 18px; font-family: 'National Park', system-ui, sans-serif; color: #a5dcdd; font-weight: 600">{{nicheMe.rank}}</td>
+<td style="padding: 16px 18px; font-weight: 700; color: #a5dcdd">You</td>
+<td style="padding: 16px 18px; text-align: right; font-family: 'National Park', system-ui, sans-serif; color: #93a9aa">{{nicheMe.picked}}</td>
+<td style="padding: 16px 18px; text-align: right; font-family: 'National Park', system-ui, sans-serif; font-weight: 600">{{nicheMe.points}}</td>
+</tr>
+</sc-if>
+</tbody>
+</table>
+</div>
+</sc-if>
+<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa">{{footNote}}</span>
 </section>
 
 </div>
@@ -154,6 +199,18 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 // "Overall" = every gameweek of the season added together. me: true marks the signed-in manager.
 // The live site fills this from scoring. Empty until the first match is scored.
 var PCMT_STANDINGS = [];
+// The "NA niche" and "EMEA niche" boards: Pick'ems only, every event of that region. One entry per manager:
+// { id, name, points (right picks), picked (picks on played games), me }. The live site fills window.PCMT_NICHE.
+var PCMT_NICHE_BOARDS = [
+  { id: 'deck', label: 'Leaderboard', title: 'The Deck Leaderboard' },
+  { id: 'NA', label: 'NA niche', title: 'NA Niche', logo: '/_blob/c265e976f8968e60e4a2bdd32542b499' },
+  { id: 'EMEA', label: 'EMEA niche', title: 'EMEA Niche', logo: '/_blob/3c7e7374dceead68d5c58818d0bcfe8a' }
+];
+function pcmtSampleNiche(region) {
+  var out = [];
+  for (var i = 0; i < 9; i++) out.push({ id: region + i, name: i === 3 ? '[Your Discord name]' : '[Manager ' + (i + 1) + ']', points: 14 - i - (i % 2), picked: 16 - (i % 3), me: i === 3 });
+  return out;
+}
 // Gameweeks (Oct 29 2026) run Thursday 5:00 AM EDT (09:00 UTC) to the next Thursday, keyed by their first day; before
 // that Monday to Monday, with the short week from Mon Oct 26 bridging the two. Same as weekStart() in league.js.
 function pcmtWeekKey(t) {
@@ -185,7 +242,9 @@ function pcmtSampleStandings(now) {
 class Component extends DCLogic {
   constructor(props) {
     super(props);
-    this.state = { view: 'overall', search: '' };
+    var board = 'deck';
+    try { var v = window.localStorage.getItem('pcmt-lb-board'); if (PCMT_NICHE_BOARDS.some(function (x) { return x.id === v; })) board = v; } catch (e) {}
+    this.state = { view: 'overall', search: '', board: board };
   }
   componentDidMount() {
     var self = this, start = Date.now();
@@ -292,6 +351,27 @@ class Component extends DCLogic {
       return { border: on ? '#a5dcdd' : '#3a4f53', bg: on ? '#a5dcdd' : 'transparent', color: on ? '#000' : '#eaf4f4', weight: on ? 600 : 400 };
     }
     var po = pill(!week), pw = pill(week);
+    // NA niche / EMEA niche: Pick'ems standings for one region, styled like the table above.
+    var board = this.state.board || 'deck', niche = board !== 'deck';
+    var nicheData = !niche ? [] : (this.props.sampleStandings || !window.PCMT_LEAGUE ? pcmtSampleNiche(board) : ((window.PCMT_NICHE || {})[board] || []))
+      .slice().sort(function (x, y) { return y.points - x.points || String(x.name).localeCompare(String(y.name)); });
+    var nrank = 0, nprev = null;
+    var nranked = nicheData.map(function (m, i) {
+      if (nprev === null || m.points !== nprev) { nrank = i + 1; nprev = m.points; }
+      return { m: m, rank: nrank };
+    });
+    var nshown = nranked.filter(function (x) { return !q || String(x.m.name || '').toLowerCase().indexOf(q) >= 0; });
+    var nicheRows = nshown.map(function (x) {
+      var r = x.rank, top = r <= 3;
+      return {
+        rank: r, manager: x.m.name, points: x.m.points, picked: x.m.picked,
+        cls: r === 1 ? 'lb-gold' : '', bg: x.m.me ? '#0f1d1e' : 'transparent', nameColor: x.m.me ? '#a5dcdd' : '#eaf4f4',
+        rankFont: top ? "'Cabin Sketch', cursive" : "'National Park', system-ui, sans-serif", rankSize: top ? '24px' : '15px',
+        rankColor: r === 1 ? '#a5dcdd' : r === 2 ? '#c9d1d6' : r === 3 ? '#d08a4f' : '#93a9aa',
+        rankShadow: r === 2 ? '0 0 8px rgba(201,209,214,.35)' : r === 3 ? '0 0 8px rgba(208,138,79,.35)' : 'none'
+      };
+    });
+    var nicheMine = nshown.some(function (x) { return x.m.me; }) ? null : nranked.find(function (x) { return x.m.me; });
     return {
       rows: rows,
       noRows: rows.length === 0,
@@ -306,6 +386,18 @@ class Component extends DCLogic {
       gwSort: week ? 'descending' : 'none', totalSort: week ? 'none' : 'descending',
       gwHead: week ? '#a5dcdd' : '#93a9aa', totalHead: week ? '#93a9aa' : '#a5dcdd',
       search: this.state.search || '',
+      boards: PCMT_NICHE_BOARDS.map(function (x) {
+        var on = x.id === board;
+        return { label: x.label, logo: x.logo || '', pressed: on ? 'true' : 'false', bg: on ? '#a5dcdd' : 'transparent', fg: on ? '#000' : '#eaf4f4', weight: on ? 700 : 500,
+          pick: function () { try { window.localStorage.setItem('pcmt-lb-board', x.id); } catch (e) {} self.setState({ board: x.id }); } };
+      }),
+      boardTitle: (PCMT_NICHE_BOARDS.filter(function (x) { return x.id === board; })[0] || PCMT_NICHE_BOARDS[0]).title,
+      deckOn: !niche, nicheOn: niche,
+      nicheNote: niche ? 'Pick\'ems only: one point for every right pick in ' + board + ' Pick\'ems. The Deck doesn\'t count here.' : '',
+      nicheRows: nicheRows, nicheNoRows: nicheRows.length === 0,
+      nicheEmpty: nicheData.length === 0 ? 'Standings appear once a game someone picked in ' + board + ' Pick\'ems has been played.' : 'No managers match that search.',
+      nicheHasMe: !!nicheMine, nicheMe: nicheMine ? { rank: nicheMine.rank, points: nicheMine.m.points, picked: nicheMine.m.picked } : {},
+      footNote: niche ? 'Standings update after each game is played.' : 'Standings update after each match is scored.',
       setSearch: function (e) { self.setState({ search: e && e.target ? e.target.value : '' }); }
     };
   }

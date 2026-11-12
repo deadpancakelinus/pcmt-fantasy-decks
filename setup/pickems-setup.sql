@@ -102,6 +102,7 @@ language sql immutable set search_path = public as $$
   select min((s ->> 'start')::timestamptz) - interval '6 hours'
   from jsonb_array_elements(p_bracket -> 'series') s
   where jsonb_typeof(s -> 'start') = 'string' and jsonb_typeof(s -> 'score') <> 'array'
+    and coalesce(p_bracket ->> 'mode', '') <> 'games'   -- game-by-game Pick'ems: each game locks on its own when it starts
 $$;
 revoke all on function public.pickem_lock_time(jsonb) from public, anon, authenticated;
 

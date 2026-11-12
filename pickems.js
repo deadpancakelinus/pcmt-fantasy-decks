@@ -3,6 +3,8 @@
 // series n: a and b are a seed ("A2"), the winner of series n ("W1") or the loser of series n ("L1").
 // start: when picks for that series lock (null = time not known yet). score: [a maps, b maps] once finished, else null.
 // url: the series page on PCMT.gg once it is listed.
+// mode "games" (NA Season 4): no bracket. The sync adds every game PCMT.gg schedules for the event as its own series
+// (a and b are team codes, seeds maps each code to itself, teams has the full names, round is PCMT.gg's stage).
 
 var PCMT_PICKEMS = [
   {
@@ -356,5 +358,16 @@ var PCMT_PICKEMS = [
         "url": "https://pcmt.gg/events/s3-na/t1-vs-spg-s3-playoffs-2026-10-28-2"
       }
     ]
+  },
+  {
+    "id": "na-s4",
+    "name": "NA Season 4",
+    "region": "NA",
+    "mode": "games",
+    "event": "s4-na",
+    "season": 4,
+    "seeds": {},
+    "teams": {},
+    "series": []
   }
 ];

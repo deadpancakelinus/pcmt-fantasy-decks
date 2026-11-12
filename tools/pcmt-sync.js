@@ -9,6 +9,8 @@
 //   * PCMT_RESULTS: adds every finished match from the last 14 days that isn't in yet, with full stats.
 //   * Pick'ems (pickems.js): for each playoff match of a bracket's event, finds the series with those two teams and
 //     fills in start, url, best-of and, once finished, the score (in the series' own a/b order).
+//   * Pick'ems games (a pickems.js bracket with "mode": "games"): every game PCMT.gg schedules for the event is added
+//     as its own pick, and gets its score once it's played.
 //   * rankings.js: power rankings for each Pick'ems bracket's event (tools/pcmt-power.js) from every finished game of the event, for the Pick'ems page.
 // The arrays stay strict JSON (the server reads them). Exit code 0 even when nothing changed.
 const fs = require('fs'), path = require('path'), vm = require('vm');
@@ -72,8 +74,51 @@ for (let i = matches.length - 1; i >= 0; i--) {
 }
 matches.sort((x, y) => Date.parse(x.start) - Date.parse(y.start));
 
-// ---- Pick'ems ----
-brackets.forEach(B => {
+// ---- Pick'ems: game-by-game (mode "games", NA Season 4 on) ----
+// Every game PCMT.gg schedules for the event becomes a Pick'ems game: n stays the same for good (picks point at it),
+// a/b are team codes (seeds maps each code to itself), round is PCMT.gg's stage. A game PCMT.gg moves keeps its n
+// (matched by url, else by the same two teams); a game it drops before it's played is taken out.
+brackets.filter(B => B.mode === 'games').forEach(B => {
+  const evId = byEvent[B.event] ? B.event
+    : (events.find(e => String(e.region).toLowerCase() === String(B.region).toLowerCase() && +e.season === +B.season) || {}).id;
+  if (!evId) return;   // not on PCMT.gg yet
+  if (B.event !== evId) { log.push("Pick'ems " + B.id + ': event ' + evId); B.event = evId; }
+  const list = byEvent[evId].filter(M => M.team1 && M.team2 && M.date).sort((x, y) => Date.parse(x.date) - Date.parse(y.date) || String(x.id).localeCompare(String(y.id)));
+  B.seeds = B.seeds || {}; B.teams = B.teams || {};
+  const claimed = new Set(), keep = new Set();
+  const pair = (s, M) => (s.a === M.team1 && s.b === M.team2) || (s.a === M.team2 && s.b === M.team1);
+  list.forEach(M => {
+    const url = A.pageUrl(evId, M.id);
+    let s = B.series.find(x => x.url === url) ||
+      B.series.find(x => !claimed.has(x.n) && !x.score && pair(x, M) && !list.some(o => A.pageUrl(evId, o.id) === x.url));
+    [[M.team1, M.team1Name], [M.team2, M.team2Name]].forEach(([c, nm]) => {
+      if (B.seeds[c] !== c) B.seeds[c] = c;
+      if (nm && B.teams[c] !== nm) B.teams[c] = nm;
+    });
+    if (!s) {
+      s = { n: B.series.reduce((m, x) => Math.max(m, x.n), 0) + 1, round: M.stage || 'Game', a: M.team1, b: M.team2,
+            bo: M.bestOf || 3, start: M.date, score: null, url };
+      B.series.push(s);
+      log.push("Pick'ems game: " + s.a + ' vs ' + s.b + ' (' + s.start + ')');
+    } else if (s.start !== M.date || s.url !== url || s.bo !== (M.bestOf || s.bo) || s.round !== (M.stage || s.round)) {
+      log.push("Pick'ems game " + s.n + ': ' + s.a + ' vs ' + s.b + ' at ' + M.date);
+      s.start = M.date; s.url = url; s.bo = M.bestOf || s.bo; s.round = M.stage || s.round;
+    }
+    claimed.add(s.n); keep.add(s.n);
+    if (M.completed && !s.score && M.score1 !== M.score2) {
+      s.score = M.team1 === s.a ? [M.score1, M.score2] : [M.score2, M.score1];
+      log.push("Pick'ems game " + s.n + ' result: ' + s.a + ' ' + s.score[0] + '-' + s.score[1] + ' ' + s.b);
+    }
+  });
+  for (let i = B.series.length - 1; i >= 0; i--) {
+    const s = B.series[i];
+    if (!keep.has(s.n) && !s.score) { log.push("Pick'ems game " + s.n + ' dropped: ' + s.a + ' vs ' + s.b); B.series.splice(i, 1); }
+  }
+  B.series.sort((x, y) => x.n - y.n);
+});
+
+// ---- Pick'ems: playoff brackets ----
+brackets.filter(B => B.mode !== 'games').forEach(B => {
   const ev = B.event || (B.region === 'NA' ? null : 's2-emea');   // the bracket's event on PCMT.gg
   const list = (byEvent[ev] || []).filter(M => /playoffs/.test(M.id));
   let changed = true;
@@ -137,7 +182,8 @@ if (MSG) {   // e.g. "Add result: T1 vs SPG; Add match: NOOT vs SEAL; Pick'ems: 
     else if ((m = l.match(/^Add match: (\w+ vs \w+)/))) parts.push('Add match: ' + m[1]);
     else if ((m = l.match(/^Update match: (\w+ vs \w+)/))) parts.push('Move match: ' + m[1]);
     else if (l === 'Power rankings updated') parts.push('Power rankings');
-    else if ((m = l.match(/^Pick'ems series \d+ result: (\S+) \S+ (\S+)$/))) parts.push("Pick'ems: " + m[1] + ' vs ' + m[2] + ' result');
+    else if ((m = l.match(/^Pick'ems (?:series|game) \d+ result: (\S+) \S+ (\S+)$/))) parts.push("Pick'ems: " + m[1] + ' vs ' + m[2] + ' result');
+    else if ((m = l.match(/^Pick'ems game: (\S+ vs \S+)/))) parts.push("Pick'ems: add " + m[1]);
   });
   const uniq = [...new Set(parts)];
   fs.writeFileSync(MSG, (uniq.length ? uniq.slice(0, 4).join('; ') + (uniq.length > 4 ? '; more' : '') : 'Schedule update') + '\n');
