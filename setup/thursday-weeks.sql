@@ -33,6 +33,13 @@ language sql immutable as $$
     else b end
 $$;
 
+-- True when a deck's players cost at most 100 at these prices (vp_players_at).
+create or replace function public.vp_fits_budget(p_slots jsonb, p_players jsonb) returns boolean
+language sql immutable set search_path = public as $$
+  select coalesce(sum((p_players -> s.v ->> 'price')::numeric), 0) <= 100.000000001
+  from jsonb_each_text(p_slots) s(k, v)
+$$;
+
 create or replace function public.vp_compute(p_matches jsonb, p_results jsonb, p_players jsonb, p_twin jsonb,
                                              p_now timestamptz default now(), p_pay boolean default true)
 returns jsonb
@@ -81,6 +88,9 @@ begin
         use_slots := prev;                                     -- no allowed new deck: the last one counts again
       end if;
       prev := use_slots;
+      -- From Nov 13 2026: a deck over the budget at the prices when the gameweek locks scores nothing that week
+      -- (the red "please relock your deck" window). Earlier gameweeks are unchanged.
+      if w.lock_at >= timestamptz '2026-11-13 01:10:00+00' and not public.vp_fits_budget(use_slots, public.vp_players_at(players, w.lock_at)) then continue; end if;
       if p_now < w.e then continue; end if;                    -- paid when the gameweek ends
       rb := to_char(w.b at time zone 'UTC', 'YYYY-MM-DD');
       select coalesce(jsonb_object_agg(v, greatest(0, coalesce((weekpts -> rb ->> v)::numeric, 0))), '{}'::jsonb),

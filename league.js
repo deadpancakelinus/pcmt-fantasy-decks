@@ -239,9 +239,15 @@
     if (missing) return 'A player in your deck isn\'t in the store any more. Swap them out, then lock in again.';
     if (cost > BUDGET + 1e-9) {
       var over = Math.round((cost - BUDGET) * 10) / 10;
-      return 'Your deck is ' + over + ' over the ' + BUDGET + ' budget at today\'s prices (prices went up since you locked it in), so changes can\'t be saved. Your locked-in deck still scores. Swap players until it fits the budget to save changes.';
+      return 'Your deck is ' + over + ' over the ' + BUDGET + ' budget at today\'s prices (prices went up since you locked it in). It won\'t score points until it fits the budget: swap players, then lock it in again.';
     }
     return validDeck(slots) ? '' : 'Your deck breaks a rule (roles, or more than ' + TEAM_LIMIT + ' players from one team), so it can\'t be saved.';
+  }
+  var OVER_BUDGET_FROM = Date.parse('2026-11-13T01:10:00Z');
+  function fitsBudget(slots, t) {
+    var cost = 0;
+    deckIds(slots).forEach(function (id) { if (BY_ID[id]) cost += priceAt(id, t); });
+    return cost <= BUDGET + 1e-9;
   }
   function deckOverBudget(slots) {
     var ids = deckIds(slots), cost = 0;
@@ -316,6 +322,9 @@
       if (!use) use = prev;
       if (!use) return;
       prev = use;
+      // From Nov 13 2026: a deck over the budget at the prices when the gameweek locks scores nothing that week (the red
+      // "please relock your deck" window; the server does the same in vp_compute). Earlier gameweeks are unchanged.
+      if (w.lockAt >= OVER_BUDGET_FROM && !fitsBudget(use.slots, w.lockAt)) return;
       var pts = 0, byTeam = {}, cards = {}, champWin = false, missedWin = false, ids = deckIds(use.slots);
       w.results.forEach(function (r) {
         var sp = seriesPoints(r);
