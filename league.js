@@ -243,6 +243,45 @@
     }
     return validDeck(slots) ? '' : 'Your deck breaks a rule (roles, or more than ' + TEAM_LIMIT + ' players from one team), so it can\'t be saved.';
   }
+  function deckOverBudget(slots) {
+    var ids = deckIds(slots), cost = 0;
+    if (ids.length !== ROLES.length * 2 + 3) return false;
+    ids.forEach(function (id) { if (BY_ID[id]) cost += priceAt(id, Date.now()); });
+    return cost > BUDGET + 1e-9;
+  }
+  // A big red window over the deck while it's over budget (prices went up since it was locked in). "OK" hides it until
+  // the next page load; it goes away for good once the deck fits the budget again. Kept on <body>, laid over the deck's
+  // section, so The Deck's own re-renders never remove it.
+  var obOn = false, obClosed = false, obEl = null, obTimer = null;
+  function overBudgetWarn(on) {
+    if (on === obOn) { if (on && !obEl && !obClosed) setTimeout(obPaint, 0); return; }
+    obOn = on;
+    if (!on) obClosed = false;
+    obPaint();
+  }
+  function obPaint() {
+    var h = document.getElementById('squad-h'), sec = h && h.closest('section');
+    var show = obOn && !obClosed && sec;
+    if (obOn && !obClosed && !sec) { setTimeout(obPaint, 200); return; }   // the deck isn't on the page yet
+    if (!show) { if (obEl) { obEl.remove(); obEl = null; } clearInterval(obTimer); obTimer = null; return; }
+    if (!obEl) {
+      obEl = document.createElement('div');
+      obEl.setAttribute('role', 'alertdialog');
+      obEl.setAttribute('aria-label', 'Your deck needs relocking');
+      obEl.style.cssText = 'position:absolute;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:22px;padding:min(140px,18vh) 28px 28px;box-sizing:border-box;' +
+        'border-radius:14px;border:3px solid #ff5a5a;background:rgba(150,12,24,.94);box-shadow:0 0 0 1px rgba(0,0,0,.4),0 24px 60px rgba(150,12,24,.45);text-align:center;color:#fff';
+      obEl.innerHTML = '<p style="margin:0;max-width:560px;font-family:\'Cabin Sketch\',cursive;font-weight:700;font-size:clamp(28px,5vw,46px);line-height:1.1">fantasy.pcmt.gg has been updated, please relock your deck ;)</p>' +
+        '<button type="button" style="min-height:48px;padding:0 30px;border-radius:10px;border:2px solid #fff;background:#fff;color:#8a0c16;font-family:\'National Park\',system-ui,sans-serif;font-size:15px;font-weight:700;letter-spacing:.06em;cursor:pointer">OK</button>';
+      obEl.querySelector('button').addEventListener('click', function () { obClosed = true; obPaint(); });
+      document.body.appendChild(obEl);
+      setTimeout(function () { try { obEl.querySelector('button').focus({ preventScroll: true }); } catch (e) {} }, 0);
+    }
+    var r = sec.getBoundingClientRect();
+    obEl.style.left = (r.left + window.scrollX) + 'px'; obEl.style.top = (r.top + window.scrollY) + 'px';
+    obEl.style.width = r.width + 'px'; obEl.style.height = Math.max(r.height, 260) + 'px';
+    if (!obTimer) obTimer = setInterval(obPaint, 400);   // follows the deck as the page lays out
+  }
+  window.addEventListener('resize', function () { if (obEl) obPaint(); });
   function transfersBetween(prevSlots, slots) {
     if (!prevSlots) return 0;
     var prev = {};
@@ -454,6 +493,7 @@
       return true;
     },
     statusNote: function (slots, text, locked) {
+      overBudgetWarn(!!me && !locked && deckOverBudget(slots));
       if (!me || locked) return text;
       // A full deck that can't be entered (usually over budget after a price rise): say so instead of "locked in".
       if (deckIds(slots).length === ROLES.length * 2 + 3) { var why = deckProblem(slots); if (why) return why; }
