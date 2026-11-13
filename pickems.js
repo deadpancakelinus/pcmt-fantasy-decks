@@ -59,7 +59,7 @@ var PCMT_PICKEMS = [
         "bo": 3,
         "start": "2026-11-15T15:00:00Z",
         "score": null,
-        "url": "https://pcmt.gg/events/s2-emea/sog-vs-xtc-s2-playoffs-2026-11-15-2"
+        "url": "https://pcmt.gg/events/s2-emea/sog-vs-xtc-s2-playoffs-2026-11-15"
       },
       {
         "n": 4,
