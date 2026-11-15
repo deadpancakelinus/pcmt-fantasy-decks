@@ -7,15 +7,6 @@
 var PCMT_MATCHES = [
   {
     "region": "EMEA",
-    "start": "2026-11-01T19:00:00Z",
-    "a": "NOOT",
-    "b": "SEAL",
-    "bo": 3,
-    "hours": 3,
-    "url": "https://pcmt.gg/events/s2-emea/noot-vs-seal-s2-playoffs-2026-11-01"
-  },
-  {
-    "region": "EMEA",
     "start": "2026-11-05T21:30:00Z",
     "a": "NATS",
     "b": "NIP",
