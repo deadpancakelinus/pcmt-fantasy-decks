@@ -139,7 +139,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <img src="{{viewLogo}}" alt="" style="width: 40px; height: 40px; object-fit: contain">
 <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
 <h2 id="games-h" style="margin: 0; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 32px; line-height: 1.05; color: #eaf4f4">{{viewLabel}}</h2>
-<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa">Pick a winner for each game. Each pick saves when you tap it and locks when the game starts.</span>
+<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa">Pick a winner for each game. Each pick saves when you tap it and locks when the game starts. {{gameWorth}}</span>
 </div>
 </div>
 <span role="status" aria-live="polite" style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: {{gameNoteColor}}">{{gameNote}}</span>
@@ -421,7 +421,6 @@ var PCMT_PICKEM_TEAMS = window.PCMT_PICKEM_TEAMS = {
   SSG: { name: 'Squirtle Squad Gaming', logo: '/_blob/1e20352a30572a577222d14b6a2389ce' },
   FSG: { name: 'Furry Squirrels Gaming', logo: '/_blob/ad1fa170a11534a10c9a953f0a092175' },
   IHOP: { name: 'I Hate Odin Party', logo: '/_blob/209d81a7df0d79fc71d99063600358ef' },
-  FNC: { name: 'cow paulo FaN Club', logo: '/_blob/8a102a19e71060bb2dacb6d6b5263457' },
   C9: { name: 'Clown9', logo: '/_blob/46ec4a1f510710db9670e64c202b0cee' },
   TS: { name: 'Team Slugshow', logo: '/_blob/beb0681ed7f4d195bc88376b306a1d3b' },
   '100T': { name: "100 Tony's", logo: '/_blob/2afecaefb84157c171a79e0bae8932b5' },
@@ -431,6 +430,18 @@ var PCMT_PICKEM_TEAMS = window.PCMT_PICKEM_TEAMS = {
   SRB: { name: 'Sunshine and Rainbows', logo: '/_blob/24ce287349ef3d8ae3c603e22142a375' },
   SPG: { name: 'Spank Ptheory Gaming', logo: '/_blob/fb1551434b59a200d90d2e9ed6a51e8b' }
 };
+// NA Season 4 (Nov 16 2026 team sheet). FNC is S4's Freaks Need Caesparz now (NA S3's FNC bracket is retired). Teams
+// edited on the backend's Teams tab (window.PCMT_DECK_TEAMS, from league.js) override names and logos.
+[['FNC', 'Freaks Need Caesparz'], ['WBG', 'We Been Gaming', '/_blob/909d84f265f62afb82136e5598dfa867'], ['GENG', 'Generally Goofy'],
+ ['LOUD', 'Leading Ourselves Under Delusion'], ['EDM', 'Everybody Dance Meow'], ['CR', 'CRazy Zigzagoons'], ['EDG', 'EggheaD Gaming'],
+ ['DEI', 'Doofenshmirtz Evil Inc.'], ['PRX', 'Perfect RetaXe', '/_blob/07305f8a0ccaf6736012490036a4601d'], ['NBR', 'Namebrand Ramyeon'],
+ ['DRX', 'Doing Rails of X'], ['SRG', 'Shaymins Really Good'], ['BLG', 'Bartho Lomew Gaming', '/_blob/5737c752389df295711a39ee368816ab'],
+ ['TANK', 'TANKERS'], ['XLG', 'Xtremely Lacking Gamesense'], ['NRG', 'Not Really Good']
+].forEach(function (x) { PCMT_PICKEM_TEAMS[x[0]] = { name: x[1], logo: x[2] || '' }; });
+(window.PCMT_DECK_TEAMS || []).forEach(function (d) {
+  var t = PCMT_PICKEM_TEAMS[d.code] = PCMT_PICKEM_TEAMS[d.code] || { name: d.name, logo: '' };
+  t.name = d.name || t.name; if (d.logo) t.logo = d.logo;
+});
 
 // Works out every series: the real teams and winner where known, and the teams your own picks send there.
 // Same rules as pickem_resolve() in setup/pickems-setup.sql (a series locks when it starts or has a score).
@@ -665,7 +676,7 @@ class Component extends DCLogic {
     // In the design canvas (no league.js) the page always shows, with sample picks; the live site goes by pickem_events.
     var live = !!W.PCMT_LEAGUE;
     var allowed = !!(W.PCMT_IS_ADMIN || W.PCMT_IS_STAFF || this.props.previewOpen || !live);
-    var ev = (W.PCMT_PICKEM_EVENTS || {})[b.id] || { open: false, credits_win: 20 };
+    var ev = (W.PCMT_PICKEM_EVENTS || {})[b.id] || { open: false, credits_win: b.mode === 'games' ? 10 : 20 };
     // open = false in pickem_events closes it again: then only PCMT Team staff and site admins see the page.
     var locked = !ev.open && !allowed && !finished;
     var R = pcmtPickemResolve(b, myPicks, now);
@@ -688,7 +699,7 @@ class Component extends DCLogic {
       var state = !code ? '' : info.done ? (isWinner ? ', won' : ', lost') + (picked ? ', your pick' : '') : picked ? ', your pick' : '';
       return {
         label: code || ref, code: code || '', name: tname, full: tname ? tname + ' (' + code + ')' : (/^W/.test(ref) ? 'Winner of series ' : 'Loser of series ') + ref.slice(1),
-        hasLogo: !!t, logo: t ? t.logo : '', logoPad: t && t.small ? '3px' : '0', logoOpacity: info.done && !isWinner ? 0.6 : 1,
+        hasLogo: !!(t && t.logo), logo: t ? t.logo : '', logoPad: t && t.small ? '3px' : '0', logoOpacity: info.done && !isWinner ? 0.6 : 1,
         italic: code && !real ? 'italic' : 'normal',   // italic = there because of your own picks
         canPick: !info.locked && !!code, fixed: info.locked || !code, picked: picked,
         aria: code ? name + state : (/^W/.test(ref) ? 'Winner of series ' : 'Loser of series ') + ref.slice(1),
@@ -723,7 +734,7 @@ class Component extends DCLogic {
         if (p) totals.made++;
         if (info.done && p) totals.decided++;
         if (right) { totals.points++; totals.correct++; totals.credits += ev.credits_win; }
-        var pill = info.done ? (p ? (right ? 'Right' : 'Wrong') : 'Final') : info.locked ? 'Live' : self.state.gameSaving === s.n ? 'Saving…' : p ? 'Picked' : 'Pick';
+        var pill = info.done ? (p ? (right ? 'Right · +' + ev.credits_win : 'Wrong · 0') : 'Final') : info.locked ? 'Live' : self.state.gameSaving === s.n ? 'Saving…' : p ? 'Picked' : 'Pick';
         var pillBg = info.done ? (p ? (right ? '#8be4b7' : '#ef8f8f') : '#2a3a3e') : info.locked ? '#f5d76e' : p ? '#a5dcdd' : 'transparent';
         var pillFg = (info.done && !p) ? '#c4d4d4' : (!info.done && !info.locked && !p) ? '#a5dcdd' : '#000';
         return {
@@ -815,6 +826,7 @@ class Component extends DCLogic {
     });
     var openLeft = games ? b.series.filter(function (s) { return !R[s.n].locked && !R[s.n].pick; }).length : 0;
     return {
+      gameWorth: 'A right pick earns ' + ev.credits_win + ' points. A wrong pick earns nothing.',
       gamesMode: games, bracketMode: !games, noGames: games && !b.series.length, gameGroups: gameGroups,
       gameNote: !games ? '' : this.state.gameSaving ? 'Saving your pick…' : openLeft ? (openLeft === 1 ? '1 game' : openLeft + ' games') + ' left to pick' : b.series.length ? 'Every open game is picked' : '',
       gameNoteColor: openLeft ? '#f5d76e' : '#93a9aa',

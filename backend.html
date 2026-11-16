@@ -186,6 +186,8 @@
   .tm-item .tm-logo { width: 44px; height: 44px; border-radius: 8px; }
   .tm-item .tm-main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
   .tm-item .tm-main b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tm-add { width: 100%; height: 100%; min-height: 66px; border-style: dashed; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+  .tm-add:hover, .tm-add:focus-visible { border-color: #a5dcdd; }
   .tm-swatch { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
   .imp-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
   table.grid tr.edited td { background: rgba(245,215,110,.07); }
@@ -633,7 +635,9 @@
   }
   function teamOf(code) { var t = null; teamList().forEach(function (x) { if (x.code === code) t = x; }); return t; }
   function retiredTeam(code) { var t = teamOf(code); return t ? !!t.retired : !!RETIRED_TEAMS[code]; }
-  function PLAYERS_NOW() { return ALL_PLAYERS.filter(function (p) { return !retiredTeam(p.team); }); }
+  // A retired NA Season 3 code used again in Season 4 (FNC): only the Season 4 players (ids ending -s4, or added here) count.
+  function retiredPlayer(p) { return retiredTeam(p.team) || (!!RETIRED_TEAMS[p.team] && !/-s4$/.test(p.id) && !DECK_ROWS[p.id]); }
+  function PLAYERS_NOW() { return ALL_PLAYERS.filter(function (p) { return !retiredPlayer(p); }); }
   function regionOf(p) { var d = DECK_ROWS[p.id], t = teamOf(p.team); return (d && d.region) || (p.regions && p.regions[0]) || (t && t.region) || REGION[p.id] || 'NA'; }
   var BASE = {};   // starting prices from players.js (filled once league.js has loaded)
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
@@ -879,7 +883,8 @@
   function imSay(t, cls) { $('im-msg').textContent = t; $('im-msg').className = 'msg' + (cls ? ' ' + cls : ''); }
   function blankTeam() { return { code: '', name: '', region: 'NA', season: '', color: '#a5dcdd', logo: '', retired: false, players: [], isNew: true }; }
   function deckTeamPlayers(code) {
-    return ALL_PLAYERS.filter(function (p) { return p.team === code; })
+    var old = retiredTeam(code);
+    return ALL_PLAYERS.filter(function (p) { return p.team === code && (old || !retiredPlayer(p)); })
       .map(function (p) { return { id: p.id, name: p.name, role: role(p), price: BASE[p.id] != null ? +BASE[p.id] : +p.price }; });
   }
   function editTeam(code) {
@@ -916,12 +921,12 @@
     var list = teamList().filter(function (t) { return all || !t.retired; })
       .sort(function (a, b) { return (a.retired ? 1 : 0) - (b.retired ? 1 : 0) || String(a.region).localeCompare(String(b.region)) || String(a.code).localeCompare(String(b.code), undefined, { numeric: true }); });
     $('tm-list').innerHTML = list.map(function (t) {
-      var n = ALL_PLAYERS.filter(function (p) { return p.team === t.code; }).length;
+      var n = ALL_PLAYERS.filter(function (p) { return p.team === t.code && (t.retired || !retiredPlayer(p)); }).length;
       return '<li class="tm-item"><span class="tm-logo">' + (t.logo ? '<img src="' + esc(logoSrc(t.logo)) + '" alt="">' : '') + '</span>' +
         '<span class="tm-main"><b><span class="tm-swatch" style="background:' + esc(t.color || '#a5dcdd') + '"></span>' + esc(t.code) + ' · ' + esc(t.name || '') + '</b>' +
         '<span class="dim">' + esc(t.region || 'NA') + (t.season ? ' · ' + esc(t.season) : '') + ' · ' + n + ' player' + (n === 1 ? '' : 's') + (t.retired ? ' · retired' : '') + (t.saved ? ' · edited here' : '') + '</span></span>' +
         '<button type="button" class="link" data-edit="' + esc(t.code) + '">Edit</button></li>';
-    }).join('') || '<li class="dim">No teams.</li>';
+    }).join('') + '<li><button type="button" class="tm-item tm-add" id="tm-add-team"><span class="tm-logo" aria-hidden="true" style="font-size:28px;color:var(--accent,#a5dcdd)">+</span><span class="tm-main"><b>Add a team</b><span class="dim">Fill in a new team and its players</span></span></button></li>';
   }
   function setupTeams() {
     tm = blankTeam(); drawForm(); drawTeams(); loadEvents();
@@ -977,6 +982,13 @@
     editTeam(b.getAttribute('data-edit'));
   });
   $('tm-show-retired').addEventListener('change', drawTeams);
+  $('tm-list').addEventListener('click', function (e) {
+    if (!e.target.closest('#tm-add-team')) return;
+    if (tmDirty && !window.confirm('Drop the unsaved changes to ' + (tm.code || 'this team') + '?')) return;
+    tm = blankTeam(); tmDirty = false; drawForm(); tmSay('');
+    $('tm-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setTimeout(function () { $('tm-code').focus({ preventScroll: true }); }, 400);
+  });
   $('tm-save').addEventListener('click', function () {
     if (tmBusy) return;
     var code = tm.code;

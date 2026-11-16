@@ -58,7 +58,7 @@ def logic(board, js):
         e = js.index('function pcmtReadDeck() {')
         js = js[:s] + r'''function pcmtReadMyDeck() {
   var ok = {};   // NA Season 3 players (retired teams) are out of decks (Nov 12 2026)
-  PCMT_PLAYERS.forEach(function (p) { if (!PCMT_RETIRED_TEAM[p.team]) ok[p.id] = true; });
+  PCMT_PLAYERS.forEach(function (p) { if (!pcmtRetired(p)) ok[p.id] = true; });
   function clean(v, saved) {
     var out = { slots: {}, igl: null, squadName: '', saved: !!saved };
     Object.keys(v.slots || {}).forEach(function (k) { if (ok[v.slots[k]]) out.slots[k] = v.slots[k]; });
