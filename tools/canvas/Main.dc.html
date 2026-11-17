@@ -213,6 +213,13 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </div>
 </div>
 
+<sc-if value="{{deckNaOn}}" hint-placeholder-val="{{ true }}">
+<aside aria-label="New NA point rule" style="display: flex; gap: 14px; align-items: flex-start; padding: 14px 18px; border-radius: 12px; border: 1px solid #a5dcdd; background: #13292b; font-family: 'National Park', system-ui, sans-serif; color: #c4d4d4; font-size: 15px; line-height: 1.5">
+<img src="{{regionNA}}" alt="" style="width: 28px; height: 28px; object-fit: contain; flex: none; margin-top: 1px">
+<p style="margin: 0"><b style="color: #eaf4f4">New point rule for NA Stage 1:</b> each player in your NA deck only scores their <b style="color: #eaf4f4">2 best series</b> of the whole stage. NA decks lock <b style="color: #eaf4f4">Saturday, Nov 21 at 9:00 PM EST</b> and stay locked until Stage 1 ends. <a href="guide.html#regions" style="color: #a5dcdd">Read the rules</a></p>
+</aside>
+</sc-if>
+
 <div style="display: flex; flex-wrap: wrap; gap: 16px">
 <div style="flex: 1 1 160px; background: #172124; border: 1px solid #2a3a3e; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px; min-width: 0">
 <span style="display: inline-flex; align-items: center; gap: 6px; font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa; letter-spacing: 0.06em; text-transform: uppercase"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="#f5d76e"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 20.9l1.6-7L2 9.2l7.1-.6z"></path></svg>{{mvpLabel}}</span>
