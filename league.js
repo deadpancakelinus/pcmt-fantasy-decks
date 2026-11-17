@@ -933,7 +933,7 @@
           var own = mySubs.filter(function (x) { return x.region === rg; }), last = own[own.length - 1];
           if (!last) { var old = mySubs.filter(function (x) { return !x.region; }); last = old[old.length - 1]; if (last && !hasRegion([last], rg)) last = null; }
           if (!last) return;
-          window.PCMT_MY_REMOTE_DECKS[rg] = { slots: last.slots, igl: last.igl, name: pcmtCensorName(last.name).bad ? '' : last.name, uid: me.id, region: rg, legacy: !last.region };
+          window.PCMT_MY_REMOTE_DECKS[rg] = { slots: last.slots, igl: last.igl, name: pcmtCensorName(last.name).bad ? '' : last.name, uid: me.id, region: rg, legacy: !last.region, t: last.t };
           if (last.region) lastSubmittedBy[rg] = JSON.stringify({ slots: last.slots || {}, igl: last.igl || null, name: last.name || '', region: rg });
         });
         var lastAny = mySubs[mySubs.length - 1];

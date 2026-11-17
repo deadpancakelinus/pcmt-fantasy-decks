@@ -56,8 +56,26 @@ def logic(board, js):
         js = sub1(js, 'var PCMT_AURA = { holderId: null, me: null };', 'var PCMT_AURA = window.PCMT_AURA_LIVE || { holderId: null, me: null };', board)
         s = js.index('function pcmtReadDeckRegion() {')
         e = js.index('function pcmtReadDeck() {')
-        js = js[:s] + r'''function pcmtReadDeckRegion() {
+        js = js[:s] + r'''// Which deck The Deck opens on: the one picked last on this device, else the deck locked in most recently (an
+// older single deck counts for the region of its players), else NA. (Nov 17 2026: it used to open on NA for everyone,
+// so a manager with only an EMEA deck saw an empty deck and no aura.)
+function pcmtReadDeckRegion() {
   try { var v = window.localStorage.getItem('pcmt-deck-region'); if (v === 'NA' || v === 'EMEA') return v; } catch (e) {}
+  var R = window.PCMT_MY_REMOTE_DECKS || {}, na = R.NA, eu = R.EMEA;
+  if (na && eu && !na.legacy && !eu.legacy) return (eu.t || 0) > (na.t || 0) ? 'EMEA' : 'NA';
+  if (eu && (!na || na.legacy)) {
+    var ids = Object.keys(eu.slots || {}).map(function (k) { return eu.slots[k]; }), byId = {};
+    PCMT_PLAYERS.forEach(function (p) { byId[p.id] = p; });
+    var nEu = ids.filter(function (id) { return byId[id] && pcmtRegions(byId[id])[0] === 'EMEA'; }).length;
+    if (!na || nEu >= ids.length - nEu) return 'EMEA';
+  }
+  if (!na && !eu) {
+    try {
+      var old = JSON.parse(window.localStorage.getItem('pcmt-mydeck') || 'null'), first = old && old.slots && Object.keys(old.slots).map(function (k) { return old.slots[k]; })[0];
+      var fp = first && PCMT_PLAYERS.filter(function (p) { return p.id === first; })[0];
+      if (fp && pcmtRegions(fp)[0] === 'EMEA') return 'EMEA';
+    } catch (e) {}
+  }
   return 'NA';
 }
 // Two decks (Nov 17 2026): an NA deck and an EMEA deck. Signed in, each comes from the league (that deck's last save; an
