@@ -4,7 +4,7 @@ izz	SRB	S3 NA	1.37	1.40	308	21	470	492	329	126	1.50	1.88	1.05	0.70	0.27	76%	201.
 avi	TS	S3 NA	1.33	1.35	296	21	424	445	304	93	1.46	1.77	1.05	0.72	0.22	75%	193.1	66	64	0.16	0.15	2	29%	34	/players/avi	/icons/s3_teams/na/Team Slugshow.png
 cooleo	SPG	S3 NA	1.30	1.34	278	31	668	658	465	214	1.42	1.88	0.99	0.70	0.32	78%	182.6	77	50	0.12	0.07	27	30%	45	/players/cooleo	/icons/s3_teams/na/Spank Ptheory Gaming.png
 lucas	BAKA	S3 NA	1.29	1.28	292	17	380	377	280	82	1.35	1.64	0.99	0.74	0.22	75%	195.2	56	43	0.15	0.11	13	29%	34	/players/lucas	/icons/s3_teams/na/Beautiful and Kinda Adorable.png
-stingray	NAVI	S3 NA	1.28	1.25	272	20	441	416	295	104	1.41	1.76	0.94	0.67	0.24	78%	183.9	64	38	0.15	0.09	26	22%	34	/players/stingray	/icons/s3_teams/na/No Actual Valorant Intelligence.png
+Sting	NAVI	S3 NA	1.28	1.25	272	20	441	416	295	104	1.41	1.76	0.94	0.67	0.24	78%	183.9	64	38	0.15	0.09	26	22%	34	/players/sting	/icons/s3_teams/na/No Actual Valorant Intelligence.png
 haych	TL	S3 NA	1.27	1.26	268	18	389	374	260	88	1.44	1.78	0.96	0.67	0.23	77%	176.9	74	48	0.19	0.12	26	26%	30	/players/haych	/icons/s3_teams/na/Team Dyslexia.png
 colt	SSG	S3 NA	1.26	1.28	278	16	358	358	248	53	1.44	1.66	1.00	0.69	0.15	75%	181.0	77	41	0.22	0.11	36	35%	38	/players/colt	/icons/s3_teams/na/Squirtle Squad Gaming.png
 angus	RRQ	S3 NA	1.26	1.28	288	15	305	293	231	83	1.27	1.63	0.96	0.76	0.27	76%	188.6	59	34	0.19	0.11	25	22%	33	/players/angus	/icons/s3_teams/na/Rage Re-Queuers.png
@@ -29,9 +29,9 @@ Pi	T1	S3 NA	1.05	1.04	216	24	519	370	353	211	1.05	1.65	0.71	0.68	0.41	74%	135.2	
 night	BAKA	S3 NA	1.05	1.06	229	32	710	561	545	209	1.03	1.41	0.79	0.77	0.29	70%	147.6	73	76	0.10	0.11	-3	26%	30	/players/night	/icons/s3_teams/na/Beautiful and Kinda Adorable.png
 pavel	IHOP	S3 NA	1.05	1.04	233	17	362	293	272	83	1.08	1.38	0.81	0.75	0.23	69%	147.6	46	50	0.13	0.14	-4	20%	26	/players/pavel	/icons/s3_teams/na/I Hate Odin Party.png
 amara	FSG	S3 NA	1.04	1.01	218	18	392	295	276	107	1.07	1.46	0.75	0.70	0.27	71%	141.1	46	46	0.12	0.12	0	16%	29	/players/amara	/icons/s3_teams/na/Furry Squirrels Gaming.png
-Lazy	NAVI	S3 NA	1.03	0.96	214	9	191	142	134	41	1.06	1.37	0.74	0.70	0.21	73%	143.6	21	23	0.11	0.12	-2	18%	19	/players/lazy	/icons/s3_teams/na/No Actual Valorant Intelligence.png
+LazyNotTired	NAVI	S3 NA	1.03	0.96	214	9	191	142	134	41	1.06	1.37	0.74	0.70	0.21	73%	143.6	21	23	0.11	0.12	-2	18%	19	/players/lazynottired	/icons/s3_teams/na/No Actual Valorant Intelligence.png
 masao	DFM	S3 NA	1.03	0.97	211	25	515	367	365	155	1.01	1.43	0.71	0.71	0.30	73%	142.2	44	42	0.09	0.08	2	20%	31	/players/masao	/icons/s3_teams/na/Dementia Found Me.png
-Jalen	(sub)	S3 NA	1.01	0.77	212	3	60	44	42	11	1.05	1.31	0.73	0.70	0.18	68%	144.2	11	5	0.18	0.08	6	37%	21	/players/jalen	
+Jaden	(sub)	S3 NA	1.01	0.77	212	3	60	44	42	11	1.05	1.31	0.73	0.70	0.18	68%	144.2	11	5	0.18	0.08	6	37%	21	/players/jaden	
 Ender	TL	S3 NA	1.01	0.97	216	20	422	314	313	98	1.00	1.32	0.74	0.74	0.23	70%	140.8	55	58	0.13	0.14	-3	21%	27	/players/ender	/icons/s3_teams/na/Team Dyslexia.png
 nik	DFM	S3 NA	1.01	0.97	236	8	161	124	132	35	0.94	1.20	0.77	0.82	0.22	69%	151.8	24	34	0.15	0.21	-10	22%	27	/players/nik	/icons/s3_teams/na/Dementia Found Me.png
 eve	IHOP	S3 NA	1.00	0.98	216	17	362	277	273	74	1.01	1.29	0.77	0.75	0.20	69%	142.6	41	40	0.11	0.11	1	28%	24	/players/eve	/icons/s3_teams/na/I Hate Odin Party.png
@@ -58,7 +58,7 @@ rudra	FSG	S3 NA	0.92	0.89	167	21	447	263	311	194	0.85	1.47	0.59	0.70	0.43	75%	10
 li	FNC	S3 NA	0.91	0.85	192	19	393	241	311	132	0.77	1.20	0.61	0.79	0.34	71%	127.3	37	39	0.09	0.10	-2	18%	27	/players/li	/icons/s3_teams/na/cow paulo FaN Club.png
 platy	RRQ	S3 NA	0.90	0.86	197	11	218	154	169	28	0.91	1.08	0.71	0.78	0.13	67%	127.1	28	29	0.13	0.13	-1	22%	19	/players/platy	/icons/s3_teams/na/Rage Re-Queuers.png
 cassie	NAVI	S3 NA	0.90	0.85	189	25	550	360	425	135	0.85	1.16	0.65	0.77	0.25	66%	127.7	54	65	0.10	0.12	-11	23%	28	/players/cassie	/icons/s3_teams/na/No Actual Valorant Intelligence.png
-nova	SRB	S3 NA	0.90	0.86	170	17	383	225	280	148	0.80	1.33	0.59	0.73	0.39	76%	108.7	25	27	0.07	0.07	-2	22%	21	/players/nova	/icons/s3_teams/na/Sunshine and Rainbows.png
+hyypernova	SRB	S3 NA	0.90	0.86	170	17	383	225	280	148	0.80	1.33	0.59	0.73	0.39	76%	108.7	25	27	0.07	0.07	-2	22%	21	/players/hyypernova	/icons/s3_teams/na/Sunshine and Rainbows.png
 hascan	DFM	S3 NA	0.89	0.80	181	27	570	355	416	127	0.85	1.16	0.62	0.73	0.22	67%	122.5	33	48	0.06	0.08	-15	20%	27	/players/hascan	/icons/s3_teams/na/Dementia Found Me.png
 dino	TS	S3 NA	0.89	0.85	176	18	364	239	264	83	0.91	1.22	0.66	0.73	0.23	67%	113.8	23	31	0.06	0.09	-8	32%	22	/players/dino	/icons/s3_teams/na/Team Slugshow.png
 androobee	SRB	S3 NA	0.88	0.86	180	18	398	259	298	104	0.87	1.22	0.65	0.75	0.26	66%	115.0	36	41	0.09	0.10	-5	24%	24	/players/androobee	/icons/s3_teams/na/Sunshine and Rainbows.png

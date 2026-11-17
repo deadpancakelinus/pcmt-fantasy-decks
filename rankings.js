@@ -323,5 +323,10 @@ var PCMT_POWER = {
         "lastPlayed": "2026-08-22T23:00:00Z"
       }
     ]
+  },
+  "s4-na": {
+    "event": "s4-na",
+    "updated": null,
+    "teams": []
   }
 };
