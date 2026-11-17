@@ -326,3 +326,6 @@ Supabase's Discord login always asks Discord for the email. Triggers drop it bef
 
 ## 35. Home: Next Up panel removed (Nov 17 2026)
 - The Next Up panel (next series, deck lock label, last result) is gone from Home; the hero is just the heading now (.hm-hero is a block). Its values (matches, lockLabel, resultLabel) are still worked out in the board but not shown. It was also the last place showing NA S3 FNC's logo for S4's FNC (Freaks Need Caesparz, no logo yet); Store and Library only have S3 cards, so the S3 logo is right there.
+
+## 36. Pick'ems team window: own roster for a season PCMT.gg hasn't posted (Nov 17 2026)
+- The team window used to fall back to the team's latest season on PCMT.gg, so NA S4's FNC (Freaks Need Caesparz) showed NA S3 FNC's players. Now `siteRoster` (tools/league.js, "Pick'ems team rosters") uses the site's own players for that team and season (PCMT_SITE_TEAMS active entry for the season; for a reused code only the `-s<n>` ids) with ACS shown as "—" and a note until PCMT.gg posts the season. The latest-season fallback is only used when the site doesn't have the team in that season.

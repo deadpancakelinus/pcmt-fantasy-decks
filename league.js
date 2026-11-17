@@ -1543,10 +1543,23 @@
       '@media (prefers-reduced-motion:reduce){#pcmt-roster{transition:none}}';
     document.head.appendChild(st);
   }
-  // The season's roster for the team; a season PCMT.gg doesn't list yet falls back to that team's latest season.
+  // The season's roster for the team. A season PCMT.gg doesn't list yet uses the site's own roster for it (players.js,
+  // no ACS yet) when the site has that team in that season, so a reused code (NA S4's FNC) never shows the old team;
+  // otherwise it falls back to that team's latest season on PCMT.gg.
+  function siteRoster(code, season) {
+    var m = /^S(\d+)\s+(\w+)/.exec(season || ''); if (!m) return null;
+    var T = window.PCMT_SITE_TEAMS || [], active = T.filter(function (t) { return t.code === code && !t.retired && String(t.season || '').replace(/^S/, '') === m[1]; })[0];
+    if (!active) return null;
+    var retiredToo = T.some(function (t) { return t.code === code && t.retired; });
+    var list = (window.PCMT_SITE_PLAYERS || []).filter(function (p) { return p.team === code && (!retiredToo || /-s\d+$/.test(p.id)); })
+      .map(function (p) { return { name: p.name, acs: null }; }).sort(function (a, b) { return a.name.localeCompare(b.name); });
+    return list.length ? list : null;
+  }
   function roster(code, season) {
     var R = window.PCMT_ROSTERS || {};
     if (season && R[season] && R[season][code]) return R[season][code];
+    var own = siteRoster(code, season);
+    if (own) return own;
     var best = null;
     Object.keys(R).forEach(function (s) {
       if (!R[s][code]) return;
@@ -1606,8 +1619,8 @@
         (list.length ? '<p class="rk"><span>PLAYER</span><span>ACS</span></p><ol>' + list.map(function (p) {
           var role = roleOf(p.name);
           return '<li>' + (ROLE_ICONS[role] ? '<img src="assets/' + ROLE_ICONS[role] + '" alt="">' : '<i></i>') + '<span>' + esc(p.name) +
-            (game ? ' <small class="kda">' + p.kills + '/' + p.deaths + '/' + p.assists + '</small>' : '') + '</span><em>' + Math.round(Number(p.acs) || 0) + '</em></li>';
-        }).join('') + '</ol>' : '<p class="rf">No players for this team on PCMT.gg yet.</p>');
+            (game ? ' <small class="kda">' + p.kills + '/' + p.deaths + '/' + p.assists + '</small>' : '') + '</span><em>' + (p.acs == null ? '\u2014' : Math.round(Number(p.acs) || 0)) + '</em></li>';
+        }).join('') + '</ol>' + (list.some(function (p) { return p.acs == null; }) ? '<p class="rf">ACS shows once PCMT.gg posts this season\'s stats.</p>' : '') : '<p class="rf">No players for this team on PCMT.gg yet.</p>');
       el.setAttribute('aria-describedby', 'pcmt-roster');
       place(el);
       box.classList.add('on');
