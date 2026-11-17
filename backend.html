@@ -175,6 +175,11 @@
   table.grid input.cell.code { min-width: 74px; width: 84px; text-transform: none; }
   table.grid select.cell { width: auto; min-width: 104px; }
   table.grid .cell.moved { border-color: #f5d76e; color: #f5d76e; }
+  table.grid label.chk { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 8px; border: 1px solid transparent; border-radius: 6px; cursor: pointer; }
+  table.grid label.chk input { width: 18px; height: 18px; accent-color: #f5d76e; margin: 0; }
+  table.grid label.chk span { opacity: .35; }
+  table.grid label.chk input:checked + span { opacity: 1; }
+  table.grid label.chk.moved { border-color: #f5d76e; }
   table.grid tfoot td { position: sticky; bottom: 0; z-index: 1; border-top: 2px solid var(--line); background: #1b2629; }   /* the Add a player row stays in view under the list */
   table.grid tfoot .kicker { display: block; margin-bottom: 6px; }
   .tm-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; align-items: end; }
@@ -361,6 +366,7 @@
           <th><button type="button" class="sort" data-k="team">Team</button></th>
           <th><button type="button" class="sort" data-k="region">Region</button></th>
           <th><button type="button" class="sort" data-k="role">Role</button></th>
+          <th><button type="button" class="sort" data-k="champ" title="PCMT champion trophy on their card on The Deck">Trophy</button></th>
           <th class="num"><button type="button" class="sort" data-k="base">Start price</button></th>
           <th class="num"><button type="button" class="sort" data-k="price">Price</button></th>
           <th><button type="button" class="sort" data-k="when">Last change</button></th>
@@ -373,6 +379,7 @@
           <td><span class="kicker">&nbsp;</span><input class="cell code" id="pa-team" type="text" maxlength="8" list="team-codes" placeholder="Team" autocomplete="off" aria-label="New player's team code"></td>
           <td><span class="kicker">&nbsp;</span><select class="cell" id="pa-region" aria-label="New player's region"><option value="">Team's</option><option>NA</option><option>EMEA</option></select></td>
           <td><span class="kicker">&nbsp;</span><select class="cell" id="pa-role" aria-label="New player's role"><option value="duelist">Duelist</option><option value="initiator">Initiator</option><option value="controller">Controller</option><option value="sentinel">Sentinel</option></select></td>
+          <td><span class="kicker">&nbsp;</span></td>
           <td class="num"><span class="kicker">&nbsp;</span><input id="pa-price" type="number" inputmode="decimal" min="0" max="30" step="0.5" value="8.0" aria-label="New player's start price"></td>
           <td colspan="4"><span class="kicker">&nbsp;</span><button class="btn" id="pa-go" type="button">Add player</button></td>
         </tr></tfoot>
@@ -705,11 +712,13 @@
   var REMOVED = {}, removedReady = true, storeBusy = {};   // REMOVED: { <player id>: { removed_at, removed_by } }
   function latest(id) { var c = null; LOG.forEach(function (x) { if (x.player === id) c = x; }); return c; }
   function current(id) { var c = latest(id); return c && c.price != null ? +c.price : BASE[id]; }
+  // PCMT champion trophy on the card (Nov 17 2026): the backend's choice (deck_players.champ) or else the site's own list.
+  function isChamp(id) { var d = DECK_ROWS[id]; return d && d.champ != null ? !!d.champ : !!(window.PCMT_SITE_CHAMPS || {})[id]; }
   function priceRows() {
     return PLAYERS_NOW().map(function (p) {
       var c = latest(p.id), cur = current(p.id), ed = edits[p.id], inf = info[p.id] || {};
       var f = function (k, v) { return inf[k] !== undefined ? inf[k] : v; };
-      return { id: p.id, name: f('name', p.name), team: f('team', p.team), region: f('region', regionOf(p)), role: cap(f('role', role(p))), base: f('base', BASE[p.id]), price: cur,
+      return { id: p.id, name: f('name', p.name), team: f('team', p.team), region: f('region', regionOf(p)), role: cap(f('role', role(p))), champ: f('champ', isChamp(p.id)) ? 1 : 0, base: f('base', BASE[p.id]), price: cur,
                value: ed === undefined ? cur : (ed === null ? BASE[p.id] : ed), edited: ed !== undefined || !!info[p.id], changed: cur !== BASE[p.id], inf: inf,
                when: c ? Date.parse(c.changed_at) : null, by: c ? (NAMES[c.changed_by] || 'staff') : '',
                removed: REMOVED[p.id] ? 1 : 0, removedBy: REMOVED[p.id] ? (NAMES[REMOVED[p.id].removed_by] || 'staff') : '', removedAt: REMOVED[p.id] ? Date.parse(REMOVED[p.id].removed_at) : null };
@@ -726,6 +735,7 @@
         '<td><input class="cell code' + (r.inf.team !== undefined ? ' moved' : '') + '" type="text" maxlength="8" list="team-codes" data-f="team" value="' + esc(r.team) + '" aria-label="' + esc(r.name) + '\'s team code"></td>' +
         '<td><select class="cell' + (r.inf.region !== undefined ? ' moved' : '') + '" data-f="region" aria-label="' + esc(r.name) + '\'s region">' + ['NA', 'EMEA'].map(function (x) { return '<option' + (x === r.region ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select></td>' +
         '<td><select class="cell' + (r.inf.role !== undefined ? ' moved' : '') + '" data-f="role" aria-label="' + esc(r.name) + '\'s role">' + ROLES.map(function (x) { return '<option value="' + x + '"' + (cap(x) === r.role ? ' selected' : '') + '>' + cap(x) + '</option>'; }).join('') + '</select></td>' +
+        '<td><label class="chk' + (r.inf.champ !== undefined ? ' moved' : '') + '"><input type="checkbox" data-f="champ"' + (r.champ ? ' checked' : '') + ' aria-label="' + esc(r.name) + ' has the PCMT champion trophy"><span aria-hidden="true">🏆</span></label></td>' +
         '<td class="num"><input type="number" inputmode="decimal" min="0" max="30" step="0.5" data-f="base" value="' + (+r.base).toFixed(1) + '" aria-label="' + esc(r.name) + ' start price"' + (r.inf.base !== undefined ? ' class="moved"' : '') + '></td>' +
         '<td class="num"><input type="number" inputmode="decimal" min="0" max="30" step="0.5" data-f="price" value="' + r.value.toFixed(1) + '" aria-label="' + esc(r.name) + ' price"' + (r.value !== BASE[r.id] ? ' class="moved"' : '') + '></td>' +
         '<td class="dim">' + (r.when ? esc(day(r.when)) + ' · ' + esc(r.by) : '—') + '</td>' +
@@ -733,7 +743,7 @@
         '<td>' + (storeBusy[r.id] ? '<span class="dim">Saving…</span>'
           : r.removed ? '<button type="button" class="link" data-store="back" data-pid="' + esc(r.id) + '" aria-label="Put ' + esc(r.name) + ' back in the store">Put back</button><small>' + esc(day(r.removedAt)) + ' · ' + esc(r.removedBy) + '</small>'
           : '<button type="button" class="link danger" data-store="remove" data-pid="' + esc(r.id) + '" aria-label="Remove ' + esc(r.name) + ' from the store">Remove</button>') + '</td></tr>';
-    }).join('') : '<tr><td colspan="9" class="dim">No players match.</td></tr>';
+    }).join('') : '<tr><td colspan="10" class="dim">No players match.</td></tr>';
     markSort($('p-table'), pSort);
     var n = Object.keys(edits).length, m = Object.keys(info).length;
     $('p-save').disabled = !(n + m); $('p-undo').disabled = !(n + m);
@@ -744,7 +754,8 @@
   // Name, team, region, role and start price: kept as edits until Save (deck_players).
   $('p-rows').addEventListener('change', function (e) {
     var el = e.target.closest('[data-f]'); if (!el || el.getAttribute('data-f') === 'price') return;
-    var id = el.closest('tr').getAttribute('data-id'), k = el.getAttribute('data-f'), p = BY_ID[id], v = el.value.trim(), was;
+    var id = el.closest('tr').getAttribute('data-id'), k = el.getAttribute('data-f'), p = BY_ID[id], v = el.type === 'checkbox' ? el.checked : el.value.trim(), was;
+    if (k === 'champ') was = isChamp(id);
     if (k === 'name') { if (!v) { pSay('A player needs a name.', 'err'); el.value = p.name; return; } was = p.name; }
     if (k === 'team') { v = v.replace(/\s+/g, ''); if (!/^[A-Za-z0-9]{1,8}$/.test(v)) { pSay('Team codes are 1 to 8 letters or numbers, as on PCMT.gg.', 'err'); el.value = p.team; return; } was = p.team; }
     if (k === 'region') was = regionOf(p);
@@ -791,7 +802,8 @@
     inf = inf || {};
     var team = inf.team !== undefined ? inf.team : p.team, t = teamOf(team), reg = inf.region !== undefined ? inf.region : regionOf(p);
     return { id: p.id, name: inf.name !== undefined ? inf.name : p.name, team: team, role: inf.role !== undefined ? inf.role : role(p),
-             region: t && t.region === reg ? null : reg, price: inf.base !== undefined ? inf.base : BASE[p.id] };
+             region: t && t.region === reg ? null : reg, price: inf.base !== undefined ? inf.base : BASE[p.id],
+             champ: inf.champ !== undefined ? inf.champ : (DECK_ROWS[p.id] && DECK_ROWS[p.id].champ != null ? DECK_ROWS[p.id].champ : null) };
   }
   // Saved rows go into this page's own lists too, so the table shows them straight away.
   function applyRow(d) {
@@ -865,7 +877,7 @@
   function loadDeck() {
     return Promise.all([
       L.apiAll('/rest/v1/deck_teams?select=code,name,color,region,season,logo,retired&order=code').then(function (r) { DECK_TEAMS = {}; (r || []).forEach(function (t) { DECK_TEAMS[t.code] = t; }); }, function () {}),
-      L.apiAll('/rest/v1/deck_players?select=id,name,team,region,role,price&order=id').then(function (r) { DECK_ROWS = {}; (r || []).forEach(function (d) { DECK_ROWS[d.id] = d; }); }, function () {})
+      L.apiAll('/rest/v1/deck_players?select=id,name,team,region,role,price,champ&order=id').then(function (r) { DECK_ROWS = {}; (r || []).forEach(function (d) { DECK_ROWS[d.id] = d; }); }, function () {})
     ]);
   }
 

@@ -1145,6 +1145,8 @@ var PCMT_ROLE_ICONS = {
 // Past PCMT champions (NA Seasons 1 and 2, EMEA Season 1), all treated the same.
 var PCMT_CHAMPS = { 'longclaw-s4': true, 'platinum-s4': true, 'igneous-s4': true, 'james-s4': true, 'stingray-s4': true, 'amara-s4': true,
   longclaw: true, devil: true, platinum: true, igneous: true, james: true, stingray: true, faye: true, charlotte: true, mide: true, king: true, tonnoman: true, amara: true };
+// Trophies set per player on the backend (Nov 17 2026, deck_players.champ via league.js) win over the list above.
+Object.keys(window.PCMT_CHAMP_EDITS || {}).forEach(function (id) { if (window.PCMT_CHAMP_EDITS[id]) PCMT_CHAMPS[id] = true; else delete PCMT_CHAMPS[id]; });
 var PCMT_LOGO_H = { T1: 20, IHOP: 20, RRQ: 26, SSG: 26 };
 var PCMT_ROLES = [
   { key: 'duelist', label: 'Duelist' },

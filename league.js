@@ -165,6 +165,8 @@
       if (p) { Object.assign(p, row); if (d.region) p.regions = [d.region]; else delete p.regions; }
       else { if (d.region) row.regions = [d.region]; PLAYERS.push(row); BY_ID[d.id] = row; }
       BASE_PRICE[d.id] = +d.price;
+      // The PCMT champion trophy, set per player on the backend (Nov 17 2026); null leaves the site's own list.
+      if (d.champ != null) { window.PCMT_CHAMP_EDITS = window.PCMT_CHAMP_EDITS || {}; window.PCMT_CHAMP_EDITS[d.id] = !!d.champ; if (d.champ) CHAMPS[d.id] = true; else delete CHAMPS[d.id]; }
     });
     if ((rows || []).length) findLowest();
   }
@@ -823,7 +825,7 @@
       })) : Promise.resolve([]);
       // Teams and players edited or added on the backend (empty until setup/deck-edits-setup.sql has been run)
       var dTeams = apiAll('/rest/v1/deck_teams?select=code,name,color,region,season,logo,retired&order=code').catch(function () { return []; });
-      var dPlayers = apiAll('/rest/v1/deck_players?select=id,name,team,region,role,price&order=id').catch(function () { return []; });
+      var dPlayers = apiAll('/rest/v1/deck_players?select=id,name,team,region,role,price,champ&order=id').catch(function () { return apiAll('/rest/v1/deck_players?select=id,name,team,region,role,price&order=id'); }).catch(function () { return []; });
       return Promise.all([decks, profiles, unlocks, vp, multi, admin, packs, mine, catalog, prices, released, staff, picks, pkEvents, pkBoard, removed, subs, note, niche, dTeams, dPlayers]);
     }).then(function (res) {
       applyDeckEdits(res[19], res[20]);
