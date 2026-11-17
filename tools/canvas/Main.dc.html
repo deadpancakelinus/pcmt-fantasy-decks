@@ -1790,14 +1790,14 @@ function pcmtNextLock(now) {
   });
   return best;
 }
-// NA Stage 1 (Nov 17 2026): NA decks stay open until the stage's first game starts (FNC vs WBG), whatever the weekly
-// lock says, then lock until the stage ends (end: null until it's set). The deck saved at that lock counts for the whole
+// NA Stage 1 (Nov 17 2026): every NA series from the stage's first game (FNC vs WBG, start) counts. NA decks stay open
+// until Sat Nov 21 9:00 PM EST (lock, when NBR vs PRX starts), whatever the weekly lock says, then lock until the stage ends (end: null until it's set). The deck saved at that lock counts for the whole
 // stage, and each player scores only their two best NA series of the stage. EMEA decks keep the weekly locks. Same as
 // NA_STAGE in league.js and vp_na_stage() in setup/na-stage.sql.
-var PCMT_NA_STAGE = { lock: Date.parse('2026-11-18T03:00:00Z'), end: null, name: 'Stage 1' };
+var PCMT_NA_STAGE = { start: Date.parse('2026-11-18T03:00:00Z'), lock: Date.parse('2026-11-22T02:00:00Z'), end: null, name: 'Stage 1' };
 function pcmtInNaStage(r) {
   var t = Date.parse(r.start);
-  return !!PCMT_NA_STAGE && r.region === 'NA' && t >= PCMT_NA_STAGE.lock && (PCMT_NA_STAGE.end == null || t < PCMT_NA_STAGE.end);
+  return !!PCMT_NA_STAGE && r.region === 'NA' && t >= PCMT_NA_STAGE.start && (PCMT_NA_STAGE.end == null || t < PCMT_NA_STAGE.end);
 }
 // One-time region switch (Nov 17 2026): once a player answers the switch window (tools/league.js), their account keeps
 // to one region (window.PCMT_REGION_PICK = { region, from, switched }) and only that region's players can join the deck.

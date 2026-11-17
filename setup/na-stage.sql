@@ -1,17 +1,19 @@
 -- NA Stage 1 (Nov 17 2026). Paste into the Supabase SQL editor after vp-setup.sql and thursday-weeks.sql.
--- NA decks lock when the stage's first game starts (FNC vs WBG) and stay locked until the stage ends. The deck that
+-- Every NA series from the stage's first game (FNC vs WBG, start_at) counts. NA decks lock Sat Nov 21 9:00 PM EST
+-- (lock_at, when NBR vs PRX starts) and stay locked until the stage ends. The deck that
 -- counts is the last valid one saved before that lock (over budget at the lock: it scores nothing in the stage). Each
 -- player in it scores only their two best NA series of the stage; each gameweek pays what that best-two total grew by,
 -- so the weeks add up to the stage total. NA results outside the stage and every EMEA result pay as before.
 -- Same rules as NA_STAGE in tools/league.js and PCMT_NA_STAGE in the Main board. Set ends_at when the stage's end is known:
---   create or replace function public.vp_na_stage() ... select timestamptz '2026-11-18 03:00+00', timestamptz '<end>';
+--   create or replace function public.vp_na_stage(...) ... select <start>, <lock>, timestamptz '<end>';
 
-create or replace function public.vp_na_stage(out lock_at timestamptz, out ends_at timestamptz)
-language sql immutable as $$ select timestamptz '2026-11-18 03:00:00+00', null::timestamptz $$;
+drop function if exists public.vp_na_stage() cascade;
+create or replace function public.vp_na_stage(out start_at timestamptz, out lock_at timestamptz, out ends_at timestamptz)
+language sql immutable as $$ select timestamptz '2026-11-18 03:00:00+00', timestamptz '2026-11-22 02:00:00+00', null::timestamptz $$;
 
 create or replace function public.vp_in_na_stage(r jsonb) returns boolean
 language sql stable as $$
-  select coalesce(r ->> 'region', '') = 'NA' and public.vp_ts(r ->> 'start') >= s.lock_at
+  select coalesce(r ->> 'region', '') = 'NA' and public.vp_ts(r ->> 'start') >= s.start_at
          and (s.ends_at is null or public.vp_ts(r ->> 'start') < s.ends_at)
   from public.vp_na_stage() s
 $$;
@@ -81,7 +83,7 @@ begin
       -- (the red "please relock your deck" window). Earlier gameweeks are unchanged.
       regular := use_slots is not null and not (w.lock_at >= timestamptz '2026-11-13 01:10:00+00'
                  and not public.vp_fits_budget(use_slots, public.vp_players_at(players, w.lock_at)));
-      in_stage := stage_slots is not null and w.e > st.lock_at and (st.ends_at is null or w.b < st.ends_at);
+      in_stage := stage_slots is not null and w.e > st.start_at and (st.ends_at is null or w.b < st.ends_at);
       if not regular and not in_stage then continue; end if;
       if p_now < w.e then continue; end if;
       rb := to_char(w.b at time zone 'UTC', 'YYYY-MM-DD');

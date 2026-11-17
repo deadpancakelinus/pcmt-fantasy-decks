@@ -431,16 +431,16 @@
       .sort(function (a, b) { return a.b - b.b; });
   }
 
-  // NA Stage 1 (Nov 17 2026): NA decks lock when the stage's first game starts (FNC vs WBG) and stay locked until the
-  // stage ends. The deck that counts is the last valid one saved before that lock (over budget at the lock: nothing).
+  // NA Stage 1 (Nov 17 2026): the stage starts with its first game (FNC vs WBG, start) and every stage series from then
+  // counts. NA decks lock Sat Nov 21 9:00 PM EST (lock, when NBR vs PRX starts) and stay locked until the stage ends. The deck that counts is the last valid one saved before that lock (over budget at the lock: nothing).
   // Each player in it scores only their two best NA series of the stage. Weekly card numbers are what that best-two
   // total grew by during the gameweek, so the weeks add up to the stage total. NA results outside the stage and every
   // EMEA result score as before. end: null until the stage's end is set. Same as vp_na_stage() in setup/na-stage.sql
   // and PCMT_NA_STAGE in the Main board.
-  var NA_STAGE = { lock: Date.parse('2026-11-18T03:00:00Z'), end: null };
+  var NA_STAGE = { start: Date.parse('2026-11-18T03:00:00Z'), lock: Date.parse('2026-11-22T02:00:00Z'), end: null };
   function inNaStage(r) {
     var t = Date.parse(r.start);
-    return !!NA_STAGE && r.region === 'NA' && t >= NA_STAGE.lock && (NA_STAGE.end == null || t < NA_STAGE.end);
+    return !!NA_STAGE && r.region === 'NA' && t >= NA_STAGE.start && (NA_STAGE.end == null || t < NA_STAGE.end);
   }
   var stageCache = { n: -1, by: {} };
   function stageBest(upTo) {   // { <player id>: sum of their two best stage series before upTo }
@@ -482,7 +482,7 @@
       // From Nov 13 2026: a deck over the budget at the prices when the gameweek locks scores nothing that week (the red
       // "please relock your deck" window; the server does the same in vp_compute). Earlier gameweeks are unchanged.
       var regular = !!use && !(w.lockAt >= OVER_BUDGET_FROM && !fitsBudget(use.slots, w.lockAt));
-      var inStage = stageIds.length && w.e > NA_STAGE.lock && (NA_STAGE.end == null || w.b < NA_STAGE.end);
+      var inStage = stageIds.length && w.e > NA_STAGE.start && (NA_STAGE.end == null || w.b < NA_STAGE.end);
       if (!regular && !inStage) return;
       var pts = 0, byTeam = {}, cards = {}, champWin = false, missedWin = false;
       function add(id, base, igl) {
