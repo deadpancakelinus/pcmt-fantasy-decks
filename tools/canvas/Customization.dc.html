@@ -127,10 +127,12 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </div>
 
 <section aria-labelledby="fav-h" style="display: flex; flex-direction: column; gap: 18px; padding: 22px; border-radius: 12px; background: #172124; border: 1px solid #2a3a3e">
-<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px">
-<h2 id="fav-h" style="margin: 0; font-family: 'National Park', system-ui, sans-serif; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">Favorites</h2>
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px">
+<h2 id="fav-h" style="margin: 0; font-family: 'National Park', system-ui, sans-serif; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em; flex: 1 1 auto; min-width: 0"><button type="button" onClick="{{cToggle.fav}}" aria-expanded="{{cOpen.fav}}" aria-controls="fav-body" style="all: unset; box-sizing: border-box; width: 100%; min-height: 32px; display: flex; align-items: center; gap: 10px; cursor: pointer; font: inherit; color: inherit; letter-spacing: inherit"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex: none; transition: transform .2s; transform: rotate({{cTurn.fav}})"><path d="m6 9 6 6 6-6"></path></svg>Favorites</button></h2>
 <span style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa">{{favCount}} saved</span>
 </div>
+<sc-if value="{{cOpen.fav}}" hint-placeholder-val="{{ true }}">
+<div id="fav-body" style="display: flex; flex-direction: column; gap: 18px">
 <sc-if value="{{favEmpty}}" hint-placeholder-val="{{ true }}">
 <div style="min-height: 120px; border: 2px dashed #3a4f53; border-radius: 10px; display: flex; align-items: center; justify-content: center; padding: 20px; text-align: center; color: #93a9aa; font-size: 14px; line-height: 1.5">Tap the star on any unlocked aura or decks to keep them here.</div>
 </sc-if>
@@ -240,13 +242,17 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </sc-for>
 </div>
 </sc-if>
+</div>
+</sc-if>
 </section>
 
 <section aria-labelledby="defaults-h" style="display: flex; flex-direction: column; gap: 18px; padding: 22px; border-radius: 12px; background: #172124; border: 1px solid #2a3a3e">
-<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px">
-<h2 id="defaults-h" style="margin: 0; font-family: 'National Park', system-ui, sans-serif; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">PCMT Decks</h2>
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px">
+<h2 id="defaults-h" style="margin: 0; font-family: 'National Park', system-ui, sans-serif; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em; flex: 1 1 auto; min-width: 0"><button type="button" onClick="{{cToggle.pcmt}}" aria-expanded="{{cOpen.pcmt}}" aria-controls="pcmt-body" style="all: unset; box-sizing: border-box; width: 100%; min-height: 32px; display: flex; align-items: center; gap: 10px; cursor: pointer; font: inherit; color: inherit; letter-spacing: inherit"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex: none; transition: transform .2s; transform: rotate({{cTurn.pcmt}})"><path d="m6 9 6 6 6-6"></path></svg>PCMT Decks</button></h2>
 <span style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa">{{defaultUnlocked}} of {{defaultCount}} unlocked</span>
 </div>
+<sc-if value="{{cOpen.pcmt}}" hint-placeholder-val="{{ true }}">
+<div id="pcmt-body" style="display: flex; flex-direction: column; gap: 18px">
 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 18px 14px">
 <sc-for list="{{defaults}}" as="d" hint-placeholder-count="2">
 <div style="position: relative; display: grid; min-width: 0">
@@ -285,13 +291,17 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </div>
 </sc-for>
 </div>
+</div>
+</sc-if>
 </section>
 
 <section aria-labelledby="pride-h" style="display: flex; flex-direction: column; gap: 18px; padding: 22px; border-radius: 12px; background: #172124; border: 1px solid #2a3a3e">
-<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px">
-<h2 id="pride-h" style="margin: 0; font-family: 'National Park', system-ui, sans-serif; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">Pride Collection</h2>
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px">
+<h2 id="pride-h" style="margin: 0; font-family: 'National Park', system-ui, sans-serif; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em; flex: 1 1 auto; min-width: 0"><button type="button" onClick="{{cToggle.pride}}" aria-expanded="{{cOpen.pride}}" aria-controls="pride-body" style="all: unset; box-sizing: border-box; width: 100%; min-height: 32px; display: flex; align-items: center; gap: 10px; cursor: pointer; font: inherit; color: inherit; letter-spacing: inherit"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex: none; transition: transform .2s; transform: rotate({{cTurn.pride}})"><path d="m6 9 6 6 6-6"></path></svg>Pride Collection</button></h2>
 <span style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa">{{prideStatus}}</span>
 </div>
+<sc-if value="{{cOpen.pride}}" hint-placeholder-val="{{ true }}">
+<div id="pride-body" style="display: flex; flex-direction: column; gap: 18px">
 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 18px 14px">
 <sc-for list="{{pride}}" as="d" hint-placeholder-count="1">
 <div style="position: relative; display: grid; min-width: 0">
@@ -327,13 +337,17 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </div>
 </sc-for>
 </div>
+</div>
+</sc-if>
 </section>
 
 <section aria-labelledby="eu-decks-h" style="display: flex; flex-direction: column; gap: 18px; padding: 22px; border-radius: 12px; background: #172124; border: 1px solid #2a3a3e">
-<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px">
-<h2 id="eu-decks-h" style="margin: 0; font-family: 'National Park', system-ui, sans-serif; font-size: 15px; font-weight: 600; color: #d5ff1d; letter-spacing: 0.08em">EMEA Team Decks</h2>
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px">
+<h2 id="eu-decks-h" style="margin: 0; font-family: 'National Park', system-ui, sans-serif; font-size: 15px; font-weight: 600; color: #d5ff1d; letter-spacing: 0.08em; flex: 1 1 auto; min-width: 0"><button type="button" onClick="{{cToggle.emea}}" aria-expanded="{{cOpen.emea}}" aria-controls="emea-body" style="all: unset; box-sizing: border-box; width: 100%; min-height: 32px; display: flex; align-items: center; gap: 10px; cursor: pointer; font: inherit; color: inherit; letter-spacing: inherit"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex: none; transition: transform .2s; transform: rotate({{cTurn.emea}})"><path d="m6 9 6 6 6-6"></path></svg>EMEA Team Decks</button></h2>
 <span style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa">{{euDeckUnlocked}} of {{euDeckCount}} unlocked</span>
 </div>
+<sc-if value="{{cOpen.emea}}" hint-placeholder-val="{{ true }}">
+<div id="emea-body" style="display: flex; flex-direction: column; gap: 18px">
 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 18px 14px">
 <sc-for list="{{euDecks}}" as="d" hint-placeholder-count="8">
 <div style="position: relative; display: grid; min-width: 0">
@@ -379,13 +393,17 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </div>
 </sc-for>
 </div>
+</div>
+</sc-if>
 </section>
 
 <section aria-labelledby="decks-h" style="display: flex; flex-direction: column; gap: 18px; padding: 22px; border-radius: 12px; background: #172124; border: 1px solid #2a3a3e">
-<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px">
-<h2 id="decks-h" style="margin: 0; font-family: 'National Park', system-ui, sans-serif; font-size: 15px; font-weight: 600; color: #ff6a1f; letter-spacing: 0.08em">NA Team Decks · Season 4</h2>
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px">
+<h2 id="decks-h" style="margin: 0; font-family: 'National Park', system-ui, sans-serif; font-size: 15px; font-weight: 600; color: #ff6a1f; letter-spacing: 0.08em; flex: 1 1 auto; min-width: 0"><button type="button" onClick="{{cToggle.na4}}" aria-expanded="{{cOpen.na4}}" aria-controls="na4-body" style="all: unset; box-sizing: border-box; width: 100%; min-height: 32px; display: flex; align-items: center; gap: 10px; cursor: pointer; font: inherit; color: inherit; letter-spacing: inherit"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex: none; transition: transform .2s; transform: rotate({{cTurn.na4}})"><path d="m6 9 6 6 6-6"></path></svg>NA Team Decks · Season 4</button></h2>
 <span style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa">{{deckStatus}}</span>
 </div>
+<sc-if value="{{cOpen.na4}}" hint-placeholder-val="{{ true }}">
+<div id="na4-body" style="display: flex; flex-direction: column; gap: 18px">
 <sc-if value="{{naSoon}}" hint-placeholder-val="{{ true }}">
 <div style="position: relative; border-radius: 10px; overflow: hidden">
 <div aria-hidden="true" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 18px 14px; filter: blur(7px) saturate(.6); opacity: .55; pointer-events: none; user-select: none">
@@ -454,13 +472,17 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </sc-for>
 </div>
 </sc-if>
+</div>
+</sc-if>
 </section>
 
 <section aria-labelledby="decks-s3-h" style="display: flex; flex-direction: column; gap: 18px; padding: 22px; border-radius: 12px; background: #172124; border: 1px solid #2a3a3e">
-<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px">
-<h2 id="decks-s3-h" style="margin: 0; font-family: 'National Park', system-ui, sans-serif; font-size: 15px; font-weight: 600; color: #ff6a1f; letter-spacing: 0.08em">NA Team Decks · Season 3</h2>
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px">
+<h2 id="decks-s3-h" style="margin: 0; font-family: 'National Park', system-ui, sans-serif; font-size: 15px; font-weight: 600; color: #ff6a1f; letter-spacing: 0.08em; flex: 1 1 auto; min-width: 0"><button type="button" onClick="{{cToggle.na3}}" aria-expanded="{{cOpen.na3}}" aria-controls="na3-body" style="all: unset; box-sizing: border-box; width: 100%; min-height: 32px; display: flex; align-items: center; gap: 10px; cursor: pointer; font: inherit; color: inherit; letter-spacing: inherit"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex: none; transition: transform .2s; transform: rotate({{cTurn.na3}})"><path d="m6 9 6 6 6-6"></path></svg>NA Team Decks · Season 3</button></h2>
 <span style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa">{{s3DeckUnlocked}} of {{s3DeckCount}} unlocked</span>
 </div>
+<sc-if value="{{cOpen.na3}}" hint-placeholder-val="{{ true }}">
+<div id="na3-body" style="display: flex; flex-direction: column; gap: 18px">
 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 18px 14px">
 <sc-for list="{{s3Decks}}" as="d" hint-placeholder-count="16">
 <div style="position: relative; display: grid; min-width: 0">
@@ -506,13 +528,17 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </div>
 </sc-for>
 </div>
+</div>
+</sc-if>
 </section>
 
 <section aria-labelledby="unlock-h" style="display: flex; flex-direction: column; gap: 18px; padding: 22px; border-radius: 12px; background: #172124; border: 1px solid #2a3a3e">
-<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px">
-<h2 id="unlock-h" style="margin: 0; font-family: 'National Park', system-ui, sans-serif; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">Aura</h2>
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px">
+<h2 id="unlock-h" style="margin: 0; font-family: 'National Park', system-ui, sans-serif; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em; flex: 1 1 auto; min-width: 0"><button type="button" onClick="{{cToggle.aura}}" aria-expanded="{{cOpen.aura}}" aria-controls="aura-body" style="all: unset; box-sizing: border-box; width: 100%; min-height: 32px; display: flex; align-items: center; gap: 10px; cursor: pointer; font: inherit; color: inherit; letter-spacing: inherit"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex: none; transition: transform .2s; transform: rotate({{cTurn.aura}})"><path d="m6 9 6 6 6-6"></path></svg>Aura</button></h2>
 <span style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa">{{unlockedCount}} of 5 unlocked</span>
 </div>
+<sc-if value="{{cOpen.aura}}" hint-placeholder-val="{{ true }}">
+<div id="aura-body" style="display: flex; flex-direction: column; gap: 18px">
 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 18px 14px">
 <div style="position: relative; display: grid; min-width: 0">
 <button class="ea-card" onClick="{{ringA.toggle}}" aria-pressed="{{ringA.on}}" aria-label="{{ringA.label}}" title="{{ringA.title}}" style="display: flex; flex-direction: column; gap: 8px; padding: 0; border: none; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; min-width: 0">
@@ -654,6 +680,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </div>
 
 </div>
+</div>
+</sc-if>
 </section>
 
 
@@ -1333,7 +1361,10 @@ class Component extends DCLogic {
     try { favs = JSON.parse(window.localStorage.getItem('pcmt-favs') || '[]'); if (!Array.isArray(favs)) favs = []; } catch (e) { favs = []; }
     var opened = [];
     try { opened = JSON.parse(window.localStorage.getItem('pcmt-opened') || '[]'); if (!Array.isArray(opened)) opened = []; } catch (e) { opened = []; }
-    this.state = { equipped: saved, aura: aura, codes: codes, codeInput: '', codeMsg: '', codeOk: false, favs: favs, opened: opened };
+    // Collapsible panels (Nov 17 2026): each panel can fold down to its title line; remembered on this device.
+    var folded = {};
+    try { folded = JSON.parse(window.localStorage.getItem('pcmt-cust-folded') || '{}') || {}; } catch (e) {}
+    this.state = { folded: folded, equipped: saved, aura: aura, codes: codes, codeInput: '', codeMsg: '', codeOk: false, favs: favs, opened: opened };
   }
   toggleFav(key) {
     var list = (this.state.favs || []).slice(), i = list.indexOf(key);
@@ -1764,6 +1795,11 @@ class Component extends DCLogic {
       decks: decks,
       deckCount: decks.length,
       deckUnlocked: decks.filter(function (d) { return !d.locked; }).length,
+      cOpen: (function () { var o = {}; ['fav', 'pcmt', 'pride', 'emea', 'na4', 'na3', 'aura'].forEach(function (k) { o[k] = !(self.state.folded || {})[k]; }); return o; })(),
+      cTurn: (function () { var o = {}; ['fav', 'pcmt', 'pride', 'emea', 'na4', 'na3', 'aura'].forEach(function (k) { o[k] = (self.state.folded || {})[k] ? '-90deg' : '0deg'; }); return o; })(),
+      cToggle: (function () { var o = {}; ['fav', 'pcmt', 'pride', 'emea', 'na4', 'na3', 'aura'].forEach(function (k) {
+        o[k] = function () { var f = Object.assign({}, self.state.folded || {}); if (f[k]) delete f[k]; else f[k] = true; try { window.localStorage.setItem('pcmt-cust-folded', JSON.stringify(f)); } catch (e) {} self.setState({ folded: f }); };
+      }); return o; })(),
       naSoon: !PCMT_NA_S4_READY, naReady: PCMT_NA_S4_READY,
       deckStatus: PCMT_NA_S4_READY ? decks.filter(function (d) { return !d.locked; }).length + ' of ' + decks.length + ' unlocked' : 'Locked · coming soon',
       s3Decks: s3Decks, s3DeckCount: s3Decks.length, s3DeckUnlocked: s3Decks.filter(function (d) { return !d.locked; }).length,
