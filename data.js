@@ -29,7 +29,8 @@ var PCMT_MATCHES = [
     "a": "FNC",
     "b": "WBG",
     "bo": 3,
-    "hours": 3
+    "hours": 3,
+    "url": "https://pcmt.gg/events/s4-na/fnc-vs-wbg-s4-group-a-2026-11-18"
   },
   {
     "region": "NA",
@@ -37,7 +38,8 @@ var PCMT_MATCHES = [
     "a": "EDM",
     "b": "CR",
     "bo": 3,
-    "hours": 3
+    "hours": 3,
+    "url": "https://pcmt.gg/events/s4-na/edm-vs-cr-s4-group-b-2026-11-20"
   },
   {
     "region": "NA",
@@ -45,7 +47,8 @@ var PCMT_MATCHES = [
     "a": "NBR",
     "b": "PRX",
     "bo": 3,
-    "hours": 3
+    "hours": 3,
+    "url": "https://pcmt.gg/events/s4-na/nbr-vs-prx-s4-group-c-2026-11-22"
   },
   {
     "region": "NA",
@@ -53,7 +56,8 @@ var PCMT_MATCHES = [
     "a": "BLG",
     "b": "TANK",
     "bo": 3,
-    "hours": 3
+    "hours": 3,
+    "url": "https://pcmt.gg/events/s4-na/blg-vs-tank-s4-group-d-2026-11-23"
   }
 ];
 

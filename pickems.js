@@ -392,39 +392,43 @@ var PCMT_PICKEMS = [
     "series": [
       {
         "n": 1,
-        "round": "Group A, Opening 1",
+        "round": "Group A",
         "a": "FNC",
         "b": "WBG",
         "bo": 3,
         "start": "2026-11-18T03:00:00Z",
-        "score": null
+        "score": null,
+        "url": "https://pcmt.gg/events/s4-na/fnc-vs-wbg-s4-group-a-2026-11-18"
       },
       {
         "n": 2,
-        "round": "Group B, Opening 1",
+        "round": "Group B",
         "a": "EDM",
         "b": "CR",
         "bo": 3,
         "start": "2026-11-20T01:00:00Z",
-        "score": null
+        "score": null,
+        "url": "https://pcmt.gg/events/s4-na/edm-vs-cr-s4-group-b-2026-11-20"
       },
       {
         "n": 3,
-        "round": "Group C, Opening 1",
+        "round": "Group C",
         "a": "NBR",
         "b": "PRX",
         "bo": 3,
         "start": "2026-11-22T02:00:00Z",
-        "score": null
+        "score": null,
+        "url": "https://pcmt.gg/events/s4-na/nbr-vs-prx-s4-group-c-2026-11-22"
       },
       {
         "n": 4,
-        "round": "Group D, Opening 1",
+        "round": "Group D",
         "a": "BLG",
         "b": "TANK",
         "bo": 3,
         "start": "2026-11-23T02:00:00Z",
-        "score": null
+        "score": null,
+        "url": "https://pcmt.gg/events/s4-na/blg-vs-tank-s4-group-d-2026-11-23"
       }
     ]
   }
