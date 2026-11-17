@@ -992,8 +992,11 @@ var PCMT_DECK_BG = {
   "TWILIGHT": "linear-gradient(90deg,transparent 0 33%,rgba(255,255,255,.07) 33% 36.5%,transparent 36.5% 100%),linear-gradient(90deg,transparent 0 33%,#050506 33% 41.5%,#abacac 41.5% 50%,#ffffff 50% 58.5%,#7a0a7c 58.5% 67%,transparent 67% 100%),radial-gradient(circle at 50% 50%,#173039 0%,#0b1d24 100%)",
   "TROPHY": "linear-gradient(115deg,transparent 25%,rgba(255,246,214,.13) 42%,transparent 58%),radial-gradient(circle at 50% 50%,#172124 0 26%,rgba(11,16,17,0) 52%),repeating-linear-gradient(45deg,rgba(247,220,132,.32) 0 1px,transparent 1px 11px),repeating-linear-gradient(-45deg,rgba(247,220,132,.32) 0 1px,transparent 1px 11px),radial-gradient(circle at 50% 50%,#1a1d17 0%,#0a0b08 100%)"
   };
+// The NA Season 3 FNC team deck (cow paulo FaN Club) shares its code with NA Season 4's FNC: the card back keeps the
+// Season 3 colour and logo (Nov 17 2026, when the Season 3 team decks came back).
+var PCMT_S3_DECK_LOOK = { FNC: { color: '#ff8a1f', logo: '/_blob/8a102a19e71060bb2dacb6d6b5263457' } };
 function pcmtDeckTheme(code) {
-  var team = !!(code && PCMT_TEAMS[code]);
+  var team = !!(code && (PCMT_TEAMS[code] || PCMT_S3_DECK_LOOK[code])), s3 = PCMT_S3_DECK_LOOK[code] || null;
   var blue = code === 'BLUE';
   var retro = code === 'RETRO';
   var cotton = code === 'COTTON';
@@ -1006,7 +1009,7 @@ function pcmtDeckTheme(code) {
   var sunset = code === 'SUNSET';
   var twilight = code === 'TWILIGHT';
   var regionDeck = PCMT_REGION_DECKS[code] || null;
-  var color = team ? PCMT_TEAMS[code] : (blue ? '#a5dcdd' : retro ? '#9869d7' : cotton ? '#f5a9b8' : galactic ? '#b37ff2' : mint ? '#8be4b7' : primary ? '#ffd900' : rainbow ? '#ff9800' : sherbet ? '#ffac63' : sunset ? '#ef5aa7' : twilight ? '#c47fc6' : trophy ? '#f7dc84' : regionDeck ? regionDeck.color : '#d4af37');
+  var color = s3 ? s3.color : team ? PCMT_TEAMS[code] : (blue ? '#a5dcdd' : retro ? '#9869d7' : cotton ? '#f5a9b8' : galactic ? '#b37ff2' : mint ? '#8be4b7' : primary ? '#ffd900' : rainbow ? '#ff9800' : sherbet ? '#ffac63' : sunset ? '#ef5aa7' : twilight ? '#c47fc6' : trophy ? '#f7dc84' : regionDeck ? regionDeck.color : '#d4af37');
   return {
     color: color,
     edge: team ? pcmtRgba(color, 0.35) : (blue ? '#1f3a3b' : retro ? '#2e2240' : cotton ? '#5bcefa' : galactic ? '#fcef42' : mint ? '#5253d5' : primary ? '#1bb3ff' : rainbow ? '#740b87' : sherbet ? '#a71567' : sunset ? '#1045c2' : twilight ? '#abacac' : trophy ? '#5a4a1e' : regionDeck ? regionDeck.edge : '#3a3220'),
@@ -1018,9 +1021,9 @@ function pcmtDeckTheme(code) {
     bg: PCMT_DECK_BG[code] || 'radial-gradient(circle at 50% 50%, #172124 0 28%, rgba(11,16,17,0) 50%), repeating-linear-gradient(45deg, ' + pcmtRgba(color, team ? 0.24 : 0.22) + ' 0 1px, transparent 1px 11px), repeating-linear-gradient(-45deg, ' + pcmtRgba(color, team ? 0.24 : 0.22) + ' 0 1px, transparent 1px 11px), radial-gradient(circle at 50% 50%, #12191a 0%, #080b0c 100%)',
     lattice: pcmtRgba(color, team ? 0.24 : 0.22),
     plainBg: PCMT_DECK_BG[code] || 'radial-gradient(circle at 50% 50%, #12191a 0%, #080b0c 100%)',
-    code: code, noLogo: team && !PCMT_LOGOS[code],
-    logo: team ? (PCMT_LOGOS[code] || '') : trophy ? '/_blob/a8390c53c5aa10a347b6af0841aa6835' : (retro ? '/_blob/87cba7684f074c59095952d5b1038f45' : regionDeck ? regionDeck.logo : '/_blob/3bf9d529cabff94109b561693539029f'),
-    imgSize: team ? (PCMT_LOGOS[code] ? (PCMT_SMALL_LOGOS[code] ? '54%' : '70%') : '0') : code === 'EMEA' ? '66%' : '100%',
+    code: code, noLogo: team && !(s3 ? s3.logo : PCMT_LOGOS[code]),
+    logo: s3 ? s3.logo : team ? (PCMT_LOGOS[code] || '') : trophy ? '/_blob/a8390c53c5aa10a347b6af0841aa6835' : (retro ? '/_blob/87cba7684f074c59095952d5b1038f45' : regionDeck ? regionDeck.logo : '/_blob/3bf9d529cabff94109b561693539029f'),
+    imgSize: team ? ((s3 ? s3.logo : PCMT_LOGOS[code]) ? (PCMT_SMALL_LOGOS[code] ? '54%' : '70%') : '0') : code === 'EMEA' ? '66%' : '100%',
     imgRadius: (team || trophy || regionDeck) ? '0' : '50%'
   };
 }
@@ -1126,7 +1129,7 @@ function pcmtSaveMyDeck(s) {
 function pcmtReadDeck() {
   // NA Season 3 team decks were retired on Nov 11 2026 (Customization: NA Season 4 decks coming soon): back to PCMT Blue.
   // (Kept inside this function: tools/wire.py swaps out everything between pcmtReadMyDeck and here on the live site.)
-  var PCMT_RETIRED_DECKS = ['T1', 'TL', 'IHOP', 'FSG', 'FNC', 'SSG', 'RRQ', 'C9', 'SRB', 'TS', 'EPY', 'DFM', 'BAKA', 'NAVI', '100T', 'SPG'];
+  var PCMT_RETIRED_DECKS = [];   // none since Nov 17 2026: the NA Season 3 team decks are back on Customization
   try {
     var v = window.localStorage.getItem('pcmt-deck');
     if (v && PCMT_RETIRED_DECKS.indexOf(v) >= 0) { window.localStorage.setItem('pcmt-deck', 'BLUE'); return 'BLUE'; }
