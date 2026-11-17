@@ -172,7 +172,7 @@ var PCMT_TEAM_LIST = [
   { code: 'GENG', name: 'Generally Goofy', color: '#c9a43a', season: 'S4' },
   { code: 'LOUD', name: 'Leading Ourselves Under Delusion', color: '#2fe02f', season: 'S4' },
   { code: 'EDM', name: 'Everybody Dance Meow', color: '#ff6eb4', season: 'S4' },
-  { code: 'CR', name: 'CRazy Zigzagoons', color: '#e0101a', season: 'S4' },
+  { code: 'CR', name: 'CRazy zigzagoon', color: '#e0101a', season: 'S4' },
   { code: 'EDG', name: 'EggheaD Gaming', color: '#e8e8e8', season: 'S4' },
   { code: 'DEI', name: 'Doofenshmirtz Evil Inc.', color: '#8a9c3a', season: 'S4' },
   { code: 'PRX', name: 'Perfect RetaXe', color: '#f39ab8', season: 'S4' },
@@ -508,10 +508,16 @@ var PCMT_LOGOS = {
   SOG: 'assets/85e0857300495ee3133b6acf79e286c0.png',
   NOOT: 'assets/195da1efa2549707b6737764479c066c.png',
   NATS: 'assets/8ff9c895c338d07216b1110d3b73fd8e.png',
-  // NA Season 4 (more come from the backend's Teams tab)
-  WBG: 'assets/909d84f265f62afb82136e5598dfa867.png',
-  PRX: 'assets/07305f8a0ccaf6736012490036a4601d.png',
-  BLG: 'assets/5737c752389df295711a39ee368816ab.png'
+  // NA Season 4: the uniform team logos (Nov 16 2026). More can come from the backend's Teams tab.
+  XLG: 'assets/91f981c237673a78c8eec4eb03b085c6.png',
+  DEI: 'assets/7fe66dc5467f5b6217a0e10b4dc8a7b9.png',
+  NBR: 'assets/27edb7501cd650e12be44be54b9d85b6.png',
+  CR: 'assets/67018bbb36052ad295b759d99349ee25.png',
+  TANK: 'assets/5f8ffbf391e6c3cb9c62a3f196ea8a0e.png',
+  BLG: 'assets/0ec86b0372796e07d3e1d908b74087b2.png',
+  EDM: 'assets/40ffd4b28537a0b9f85ea3ddc1b8648b.png',
+  WBG: 'assets/922748265b1b5fd89b83855c910a508e.png',
+  PRX: 'assets/79c87ed722ef3486b05a0ad9d25968fa.png'
 };
 (window.PCMT_DECK_TEAMS || []).forEach(function (d) { if (d.logo) PCMT_LOGOS[d.code] = d.logo; });  // logos from the backend's Teams tab
 // Region logos (NA orange shield, EMEA lime X) and their two PCMT decks.

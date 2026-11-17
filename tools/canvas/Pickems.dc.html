@@ -432,11 +432,23 @@ var PCMT_PICKEM_TEAMS = window.PCMT_PICKEM_TEAMS = {
 };
 // NA Season 4 (Nov 16 2026 team sheet). FNC is S4's Freaks Need Caesparz now (NA S3's FNC bracket is retired). Teams
 // edited on the backend's Teams tab (window.PCMT_DECK_TEAMS, from league.js) override names and logos.
-[['FNC', 'Freaks Need Caesparz'], ['WBG', 'We Been Gaming', '/_blob/909d84f265f62afb82136e5598dfa867'], ['GENG', 'Generally Goofy'],
- ['LOUD', 'Leading Ourselves Under Delusion'], ['EDM', 'Everybody Dance Meow'], ['CR', 'CRazy Zigzagoons'], ['EDG', 'EggheaD Gaming'],
- ['DEI', 'Doofenshmirtz Evil Inc.'], ['PRX', 'Perfect RetaXe', '/_blob/07305f8a0ccaf6736012490036a4601d'], ['NBR', 'Namebrand Ramyeon'],
- ['DRX', 'Doing Rails of X'], ['SRG', 'Shaymins Really Good'], ['BLG', 'Bartho Lomew Gaming', '/_blob/5737c752389df295711a39ee368816ab'],
- ['TANK', 'TANKERS'], ['XLG', 'Xtremely Lacking Gamesense'], ['NRG', 'Not Really Good']
+[
+ ['FNC', 'Freaks Need Caesparz'],
+ ['WBG', 'We Been Gaming', '/_blob/922748265b1b5fd89b83855c910a508e'],
+ ['GENG', 'Generally Goofy'],
+ ['LOUD', 'Leading Ourselves Under Delusion'],
+ ['EDM', 'Everybody Dance Meow', '/_blob/40ffd4b28537a0b9f85ea3ddc1b8648b'],
+ ['CR', 'CRazy zigzagoon', '/_blob/67018bbb36052ad295b759d99349ee25'],
+ ['EDG', 'EggheaD Gaming'],
+ ['DEI', 'Doofenshmirtz Evil Inc.', '/_blob/7fe66dc5467f5b6217a0e10b4dc8a7b9'],
+ ['PRX', 'Perfect RetaXe', '/_blob/79c87ed722ef3486b05a0ad9d25968fa'],
+ ['NBR', 'Namebrand Ramyeon', '/_blob/27edb7501cd650e12be44be54b9d85b6'],
+ ['DRX', 'Doing Rails of X'],
+ ['SRG', 'Shaymins Really Good'],
+ ['BLG', 'Bartho Lomew Gaming', '/_blob/0ec86b0372796e07d3e1d908b74087b2'],
+ ['TANK', 'TANKERS', '/_blob/5f8ffbf391e6c3cb9c62a3f196ea8a0e'],
+ ['XLG', 'Xtremely Lacking Gamesense', '/_blob/91f981c237673a78c8eec4eb03b085c6'],
+ ['NRG', 'Not Really Good']
 ].forEach(function (x) { PCMT_PICKEM_TEAMS[x[0]] = { name: x[1], logo: x[2] || '' }; });
 (window.PCMT_DECK_TEAMS || []).forEach(function (d) {
   var t = PCMT_PICKEM_TEAMS[d.code] = PCMT_PICKEM_TEAMS[d.code] || { name: d.name, logo: '' };
