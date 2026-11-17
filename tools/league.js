@@ -327,7 +327,7 @@
     document.body.appendChild(mxEl);
     setTimeout(function () { try { mxEl.querySelector('button').focus(); } catch (e) {} }, 0);
   }
-  // One-time region switch (Nov 17 2026). A deck with players from one region only gets this window over the deck
+  // One-time region switch (Nov 17 2026). A locked-in deck with players from one region only gets this window over the deck
   // (after the Patch Notes 2.0 window, never with it). Yes (three taps) deals a fresh deck from the other region and
   // ties the account to it; No (three taps) ties it to the region it has. Either way the window never comes back and
   // The Deck only offers that region's players from then on. Saved in Supabase region_picks (setup/region-picks.sql)
@@ -354,9 +354,13 @@
     api('/rest/v1/region_picks', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: { user_id: me.id, region: v.region, from_region: v.from, switched: v.switched } })
       .catch(function (e) { if (!/duplicate|conflict|23505/i.test(e.message)) toast('Your region choice couldn\'t be saved: ' + e.message); });
   }
+  // Only for players with a deck locked in (Nov 17 2026: it used to pop up for anyone building a first deck, after one
+  // card): the region is their last locked-in deck's, and the deck on the page has to be all that region too.
   function regionOffer(slots) {
-    var ids = deckIds(slots), regs = {};
-    ids.forEach(function (id) { if (BY_ID[id]) regs[playerRegion(BY_ID[id])] = true; });
+    var last = me && mySubs.length ? mySubs[mySubs.length - 1] : null;
+    var ids = last ? deckIds(slots) : [], regs = {};
+    if (last) deckIds(last.slots).concat(ids).forEach(function (id) { if (BY_ID[id]) regs[playerRegion(BY_ID[id])] = true; });
+    if (last && deckIds(last.slots).length < ROLES.length * 2 + 3) regs = {};
     var keys = Object.keys(regs), now = Date.now();
     var stageLocked = !!NA_STAGE && now >= NA_STAGE.lock && (NA_STAGE.end == null || now < NA_STAGE.end);
     if (me) loadPick();
