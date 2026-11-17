@@ -9,7 +9,7 @@
 <x-dc>
 <helmet>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cabin+Sketch:wght@400;700&amp;family=National+Park:wght@200..800&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cabin+Sketch:wght@400;700&amp;family=National+Park:wght@200..800&amp;family=Carlito:ital,wght@0,400;0,700;1,400&amp;display=swap" rel="stylesheet">
 <style>
 body{margin:0;background:#0d1416}
 html{color-scheme:dark}
@@ -26,6 +26,29 @@ a{color:#a5dcdd}a:hover{color:#d4f0f0}
 @media (prefers-reduced-motion: reduce){.pcmt-loader span{animation-duration:calc(var(--speed)*3)}}
 .pcmt-loading{transition:opacity .4s ease}
 input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !important;box-shadow:0 0 0 3px rgba(165,220,221,.3)}
+.pcmt-doc{background:#fff;color:#000;font-family:Carlito,Calibri,'Segoe UI',Arial,sans-serif;font-size:15px;box-shadow:0 2px 6px rgba(0,0,0,.45),0 12px 40px rgba(0,0,0,.35)}
+.pcmt-doc *{color:#000 !important;font-family:Carlito,Calibri,'Segoe UI',Arial,sans-serif !important;letter-spacing:0 !important}
+.pcmt-doc h1{font-size:40px !important;font-weight:400 !important;line-height:1.1 !important;padding-bottom:6px;border-bottom:1px solid #4472c4}
+.pcmt-doc h2{font-size:22px !important;font-weight:400 !important;color:#2f5496 !important}
+.pcmt-doc h2 span{color:#2f5496 !important;font-size:22px !important;font-weight:400 !important;min-width:44px}
+.pcmt-doc section{border-top:0 !important;padding-top:6px !important}
+.pcmt-doc a{color:#0563c1 !important;text-decoration:underline}
+.pcmt-doc nav{background:none !important;border:0 !important;border-radius:0 !important;padding:0 !important}
+.pcmt-doc nav>span{font-size:22px !important;font-weight:400 !important;color:#2f5496 !important;margin-bottom:4px !important}
+.pcmt-doc nav ol{columns:auto !important;line-height:1.7 !important}
+.pcmt-doc nav li{border-bottom:1px dotted #999}
+.pcmt-doc nav a{text-decoration:none;display:block}
+.pcmt-doc li b{font-weight:700}
+.pcmt-doc li>span:first-child{color:#000 !important;font-weight:400 !important}
+.pcmt-doc table{font-size:14px !important}
+.pcmt-doc table,.pcmt-doc th,.pcmt-doc td{border:1px solid #000 !important}
+.pcmt-doc th{background:#d9e2f3;font-weight:700 !important;text-transform:none !important;font-size:14px !important;padding:6px 10px !important}
+.pcmt-doc td{padding:5px 10px !important;background:#fff}
+.pcmt-doc div:has(>table){border:0 !important;border-radius:0 !important;background:none !important}
+.pcmt-doc aside{background:#f2f2f2 !important;border:1px solid #000 !important;border-radius:0 !important}
+.pcmt-doc img{filter:drop-shadow(0 0 1px rgba(0,0,0,.6))}
+.pcmt-desk{max-width:1000px;margin:0 auto;padding:40px 24px 64px}
+@media (max-width:700px){.pcmt-desk{padding:20px 8px 40px}.pcmt-doc{padding:28px 18px !important}.pcmt-doc h1{font-size:32px !important}.pcmt-doc div:has(>table),.pcmt-doc aside{margin-left:0 !important}}
 </style>
 </helmet>
 <div data-pcmt-root="Rules" style="position: relative; min-height: 100vh; background: #0d1416; color: #eaf4f4; font-family: 'National Park', system-ui, sans-serif">
@@ -61,7 +84,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </div>
 </header>
 
-<main style="max-width: 920px; margin: 0 auto; padding: 36px 24px 64px; display: flex; flex-direction: column; gap: 28px">
+<div class="pcmt-desk">
+<main class="pcmt-doc" style="max-width: 816px; margin: 0 auto; padding: 72px 84px; display: flex; flex-direction: column; gap: 22px">
 
 <div style="display: flex; flex-direction: column; gap: 10px">
 <span style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; font-weight: 600; color: #93a9aa; letter-spacing: 0.12em">FANTASY.PCMT.GG · RULE SHEET</span>
@@ -190,6 +214,7 @@ As your IGL: <span style="color: #a5dcdd; font-weight: 600">57 pts</span>
 </section>
 
 </main>
+</div>
 
 <footer style="border-top: 1px solid #2a3a3e">
 <div style="max-width: 1280px; margin: 0 auto; padding: 22px 24px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa">
