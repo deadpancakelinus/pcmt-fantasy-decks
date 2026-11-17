@@ -327,6 +327,89 @@
     document.body.appendChild(mxEl);
     setTimeout(function () { try { mxEl.querySelector('button').focus(); } catch (e) {} }, 0);
   }
+  // One-time region switch (Nov 17 2026). A deck with players from one region only gets this window over the deck
+  // (after the Patch Notes 2.0 window, never with it). Yes (three taps) deals a fresh deck from the other region and
+  // ties the account to it; No (three taps) ties it to the region it has. Either way the window never comes back and
+  // The Deck only offers that region's players from then on. Saved in Supabase region_picks (setup/region-picks.sql)
+  // when signed in, else on this device. Only offered while both regions' decks can still change: not while NA decks
+  // are locked for a stage.
+  var RP_KEY = 'pcmt-region-pick', rpTimer = null, rpEl = null, rpLoading = false, rpLoaded = false, rpUser = null;
+  function readPick() { try { return JSON.parse(localStorage.getItem(RP_KEY) || 'null'); } catch (e) { return null; } }
+  function writePick(v) { try { localStorage.setItem(RP_KEY, JSON.stringify(v)); } catch (e) {} window.PCMT_REGION_PICK = v; }
+  window.PCMT_REGION_PICK = readPick();
+  function loadPick() {
+    if (!me) { rpLoaded = true; return; }
+    if (rpUser === me.id && (rpLoaded || rpLoading)) return;
+    rpUser = me.id; rpLoading = true; rpLoaded = false;
+    api('/rest/v1/region_picks?select=region,from_region,switched&user_id=eq.' + me.id).then(function (rows) {
+      var row = Array.isArray(rows) && rows[0];
+      writePick(row ? { region: row.region, from: row.from_region, switched: !!row.switched } : null);
+      rpLoaded = true; rpLoading = false; if (window.PCMT_REDRAW) window.PCMT_REDRAW();
+    }, function () { rpLoading = false; rpUser = null; });
+  }
+  function savePick(v) {
+    writePick(v);
+    if (window.PCMT_REDRAW) window.PCMT_REDRAW();
+    if (!me) return;
+    api('/rest/v1/region_picks', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: { user_id: me.id, region: v.region, from_region: v.from, switched: v.switched } })
+      .catch(function (e) { if (!/duplicate|conflict|23505/i.test(e.message)) toast('Your region choice couldn\'t be saved: ' + e.message); });
+  }
+  function regionOffer(slots) {
+    var ids = deckIds(slots), regs = {};
+    ids.forEach(function (id) { if (BY_ID[id]) regs[playerRegion(BY_ID[id])] = true; });
+    var keys = Object.keys(regs), now = Date.now();
+    var stageLocked = !!NA_STAGE && now >= NA_STAGE.lock && (NA_STAGE.end == null || now < NA_STAGE.end);
+    if (me) loadPick();
+    var show = keys.length === 1 && !window.PCMT_REGION_PICK && (!me || rpLoaded) && !mxEl && !stageLocked;
+    if (!show) { if (rpEl) { rpEl.remove(); rpEl = null; } return; }
+    var h = document.getElementById('squad-h'), sec = h && h.closest('section');
+    if (!sec) return;
+    var cur = keys[0], other = cur === 'NA' ? 'EMEA' : 'NA';
+    if (!rpEl) {
+      rpEl = document.createElement('div');
+      rpEl.setAttribute('role', 'alertdialog');
+      rpEl.setAttribute('aria-labelledby', 'rp-h');
+      rpEl.style.cssText = 'position:absolute;z-index:61;display:flex;flex-direction:column;align-items:center;gap:20px;padding:min(110px,14vh) 24px 28px;box-sizing:border-box;' +
+        'border-radius:14px;border:2px solid #a5dcdd;background:rgba(13,20,22,.96);box-shadow:0 24px 60px rgba(0,0,0,.5);text-align:center;color:#eaf4f4;font-family:\'National Park\',system-ui,sans-serif';
+      var btn = 'min-width:150px;min-height:56px;padding:6px 26px;border-radius:10px;font:inherit;font-size:16px;font-weight:700;letter-spacing:.06em;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px';
+      rpEl.innerHTML = '<h2 id="rp-h" style="margin:0;font-family:\'Cabin Sketch\',cursive;font-weight:700;font-size:clamp(28px,4.5vw,40px);line-height:1.1">Switch regions?</h2>' +
+        '<p style="margin:0;max-width:560px;font-size:17px;line-height:1.55;color:#c4d4d4">This is a one time offer to switch your deck from your current region to the other region. Your new deck will be locked to the opposite region you are currently using. Would you like to switch regions?</p>' +
+        '<p data-rp-from style="margin:0;font-size:13px;color:#93a9aa"></p>' +
+        '<div style="display:flex;flex-wrap:wrap;gap:14px;justify-content:center">' +
+        '<button type="button" data-rp="yes" style="' + btn + ';border:0;background:#a5dcdd;color:#000">Yes<span data-rp-n style="font-size:11px;font-weight:600;letter-spacing:.04em;opacity:.75">Tap 3 times</span></button>' +
+        '<button type="button" data-rp="no" style="' + btn + ';border:2px solid #a5dcdd;background:transparent;color:#eaf4f4">No<span data-rp-n style="font-size:11px;font-weight:600;letter-spacing:.04em;opacity:.75">Tap 3 times</span></button></div>';
+      var taps = { yes: 0, no: 0 }, idle = null;
+      rpEl.querySelectorAll('button[data-rp]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          var k = b.getAttribute('data-rp'), o = k === 'yes' ? 'no' : 'yes';
+          taps[o] = 0; rpEl.querySelector('button[data-rp="' + o + '"] [data-rp-n]').textContent = 'Tap 3 times';
+          taps[k]++;
+          clearTimeout(idle); idle = setTimeout(function () { taps = { yes: 0, no: 0 }; if (rpEl) rpEl.querySelectorAll('[data-rp-n]').forEach(function (x) { x.textContent = 'Tap 3 times'; }); }, 2500);
+          var left = 3 - taps[k];
+          b.querySelector('[data-rp-n]').textContent = left > 0 ? 'Tap ' + left + ' more time' + (left === 1 ? '' : 's') : 'Done';
+          if (left > 0) return;
+          clearTimeout(idle);
+          var from = rpEl.getAttribute('data-cur'), to = from === 'NA' ? 'EMEA' : 'NA';
+          if (k === 'yes') {
+            savePick({ region: to, from: from, switched: true });
+            if (window.PCMT_DECK_API && window.PCMT_DECK_API.switchRegion) window.PCMT_DECK_API.switchRegion(to);
+            toast('Your deck is now ' + to + '. Check it and lock it in.');
+          } else {
+            savePick({ region: from, from: from, switched: false });
+          }
+          rpEl.remove(); rpEl = null;
+        });
+      });
+      document.body.appendChild(rpEl);
+    }
+    rpEl.setAttribute('data-cur', cur);
+    rpEl.querySelector('[data-rp-from]').textContent = 'Your deck is ' + cur + '. Yes deals you a new ' + other + ' deck; No keeps you on ' + cur + '.';
+    var r = sec.getBoundingClientRect();
+    rpEl.style.left = (r.left + window.scrollX) + 'px'; rpEl.style.top = (r.top + window.scrollY) + 'px';
+    rpEl.style.width = r.width + 'px'; rpEl.style.height = Math.max(r.height, 320) + 'px';
+    clearTimeout(rpTimer); rpTimer = setTimeout(function () { if (rpEl && window.PCMT_LAST_SLOTS) regionOffer(window.PCMT_LAST_SLOTS); }, 400);   // follows the deck as the page lays out
+  }
+  window.addEventListener('resize', function () { if (rpEl && window.PCMT_LAST_SLOTS) regionOffer(window.PCMT_LAST_SLOTS); });
   function transfersBetween(prevSlots, slots) {
     if (!prevSlots) return 0;
     var prev = {};
@@ -597,6 +680,8 @@
     statusNote: function (slots, text, locked) {
       overBudgetWarn(!!me && !locked && deckOverBudget(slots));
       mixedWarn(!!me && deckMixed(slots));
+      window.PCMT_LAST_SLOTS = slots;
+      setTimeout(function () { regionOffer(slots); }, 0);
       if (!me || locked) return text;
       if (deckMixed(slots)) return deckProblem(slots);
       // A full deck that can't be entered (usually over budget after a price rise): say so instead of "locked in".
