@@ -327,93 +327,7 @@
     document.body.appendChild(mxEl);
     setTimeout(function () { try { mxEl.querySelector('button').focus(); } catch (e) {} }, 0);
   }
-  // One-time region switch (Nov 17 2026). A locked-in deck with players from one region only gets this window over the deck
-  // (after the Patch Notes 2.0 window, never with it). Yes (three taps) deals a fresh deck from the other region and
-  // ties the account to it; No (three taps) ties it to the region it has. Either way the window never comes back and
-  // The Deck only offers that region's players from then on. Saved in Supabase region_picks (setup/region-picks.sql)
-  // when signed in, else on this device. Only offered while both regions' decks can still change: not while NA decks
-  // are locked for a stage.
-  var RP_KEY = 'pcmt-region-pick', rpTimer = null, rpEl = null, rpLoading = false, rpLoaded = false, rpUser = null;
-  function readPick() { try { return JSON.parse(localStorage.getItem(RP_KEY) || 'null'); } catch (e) { return null; } }
-  function writePick(v) { try { localStorage.setItem(RP_KEY, JSON.stringify(v)); } catch (e) {} window.PCMT_REGION_PICK = v; }
-  window.PCMT_REGION_PICK = readPick();
-  function loadPick() {
-    if (!me) { rpLoaded = true; return; }
-    if (rpUser === me.id && (rpLoaded || rpLoading)) return;
-    rpUser = me.id; rpLoading = true; rpLoaded = false;
-    api('/rest/v1/region_picks?select=region,from_region,switched&user_id=eq.' + me.id).then(function (rows) {
-      var row = Array.isArray(rows) && rows[0];
-      writePick(row ? { region: row.region, from: row.from_region, switched: !!row.switched } : null);
-      rpLoaded = true; rpLoading = false; if (window.PCMT_REDRAW) window.PCMT_REDRAW();
-    }, function () { rpLoading = false; rpUser = null; });
-  }
-  function savePick(v) {
-    writePick(v);
-    if (window.PCMT_REDRAW) window.PCMT_REDRAW();
-    if (!me) return;
-    api('/rest/v1/region_picks', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: { user_id: me.id, region: v.region, from_region: v.from, switched: v.switched } })
-      .catch(function (e) { if (!/duplicate|conflict|23505/i.test(e.message)) toast('Your region choice couldn\'t be saved: ' + e.message); });
-  }
-  // Only for players with a deck locked in (Nov 17 2026: it used to pop up for anyone building a first deck, after one
-  // card): the region is their last locked-in deck's, and the deck on the page has to be all that region too.
-  function regionOffer(slots) {
-    var last = me && mySubs.length ? mySubs[mySubs.length - 1] : null;
-    var ids = last ? deckIds(slots) : [], regs = {};
-    if (last) deckIds(last.slots).concat(ids).forEach(function (id) { if (BY_ID[id]) regs[playerRegion(BY_ID[id])] = true; });
-    if (last && deckIds(last.slots).length < ROLES.length * 2 + 3) regs = {};
-    var keys = Object.keys(regs), now = Date.now();
-    var stageLocked = !!NA_STAGE && now >= NA_STAGE.lock && (NA_STAGE.end == null || now < NA_STAGE.end);
-    if (me) loadPick();
-    var show = keys.length === 1 && !window.PCMT_REGION_PICK && (!me || rpLoaded) && !mxEl && !stageLocked;
-    if (!show) { if (rpEl) { rpEl.remove(); rpEl = null; } return; }
-    var h = document.getElementById('squad-h'), sec = h && h.closest('section');
-    if (!sec) return;
-    var cur = keys[0], other = cur === 'NA' ? 'EMEA' : 'NA';
-    if (!rpEl) {
-      rpEl = document.createElement('div');
-      rpEl.setAttribute('role', 'alertdialog');
-      rpEl.setAttribute('aria-labelledby', 'rp-h');
-      rpEl.style.cssText = 'position:absolute;z-index:61;display:flex;flex-direction:column;align-items:center;gap:20px;padding:min(110px,14vh) 24px 28px;box-sizing:border-box;' +
-        'border-radius:14px;border:2px solid #a5dcdd;background:rgba(13,20,22,.96);box-shadow:0 24px 60px rgba(0,0,0,.5);text-align:center;color:#eaf4f4;font-family:\'National Park\',system-ui,sans-serif';
-      var btn = 'min-width:150px;min-height:56px;padding:6px 26px;border-radius:10px;font:inherit;font-size:16px;font-weight:700;letter-spacing:.06em;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px';
-      rpEl.innerHTML = '<h2 id="rp-h" style="margin:0;font-family:\'Cabin Sketch\',cursive;font-weight:700;font-size:clamp(28px,4.5vw,40px);line-height:1.1">Switch regions?</h2>' +
-        '<p style="margin:0;max-width:560px;font-size:17px;line-height:1.55;color:#c4d4d4">This is a one time offer to switch your deck from your current region to the other region. Your new deck will be locked to the opposite region you are currently using. Would you like to switch regions?</p>' +
-        '<p data-rp-from style="margin:0;font-size:13px;color:#93a9aa"></p>' +
-        '<div style="display:flex;flex-wrap:wrap;gap:14px;justify-content:center">' +
-        '<button type="button" data-rp="yes" style="' + btn + ';border:0;background:#a5dcdd;color:#000">Yes<span data-rp-n style="font-size:11px;font-weight:600;letter-spacing:.04em;opacity:.75">Tap 3 times</span></button>' +
-        '<button type="button" data-rp="no" style="' + btn + ';border:2px solid #a5dcdd;background:transparent;color:#eaf4f4">No<span data-rp-n style="font-size:11px;font-weight:600;letter-spacing:.04em;opacity:.75">Tap 3 times</span></button></div>';
-      var taps = { yes: 0, no: 0 }, idle = null;
-      rpEl.querySelectorAll('button[data-rp]').forEach(function (b) {
-        b.addEventListener('click', function () {
-          var k = b.getAttribute('data-rp'), o = k === 'yes' ? 'no' : 'yes';
-          taps[o] = 0; rpEl.querySelector('button[data-rp="' + o + '"] [data-rp-n]').textContent = 'Tap 3 times';
-          taps[k]++;
-          clearTimeout(idle); idle = setTimeout(function () { taps = { yes: 0, no: 0 }; if (rpEl) rpEl.querySelectorAll('[data-rp-n]').forEach(function (x) { x.textContent = 'Tap 3 times'; }); }, 2500);
-          var left = 3 - taps[k];
-          b.querySelector('[data-rp-n]').textContent = left > 0 ? 'Tap ' + left + ' more time' + (left === 1 ? '' : 's') : 'Done';
-          if (left > 0) return;
-          clearTimeout(idle);
-          var from = rpEl.getAttribute('data-cur'), to = from === 'NA' ? 'EMEA' : 'NA';
-          if (k === 'yes') {
-            savePick({ region: to, from: from, switched: true });
-            if (window.PCMT_DECK_API && window.PCMT_DECK_API.switchRegion) window.PCMT_DECK_API.switchRegion(to);
-            toast('Your deck is now ' + to + '. Check it and lock it in.');
-          } else {
-            savePick({ region: from, from: from, switched: false });
-          }
-          rpEl.remove(); rpEl = null;
-        });
-      });
-      document.body.appendChild(rpEl);
-    }
-    rpEl.setAttribute('data-cur', cur);
-    rpEl.querySelector('[data-rp-from]').textContent = 'Your deck is ' + cur + '. Yes deals you a new ' + other + ' deck; No keeps you on ' + cur + '.';
-    var r = sec.getBoundingClientRect();
-    rpEl.style.left = (r.left + window.scrollX) + 'px'; rpEl.style.top = (r.top + window.scrollY) + 'px';
-    rpEl.style.width = r.width + 'px'; rpEl.style.height = Math.max(r.height, 320) + 'px';
-    clearTimeout(rpTimer); rpTimer = setTimeout(function () { if (rpEl && window.PCMT_LAST_SLOTS) regionOffer(window.PCMT_LAST_SLOTS); }, 400);   // follows the deck as the page lays out
-  }
-  window.addEventListener('resize', function () { if (rpEl && window.PCMT_LAST_SLOTS) regionOffer(window.PCMT_LAST_SLOTS); });
+  // (Nov 17 2026: the one-time region switch window was replaced by two decks, NA and EMEA, the same day.)
   function transfersBetween(prevSlots, slots) {
     if (!prevSlots) return 0;
     var prev = {};
@@ -469,10 +383,14 @@
   // For each manager: which deck counted each gameweek, and the points it scored. The deck that counts is the last valid
   // one saved before the week's lock (else the one from the week before). Entry: { week, deck, pts (IGL x1.5), byTeam,
   // cards: { <player id>: points } }.
-  function scoreManager(subs, weeks) {
-    subs = subs.slice().sort(function (a, b) { return a.t - b.t; });
+  // Two decks (Nov 17 2026): with a region, only that region's saves (and older saves with no region, which count for
+  // both) and that region's series are scored, and only NA has the Stage 1 rules. Without one, every save and series.
+  // Same as vp_compute in setup/two-decks.sql.
+  function resultRegion(r) { return r.region === 'EMEA' ? 'EMEA' : 'NA'; }
+  function scoreManager(subs, weeks, region) {
+    subs = subs.filter(function (x) { return !region || !x.region || x.region === region; }).sort(function (a, b) { return a.t - b.t; });
     var prev = null, out = [], stage = null;
-    if (NA_STAGE) {
+    if (NA_STAGE && region !== 'EMEA') {
       for (var j = subs.length - 1; j >= 0; j--) if (subs[j].t < NA_STAGE.lock && validDeck(subs[j].slots, subs[j].t)) { stage = subs[j]; break; }
       if (stage && !fitsBudget(stage.slots, NA_STAGE.lock)) stage = null;
     }
@@ -505,7 +423,7 @@
       if (regular) {
         var ids = deckIds(use.slots);
         w.results.forEach(function (r) {
-          if (inNaStage(r)) return;
+          if (inNaStage(r) || (region && resultRegion(r) !== region)) return;
           var sp = seriesPoints(r);
           ids.forEach(function (id) { add(id, sp[id] || 0, use.igl); });
           flags(r, ids);
@@ -520,6 +438,22 @@
                  pts: Math.round(pts * 10) / 10, byTeam: byTeam, cards: cards, champWin: champWin, missedWin: missedWin });
     });
     return out;
+  }
+
+  // One entry per gameweek from both decks' entries (NA and EMEA): cards, points and team points added together.
+  function mergeScored(lists) {
+    var by = {};
+    lists.forEach(function (list) {
+      (list || []).forEach(function (x) {
+        var m = by[x.week.key];
+        if (!m) { by[x.week.key] = { week: x.week, deck: x.deck, stageDeck: x.stageDeck, pts: x.pts, byTeam: Object.assign({}, x.byTeam), cards: Object.assign({}, x.cards), champWin: x.champWin, missedWin: x.missedWin }; return; }
+        m.pts = Math.round((m.pts + x.pts) * 10) / 10;
+        Object.keys(x.byTeam).forEach(function (t) { m.byTeam[t] = (m.byTeam[t] || 0) + x.byTeam[t]; });
+        Object.keys(x.cards).forEach(function (id) { m.cards[id] = (m.cards[id] || 0) + x.cards[id]; });
+        m.champWin = m.champWin || x.champWin; m.missedWin = m.missedWin || x.missedWin;
+      });
+    });
+    return Object.keys(by).sort().map(function (k) { return by[k]; });
   }
 
   // VP for one gameweek (an entry from scoreManager): each player's points from the series they were in your deck for,
@@ -604,7 +538,7 @@
   }
 
   // ---------- the league API used by the pages ----------
-  var me = null, mySubs = [], myScored = [], lastSubmitted = null, submitting = false, pendingDeck = null, pendingTimer = null, sendAgain = false;
+  var me = null, mySubs = [], myScored = [], lastSubmittedBy = {}, submitting = false, pendingBy = {}, retryBy = {}, pendingTimer = null, sendAgain = false;
   var L = window.PCMT_LEAGUE = {
     get signedIn() { return !!me; },
     get myId() { return me ? me.id : null; },
@@ -684,8 +618,6 @@
     statusNote: function (slots, text, locked) {
       overBudgetWarn(!!me && !locked && deckOverBudget(slots));
       mixedWarn(!!me && deckMixed(slots));
-      window.PCMT_LAST_SLOTS = slots;
-      setTimeout(function () { regionOffer(slots); }, 0);
       if (!me || locked) return text;
       if (deckMixed(slots)) return deckProblem(slots);
       // A full deck that can't be entered (usually over budget after a price rise): say so instead of "locked in".
@@ -696,12 +628,14 @@
     },
     // Called whenever The Deck saves; sends a locked-in deck to the league.
     // Waits until edits (like typing the deck name) settle, then always sends the latest version.
+    // Two decks (Nov 17 2026): each save says which deck it is (s.deckRegion, NA or EMEA), and each deck waits on its own.
     onDeck: function (s) {
       if (!me || !s.saved) return;
-      var d = { slots: s.slots || {}, igl: s.igl || null, name: s.squadName || '' };
+      var rg = s.deckRegion === 'EMEA' ? 'EMEA' : 'NA';
+      var d = { slots: s.slots || {}, igl: s.igl || null, name: s.squadName || '', region: rg };
       if (pcmtCensorName(d.name).bad) d.name = '';   // never send a name that isn't allowed (the server refuses it too)
-      if (JSON.stringify(d) === lastSubmitted && !submitting) { pendingDeck = null; clearTimeout(pendingTimer); return; }
-      pendingDeck = d;
+      if (JSON.stringify(d) === lastSubmittedBy[rg] && !submitting) { delete pendingBy[rg]; return; }
+      pendingBy[rg] = d; delete retryBy[rg];
       clearTimeout(pendingTimer);
       pendingTimer = setTimeout(function () { sendDeck(false); }, 700);
     },
@@ -721,23 +655,29 @@
   window.PCMT_SERVER_UNLOCKS = [];
   function sendDeck(leaving) {
     clearTimeout(pendingTimer);
-    var d = pendingDeck;
+    var rg = pendingBy.NA ? 'NA' : pendingBy.EMEA ? 'EMEA' : null, d = rg && pendingBy[rg];
     if (!d || !me) return;
     if (submitting) { sendAgain = true; return; }
     var json = JSON.stringify(d);
-    pendingDeck = null;
-    if (json === lastSubmitted) return;
-    if (!canEnter(d.slots)) { if (!leaving) toast(deckProblem(d.slots) || 'Your deck couldn\'t be saved. Check it follows every rule.'); return; }   // never fail silently
-    var prev = lastSubmitted ? JSON.parse(lastSubmitted) : null;
+    delete pendingBy[rg];
+    var more = function () { if (pendingBy.NA || pendingBy.EMEA) sendDeck(leaving); };
+    if (json === lastSubmittedBy[rg]) { more(); return; }
+    if (!canEnter(d.slots)) { if (!leaving) toast(deckProblem(d.slots) || 'Your deck couldn\'t be saved. Check it follows every rule.'); more(); return; }   // never fail silently
+    var prev = lastSubmittedBy[rg] ? JSON.parse(lastSubmittedBy[rg]) : null;
     var nameOnly = prev && JSON.stringify(prev.slots) === JSON.stringify(d.slots) && prev.igl === d.igl;
     submitting = true;
-    api('/rest/v1/deck_history', { method: 'POST', keepalive: !!leaving, headers: { Prefer: 'return=minimal' }, body: { user_id: me.id, slots: d.slots, igl: d.igl, name: d.name } })
-      .then(function () { lastSubmitted = json; if (!leaving) toast(nameOnly ? 'Deck name saved.' : 'Deck entered in the league.'); })
-      .catch(function (e) { if (!pendingDeck) pendingDeck = d; toast('Couldn\'t save your deck: ' + e.message); })
-      .then(function () { submitting = false; if (sendAgain) { sendAgain = false; sendDeck(false); } });
+    api('/rest/v1/deck_history', { method: 'POST', keepalive: !!leaving, headers: { Prefer: 'return=minimal' }, body: { user_id: me.id, slots: d.slots, igl: d.igl, name: d.name, region: rg } })
+      .then(function () { lastSubmittedBy[rg] = json; if (!leaving) toast(nameOnly ? rg + ' deck name saved.' : rg + ' deck entered in the league.'); return true; })
+      .catch(function (e) { if (!pendingBy[rg]) retryBy[rg] = d; toast('Couldn\'t save your ' + rg + ' deck: ' + e.message); return false; })
+      .then(function (ok) {
+        submitting = false;
+        var other = rg === 'NA' ? 'EMEA' : 'NA';
+        if (sendAgain || pendingBy[rg] || pendingBy[other]) { sendAgain = false; sendDeck(leaving); }
+      });
   }
-  window.addEventListener('pagehide', function () { sendDeck(true); });
-  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') sendDeck(true); });
+  function retry() { ['NA', 'EMEA'].forEach(function (rg) { if (retryBy[rg] && !pendingBy[rg]) pendingBy[rg] = retryBy[rg]; delete retryBy[rg]; }); }   // a failed save tries again when the page closes
+  window.addEventListener('pagehide', function () { retry(); sendDeck(true); });
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') { retry(); sendDeck(true); } });
 
   // ---------- VP for the Collection page ----------
   function fmtWhen(t) {
@@ -841,7 +781,7 @@
       // Customization's unlocks, the Store's paychecks). Other pages skip them so they load fast and use less data.
       var tree = (document.getElementById('dc-tree') || {}).textContent || '';
       var needDecks = /"data-pcmt-root":"(Main|Leaderboard|Customization|Store)"/.test(tree);
-      var decks = !needDecks ? Promise.resolve([]) : apiAll('/rest/v1/deck_history?select=user_id,name,slots,igl,created_at&order=created_at.asc,id.asc').catch(function () { return []; });
+      var decks = !needDecks ? Promise.resolve([]) : apiAll('/rest/v1/deck_history?select=user_id,name,slots,igl,region,created_at&order=created_at.asc,id.asc').catch(function () { return apiAll('/rest/v1/deck_history?select=user_id,name,slots,igl,created_at&order=created_at.asc,id.asc'); }).catch(function () { return []; });
       var profiles = !needDecks ? Promise.resolve([]) : apiAll('/rest/v1/profiles?select=id,name&order=id').catch(function () { return []; });
       var unlocks = me ? api('/rest/v1/user_unlocks?select=unlock').catch(function () { return []; }) : Promise.resolve([]);
       // null = the VP table isn't set up yet (setup/vp-setup.sql not run)
@@ -919,22 +859,33 @@
       var names = {};
       profiles.forEach(function (p) { names[p.id] = p.name; });
       var subsBy = {};
-      decks.forEach(function (d) { (subsBy[d.user_id] = subsBy[d.user_id] || []).push({ slots: d.slots, igl: d.igl, name: d.name, t: Date.parse(d.created_at) }); });
+      decks.forEach(function (d) { (subsBy[d.user_id] = subsBy[d.user_id] || []).push({ slots: d.slots, igl: d.igl, name: d.name, region: d.region || null, t: Date.parse(d.created_at) }); });
       var weeks = buildWeeks(now), curB = weekStart(now), curKey = weekKey(curB);
-      var rows = [], scoredBy = {};
-      Object.keys(subsBy).forEach(function (uid) {
-        var sc = scoredBy[uid] = scoreManager(subsBy[uid], weeks);
-        var w = {};
-        sc.forEach(function (x) { w[x.week.key] = x.pts; });
-        var latest = sc.length ? sc[sc.length - 1].deck : subsBy[uid][subsBy[uid].length - 1];
-        var iglP = latest && BY_ID[latest.igl];
-        rows.push({ id: uid, manager: names[uid] || 'Manager', squad: (latest && latest.name) ? pcmtCensorName(latest.name).text : '—', igl: iglP ? iglP.name : '—', weeks: w, me: !!me && uid === me.id });
-      });
-      window.PCMT_STANDINGS = rows;
-
-      // Overall order (season total) for The Deck's rank and the Champion's Aura.
+      // Two decks (Nov 17 2026): an NA deck and an EMEA deck, each scored on its own, with a leaderboard each.
+      // A save with no region (from before) counts for a region when it has players from that region.
+      function hasRegion(subs, rg) {
+        return subs.some(function (x) { return x.region ? x.region === rg : deckIds(x.slots).some(function (id) { return BY_ID[id] && playerRegion(BY_ID[id]) === rg; }); });
+      }
       function totalUpTo(row, key) { var s = 0; Object.keys(row.weeks).forEach(function (k) { if (k <= key) s += row.weeks[k]; }); return s; }
-      var ranked = rows.map(function (r) { return { id: r.id, total: totalUpTo(r, curKey) }; }).sort(function (a, b) { return b.total - a.total; });
+      var REGIONS = ['NA', 'EMEA'], scoredBy = { NA: {}, EMEA: {} }, rowsBy = { NA: [], EMEA: [] }, all = {};
+      Object.keys(subsBy).forEach(function (uid) {
+        REGIONS.forEach(function (rg) {
+          var sc = scoredBy[rg][uid] = scoreManager(subsBy[uid], weeks, rg);
+          var w = {};
+          sc.forEach(function (x) { w[x.week.key] = x.pts; });
+          var own = subsBy[uid].filter(function (x) { return !x.region || x.region === rg; });
+          var latest = sc.length ? sc[sc.length - 1].deck : own[own.length - 1];
+          var iglP = latest && BY_ID[latest.igl];
+          if (hasRegion(subsBy[uid], rg)) rowsBy[rg].push({ id: uid, manager: names[uid] || 'Manager', squad: (latest && latest.name) ? pcmtCensorName(latest.name).text : '—', igl: iglP ? iglP.name : '—', weeks: w, me: !!me && uid === me.id });
+          var a = all[uid] || (all[uid] = { id: uid, weeks: {} });
+          Object.keys(w).forEach(function (k) { a.weeks[k] = (a.weeks[k] || 0) + w[k]; });
+        });
+      });
+      window.PCMT_STANDINGS_BY_REGION = rowsBy;
+      window.PCMT_STANDINGS = rowsBy.NA;
+      var rows = Object.keys(all).map(function (k) { return all[k]; });   // both decks together (Champion's Aura, weekly winners)
+
+      // Overall order (season total) for the Champion's Aura.
       var finished = weeks.filter(function (w) { return w.done; });
       var lastDone = finished.length ? finished[finished.length - 1] : null;
       var aura = { holderId: null, me: me ? me.id : null };
@@ -950,11 +901,17 @@
       });
       if (me) {
         mySubs = subsBy[me.id] || [];
-        myScored = scoredBy[me.id] || [];
-        var mine = ranked.findIndex(function (x) { return x.id === me.id; });
-        var myTotal = mine >= 0 ? ranked[mine].total : 0;
-        var rank = mine >= 0 ? 1 + ranked.filter(function (x) { return x.total > myTotal; }).length : null;
-        window.PCMT_LEAGUE_VALS = { total: String(Math.round(myTotal * 10) / 10), rank: rank ? '#' + rank : '—', rankLabel: rank ? 'Rank #' + rank + ' of ' + ranked.length : 'Rank —' };
+        myScored = mergeScored(REGIONS.map(function (rg) { return scoredBy[rg][me.id]; }));
+        // The Deck's total and rank: for the deck on show (NA or EMEA), on that region's leaderboard.
+        window.PCMT_LEAGUE_VALS_BY_REGION = {};
+        REGIONS.forEach(function (rg) {
+          var ranked = rowsBy[rg].map(function (r) { return { id: r.id, total: totalUpTo(r, curKey) }; }).sort(function (a, b) { return b.total - a.total; });
+          var mine = ranked.findIndex(function (x) { return x.id === me.id; });
+          var myTotal = mine >= 0 ? ranked[mine].total : 0;
+          var rank = mine >= 0 ? 1 + ranked.filter(function (x) { return x.total > myTotal; }).length : null;
+          window.PCMT_LEAGUE_VALS_BY_REGION[rg] = { total: String(Math.round(myTotal * 10) / 10), rank: rank ? '#' + rank : '—', rankLabel: rank ? rg + ' rank #' + rank + ' of ' + ranked.length : rg + ' rank —' };
+        });
+        window.PCMT_LEAGUE_VALS = window.PCMT_LEAGUE_VALS_BY_REGION.NA;
         var teamPts = {}, best = 0, champ = false, missed = false, active = 0;
         myScored.forEach(function (x) {
           Object.keys(x.byTeam).forEach(function (t) { teamPts[t] = (teamPts[t] || 0) + x.byTeam[t]; });
@@ -964,8 +921,17 @@
         });
         window.PCMT_ME_STATS = { teamPoints: teamPts, activeWeeks: active, bestWeek: best, championWin: champ, missedWin: missed, id: me.id };
         window.PCMT_VP = buildVP(res[3], weeks, myScored, curB);
-        var last = mySubs[mySubs.length - 1];
-        if (last) { window.PCMT_MY_REMOTE_DECK = { slots: last.slots, igl: last.igl, name: pcmtCensorName(last.name).bad ? '' : last.name, uid: me.id }; lastSubmitted = JSON.stringify({ slots: last.slots || {}, igl: last.igl || null, name: last.name || '' }); }
+        // The last save of each deck (an older save with no region stands in for both; The Deck keeps that region's players).
+        window.PCMT_MY_REMOTE_DECKS = {};
+        REGIONS.forEach(function (rg) {
+          var own = mySubs.filter(function (x) { return x.region === rg; }), last = own[own.length - 1];
+          if (!last) { var old = mySubs.filter(function (x) { return !x.region; }); last = old[old.length - 1]; if (last && !hasRegion([last], rg)) last = null; }
+          if (!last) return;
+          window.PCMT_MY_REMOTE_DECKS[rg] = { slots: last.slots, igl: last.igl, name: pcmtCensorName(last.name).bad ? '' : last.name, uid: me.id, region: rg, legacy: !last.region };
+          if (last.region) lastSubmittedBy[rg] = JSON.stringify({ slots: last.slots || {}, igl: last.igl || null, name: last.name || '', region: rg });
+        });
+        var lastAny = mySubs[mySubs.length - 1];
+        if (lastAny) window.PCMT_MY_REMOTE_DECK = { slots: lastAny.slots, igl: lastAny.igl, name: lastAny.name || '', uid: me.id };
       }
       if (window.PCMT_LOGIN_ERROR) setTimeout(function () { toast('Discord sign-in didn\'t finish: ' + window.PCMT_LOGIN_ERROR); }, 600);
     }).catch(function (e) { console.warn('league load failed', e); }).then(launchDecide);

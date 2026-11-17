@@ -20,7 +20,7 @@ function siteRules(matches, results) {
   ctx.window.PCMT_MATCHES = matches; ctx.window.PCMT_RESULTS = results;
   vm.runInNewContext('var DAY = 86400000, BUDGET = 100, TEAM_LIMIT = 2, TRANSFERS = Infinity, LOCK_LEAD_H = 6, ROLES = ["duelist","controller","initiator","sentinel"];' +
     ' ' + SCORING_JS + '\n' + core +
-    '\nthis.api = { buildWeeks: buildWeeks, scoreManager: scoreManager, weekCardVP: weekCardVP, validDeck: validDeck };', ctx);
+    '\nthis.api = { buildWeeks: buildWeeks, scoreManager: scoreManager, weekCardVP: weekCardVP, validDeck: validDeck, mergeScored: mergeScored };', ctx);
   return ctx.api;
 }
 const P = (() => { const c = { window: {} }; vm.runInNewContext(PLAYERS_JS.replace(/var (PCMT_SITE_\w+)/g, 'window.$1'), c); return c.window.PCMT_SITE_PLAYERS; })();
@@ -58,7 +58,7 @@ function scenario(seed, startAt) {
         ids.forEach(id => { if (R() < 0.92) m.k[id] = R() < 0.06 ? 0 : Math.floor(R() * 30); });
         maps.push(m);
       });
-      results.push({ region: 'NA', start: t, a, b, winner, url: 'x', stats, maps });
+      results.push({ region: seed > 20 && R() < 0.4 ? 'EMEA' : 'NA', start: t, a, b, winner, url: 'x', stats, maps });
       addMulti(results[results.length - 1], Object.keys(stats).concat(['nobody']));
     }
   }
@@ -113,7 +113,7 @@ function scenario(seed, startAt) {
       const roll = R();
       let slots = roll < 0.15 ? breakDeck(cur) : roll < 0.45 ? swap(cur, 1 + Math.floor(R() * 2)) : roll < 0.6 ? swap(cur, 3 + Math.floor(R() * 4)) : roll < 0.7 ? randomDeck() : cur;
       if (roll >= 0.15) cur = slots;
-      decks.push({ user_id: id, name: 'Deck ' + u + '.' + i, slots, igl: Object.values(slots)[0], created_at: new Date(t).toISOString() });
+      decks.push({ user_id: id, name: 'Deck ' + u + '.' + i, slots, igl: Object.values(slots)[0], created_at: new Date(t).toISOString(), region: seed > 20 ? [null, 'NA', 'EMEA'][Math.floor(R() * 3)] : null });
       t += R() * 7 * D;
     }
   }
@@ -128,8 +128,9 @@ function withMulti(sc) {
 function expected(sc, now) {
   const api = siteRules(sc.matches, withMulti(sc)), weeks = api.buildWeeks(now), out = {};
   sc.users.forEach(u => {
-    const subs = sc.decks.filter(d => d.user_id === u).map(d => ({ slots: d.slots, igl: d.igl, name: d.name, t: Date.parse(d.created_at) }));
-    api.scoreManager(subs, weeks).forEach(x => { if (x.week.done) out[u + '|' + x.week.key] = api.weekCardVP(x).total; });
+    const subs = sc.decks.filter(d => d.user_id === u).map(d => ({ slots: d.slots, igl: d.igl, name: d.name, region: d.region || null, t: Date.parse(d.created_at) }));
+    // two decks: NA and EMEA scored on their own, paid together per gameweek
+    api.mergeScored(['NA', 'EMEA'].map(rg => api.scoreManager(subs, weeks, rg))).forEach(x => { if (x.week.done) out[u + '|' + x.week.key] = api.weekCardVP(x).total; });
   });
   return out;
 }
@@ -155,6 +156,7 @@ sql(vpSql.slice(0, vpSql.indexOf('-- [supabase-only]')));
 sql(vpSql.slice(0, vpSql.indexOf('-- [supabase-only]'))); // setup is safe to run twice
 sql(fs.readFileSync(__dirname + '/../setup/thursday-weeks.sql', 'utf8'));   // Thursday gameweeks, the budget rule
 sql(fs.readFileSync(__dirname + '/../setup/na-stage.sql', 'utf8'));   // NA Stage 1: best two series
+sql(fs.readFileSync(__dirname + '/../setup/two-decks.sql', 'utf8'));   // two decks: NA and EMEA
 sql('alter table public.deck_history disable trigger user;');
 
 // ---- a real series from PCMT.gg (NAVI 2-1 C9, Oct 10), scored by the site and by the server ----
@@ -192,14 +194,15 @@ sql('alter table public.deck_history disable trigger user;');
 
 let totalWeeks = 0, totalVp = 0;
 // seeds 13-20 run across NA Stage 1 (lock Nov 18 03:00 UTC): decks saved before and after it, best two series each
-for (let seed = 1; seed <= 20; seed++) {
+// seeds 21-28: two decks (saves tagged NA / EMEA / none) and EMEA series too
+for (let seed = 1; seed <= 28; seed++) {
   const stageRun = seed > 12;
   const sc = scenario(seed, stageRun ? '2026-11-05T09:00:00Z' : null);
   sql('truncate public.vp_ledger, public.deck_history, public.multikills; delete from auth.users;');
   if (sc.multi.length) sql('insert into public.multikills (series, player, k4, k5) values ' + sc.multi.map(m => `(${lit(m.series)}, ${lit(m.player)}, ${m.k4}, ${m.k5})`).join(',') + ';');
   sql('insert into auth.users (id) values ' + sc.users.map(u => '(' + lit(u) + ')').join(',') + ';');
-  if (sc.decks.length) sql('insert into public.deck_history (user_id, name, slots, igl, created_at) values ' +
-    sc.decks.map(d => `(${lit(d.user_id)}, ${lit(d.name)}, ${lit(JSON.stringify(d.slots))}::jsonb, ${lit(d.igl)}, ${lit(d.created_at)})`).join(',\n') + ';');
+  if (sc.decks.length) sql('insert into public.deck_history (user_id, name, slots, igl, created_at, region) values ' +
+    sc.decks.map(d => `(${lit(d.user_id)}, ${lit(d.name)}, ${lit(JSON.stringify(d.slots))}::jsonb, ${lit(d.igl)}, ${lit(d.created_at)}, ${d.region ? lit(d.region) : 'null'})`).join(',\n') + ';');
   const call = (s, now, pay = true) => JSON.parse(sql(`select public.vp_ingest(${lit(dataJs(s))}, ${lit(PLAYERS_JS)}, ${lit(new Date(now).toISOString())}, ${pay});`));
 
   // 1) Mid-season: only finished gameweeks are paid.

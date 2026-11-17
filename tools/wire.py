@@ -54,33 +54,48 @@ def logic(board, js):
         e = js.index('\n};', s) + 3
         js = js[:e] + "\n(window.PCMT_DECK_TEAMS || []).forEach(function (d) { if (d.logo) PCMT_LOGOS[d.code] = d.logo; });  // logos from the backend's Teams tab" + js[e:]
         js = sub1(js, 'var PCMT_AURA = { holderId: null, me: null };', 'var PCMT_AURA = window.PCMT_AURA_LIVE || { holderId: null, me: null };', board)
-        s = js.index('function pcmtReadMyDeck() {')
+        s = js.index('function pcmtReadDeckRegion() {')
         e = js.index('function pcmtReadDeck() {')
-        js = js[:s] + r'''function pcmtReadMyDeck() {
-  var ok = {};   // NA Season 3 players (retired teams) are out of decks (Nov 12 2026)
-  PCMT_PLAYERS.forEach(function (p) { if (!pcmtRetired(p)) ok[p.id] = true; });
+        js = js[:s] + r'''function pcmtReadDeckRegion() {
+  try { var v = window.localStorage.getItem('pcmt-deck-region'); if (v === 'NA' || v === 'EMEA') return v; } catch (e) {}
+  return 'NA';
+}
+// Two decks (Nov 17 2026): an NA deck and an EMEA deck. Signed in, each comes from the league (that deck's last save; an
+// older save with no region fills in, keeping only this region's players), unless this device has newer edits to it
+// that aren't locked in yet. Each is kept on this device as pcmt-mydeck-NA / pcmt-mydeck-EMEA.
+function pcmtReadMyDeck(region) {
+  region = region || pcmtReadDeckRegion();
+  var ok = {};   // NA Season 3 players (retired teams) are out of decks (Nov 12 2026); only this region's players
+  PCMT_PLAYERS.forEach(function (p) { if (!pcmtRetired(p) && pcmtRegions(p)[0] === region) ok[p.id] = true; });
   function clean(v, saved) {
     var out = { slots: {}, igl: null, squadName: '', saved: !!saved };
     Object.keys(v.slots || {}).forEach(function (k) { if (ok[v.slots[k]]) out.slots[k] = v.slots[k]; });
     out.igl = ok[v.igl] ? v.igl : null;
     out.squadName = typeof (v.squadName != null ? v.squadName : v.name) === 'string' ? String(v.squadName != null ? v.squadName : v.name).slice(0, 32) : '';
     if (pcmtCensorName(out.squadName).bad) out.squadName = '';   // names that aren't allowed are cleared
+    if (Object.keys(out.slots).length !== Object.keys(v.slots || {}).length) out.saved = false;   // an older mixed deck: rebuild and lock in
     return out;
   }
   var local = null;
-  try { local = JSON.parse(window.localStorage.getItem('pcmt-mydeck') || 'null'); } catch (e) {}
-  var remote = window.PCMT_MY_REMOTE_DECK;
-  // Signed in: use the deck entered in the league, unless there are newer edits on this device that aren't locked in yet.
+  try { local = JSON.parse(window.localStorage.getItem('pcmt-mydeck-' + region) || 'null'); } catch (e) {}
+  var remote = (window.PCMT_MY_REMOTE_DECKS || {})[region];
   if (remote && !(local && local.uid === remote.uid && !local.saved)) return clean(remote, true);
   if (local && typeof local === 'object') return clean(local, local.saved);
+  if (!window.PCMT_ME_STATS) {   // logged out: the older single deck on this device, this region's players
+    var old = null;
+    try { old = JSON.parse(window.localStorage.getItem('pcmt-mydeck') || 'null'); } catch (e) {}
+    if (old && typeof old === 'object') return clean(old, old.saved);
+  }
   return { slots: {}, igl: null, squadName: '', saved: false };
 }
 function pcmtSaveMyDeck(s) {
-  var uid = window.PCMT_ME_STATS ? window.PCMT_ME_STATS.id : (window.PCMT_MY_REMOTE_DECK ? window.PCMT_MY_REMOTE_DECK.uid : null);
+  var rg = s.deckRegion === 'EMEA' ? 'EMEA' : 'NA';
+  var uid = window.PCMT_ME_STATS ? window.PCMT_ME_STATS.id : null;
   var json = JSON.stringify({ slots: s.slots || {}, igl: s.igl || null, squadName: s.squadName || '', saved: !!s.saved, uid: uid });
-  if (json !== pcmtSaveMyDeck.last) {
-    pcmtSaveMyDeck.last = json;
-    try { window.localStorage.setItem('pcmt-mydeck', json); } catch (e) {}
+  pcmtSaveMyDeck.last = pcmtSaveMyDeck.last || {};
+  if (json !== pcmtSaveMyDeck.last[rg]) {
+    pcmtSaveMyDeck.last[rg] = json;
+    try { window.localStorage.setItem('pcmt-mydeck-' + rg, json); } catch (e) {}
   }
   if (window.PCMT_LEAGUE) window.PCMT_LEAGUE.onDeck(s);
 }

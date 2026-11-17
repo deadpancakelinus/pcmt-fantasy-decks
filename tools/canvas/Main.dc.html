@@ -250,6 +250,10 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <sc-if value="{{noSquadName}}" hint-placeholder-val="{{ true }}">
 <h2 id="squad-h" style="margin: 0; font-family: 'National Park', system-ui, sans-serif; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">[ MY_DECK ]</h2>
 </sc-if>
+<div role="group" aria-label="Which deck: NA or EMEA" style="display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; border: 1px solid #3a4f53; background: #0d1416">
+<button type="button" onClick="{{deckToNA}}" aria-pressed="{{deckNaOn}}" title="NA deck" style="min-height: 40px; padding: 0 14px 0 8px; border: 0; border-radius: 999px; background: {{deckNaBg}}; color: {{deckNaColor}}; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.06em; display: inline-flex; align-items: center; gap: 6px; cursor: pointer"><img src="{{regionNA}}" alt="" style="width: 24px; height: 24px; object-fit: contain; display: block; opacity: {{deckNaOpacity}}; filter: {{deckNaImg}}">NA</button>
+<button type="button" onClick="{{deckToEMEA}}" aria-pressed="{{deckEmeaOn}}" title="EMEA deck" style="min-height: 40px; padding: 0 14px 0 8px; border: 0; border-radius: 999px; background: {{deckEmeaBg}}; color: {{deckEmeaColor}}; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.06em; display: inline-flex; align-items: center; gap: 6px; cursor: pointer"><img src="{{regionEMEA}}" alt="" style="width: 24px; height: 24px; object-fit: contain; display: block; opacity: {{deckEmeaOpacity}}; filter: {{deckEmeaImg}}">EMEA</button>
+</div>
 <button onClick="{{crownClick}}" aria-pressed="{{crownArmed}}" aria-label="{{crownLabel}}" title="{{crownLabel}}" style="width: 44px; height: 44px; flex: none; display: grid; place-items: center; border-radius: 10px; border: 1px solid {{crownBorder}}; background: {{crownBg}}; color: #f5d76e; touch-action: manipulation; cursor: pointer">
 <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="#f5d76e" stroke="#f5d76e" stroke-width="1.6" stroke-linejoin="round"><path d="M3 18h18L19 7l-4.5 4L12 5l-2.5 6L5 7z"></path></svg>
 </button>
@@ -1086,28 +1090,38 @@ function pcmtCensorName(name) {
   for (i = 0; i < name.length; i++) text += hit[i] ? '*' : name.charAt(i);
   return { bad: bad, text: text };
 }
-function pcmtReadMyDeck() {
+// Two decks (Nov 17 2026): an NA deck and an EMEA deck, each kept on its own (pcmt-mydeck-NA / pcmt-mydeck-EMEA on
+// this device), with a toggle on the deck to pick which one is on show (pcmt-deck-region). An older single deck
+// (pcmt-mydeck) fills in for both, each keeping only its own region's players.
+function pcmtReadDeckRegion() {
+  try { var v = window.localStorage.getItem('pcmt-deck-region'); if (v === 'NA' || v === 'EMEA') return v; } catch (e) {}
+  return 'NA';
+}
+function pcmtReadMyDeck(region) {
+  region = region || pcmtReadDeckRegion();
   var out = { slots: {}, igl: null, squadName: '', saved: false };
   try {
-    var v = JSON.parse(window.localStorage.getItem('pcmt-mydeck') || 'null');
+    var v = JSON.parse(window.localStorage.getItem('pcmt-mydeck-' + region) || 'null') || JSON.parse(window.localStorage.getItem('pcmt-mydeck') || 'null');
     if (v && typeof v === 'object') {
       var ok = {};
       // NA Season 3 players are out of decks too (Nov 12 2026): only the Season 4 NA list (and EMEA) can be in one.
-      PCMT_PLAYERS.forEach(function (p) { if (!pcmtRetired(p)) ok[p.id] = true; });
+      PCMT_PLAYERS.forEach(function (p) { if (!pcmtRetired(p) && pcmtRegions(p)[0] === region) ok[p.id] = true; });
       Object.keys(v.slots || {}).forEach(function (k) { if (ok[v.slots[k]]) out.slots[k] = v.slots[k]; });
       out.igl = ok[v.igl] ? v.igl : null;
       out.squadName = typeof v.squadName === 'string' ? v.squadName.slice(0, 32) : '';
       if (pcmtCensorName(out.squadName).bad) out.squadName = '';   // names that aren't allowed are cleared
-      out.saved = !!v.saved;
+      out.saved = !!v.saved && Object.keys(out.slots).length === Object.keys(v.slots || {}).length;
     }
   } catch (e) {}
   return out;
 }
 function pcmtSaveMyDeck(s) {
+  var rg = s.deckRegion === 'EMEA' ? 'EMEA' : 'NA';
   var json = JSON.stringify({ slots: s.slots || {}, igl: s.igl || null, squadName: s.squadName || '', saved: !!s.saved });
-  if (json === pcmtSaveMyDeck.last) return;
-  pcmtSaveMyDeck.last = json;
-  try { window.localStorage.setItem('pcmt-mydeck', json); } catch (e) {}
+  pcmtSaveMyDeck.last = pcmtSaveMyDeck.last || {};
+  if (json === pcmtSaveMyDeck.last[rg]) return;
+  pcmtSaveMyDeck.last[rg] = json;
+  try { window.localStorage.setItem('pcmt-mydeck-' + rg, json); } catch (e) {}
 }
 function pcmtReadDeck() {
   // NA Season 3 team decks were retired on Nov 11 2026 (Customization: NA Season 4 decks coming soon): back to PCMT Blue.
@@ -1801,7 +1815,7 @@ function pcmtInNaStage(r) {
 }
 // One-time region switch (Nov 17 2026): once a player answers the switch window (tools/league.js), their account keeps
 // to one region (window.PCMT_REGION_PICK = { region, from, switched }) and only that region's players can join the deck.
-function pcmtPickRegion() { var v = window.PCMT_REGION_PICK; return v && (v.region === 'NA' || v.region === 'EMEA') ? v.region : null; }
+function pcmtPickRegion() { return null; }   // (the one-time switch was replaced by two decks, Nov 17 2026)
 function pcmtNaStageOn(now) { var S = PCMT_NA_STAGE; return !!S && now >= S.lock && (S.end == null || now < S.end); }
 // The lock for a deck of this region (null = empty deck): the stage's for NA (and for an empty deck before the stage
 // locks), else null (the weekly lock applies).
@@ -1859,10 +1873,10 @@ class Component extends DCLogic {
   constructor(props) {
     super(props);
     // Your deck is kept in this browser (the live site will also save it to your account).
-    var mine = pcmtReadMyDeck();
+    var deckRegion = pcmtReadDeckRegion(), mine = pcmtReadMyDeck(deckRegion), only = { NA: deckRegion === 'NA', EMEA: deckRegion === 'EMEA' };
     this.state = {
       slots: mine.slots,
-      igl: mine.igl, tab: 'all', squadName: mine.squadName, crownArmed: false, iglFlip: null, filter: 'ALL', search: '', regions: pcmtReadRegions(), dealRegions: pcmtReadDealRegions(), saved: mine.saved, storeOpen: pcmtReadStoreOpen()
+      igl: mine.igl, tab: 'all', squadName: mine.squadName, crownArmed: false, iglFlip: null, filter: 'ALL', search: '', deckRegion: deckRegion, regions: only, dealRegions: only, saved: mine.saved, storeOpen: pcmtReadStoreOpen()
     };
   }
 
@@ -1891,7 +1905,7 @@ class Component extends DCLogic {
   weekLock() {
     var mode = this.props.lockPreview ?? 'Live';
     var now = (this.state && this.state.now) || Date.now(), sl = this.state && this.state.slots;
-    var dreg = pcmtDeckRegion(sl ? Object.keys(sl).map(function (k) { return sl[k]; }).filter(Boolean) : []);
+    var dreg = (this.state && this.state.deckRegion) || pcmtDeckRegion(sl ? Object.keys(sl).map(function (k) { return sl[k]; }).filter(Boolean) : []);
     var w = pcmtStageLock(now, dreg) || pcmtWeekLock(now);
     if (w.locked && !w.stage && this.state && this.state.switchOpen && !this.state.saved) w = { locked: false, until: null, lockAt: w.lockAt };   // just switched regions
     if (mode === 'Locked') return { locked: true, until: w.until || pcmtWeekEnd(pcmtMondayStart(Date.now())), lockAt: w.lockAt };
@@ -2055,7 +2069,7 @@ class Component extends DCLogic {
 
   // The deal fills a deck from one region only (Patch 2.0): the region picked, else the deck's own, else NA.
   dealRegion() {
-    if (pcmtPickRegion()) return pcmtPickRegion();
+    if (this.state.deckRegion) return this.state.deckRegion;
     var r = this.state.dealRegions || {};
     if (r.NA !== false && r.EMEA === false) return 'NA';
     if (r.EMEA !== false && r.NA === false) return 'EMEA';
@@ -2068,12 +2082,7 @@ class Component extends DCLogic {
     return PCMT_PLAYERS.filter(function (p) { return pcmtInStore(p) && pcmtRegions(p)[0] === reg; });
   }
 
-  toggleDealRegion(key) {
-    if (pcmtPickRegion() && key !== pcmtPickRegion()) return;
-    var r = { NA: key === 'NA', EMEA: key === 'EMEA' };   // one region at a time
-    try { window.sessionStorage.setItem('pcmt-deal-regions', JSON.stringify(r)); } catch (e) {}
-    this.setState({ dealRegions: r });
-  }
+  toggleDealRegion(key) { this.switchDeckRegion(key); }   // the deal is always from the deck on show
 
   johnSquad(budget, teamLimit) {
     var DP = this.dealPool();
@@ -2198,11 +2207,21 @@ class Component extends DCLogic {
     return pcmtRegions(p).some(function (x) { return r[x]; });
   }
 
-  toggleRegion(key) {
-    var r = Object.assign({ NA: true, EMEA: true }, this.state.regions);
-    r[key] = !r[key];
-    try { window.sessionStorage.setItem('pcmt-regions', JSON.stringify(r)); } catch (e) {}
-    this.setState({ regions: r });
+  toggleRegion(key) { this.switchDeckRegion(key); }   // the store shows the deck on show's region
+
+  // The NA / EMEA toggle on the deck: keeps this deck as it is (saved on this device, and in the league if it was locked
+  // in) and brings up the other one.
+  switchDeckRegion(to) {
+    if (to !== 'NA' && to !== 'EMEA') return;
+    var s = this.state;
+    if (to === (s.deckRegion || 'NA')) return;
+    pcmtSaveMyDeck(s);
+    if (window.PCMT_LEAGUE && window.PCMT_LEAGUE.onDeck) window.PCMT_LEAGUE.onDeck(s);
+    try { window.localStorage.setItem('pcmt-deck-region', to); } catch (e) {}
+    var mine = pcmtReadMyDeck(to), only = { NA: to === 'NA', EMEA: to === 'EMEA' };
+    clearTimeout(this._flipStart); clearTimeout(this._flipEnd); clearTimeout(this._iglFlip); clearTimeout(this._clearTimer);
+    this.setState({ deckRegion: to, slots: mine.slots, igl: mine.igl, squadName: mine.squadName, saved: mine.saved, regions: only, dealRegions: only, filter: 'ALL',
+                    clearArmed: false, crownArmed: false, iglFlip: null, tilt: null, stackExtras: [], stackNeat: false, blessedId: null, dealHidden: null, switchOpen: false });
   }
 
   find(id) {
@@ -2329,13 +2348,6 @@ class Component extends DCLogic {
     var topId = String(this.props.topPlayer ?? '').trim().toLowerCase();
     var keys = pcmtSlotKeys();
     var pickedIds = keys.map(function (k) { return s.slots[k]; }).filter(Boolean);
-    // A switch that was taken but whose new deck wasn't dealt (or a saved deck from the old region loaded over it):
-    // deal the new region's deck now. Tried a few times per page load, never while NA decks are locked for a stage.
-    var pk = window.PCMT_REGION_PICK, dr = pcmtDeckRegion(pickedIds);
-    if (pk && pk.switched && dr && dr !== pk.region && !(pk.region === 'NA' && pcmtNaStageOn(Date.now())) && (this._autoSwitch || 0) < 5 && !this._autoSwitchT) {
-      this._autoSwitch = (this._autoSwitch || 0) + 1;
-      this._autoSwitchT = setTimeout(function () { self._autoSwitchT = null; var p2 = window.PCMT_REGION_PICK; if (p2 && p2.switched) self.switchRegion(p2.region); }, 600);
-    }
     var picked = pickedIds.map(function (id) { return self.find(id); }).filter(Boolean);
     var mvpId = mvpOverride;
     if (!mvpId) {
@@ -2607,6 +2619,17 @@ class Component extends DCLogic {
         return { region: region, regionLogo: PCMT_REGION_LOGOS[region], has: true, none: false, url: next.url, a: next.a, b: next.b, bo: next.bo,
           colorA: PCMT_TEAMS[next.a] || '#eaf4f4', colorB: PCMT_TEAMS[next.b] || '#eaf4f4', time: pcmtMatchTime(next.start) };
       }),
+      // NA / EMEA deck toggle (two decks, Nov 17 2026), and the total and rank for the deck on show.
+      deckNaOn: (s.deckRegion || 'NA') === 'NA', deckEmeaOn: s.deckRegion === 'EMEA',
+      deckNaBg: (s.deckRegion || 'NA') === 'NA' ? '#13292b' : 'transparent', deckEmeaBg: s.deckRegion === 'EMEA' ? '#13292b' : 'transparent',
+      deckNaBorder: (s.deckRegion || 'NA') === 'NA' ? '#a5dcdd' : '#3a4f53', deckEmeaBorder: s.deckRegion === 'EMEA' ? '#a5dcdd' : '#3a4f53',
+      deckNaColor: (s.deckRegion || 'NA') === 'NA' ? '#eaf4f4' : '#93a9aa', deckEmeaColor: s.deckRegion === 'EMEA' ? '#eaf4f4' : '#93a9aa',
+      deckNaImg: (s.deckRegion || 'NA') === 'NA' ? 'none' : 'grayscale(1)', deckEmeaImg: s.deckRegion === 'EMEA' ? 'none' : 'grayscale(1)',
+      deckNaOpacity: (s.deckRegion || 'NA') === 'NA' ? 1 : 0.45, deckEmeaOpacity: s.deckRegion === 'EMEA' ? 1 : 0.45,
+      deckToNA: function () { self.switchDeckRegion('NA'); },
+      deckToEMEA: function () { self.switchDeckRegion('EMEA'); },
+      deckRegionLabel: (s.deckRegion || 'NA') + ' deck',
+      league: (window.PCMT_LEAGUE_VALS_BY_REGION && window.PCMT_LEAGUE_VALS_BY_REGION[s.deckRegion || 'NA']) || { total: '0', rank: '\u2014', rankLabel: (s.deckRegion || 'NA') + ' rank \u2014' },
       weekLocked: weekLocked, weekOpen: !weekLocked,
       lockNote: weekLocked ? (wk.stage ? (wk.until ? 'Locked until ' + pcmtWhen(wk.until) : 'Locked for ' + PCMT_NA_STAGE.name) : wk.until ? 'Locked until ' + pcmtWhen(wk.until) : 'Locked until Tuesday\'s result is in') : '',
       showCountdown: !weekLocked && !!nextLock,

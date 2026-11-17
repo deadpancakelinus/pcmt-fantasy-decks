@@ -74,6 +74,11 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 20px">
 <div style="display: flex; flex-direction: column; gap: 6px">
 <h1 style="margin: 0; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 60px; line-height: 1">The Deck Leaderboard</h1>
+<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 14px; color: #93a9aa">{{regionTitle}}</span>
+</div>
+<div role="group" aria-label="Region leaderboard" style="display: flex; gap: 8px">
+<button onClick="{{showNA}}" aria-pressed="{{naOn}}" style="min-height: 44px; padding: 0 16px 0 10px; border-radius: 999px; border: 1px solid {{naBorder}}; background: {{naBg}}; color: {{naColor}}; font-family: 'National Park', system-ui, sans-serif; font-size: 14px; font-weight: {{naWeight}}; display: inline-flex; align-items: center; gap: 8px; cursor: pointer"><img src="/_blob/c265e976f8968e60e4a2bdd32542b499" alt="" style="width: 24px; height: 24px; object-fit: contain; display: block">NA</button>
+<button onClick="{{showEMEA}}" aria-pressed="{{emeaOn}}" style="min-height: 44px; padding: 0 16px 0 10px; border-radius: 999px; border: 1px solid {{emeaBorder}}; background: {{emeaBg}}; color: {{emeaColor}}; font-family: 'National Park', system-ui, sans-serif; font-size: 14px; font-weight: {{emeaWeight}}; display: inline-flex; align-items: center; gap: 8px; cursor: pointer"><img src="/_blob/3c7e7374dceead68d5c58818d0bcfe8a" alt="" style="width: 24px; height: 24px; object-fit: contain; display: block">EMEA</button>
 </div>
 <div role="group" aria-label="Standings view" style="display: flex; gap: 8px">
 <button onClick="{{showOverall}}" aria-pressed="{{overallOn}}" style="min-height: 44px; padding: 0 18px; border-radius: 999px; border: 1px solid {{overallBorder}}; background: {{overallBg}}; color: {{overallColor}}; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; font-weight: {{overallWeight}}">Overall</button>
@@ -185,7 +190,10 @@ function pcmtSampleStandings(now) {
 class Component extends DCLogic {
   constructor(props) {
     super(props);
-    this.state = { view: 'overall', search: '' };
+    // Two decks (Nov 17 2026): an NA leaderboard and an EMEA leaderboard. Starts on the region of the deck you last had on show.
+    var rg = 'NA';
+    try { rg = window.sessionStorage.getItem('pcmt-lb-region') || window.localStorage.getItem('pcmt-deck-region') || 'NA'; } catch (e) {}
+    this.state = { view: 'overall', search: '', region: rg === 'EMEA' ? 'EMEA' : 'NA' };
   }
   componentDidMount() {
     var self = this, start = Date.now();
@@ -259,7 +267,8 @@ class Component extends DCLogic {
   _pageVals() {
     var self = this, week = this.state.view === 'week';
     var now = Date.now();
-    var data = (this.props.sampleStandings ? pcmtSampleStandings(now) : PCMT_STANDINGS).map(function (m) { return pcmtStandingRow(m, now); });
+    var region = this.state.region === 'EMEA' ? 'EMEA' : 'NA', byRegion = window.PCMT_STANDINGS_BY_REGION;
+    var data = (this.props.sampleStandings ? pcmtSampleStandings(now) : byRegion ? (byRegion[region] || []) : PCMT_STANDINGS).map(function (m) { return pcmtStandingRow(m, now); });
     var key = week ? 'gw' : 'total', other = week ? 'total' : 'gw';
     data.sort(function (a, b) { return (b[key] || 0) - (a[key] || 0) || (b[other] || 0) - (a[other] || 0) || String(a.manager).localeCompare(String(b.manager)); });
     var rank = 0, prev = null;
@@ -291,13 +300,20 @@ class Component extends DCLogic {
     function pill(on) {
       return { border: on ? '#a5dcdd' : '#3a4f53', bg: on ? '#a5dcdd' : 'transparent', color: on ? '#000' : '#eaf4f4', weight: on ? 600 : 400 };
     }
-    var po = pill(!week), pw = pill(week);
+    var po = pill(!week), pw = pill(week), pn = pill(region === 'NA'), pe = pill(region === 'EMEA');
+    function setRegion(r) { try { window.sessionStorage.setItem('pcmt-lb-region', r); } catch (e) {} self.setState({ region: r }); }
     return {
       rows: rows,
       noRows: rows.length === 0,
       emptyText: data.length === 0 ? 'Standings appear here once the first match is scored.' : 'No managers match that search.',
       hasMe: !!mine,
       me: mine ? { rank: mine.rank, squad: mine.m.squad, igl: mine.m.igl, gw: num(mine.m.gw), total: num(mine.m.total), gwWeight: week ? 600 : 400, totalWeight: week ? 400 : 600 } : {},
+      regionTitle: region === 'NA' ? 'NA decks \u00b7 Season 4' : 'EMEA decks \u00b7 Season 2',
+      naOn: region === 'NA', emeaOn: region === 'EMEA',
+      naBorder: pn.border, naBg: pn.bg, naColor: pn.color, naWeight: pn.weight,
+      emeaBorder: pe.border, emeaBg: pe.bg, emeaColor: pe.color, emeaWeight: pe.weight,
+      showNA: function () { setRegion('NA'); },
+      showEMEA: function () { setRegion('EMEA'); },
       overallOn: !week, weekOn: week,
       overallBorder: po.border, overallBg: po.bg, overallColor: po.color, overallWeight: po.weight,
       weekBorder: pw.border, weekBg: pw.bg, weekColor: pw.color, weekWeight: pw.weight,
