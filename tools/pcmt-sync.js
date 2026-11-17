@@ -51,9 +51,10 @@ events.forEach(ev => { byEvent[ev.id] = A.getJson(ev.url || '/api/matches/' + ev
 events.forEach(ev => byEvent[ev.id].forEach(M => {
   const t = Date.parse(M.date); if (isNaN(t) || t < since) return;
   const entry = { region: A.regionOf(ev.id), start: M.date, a: M.team1, b: M.team2, bo: M.bestOf || 3, hours: M.bestOf || 3, url: A.pageUrl(ev.id, M.id) };
-  const listed = matches.find(m => m.url === entry.url || same(m, entry));
+  const listed = matches.find(m => m.url === entry.url || same(m, entry)) ||   // or a game staff added by hand (no url) before PCMT.gg posted it
+    matches.find(m => !m.url && ((m.a === entry.a && m.b === entry.b) || (m.a === entry.b && m.b === entry.a)) && Math.abs(Date.parse(m.start) - t) < 3 * 864e5);
   if (!listed) { matches.push(entry); log.push('Add match: ' + entry.a + ' vs ' + entry.b + ' (' + entry.start + ')'); }
-  else if (listed.start !== entry.start || listed.bo !== entry.bo) {   // PCMT.gg moved the time or changed the best-of
+  else if (listed.start !== entry.start || listed.bo !== entry.bo || !listed.url) {   // PCMT.gg moved the time or changed the best-of
     log.push('Update match: ' + entry.a + ' vs ' + entry.b + ' ' + listed.start + ' -> ' + entry.start);
     listed.start = entry.start; listed.bo = entry.bo; listed.hours = entry.hours; listed.url = entry.url;
   }
@@ -112,7 +113,8 @@ brackets.filter(B => B.mode === 'games').forEach(B => {
   });
   for (let i = B.series.length - 1; i >= 0; i--) {
     const s = B.series[i];
-    if (!keep.has(s.n) && !s.score) { log.push("Pick'ems game " + s.n + ' dropped: ' + s.a + ' vs ' + s.b); B.series.splice(i, 1); }
+    if (!keep.has(s.n) && !s.score && s.url) {   // games staff added by hand (no url yet) stay until PCMT.gg lists them
+    log.push("Pick'ems game " + s.n + ' dropped: ' + s.a + ' vs ' + s.b); B.series.splice(i, 1); }
   }
   B.series.sort((x, y) => x.n - y.n);
 });

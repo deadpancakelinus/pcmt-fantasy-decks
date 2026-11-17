@@ -369,8 +369,63 @@ var PCMT_PICKEMS = [
     "mode": "games",
     "event": "s4-na",
     "season": 4,
-    "seeds": {},
-    "teams": {},
-    "series": []
+    "seeds": {
+      "FNC": "FNC",
+      "WBG": "WBG",
+      "EDM": "EDM",
+      "CR": "CR",
+      "NBR": "NBR",
+      "PRX": "PRX",
+      "BLG": "BLG",
+      "TANK": "TANK"
+    },
+    "teams": {
+      "FNC": "Freaks Need Caesparz",
+      "WBG": "We Been Gaming",
+      "EDM": "Everybody Dance Meow",
+      "CR": "CRazy zigzagoon",
+      "NBR": "Namebrand Ramyeon",
+      "PRX": "Perfect RetaXe",
+      "BLG": "Bartho Lomew Gaming",
+      "TANK": "TANKERS"
+    },
+    "series": [
+      {
+        "n": 1,
+        "round": "Group A, Opening 1",
+        "a": "FNC",
+        "b": "WBG",
+        "bo": 3,
+        "start": "2026-11-18T03:00:00Z",
+        "score": null
+      },
+      {
+        "n": 2,
+        "round": "Group B, Opening 1",
+        "a": "EDM",
+        "b": "CR",
+        "bo": 3,
+        "start": "2026-11-20T01:00:00Z",
+        "score": null
+      },
+      {
+        "n": 3,
+        "round": "Group C, Opening 1",
+        "a": "NBR",
+        "b": "PRX",
+        "bo": 3,
+        "start": "2026-11-22T02:00:00Z",
+        "score": null
+      },
+      {
+        "n": 4,
+        "round": "Group D, Opening 1",
+        "a": "BLG",
+        "b": "TANK",
+        "bo": 3,
+        "start": "2026-11-23T02:00:00Z",
+        "score": null
+      }
+    ]
   }
 ];

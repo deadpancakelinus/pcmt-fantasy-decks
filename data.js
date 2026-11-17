@@ -22,6 +22,38 @@ var PCMT_MATCHES = [
     "bo": 3,
     "hours": 3,
     "url": "https://pcmt.gg/events/s2-emea/sog-vs-xtc-s2-playoffs-2026-11-15-2"
+  },
+  {
+    "region": "NA",
+    "start": "2026-11-18T03:00:00Z",
+    "a": "FNC",
+    "b": "WBG",
+    "bo": 3,
+    "hours": 3
+  },
+  {
+    "region": "NA",
+    "start": "2026-11-20T01:00:00Z",
+    "a": "EDM",
+    "b": "CR",
+    "bo": 3,
+    "hours": 3
+  },
+  {
+    "region": "NA",
+    "start": "2026-11-22T02:00:00Z",
+    "a": "NBR",
+    "b": "PRX",
+    "bo": 3,
+    "hours": 3
+  },
+  {
+    "region": "NA",
+    "start": "2026-11-23T02:00:00Z",
+    "a": "BLG",
+    "b": "TANK",
+    "bo": 3,
+    "hours": 3
   }
 ];
 

@@ -26,7 +26,6 @@ a{color:#a5dcdd}a:hover{color:#d4f0f0}
 @media (prefers-reduced-motion: reduce){.pcmt-loader span{animation-duration:calc(var(--speed)*3)}}
 .pcmt-loading{transition:opacity .4s ease}
 input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !important;box-shadow:0 0 0 3px rgba(165,220,221,.3)}
-a.hm-tile{color:inherit}
 .hm-hero{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(280px,1fr);gap:28px;align-items:start}
 @media (max-width:860px){.hm-hero{grid-template-columns:1fr}}
 .hm-panel{background:#172124;border:1px solid #2a3a3e;border-radius:12px;padding:20px}
@@ -35,11 +34,6 @@ a.hm-tile{color:inherit}
 #comments{scroll-margin-top:24px}
 .hm-cc button:disabled{opacity:.45;cursor:not-allowed}
 .hm-cc button:focus-visible{outline:2px solid #a5dcdd;outline-offset:2px}
-.hm-menu{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,270px),1fr));gap:12px}
-.hm-tile{display:flex;gap:14px;align-items:flex-start;padding:18px;border-radius:12px;background:#172124;border:1px solid #2a3a3e;text-decoration:none;transition:border-color .15s ease,transform .15s ease}
-.hm-tile:hover,.hm-tile:focus-visible{border-color:#a5dcdd;transform:translateY(-2px)}
-.hm-tile:focus-visible{outline:2px solid #a5dcdd;outline-offset:2px}
-@media (prefers-reduced-motion: reduce){.hm-tile{transition:none}}
 .hm-champ-stamp{margin-left:auto;display:inline-flex;align-items:center;gap:5px;padding:4px 8px;border-radius:4px;border:1.5px solid #f5d76e;box-shadow:inset 0 0 0 2px #172124,inset 0 0 0 3px #f5d76e,0 0 12px rgba(245,215,110,.45);color:#f5d76e;transform:rotate(-7deg);font:700 10px/1 'National Park',system-ui,sans-serif;letter-spacing:.16em;white-space:nowrap}
 .hm-champ-shine{background-image:linear-gradient(100deg,#f5d76e 0%,#f5d76e 35%,#fff 50%,#f5d76e 65%,#f5d76e 100%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:hm-champ-shine 6s ease-in-out infinite}
 @keyframes hm-champ-shine{0%{background-position:160% 0}50%,100%{background-position:-60% 0}}
@@ -190,18 +184,6 @@ a.hm-tile{color:inherit}
 </section>
 </sc-if>
 
-<section aria-label="All pages" style="display: flex; flex-direction: column; gap: 16px">
-<nav aria-label="All pages" class="hm-menu">
-<sc-for list="{{menu}}" as="it" hint-placeholder-count="8">
-<a href="{{it.href}}" class="hm-tile">
-<span style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
-<span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 24px; line-height: 1.1; color: #eaf4f4">{{it.title}}</span>
-<span style="font-size: 14px; line-height: 1.45; color: #93a9aa">{{it.text}}</span>
-</span>
-</a>
-</sc-for>
-</nav>
-</section>
 
 
 <section id="comments" aria-labelledby="cc-h" class="hm-panel hm-cc" style="display: flex; flex-direction: column; gap: 14px">
@@ -259,18 +241,6 @@ var PCMT_HOME_NOTE = {
     { pre: "Much more to come in NA S4 so thank you for your patience. Also a friendly reminder, this website is brand new and designed by some pros but mostly hobbyists, we assume there will be unforeseen issues on the site, but hope to be quick to fix them. Don't hesitate to hit up the devs in the ", link: 'complaint and comments', post: '. Enjoy EMEA S2 Playoffs and GLHF! - linus :)' }
   ]
 };
-
-// Every page, for the menu.
-var PCMT_HOME_MENU = [
-  { title: 'Pick’ems', href: 'Pickems.dc.html', text: 'Call the EMEA S2 playoff bracket for Credits.' },
-  { title: 'The Deck', href: 'Main.dc.html', text: 'Build your 11 and pick your IGL.' },
-  { title: 'The Deck Leaderboard', href: 'Leaderboard.dc.html', text: 'This gameweek and the season so far.' },
-  { title: 'MVP VS', href: 'MvpVs.dc.html', text: 'Top Trumps with every PCMT player.' },
-  { title: 'Store', href: 'Store.dc.html', text: 'Card packs, plus your paychecks and spending.' },
-  { title: 'Library', href: 'Library.dc.html', text: 'Every card you’ve pulled.' },
-  { title: 'Customization', href: 'Customization.dc.html', text: 'Bring flavor and style to your deck.' },
-  { title: 'Guide', href: 'Rules.dc.html', text: 'Boring rules and boring rules.' }
-];
 
 // Canvas sample (the live site uses the real matches).
 var PCMT_HOME_SAMPLE_MATCHES = [
@@ -479,7 +449,6 @@ class Component extends DCLogic {
       matches: matches, hasMatches: matches.length > 0, noMatches: !matches.length,
       lockLabel: lockLabel,
       hasResult: !!last, resultLabel: last ? last.a + ' vs ' + last.b + ', ' + last.winner + ' won' : '',
-      menu: PCMT_HOME_MENU,
       note: homeNote ? Object.assign({}, homeNote, { champ: champView, hasChamp: !!ch, paras: (homeNote.paras || []).map(function (x) { return { pre: x.pre || '', link: x.link || '', post: x.post || '', hasLink: !!x.link }; }) }) : {},
       hasNote: !!homeNote,
       hasAccount: !!(window.PCMT_AUTH && window.PCMT_AUTH.signedIn),
