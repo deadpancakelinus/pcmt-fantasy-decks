@@ -26,7 +26,7 @@ a{color:#a5dcdd}a:hover{color:#d4f0f0}
 @media (prefers-reduced-motion: reduce){.pcmt-loader span{animation-duration:calc(var(--speed)*3)}}
 .pcmt-loading{transition:opacity .4s ease}
 input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !important;box-shadow:0 0 0 3px rgba(165,220,221,.3)}
-.hm-hero{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(280px,1fr);gap:28px;align-items:start}
+.hm-hero{display:block}
 @media (max-width:860px){.hm-hero{grid-template-columns:1fr}}
 .hm-panel{background:#172124;border:1px solid #2a3a3e;border-radius:12px;padding:20px}
 .hm-cc textarea{display:block;width:100%;box-sizing:border-box;min-height:150px;resize:vertical;padding:12px 14px;border-radius:8px;border:1px solid #3a4f53;background:#0d1416;color:#eaf4f4;font:16px/1.55 'National Park',system-ui,sans-serif}
@@ -110,29 +110,6 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <section aria-labelledby="home-h" class="hm-hero">
 <div style="display: flex; flex-direction: column; gap: 14px; min-width: 0">
 <h1 id="home-h" style="margin: 0; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 60px; line-height: 1">Home</h1>
-</div>
-<div class="hm-panel" style="display: flex; flex-direction: column; gap: 14px">
-<div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px">
-<h2 style="margin: 0; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.1em; color: #a5dcdd">NEXT UP</h2>
-<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa">{{lockLabel}}</span>
-</div>
-<sc-if value="{{hasMatches}}" hint-placeholder-val="{{ true }}">
-<ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px">
-<sc-for list="{{matches}}" as="m" hint-placeholder-count="2">
-<li style="display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border-radius: 10px; background: #111a1c; border: 1px solid #2a3a3e">
-<div style="display: flex; align-items: center; justify-content: space-between; gap: 10px">
-<span style="display: inline-flex; align-items: center; gap: 8px; min-width: 0"><img src="{{m.aLogo}}" alt="" style="width: 28px; height: 28px; object-fit: contain"><span style="font-weight: 600; color: {{m.aColor}}">{{m.a}}</span></span>
-<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa">vs</span>
-<span style="display: inline-flex; align-items: center; gap: 8px; min-width: 0"><span style="font-weight: 600; color: {{m.bColor}}">{{m.b}}</span><img src="{{m.bLogo}}" alt="" style="width: 28px; height: 28px; object-fit: contain"></span>
-</div>
-<div style="display: flex; justify-content: space-between; gap: 10px; font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa"><span>{{m.when}}</span><span>{{m.meta}}</span></div>
-<a href="{{m.url}}" target="_blank" rel="noopener" aria-label="{{m.a}} vs {{m.b}} on pcmt.gg" style="align-self: flex-start; font-family: 'National Park', system-ui, sans-serif; font-size: 12px">pcmt.gg</a>
-</li>
-</sc-for>
-</ul>
-</sc-if>
-<sc-if value="{{noMatches}}" hint-placeholder-val="{{ false }}"><p style="margin: 0; color: #c4d4d4; line-height: 1.5">No series scheduled right now. Check back soon.</p></sc-if>
-<sc-if value="{{hasResult}}" hint-placeholder-val="{{ false }}"><p style="margin: 0; font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa">Last result: <span style="color: #eaf4f4">{{resultLabel}}</span></p></sc-if>
 </div>
 </section>
 
