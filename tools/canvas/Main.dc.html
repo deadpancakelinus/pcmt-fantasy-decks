@@ -1954,9 +1954,16 @@ class Component extends DCLogic {
   switchRegion(to) {
     var r = { NA: to === 'NA', EMEA: to === 'EMEA' };
     try { window.sessionStorage.setItem('pcmt-deal-regions', JSON.stringify(r)); window.sessionStorage.setItem('pcmt-regions', JSON.stringify(r)); } catch (e) {}
-    var squad = this.randomSquad(this.props.budget ?? 100, this.props.teamLimit ?? 2, PCMT_PLAYERS.filter(function (p) { return pcmtInStore(p) && pcmtRegions(p)[0] === to; }));
+    var budget = this.props.budget ?? 100, teamLimit = this.props.teamLimit ?? 2;
+    var pool = PCMT_PLAYERS.filter(function (p) { return pcmtInStore(p) && pcmtRegions(p)[0] === to; });
+    // Same deal as the Deal button (johnSquad, from the region picked); a plain random deck is a fallback, then one from
+    // the cheaper half of the region (NA prices are high enough that random decks rarely fit the budget).
+    var squad = null;
+    try { if (this.dealRegion() === to) squad = this.johnSquad(budget, teamLimit); } catch (e) {}
+    if (!squad) squad = this.randomSquad(budget, teamLimit, pool);
+    if (!squad) { var cheap = pool.slice().sort(function (a, b) { return a.price - b.price; }); squad = this.randomSquad(budget, teamLimit, cheap.slice(0, Math.ceil(cheap.length / 2))); }
     var self = this;
-    this.setState({ dealRegions: r, regions: r, switchOpen: true }, function () { if (squad) self.replayDeal(squad); else self.setState({ slots: {}, igl: null, saved: false }); });
+    this.setState({ dealRegions: r, regions: r, switchOpen: true, saved: false }, function () { if (squad) self.replayDeal(squad); else self.setState({ slots: {}, igl: null, saved: false }); });
   }
 
   replayDeal(squad) {
@@ -2322,6 +2329,13 @@ class Component extends DCLogic {
     var topId = String(this.props.topPlayer ?? '').trim().toLowerCase();
     var keys = pcmtSlotKeys();
     var pickedIds = keys.map(function (k) { return s.slots[k]; }).filter(Boolean);
+    // A switch that was taken but whose new deck wasn't dealt (or a saved deck from the old region loaded over it):
+    // deal the new region's deck now. Tried a few times per page load, never while NA decks are locked for a stage.
+    var pk = window.PCMT_REGION_PICK, dr = pcmtDeckRegion(pickedIds);
+    if (pk && pk.switched && dr && dr !== pk.region && !(pk.region === 'NA' && pcmtNaStageOn(Date.now())) && (this._autoSwitch || 0) < 5 && !this._autoSwitchT) {
+      this._autoSwitch = (this._autoSwitch || 0) + 1;
+      this._autoSwitchT = setTimeout(function () { self._autoSwitchT = null; var p2 = window.PCMT_REGION_PICK; if (p2 && p2.switched) self.switchRegion(p2.region); }, 600);
+    }
     var picked = pickedIds.map(function (id) { return self.find(id); }).filter(Boolean);
     var mvpId = mvpOverride;
     if (!mvpId) {
