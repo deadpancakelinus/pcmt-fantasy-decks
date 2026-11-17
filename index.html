@@ -783,10 +783,15 @@ function pcmtWeekPointsAt(now) {
   var e = pcmtWeekEnd(b), pts = {};
   PCMT_RESULTS.forEach(function (r) {
     var st = Date.parse(r.start);
-    if (!(st >= b && st < e)) return;
+    if (!(st >= b && st < e) || pcmtInNaStage(r)) return;
     var sp = pcmtSeriesPoints(r);
     Object.keys(sp).forEach(function (k) { pts[k] = (pts[k] || 0) + sp[k]; });
   });
+  // NA Stage 1 series: a card's number is what the player's best-two stage total grew by this gameweek.
+  if (PCMT_NA_STAGE) {
+    var s0 = pcmtStageBest(b), s1 = pcmtStageBest(e);
+    Object.keys(s1).forEach(function (k) { var d = s1[k] - (s0[k] || 0); if (d) pts[k] = (pts[k] || 0) + d; });
+  }
   pcmtWeekCache = { b: b, n: PCMT_RESULTS.length, pts: pts };
   return pts;
 }
@@ -846,6 +851,35 @@ function pcmtNextLock(now) {
     if (w && w.lockAt > now && (best === null || w.lockAt < best)) best = w.lockAt;
   });
   return best;
+}
+// NA Stage 1 (Nov 17 2026): NA decks stay open until the stage's first game starts (FNC vs WBG), whatever the weekly
+// lock says, then lock until the stage ends (end: null until it's set). The deck saved at that lock counts for the whole
+// stage, and each player scores only their two best NA series of the stage. EMEA decks keep the weekly locks. Same as
+// NA_STAGE in league.js and vp_na_stage() in setup/na-stage.sql.
+var PCMT_NA_STAGE = { lock: Date.parse('2026-11-18T03:00:00Z'), end: null, name: 'Stage 1' };
+function pcmtInNaStage(r) {
+  var t = Date.parse(r.start);
+  return !!PCMT_NA_STAGE && r.region === 'NA' && t >= PCMT_NA_STAGE.lock && (PCMT_NA_STAGE.end == null || t < PCMT_NA_STAGE.end);
+}
+function pcmtNaStageOn(now) { var S = PCMT_NA_STAGE; return !!S && now >= S.lock && (S.end == null || now < S.end); }
+// The lock for a deck of this region (null = empty deck): the stage's for NA (and for an empty deck before the stage
+// locks), else null (the weekly lock applies).
+function pcmtStageLock(now, region) {
+  var S = PCMT_NA_STAGE;
+  if (!S || region === 'EMEA' || (S.end != null && now >= S.end)) return null;
+  if (now < S.lock) return { locked: false, until: null, lockAt: S.lock, stage: true };
+  return region === 'NA' ? { locked: true, until: S.end, lockAt: S.lock, stage: true } : null;
+}
+// { <player id>: sum of their two best stage series that started before upTo }
+function pcmtStageBest(upTo) {
+  var lists = {}, out = {};
+  PCMT_RESULTS.forEach(function (r) {
+    if (!pcmtInNaStage(r) || Date.parse(r.start) >= upTo) return;
+    var sp = pcmtSeriesPoints(r);
+    Object.keys(sp).forEach(function (k) { (lists[k] || (lists[k] = [])).push(sp[k]); });
+  });
+  Object.keys(lists).forEach(function (k) { var a = lists[k].sort(function (x, y) { return y - x; }); out[k] = (a[0] || 0) + (a.length > 1 ? a[1] : 0); });
+  return out;
 }
 function pcmtCountdown(ms) {
   if (ms <= 0) return '0:00:00';
@@ -913,7 +947,8 @@ class Component extends DCLogic {
 
   weekLock() {
     var mode = this.props.lockPreview ?? 'Live';
-    var w = pcmtWeekLock(this.state.now || Date.now());
+    var now = (this.state && this.state.now) || Date.now(), sl = this.state && this.state.slots;
+    var w = pcmtStageLock(now, pcmtDeckRegion(sl ? Object.keys(sl).map(function (k) { return sl[k]; }).filter(Boolean) : [])) || pcmtWeekLock(now);
     if (mode === 'Locked') return { locked: true, until: w.until || pcmtWeekEnd(pcmtMondayStart(Date.now())), lockAt: w.lockAt };
     if (mode === 'Open') return { locked: false, until: null, lockAt: w.lockAt };
     return w;
@@ -1064,7 +1099,8 @@ class Component extends DCLogic {
     return pcmtDeckRegion(ids) || 'NA';
   }
   dealPool() {
-    var reg = this.dealRegion();
+    var reg = this.dealRegion(), now = (this.state && this.state.now) || Date.now();
+    if (reg === 'NA' ? pcmtNaStageOn(now) : pcmtWeekLock(now).locked) return [];   // that region's decks are locked
     return PCMT_PLAYERS.filter(function (p) { return pcmtInStore(p) && pcmtRegions(p)[0] === reg; });
   }
 
@@ -1217,6 +1253,9 @@ class Component extends DCLogic {
   toggle(id) {
     if (this.isLocked()) return;
     var s = this.state;
+    var tp = PCMT_PLAYERS.find(function (x) { return x.id === id; }), tnow = s.now || Date.now();
+    var inDeck = Object.keys(s.slots || {}).some(function (k) { return s.slots[k] === id; });
+    if (tp && !inDeck && (pcmtRegions(tp)[0] === 'NA' ? pcmtNaStageOn(tnow) : pcmtWeekLock(tnow).locked) && (this.props.lockPreview ?? 'Live') === 'Live') return;
     var slots = Object.assign({}, s.slots);
     var key = Object.keys(slots).find(function (k) { return slots[k] === id; });
     if (key) {
@@ -1315,7 +1354,8 @@ class Component extends DCLogic {
     var teamLimit = this.props.teamLimit ?? 2;
     var wk = this.weekLock();
     var weekLocked = wk.locked;
-    var nextLock = weekLocked ? null : ((this.props.lockPreview ?? 'Live') === 'Live' ? pcmtNextLock(Date.now()) : (wk.lockAt && wk.lockAt > Date.now() ? wk.lockAt : pcmtNextLock(Date.now())));
+    var nowT = (s && s.now) || Date.now(), regWk = pcmtWeekLock(nowT), naStageOn = pcmtNaStageOn(nowT);
+    var nextLock = weekLocked ? null : wk.stage ? wk.lockAt : ((this.props.lockPreview ?? 'Live') === 'Live' ? pcmtNextLock(Date.now()) : (wk.lockAt && wk.lockAt > Date.now() ? wk.lockAt : pcmtNextLock(Date.now())));
     this._lockTarget = nextLock;
     // Your MVP = the player in your squad with the most points this gameweek. Empty until someone has scored
     // (e.g. before Week 1's first match). The mvpPlayer tweak forces a player for previews.
@@ -1363,6 +1403,8 @@ class Component extends DCLogic {
         var reason = '';
         if (!isPicked) {
           if (weekLocked) reason = 'Locked';
+          else if (naStageOn && pcmtRegions(p)[0] === 'NA') reason = PCMT_NA_STAGE.name + ' locked';
+          else if (regWk.locked && pcmtRegions(p)[0] === 'EMEA') reason = 'Locked';
           else if (PCMT_TWIN[p.id] && pickedIds.indexOf(PCMT_TWIN[p.id]) >= 0) reason = p.name + ' in deck';
           else if (deckRegion && pcmtRegions(p)[0] !== deckRegion) reason = deckRegion + ' deck';
           else if (full) reason = 'Deck full';
@@ -1526,7 +1568,8 @@ class Component extends DCLogic {
       return n > 0 ? n + ' ' + r.label.toLowerCase() : null;
     }).filter(Boolean);
     var openWildAll = PCMT_WILD - wildFilled;
-    if (weekLocked) statusText = wk.tuesdayGame ? 'Gameweek locked. Deck changes reopen once Tuesday\'s game is over and its result is in.' : 'Gameweek locked. Deck changes reopen ' + pcmtWhen(wk.until) + '.';
+    if (weekLocked && wk.stage) statusText = 'NA decks are locked for ' + PCMT_NA_STAGE.name + (wk.until ? ' until ' + pcmtWhen(wk.until) : '') + '. Each player scores their two best ' + PCMT_NA_STAGE.name + ' games.';
+    else if (weekLocked) statusText = wk.tuesdayGame ? 'Gameweek locked. Deck changes reopen once Tuesday\'s game is over and its result is in.' : 'Gameweek locked. Deck changes reopen ' + pcmtWhen(wk.until) + '.';
     else if (s.saved) statusText = 'Deck locked in. Edits are open until ' + (wk.lockAt ? pcmtWhen(wk.lockAt) : 'the next match') + '.';
     else if (missing.length) statusText = 'No points until every role is filled. Still need: ' + missing.join(', ') + '.';
     else if (need > 0) statusText = 'Every role is filled. Pick ' + openWildAll + ' more wildcard' + (openWildAll === 1 ? '' : 's') + ' to complete your deck.';
@@ -1591,10 +1634,10 @@ class Component extends DCLogic {
           colorA: PCMT_TEAMS[next.a] || '#eaf4f4', colorB: PCMT_TEAMS[next.b] || '#eaf4f4', time: pcmtMatchTime(next.start) };
       }),
       weekLocked: weekLocked, weekOpen: !weekLocked,
-      lockNote: weekLocked ? (wk.until ? 'Locked until ' + pcmtWhen(wk.until) : 'Locked until Tuesday\'s result is in') : '',
+      lockNote: weekLocked ? (wk.stage ? (wk.until ? 'Locked until ' + pcmtWhen(wk.until) : 'Locked for ' + PCMT_NA_STAGE.name) : wk.until ? 'Locked until ' + pcmtWhen(wk.until) : 'Locked until Tuesday\'s result is in') : '',
       showCountdown: !weekLocked && !!nextLock,
       countdown: nextLock ? pcmtCountdown(nextLock - Date.now()) : '',
-      countdownTitle: nextLock ? 'Decks lock ' + pcmtWhen(nextLock) + ' for the gameweek' : '',
+      countdownTitle: nextLock ? (wk.stage ? 'NA decks lock ' + pcmtWhen(nextLock) + ' for all of ' + PCMT_NA_STAGE.name : 'Decks lock ' + pcmtWhen(nextLock) + ' for the gameweek') : '',
       lockTitle: weekLocked ? 'Deck locked' : 'Deck open for changes',
       actionsDisabled: weekLocked,
       actionOpacity: weekLocked ? 0.4 : 1,
@@ -1639,8 +1682,8 @@ class Component extends DCLogic {
       dealEmeaImgOpacity: (s.dealRegions && s.dealRegions.EMEA === false) ? 0.35 : 1, dealEmeaImgFilter: (s.dealRegions && s.dealRegions.EMEA === false) ? 'grayscale(1)' : 'none',
       dealToggleNA: function () { self.toggleDealRegion('NA'); },
       dealToggleEMEA: function () { self.toggleDealRegion('EMEA'); },
-      dealDisabled: weekLocked || !!(s.dealRegions && s.dealRegions.NA === false && s.dealRegions.EMEA === false),
-      dealOpacity: (weekLocked || (s.dealRegions && s.dealRegions.NA === false && s.dealRegions.EMEA === false)) ? 0.4 : 1,
+      dealDisabled: weekLocked || (naStageOn && !(s.dealRegions && s.dealRegions.NA === false)) || (regWk.locked && s.dealRegions && s.dealRegions.NA === false) || !!(s.dealRegions && s.dealRegions.NA === false && s.dealRegions.EMEA === false),
+      dealOpacity: (weekLocked || (naStageOn && !(s.dealRegions && s.dealRegions.NA === false)) || (regWk.locked && s.dealRegions && s.dealRegions.NA === false) || (s.dealRegions && s.dealRegions.NA === false && s.dealRegions.EMEA === false)) ? 0.4 : 1,
       toggleNA: function () { self.toggleRegion('NA'); },
       toggleEMEA: function () { self.toggleRegion('EMEA'); },
       setSearch: function (e) { self.setState({ search: e && e.target ? e.target.value : '' }); },

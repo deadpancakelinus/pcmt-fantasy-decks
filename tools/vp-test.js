@@ -13,7 +13,9 @@ const core = LEAGUE.slice(LEAGUE.indexOf('  // Gameweeks (Oct 29 2026)'), LEAGUE
 // the scoring numbers and the 4K/5K start date, exactly as league.js has them
 const SCORING_JS = 'var ' + LEAGUE.match(/var SCORING = \{[\s\S]*?\};/)[0].slice(4) + ' var ' + LEAGUE.match(/var MULTI_FROM = [^;]*;/)[0].slice(4);
 function siteRules(matches, results) {
-  const ctx = { window: {} };
+  const noop = () => {}, el = { appendChild: noop, addEventListener: noop, style: {}, querySelector: () => null };
+  const ctx = { window: { addEventListener: noop }, document: { createElement: () => el, body: el, querySelector: () => null, querySelectorAll: () => [], getElementById: () => null, addEventListener: noop },
+                setTimeout: noop, setInterval: noop, clearInterval: noop, clearTimeout: noop };
   vm.runInNewContext(PLAYERS_JS.replace(/var (PCMT_SITE_\w+)/g, 'window.$1'), ctx);
   ctx.window.PCMT_MATCHES = matches; ctx.window.PCMT_RESULTS = results;
   vm.runInNewContext('var DAY = 86400000, BUDGET = 100, TEAM_LIMIT = 2, TRANSFERS = Infinity, LOCK_LEAD_H = 6, ROLES = ["duelist","controller","initiator","sentinel"];' +
@@ -27,10 +29,10 @@ const P = (() => { const c = { window: {} }; vm.runInNewContext(PLAYERS_JS.repla
 function rng(seed) { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
 const ROLES = ['duelist', 'controller', 'initiator', 'sentinel'];
 const role = p => { const r = p.role.split('/')[0]; return r === 'yoru' ? 'duelist' : r; };
-function scenario(seed) {
+function scenario(seed, startAt) {
   const R = rng(seed), pick = a => a[Math.floor(R() * a.length)];
   const teams = [...new Set(P.map(p => p.team))];
-  const base = Date.parse('2026-10-19T09:00:00Z'), H = 3600000, D = 24 * H;
+  const base = Date.parse(startAt || '2026-10-19T09:00:00Z'), H = 3600000, D = 24 * H;
   const matches = [], results = [], multi = [];
   const addMulti = (r, ids) => ids.forEach(id => { if (R() < 0.35) multi.push({ series: r.start + '|' + r.a + '|' + r.b, player: id, k4: Math.floor(R() * 3), k5: R() < 0.25 ? 1 : 0 }); });
   for (let w = 0; w < 4; w++) for (let s = 0; s < 1 + Math.floor(R() * 3); s++) {
@@ -151,6 +153,8 @@ sql(fs.readFileSync(__dirname + '/../setup/supabase-setup.sql', 'utf8'));
 const vpSql = fs.readFileSync(__dirname + '/../setup/vp-setup.sql', 'utf8');
 sql(vpSql.slice(0, vpSql.indexOf('-- [supabase-only]')));
 sql(vpSql.slice(0, vpSql.indexOf('-- [supabase-only]'))); // setup is safe to run twice
+sql(fs.readFileSync(__dirname + '/../setup/thursday-weeks.sql', 'utf8'));   // Thursday gameweeks, the budget rule
+sql(fs.readFileSync(__dirname + '/../setup/na-stage.sql', 'utf8'));   // NA Stage 1: best two series
 sql('alter table public.deck_history disable trigger user;');
 
 // ---- a real series from PCMT.gg (NAVI 2-1 C9, Oct 10), scored by the site and by the server ----
@@ -187,8 +191,10 @@ sql('alter table public.deck_history disable trigger user;');
 }
 
 let totalWeeks = 0, totalVp = 0;
-for (let seed = 1; seed <= 12; seed++) {
-  const sc = scenario(seed);
+// seeds 13-20 run across NA Stage 1 (lock Nov 18 03:00 UTC): decks saved before and after it, best two series each
+for (let seed = 1; seed <= 20; seed++) {
+  const stageRun = seed > 12;
+  const sc = scenario(seed, stageRun ? '2026-11-05T09:00:00Z' : null);
   sql('truncate public.vp_ledger, public.deck_history, public.multikills; delete from auth.users;');
   if (sc.multi.length) sql('insert into public.multikills (series, player, k4, k5) values ' + sc.multi.map(m => `(${lit(m.series)}, ${lit(m.player)}, ${m.k4}, ${m.k5})`).join(',') + ';');
   sql('insert into auth.users (id) values ' + sc.users.map(u => '(' + lit(u) + ')').join(',') + ';');
@@ -197,7 +203,7 @@ for (let seed = 1; seed <= 12; seed++) {
   const call = (s, now, pay = true) => JSON.parse(sql(`select public.vp_ingest(${lit(dataJs(s))}, ${lit(PLAYERS_JS)}, ${lit(new Date(now).toISOString())}, ${pay});`));
 
   // 1) Mid-season: only finished gameweeks are paid.
-  const mid = Date.parse('2026-11-03T10:00:00Z');
+  const mid = Date.parse(stageRun ? '2026-11-27T10:00:00Z' : '2026-11-03T10:00:00Z');
   call(sc, mid);
   let d = same(expected(sc, mid), ledger());
   check(!d.length, `seed ${seed}: mid-season payouts match the site (${Object.keys(expected(sc, mid)).length} manager-weeks) ${d.slice(0, 3).join('; ')}`);
@@ -205,7 +211,7 @@ for (let seed = 1; seed <= 12; seed++) {
   const again = call(sc, mid);
   check(+again.payouts === 0, `seed ${seed}: second run pays nothing new`);
   // 3) End of season: everything paid, still matching.
-  const end = Date.parse('2026-12-01T10:00:00Z');
+  const end = Date.parse(stageRun ? '2026-12-20T10:00:00Z' : '2026-12-01T10:00:00Z');
   call(sc, end);
   const exp = expected(sc, end); d = same(exp, ledger());
   check(!d.length, `seed ${seed}: end-of-season payouts match the site ${d.slice(0, 3).join('; ')}`);

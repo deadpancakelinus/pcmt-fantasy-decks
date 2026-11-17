@@ -438,6 +438,11 @@ class Component extends DCLogic {
       all.forEach(function (m) { var b = wkStart(Date.parse(m.start)); if (seen[b]) return; seen[b] = 1; var w = info(b); if (w && w.lockAt > now && (nextAt === null || w.lockAt < nextAt)) nextAt = w.lockAt; });
       if (nextAt !== null) lockLabel = 'Decks lock ' + when(new Date(nextAt).toISOString());
     }
+    // NA Stage 1 (Nov 17 2026): NA decks lock when the stage's first game starts, until the stage ends (as on The Deck).
+    var NA_STAGE = { lock: Date.parse('2026-11-18T03:00:00Z'), end: null, name: 'Stage 1' };
+    if (!NA_STAGE.end || now < NA_STAGE.end) {
+      lockLabel = (now < NA_STAGE.lock ? 'NA decks lock ' + when(new Date(NA_STAGE.lock).toISOString()) : 'NA decks locked for ' + NA_STAGE.name) + ' · EMEA ' + lockLabel.replace(/^Decks/, 'decks');
+    }
     var results = live ? (W.PCMT_RESULTS || []) : [];
     var last = results.length ? results.slice().sort(function (a, b) { return Date.parse(b.start) - Date.parse(a.start); })[0] : null;
     return {

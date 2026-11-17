@@ -348,35 +348,89 @@
       .sort(function (a, b) { return a.b - b.b; });
   }
 
+  // NA Stage 1 (Nov 17 2026): NA decks lock when the stage's first game starts (FNC vs WBG) and stay locked until the
+  // stage ends. The deck that counts is the last valid one saved before that lock (over budget at the lock: nothing).
+  // Each player in it scores only their two best NA series of the stage. Weekly card numbers are what that best-two
+  // total grew by during the gameweek, so the weeks add up to the stage total. NA results outside the stage and every
+  // EMEA result score as before. end: null until the stage's end is set. Same as vp_na_stage() in setup/na-stage.sql
+  // and PCMT_NA_STAGE in the Main board.
+  var NA_STAGE = { lock: Date.parse('2026-11-18T03:00:00Z'), end: null };
+  function inNaStage(r) {
+    var t = Date.parse(r.start);
+    return !!NA_STAGE && r.region === 'NA' && t >= NA_STAGE.lock && (NA_STAGE.end == null || t < NA_STAGE.end);
+  }
+  var stageCache = { n: -1, by: {} };
+  function stageBest(upTo) {   // { <player id>: sum of their two best stage series before upTo }
+    var res = window.PCMT_RESULTS || [];
+    if (stageCache.n !== res.length) stageCache = { n: res.length, by: {} };
+    if (stageCache.by[upTo]) return stageCache.by[upTo];
+    var lists = {}, out = {};
+    res.forEach(function (r) {
+      if (!inNaStage(r) || Date.parse(r.start) >= upTo) return;
+      var sp = seriesPoints(r);
+      Object.keys(sp).forEach(function (k) { (lists[k] || (lists[k] = [])).push(sp[k]); });
+    });
+    Object.keys(lists).forEach(function (k) { var a = lists[k].sort(function (x, y) { return y - x; }); out[k] = (a[0] || 0) + (a.length > 1 ? a[1] : 0); });
+    return (stageCache.by[upTo] = out);
+  }
+  function stageDelta(w) {   // what each player's best-two total grew by in gameweek w
+    var a = stageBest(w.b), z = stageBest(w.e), out = {};
+    Object.keys(z).forEach(function (k) { out[k] = z[k] - (a[k] || 0); });
+    return out;
+  }
+
   // For each manager: which deck counted each gameweek, and the points it scored. The deck that counts is the last valid
   // one saved before the week's lock (else the one from the week before). Entry: { week, deck, pts (IGL x1.5), byTeam,
   // cards: { <player id>: points } }.
   function scoreManager(subs, weeks) {
     subs = subs.slice().sort(function (a, b) { return a.t - b.t; });
-    var prev = null, out = [];
+    var prev = null, out = [], stage = null;
+    if (NA_STAGE) {
+      for (var j = subs.length - 1; j >= 0; j--) if (subs[j].t < NA_STAGE.lock && validDeck(subs[j].slots, subs[j].t)) { stage = subs[j]; break; }
+      if (stage && !fitsBudget(stage.slots, NA_STAGE.lock)) stage = null;
+    }
+    var stageIds = stage ? deckIds(stage.slots) : [];   // only NA stage series count, so EMEA players add nothing
     weeks.forEach(function (w) {
       if (!w.locked) return;
       var use = null;
       for (var i = subs.length - 1; i >= 0; i--) if (subs[i].t < w.lockAt && validDeck(subs[i].slots, subs[i].t)) { use = subs[i]; break; }
       if (!use) use = prev;
-      if (!use) return;
-      prev = use;
+      if (use) prev = use;
       // From Nov 13 2026: a deck over the budget at the prices when the gameweek locks scores nothing that week (the red
       // "please relock your deck" window; the server does the same in vp_compute). Earlier gameweeks are unchanged.
-      if (w.lockAt >= OVER_BUDGET_FROM && !fitsBudget(use.slots, w.lockAt)) return;
-      var pts = 0, byTeam = {}, cards = {}, champWin = false, missedWin = false, ids = deckIds(use.slots);
-      w.results.forEach(function (r) {
-        var sp = seriesPoints(r);
+      var regular = !!use && !(w.lockAt >= OVER_BUDGET_FROM && !fitsBudget(use.slots, w.lockAt));
+      var inStage = stageIds.length && w.e > NA_STAGE.lock && (NA_STAGE.end == null || w.b < NA_STAGE.end);
+      if (!regular && !inStage) return;
+      var pts = 0, byTeam = {}, cards = {}, champWin = false, missedWin = false;
+      function add(id, base, igl) {
+        var p = BY_ID[id];
+        pts += base * (id === igl ? 1.5 : 1);
+        if (p) byTeam[p.team] = (byTeam[p.team] || 0) + base;
+        cards[id] = (cards[id] || 0) + base;
+      }
+      function flags(r, ids) {
         ids.forEach(function (id) {
-          var p = BY_ID[id], base = sp[id] || 0;
-          pts += base * (id === use.igl ? 1.5 : 1);
-          byTeam[p.team] = (byTeam[p.team] || 0) + base;
-          cards[id] = (cards[id] || 0) + base;
+          var p = BY_ID[id]; if (!p) return;
           if (p.team === r.winner && CHAMPS[id]) champWin = true;
           if (p.team === r.winner && LOWEST[id]) missedWin = true;
         });
-      });
-      out.push({ week: w, deck: use, pts: Math.round(pts * 10) / 10, byTeam: byTeam, cards: cards, champWin: champWin, missedWin: missedWin });
+      }
+      if (regular) {
+        var ids = deckIds(use.slots);
+        w.results.forEach(function (r) {
+          if (inNaStage(r)) return;
+          var sp = seriesPoints(r);
+          ids.forEach(function (id) { add(id, sp[id] || 0, use.igl); });
+          flags(r, ids);
+        });
+      }
+      if (inStage) {
+        var d = stageDelta(w);
+        stageIds.forEach(function (id) { add(id, d[id] || 0, stage.igl); });
+        w.results.forEach(function (r) { if (inNaStage(r)) flags(r, stageIds); });
+      }
+      out.push({ week: w, deck: use || stage, stageDeck: inStage ? stage : null,
+                 pts: Math.round(pts * 10) / 10, byTeam: byTeam, cards: cards, champWin: champWin, missedWin: missedWin });
     });
     return out;
   }
