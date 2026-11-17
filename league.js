@@ -232,8 +232,27 @@
     return cost <= BUDGET + 1e-9;
   }
   // Why a deck can't be entered right now ('' = it can), in words for the player.
+  // Patch 2.0 (Nov 17 2026): a deck is NA or EMEA, not both. New saves must stick to one region; decks saved before
+  // keep scoring as they were (validDeck, which scoring uses, doesn't check this).
+  var TEAM_REGION = null;
+  function playerRegion(p) {
+    if (p.regions && p.regions.length) return p.regions[0];
+    if (!TEAM_REGION) {
+      TEAM_REGION = {};
+      (window.PCMT_SITE_TEAMS || []).forEach(function (t) { TEAM_REGION[t.code] = t.region || 'NA'; });
+      (window.PCMT_DECK_TEAMS || []).forEach(function (t) { TEAM_REGION[t.code] = t.region || 'NA'; });
+    }
+    return TEAM_REGION[p.team] || 'NA';
+  }
+  function deckMixed(slots) {
+    var seen = {};
+    deckIds(slots).forEach(function (id) { if (BY_ID[id]) seen[playerRegion(BY_ID[id])] = true; });
+    return Object.keys(seen).length > 1;
+  }
+  function canEnter(slots) { return validDeck(slots) && !deckMixed(slots); }
   function deckProblem(slots) {
     var ids = deckIds(slots), cost = 0, missing = false;
+    if (deckMixed(slots)) return 'Your deck has NA and EMEA players. Decks are NA or EMEA only now (Patch Notes 2.0): swap players so they\'re all from one region, then lock it in again.';
     if (ids.length !== ROLES.length * 2 + 3) return 'Your deck needs all ' + (ROLES.length * 2 + 3) + ' players before it can be saved.';
     ids.forEach(function (id) { if (!BY_ID[id]) missing = true; else cost += priceAt(id, Date.now()); });
     if (missing) return 'A player in your deck isn\'t in the store any more. Swap them out, then lock in again.';
@@ -288,6 +307,26 @@
     if (!obTimer) obTimer = setInterval(obPaint, 400);   // follows the deck as the page lays out
   }
   window.addEventListener('resize', function () { if (obEl) obPaint(); });
+  // Patch 2.0: a deck with both NA and EMEA players gets this window (OK hides it until the next page load).
+  var mxOn = false, mxClosed = false, mxEl = null;
+  function mixedWarn(on) {
+    if (on === mxOn && (!on || mxEl || mxClosed)) return;
+    mxOn = on;
+    if (!on || mxClosed) { if (mxEl) { mxEl.remove(); mxEl = null; } return; }
+    if (mxEl || !document.body) return;
+    mxEl = document.createElement('div');
+    mxEl.style.cssText = 'position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(5,9,10,.72)';
+    var a = 'color:#a5dcdd;text-decoration:underline;text-underline-offset:3px';
+    mxEl.innerHTML = '<div role="dialog" aria-modal="true" aria-labelledby="mx-h" style="width:100%;max-width:560px;max-height:calc(100vh - 32px);overflow:auto;box-sizing:border-box;display:flex;flex-direction:column;gap:16px;padding:26px 26px 22px;border-radius:14px;border:1px solid #3a4f53;background:#111a1c;color:#eaf4f4;box-shadow:0 24px 70px rgba(0,0,0,.55);font-family:\'National Park\',system-ui,sans-serif;line-height:1.55;font-size:15px">' +
+      '<h2 id="mx-h" style="margin:0;font-family:\'Cabin Sketch\',cursive;font-weight:700;font-size:32px;line-height:1.1"><a href="home.html#patch-notes" style="color:#eaf4f4;text-decoration:underline;text-underline-offset:4px">Patch Notes 2.0</a></h2>' +
+      '<p style="margin:0">Because of the scoring and schedule difference in the regions, users are now allowed either an NA deck or an EMEA deck, Not Both. We apologize for the inconvenience for the few that enjoy both the regions. If this is of genuine issue please use our <a href="home.html#comments" style="' + a + '">complaints box</a> to express your problems with this change.</p>' +
+      '<p style="margin:0">The Season 4 NA scoring rules can be found in the <a href="guide.html" style="' + a + '">guide</a>.</p>' +
+      '<button type="button" style="align-self:flex-end;min-height:48px;padding:0 28px;border-radius:10px;border:0;background:#a5dcdd;color:#000;font:inherit;font-weight:700;letter-spacing:.06em;cursor:pointer">OK</button></div>';
+    mxEl.querySelector('button').addEventListener('click', function () { mxClosed = true; mxEl.remove(); mxEl = null; });
+    mxEl.addEventListener('keydown', function (e) { if (e.key === 'Escape') { mxClosed = true; mxEl.remove(); mxEl = null; } });
+    document.body.appendChild(mxEl);
+    setTimeout(function () { try { mxEl.querySelector('button').focus(); } catch (e) {} }, 0);
+  }
   function transfersBetween(prevSlots, slots) {
     if (!prevSlots) return 0;
     var prev = {};
@@ -503,7 +542,9 @@
     },
     statusNote: function (slots, text, locked) {
       overBudgetWarn(!!me && !locked && deckOverBudget(slots));
+      mixedWarn(!!me && deckMixed(slots));
       if (!me || locked) return text;
+      if (deckMixed(slots)) return deckProblem(slots);
       // A full deck that can't be entered (usually over budget after a price rise): say so instead of "locked in".
       if (deckIds(slots).length === ROLES.length * 2 + 3) { var why = deckProblem(slots); if (why) return why; }
       var base = L.lastLockedDeck();
@@ -543,7 +584,7 @@
     var json = JSON.stringify(d);
     pendingDeck = null;
     if (json === lastSubmitted) return;
-    if (!validDeck(d.slots)) { if (!leaving) toast(deckProblem(d.slots) || 'Your deck couldn\'t be saved. Check it follows every rule.'); return; }   // never fail silently
+    if (!canEnter(d.slots)) { if (!leaving) toast(deckProblem(d.slots) || 'Your deck couldn\'t be saved. Check it follows every rule.'); return; }   // never fail silently
     var prev = lastSubmitted ? JSON.parse(lastSubmitted) : null;
     var nameOnly = prev && JSON.stringify(prev.slots) === JSON.stringify(d.slots) && prev.igl === d.igl;
     submitting = true;

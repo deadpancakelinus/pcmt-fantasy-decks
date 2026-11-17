@@ -300,3 +300,8 @@ Supabase's Discord login always asks Discord for the email. Triggers drop it bef
 - Nov 16 2026 (later): the uniform 1024px logos replaced every NA S4 logo (XLG, DEI, NBR, CR, TANK, BLG, EDM, WBG, PRX) in the Main board and Pick'ems; the `deck_teams` logos uploaded earlier were cleared so these show. CR is "CRazy zigzagoon", as on the team sheet.
 - **FNC** is both NA S3's retired "cow paulo FaN Club" and NA S4's "Freaks Need Caesparz". `pcmtRetired(p)` (Main board, wire.py) and `retiredPlayer(p)` (backend) keep a player in the store when their team code is in use again and their id ends in `-s4`; S3's FNC logo was dropped.
 - Backend Teams tab: an "Add a team" tile at the end of the team list opens a blank team form.
+
+## 31. Patch 2.0: NA or EMEA decks, not both (Nov 17 2026)
+- A deck holds players from one region only. The Deck: the store greys out the other region's players ("NA deck" / "EMEA deck") once a deck has a player, `toggle()` refuses them, and the deal fills from one region (the NA / EMEA deal buttons are now one-or-the-other, NA by default). league.js: `canEnter()` (validDeck + not mixed) gates every new save; `deckProblem()` explains a mixed deck.
+- A signed-in player whose deck mixes regions gets the "Patch Notes 2.0" window (league.js `mixedWarn`) over The Deck, with links to the patch note on Home (`home.html#patch-notes`), the complaints box (`home.html#comments`) and the guide (`guide.html`). OK hides it until the next page load.
+- Scoring is unchanged: decks saved before keep scoring as they were (`validDeck`, used for scoring, doesn't check regions; nor does the server). On Nov 17, 9 saved decks mixed regions (some only through retired NA S3 players, which The Deck already drops).

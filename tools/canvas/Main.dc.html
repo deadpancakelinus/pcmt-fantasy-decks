@@ -906,9 +906,20 @@ PCMT_TEAM_LIST.forEach(function (t) { PCMT_TEAM_REGION[t.code] = t.region || 'NA
 function pcmtRetired(p) { return !!PCMT_RETIRED_TEAM[p.team] && (!PCMT_ACTIVE_TEAM[p.team] || !/-s4$/.test(p.id)); }
 function pcmtRegions(p) { return p.regions || [PCMT_TEAM_REGION[p.team] || 'NA']; }
 function pcmtRegionLabel(p) { return pcmtRegions(p).join(' · '); }
+// Patch 2.0 (Nov 17 2026): a deck is NA or EMEA, never both. A deck's region is its first player's.
+function pcmtDeckRegion(ids) {
+  for (var i = 0; i < ids.length; i++) { var p = PCMT_PLAYERS.find(function (x) { return x.id === ids[i]; }); if (p) return pcmtRegions(p)[0]; }
+  return null;
+}
+function pcmtDeckMixed(ids) {
+  var seen = {};
+  ids.forEach(function (id) { var p = PCMT_PLAYERS.find(function (x) { return x.id === id; }); if (p) seen[pcmtRegions(p)[0]] = true; });
+  return Object.keys(seen).length > 1;
+}
 function pcmtReadDealRegions() {
-  try { var v = JSON.parse(window.sessionStorage.getItem('pcmt-deal-regions') || 'null'); if (v && typeof v === 'object') return { NA: v.NA !== false, EMEA: v.EMEA !== false }; } catch (e) {}
-  return { NA: true, EMEA: true };
+  // One region at a time (Patch 2.0): NA unless EMEA was picked.
+  try { var v = JSON.parse(window.sessionStorage.getItem('pcmt-deal-regions') || 'null'); if (v && v.EMEA !== false && v.NA === false) return { NA: false, EMEA: true }; } catch (e) {}
+  return { NA: true, EMEA: false };
 }
 function pcmtReadRegions() {
   try { var v = JSON.parse(window.sessionStorage.getItem('pcmt-regions') || 'null'); if (v && typeof v === 'object') return { NA: v.NA !== false, EMEA: v.EMEA !== false }; } catch (e) {}
@@ -1982,14 +1993,21 @@ class Component extends DCLogic {
     }, maxD + 860);
   }
 
+  // The deal fills a deck from one region only (Patch 2.0): the region picked, else the deck's own, else NA.
+  dealRegion() {
+    var r = this.state.dealRegions || {};
+    if (r.NA !== false && r.EMEA === false) return 'NA';
+    if (r.EMEA !== false && r.NA === false) return 'EMEA';
+    var s = this.state, ids = Object.keys(s.slots || {}).map(function (k) { return s.slots[k]; });
+    return pcmtDeckRegion(ids) || 'NA';
+  }
   dealPool() {
-    var r = this.state.dealRegions || { NA: true, EMEA: true };
-    return PCMT_PLAYERS.filter(function (p) { return pcmtInStore(p) && pcmtRegions(p).some(function (x) { return r[x]; }); });
+    var reg = this.dealRegion();
+    return PCMT_PLAYERS.filter(function (p) { return pcmtInStore(p) && pcmtRegions(p)[0] === reg; });
   }
 
   toggleDealRegion(key) {
-    var r = Object.assign({ NA: true, EMEA: true }, this.state.dealRegions);
-    r[key] = !r[key];
+    var r = { NA: key === 'NA', EMEA: key === 'EMEA' };   // one region at a time
     try { window.sessionStorage.setItem('pcmt-deal-regions', JSON.stringify(r)); } catch (e) {}
     this.setState({ dealRegions: r });
   }
@@ -2149,6 +2167,8 @@ class Component extends DCLogic {
     var target = this.openSlotFor(pcmtRole(p), slots);
     if (!target) return;
     if (PCMT_TWIN[id] && Object.keys(slots).some(function (k) { return slots[k] === PCMT_TWIN[id]; })) return;
+    var have = Object.keys(slots).map(function (k) { return slots[k]; }), reg = pcmtDeckMixed(have) ? null : pcmtDeckRegion(have);
+    if (reg && pcmtRegions(p)[0] !== reg) return;   // NA or EMEA, not both (Patch 2.0)
     slots[target] = id;
     var ex = s.stackExtras || [];
     var top = ex.length ? (s.stackNeat ? { jx: 0, jy: -Math.min(ex.length, 6), rz: 0 } : { jx: ex[ex.length - 1].jx, jy: ex[ex.length - 1].jy, rz: ex[ex.length - 1].rz }) : { jx: 0, jy: 0, rz: 0 };
@@ -2252,6 +2272,7 @@ class Component extends DCLogic {
     var counts = {};
     picked.forEach(function (p) { counts[p.team] = (counts[p.team] || 0) + 1; });
     var full = picked.length >= PCMT_SIZE;
+    var deckRegion = pcmtDeckMixed(pickedIds) ? null : pcmtDeckRegion(pickedIds);   // NA or EMEA only (Patch 2.0)
     var iglPlayer = s.igl ? this.find(s.igl) : null;
     var allTab = s.tab === 'all';
     var tabRole = allTab ? { key: 'all', label: 'All players' } : (PCMT_ROLES.find(function (r) { return r.key === s.tab; }) || PCMT_ROLES[0]);
@@ -2281,6 +2302,7 @@ class Component extends DCLogic {
         if (!isPicked) {
           if (weekLocked) reason = 'Locked';
           else if (PCMT_TWIN[p.id] && pickedIds.indexOf(PCMT_TWIN[p.id]) >= 0) reason = p.name + ' in deck';
+          else if (deckRegion && pcmtRegions(p)[0] !== deckRegion) reason = deckRegion + ' deck';
           else if (full) reason = 'Deck full';
           else if (!self.openSlotFor(pcmtRole(p), s.slots)) reason = 'Role full';
           else if (p.price > left + 1e-9) reason = 'No budget';
