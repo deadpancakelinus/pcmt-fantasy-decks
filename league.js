@@ -876,7 +876,11 @@
           var own = subsBy[uid].filter(function (x) { return !x.region || x.region === rg; });
           var latest = sc.length ? sc[sc.length - 1].deck : own[own.length - 1];
           var iglP = latest && BY_ID[latest.igl];
-          if (hasRegion(subsBy[uid], rg)) rowsBy[rg].push({ id: uid, manager: names[uid] || 'Manager', squad: (latest && latest.name) ? pcmtCensorName(latest.name).text : '—', igl: iglP ? iglP.name : '—', weeks: w, me: !!me && uid === me.id });
+          // The NA leaderboard starts over with Season 4 (Nov 17 2026): only gameweeks from Stage 1's first week count on
+          // it. Points, Credits and everything else keep the earlier weeks.
+          var board = w;
+          if (rg === 'NA' && NA_STAGE) { var from = weekKey(weekStart(NA_STAGE.start)); board = {}; Object.keys(w).forEach(function (k) { if (k >= from) board[k] = w[k]; }); }
+          if (hasRegion(subsBy[uid], rg)) rowsBy[rg].push({ id: uid, manager: names[uid] || 'Manager', squad: (latest && latest.name) ? pcmtCensorName(latest.name).text : '—', igl: iglP ? iglP.name : '—', weeks: board, me: !!me && uid === me.id });
           var a = all[uid] || (all[uid] = { id: uid, weeks: {} });
           Object.keys(w).forEach(function (k) { a.weeks[k] = (a.weeks[k] || 0) + w[k]; });
         });
