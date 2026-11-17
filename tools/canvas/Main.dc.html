@@ -199,8 +199,12 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <main style="max-width: 1280px; margin: 0 auto; padding: 36px 24px 64px; display: flex; flex-direction: column; gap: 28px">
 
 <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 20px">
-<div style="display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px">
 <h1 style="margin: 0; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 60px; line-height: 1; color: #eaf4f4">The Deck</h1>
+<div role="group" aria-label="Which deck: NA or EMEA" style="display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; border: 1px solid #3a4f53; background: #0d1416">
+<button type="button" onClick="{{deckToNA}}" aria-pressed="{{deckNaOn}}" title="NA deck" style="min-height: 40px; padding: 0 14px 0 8px; border: 0; border-radius: 999px; background: {{deckNaBg}}; color: {{deckNaColor}}; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.06em; display: inline-flex; align-items: center; gap: 6px; cursor: pointer"><img src="{{regionNA}}" alt="" style="width: 24px; height: 24px; object-fit: contain; display: block; opacity: {{deckNaOpacity}}; filter: {{deckNaImg}}">NA</button>
+<button type="button" onClick="{{deckToEMEA}}" aria-pressed="{{deckEmeaOn}}" title="EMEA deck" style="min-height: 40px; padding: 0 14px 0 8px; border: 0; border-radius: 999px; background: {{deckEmeaBg}}; color: {{deckEmeaColor}}; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.06em; display: inline-flex; align-items: center; gap: 6px; cursor: pointer"><img src="{{regionEMEA}}" alt="" style="width: 24px; height: 24px; object-fit: contain; display: block; opacity: {{deckEmeaOpacity}}; filter: {{deckEmeaImg}}">EMEA</button>
+</div>
 </div>
 <div style="display: flex; flex-direction: column; gap: 6px; flex: 0 1 340px; min-width: 240px">
 <label for="squad-name" style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa; letter-spacing: 0.06em; text-transform: uppercase">Deck name</label>
@@ -250,10 +254,6 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <sc-if value="{{noSquadName}}" hint-placeholder-val="{{ true }}">
 <h2 id="squad-h" style="margin: 0; font-family: 'National Park', system-ui, sans-serif; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">[ MY_DECK ]</h2>
 </sc-if>
-<div role="group" aria-label="Which deck: NA or EMEA" style="display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; border: 1px solid #3a4f53; background: #0d1416">
-<button type="button" onClick="{{deckToNA}}" aria-pressed="{{deckNaOn}}" title="NA deck" style="min-height: 40px; padding: 0 14px 0 8px; border: 0; border-radius: 999px; background: {{deckNaBg}}; color: {{deckNaColor}}; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.06em; display: inline-flex; align-items: center; gap: 6px; cursor: pointer"><img src="{{regionNA}}" alt="" style="width: 24px; height: 24px; object-fit: contain; display: block; opacity: {{deckNaOpacity}}; filter: {{deckNaImg}}">NA</button>
-<button type="button" onClick="{{deckToEMEA}}" aria-pressed="{{deckEmeaOn}}" title="EMEA deck" style="min-height: 40px; padding: 0 14px 0 8px; border: 0; border-radius: 999px; background: {{deckEmeaBg}}; color: {{deckEmeaColor}}; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.06em; display: inline-flex; align-items: center; gap: 6px; cursor: pointer"><img src="{{regionEMEA}}" alt="" style="width: 24px; height: 24px; object-fit: contain; display: block; opacity: {{deckEmeaOpacity}}; filter: {{deckEmeaImg}}">EMEA</button>
-</div>
 <button onClick="{{crownClick}}" aria-pressed="{{crownArmed}}" aria-label="{{crownLabel}}" title="{{crownLabel}}" style="width: 44px; height: 44px; flex: none; display: grid; place-items: center; border-radius: 10px; border: 1px solid {{crownBorder}}; background: {{crownBg}}; color: #f5d76e; touch-action: manipulation; cursor: pointer">
 <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="#f5d76e" stroke="#f5d76e" stroke-width="1.6" stroke-linejoin="round"><path d="M3 18h18L19 7l-4.5 4L12 5l-2.5 6L5 7z"></path></svg>
 </button>
