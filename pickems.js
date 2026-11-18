@@ -383,7 +383,7 @@ var PCMT_PICKEMS = [
       "FNC": "Freaks Need Caesparz",
       "WBG": "We Been Gaming",
       "EDM": "Everybody Dance Meow",
-      "CR": "CRazy zigzagoon",
+      "CR": "CRazy Zigzagoon",
       "NBR": "Namebrand Ramyeon",
       "PRX": "Perfect RetaXe",
       "BLG": "Bartho Lomew Gaming",
@@ -397,7 +397,10 @@ var PCMT_PICKEMS = [
         "b": "WBG",
         "bo": 3,
         "start": "2026-11-18T03:00:00Z",
-        "score": null,
+        "score": [
+          2,
+          0
+        ],
         "url": "https://pcmt.gg/events/s4-na/fnc-vs-wbg-s4-group-a-2026-11-18"
       },
       {

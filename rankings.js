@@ -326,7 +326,32 @@ var PCMT_POWER = {
   },
   "s4-na": {
     "event": "s4-na",
-    "updated": null,
-    "teams": []
+    "updated": "2026-11-18T03:00:00Z",
+    "teams": [
+      {
+        "rank": 1,
+        "code": "FNC",
+        "name": "Freaks Need Caesparz",
+        "rating": 1520,
+        "change": 0,
+        "last": null,
+        "w": 1,
+        "l": 0,
+        "streak": "1W",
+        "lastPlayed": "2026-11-18T03:00:00Z"
+      },
+      {
+        "rank": 2,
+        "code": "WBG",
+        "name": "We Been Gaming",
+        "rating": 1480,
+        "change": 0,
+        "last": null,
+        "w": 0,
+        "l": 1,
+        "streak": "1L",
+        "lastPlayed": "2026-11-18T03:00:00Z"
+      }
+    ]
   }
 };
