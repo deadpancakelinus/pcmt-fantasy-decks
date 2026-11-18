@@ -131,6 +131,8 @@
   .pv-item { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
   .pv-plain { aspect-ratio: 5 / 7; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); display: grid; place-items: center; font: 700 22px/1 'Cabin Sketch', cursive; color: var(--dim); }
   .pv-search { min-height: 40px; padding: 0 12px; border-radius: 8px; border: 1px solid #3a4f53; background: #0d1416; font-size: 15px; width: min(100%, 260px); margin-bottom: 10px; }
+  .sb-game { display: block; margin: 0 0 14px; max-width: 520px; }
+  .sb-game select { width: 100%; }
   .sb-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 16px; }
   .sb-combo { position: relative; flex: 1 1 240px; min-width: 0; }
   .sb-combo input { width: 100%; min-width: 0; font-size: 16px; }
@@ -519,6 +521,7 @@
     <section class="pane" role="tabpanel" id="pane-subs" aria-labelledby="tab-subs" hidden>
       <p class="note">When a player sits out and someone else plays in their place, enter it here and the sub's points go to the player they replaced: on their card, every deck with them, the Leaderboard and Credits. A sub lasts one gameweek: it counts in that week's series where the sub played for that player's team and the player didn't, and stays active until decks reopen. Nothing carries into later games. You can remove it until the gameweek ends; once that week's points are paid it's locked and moves to Past gameweeks. Changes show on the site the next time a page loads.</p>
       <form class="panel" id="sb-form" autocomplete="off" novalidate>
+        <label class="field sb-game"><span class="kicker">Game</span><select id="sb-game"><option value="">Pick the game the sub played in</option></select></label>
         <div class="sb-row">
           <div class="field sb-combo">
             <label class="kicker" for="sb-sub" id="sb-sub-label">Sub (who played)</label>
@@ -1428,7 +1431,7 @@
   });
 
   // ---------- Subs (player_subs; applied by league.js and vp_ingest in the database) ----------
-  var SUBS = [], sbErr = '', sbArmed = null, sbBusy = false, sbPick = { sub: null, player: null };
+  var SUBS = [], sbErr = '', sbArmed = null, sbBusy = false, sbPick = { sub: null, player: null, game: null };
   var SUBS_FROM = Date.parse('2026-11-01T00:00:00Z');
   function sbDay(t) { return new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/New_York' }); }
   function sbSeries(r) { return r.a + ' vs ' + r.b + ' · ' + sbDay(r.start); }
@@ -1449,6 +1452,7 @@
   // The gameweek a new sub goes in: the latest unpaid week where the sub already played in place of that player,
   // else the week whose games are next (this week until decks reopen, then next week).
   function sbWeekFor(sub, id) {
+    if (sbPick.game) return L.weekStart(Date.parse(sbPick.game.start));   // the game picked in the pull-down
     var p = BY_ID[id], best = null;
     if (sub && p) sbResults().forEach(function (r) {
       var b = L.weekStart(Date.parse(r.start)), st = r.stats || {};
@@ -1466,6 +1470,30 @@
     });
     if (soon !== null && !sbPaid(L.weekStart(soon))) return L.weekStart(soon);
     return now < cur + 5 * DAY_MS ? cur : L.weekEnd(cur);
+  }
+  // The Game pull-down (Nov 18 2026), like the 4Ks & 5Ks page: every played series in a week that can still take a sub,
+  // newest first, then the games on now or coming up (no result yet). The sub goes in that game's gameweek.
+  function sbGameKey(r) { return r.start + '|' + r.a + '|' + r.b; }
+  function sbGames() {
+    var now = Date.now(), out = [], have = {};
+    sbResults().forEach(function (r) {
+      if (sbPaid(L.weekStart(Date.parse(r.start)))) return;
+      have[sbGameKey(r)] = true; out.push({ key: sbGameKey(r), a: r.a, b: r.b, start: r.start, played: true, r: r });
+    });
+    (window.PCMT_MATCHES || []).forEach(function (m) {
+      var t = Date.parse(m.start), k = sbGameKey(m);
+      if (have[k] || !(t > now - 2 * DAY_MS && t < now + 8 * DAY_MS) || sbPaid(L.weekStart(t))) return;
+      have[k] = true; out.push({ key: k, a: m.a, b: m.b, start: m.start, played: false });
+    });
+    return out.sort(function (x, y) { return Date.parse(y.start) - Date.parse(x.start); });
+  }
+  function fillSbGames() {
+    var sel = $('sb-game'), keep = sel.value, games = sbGames();
+    sel.innerHTML = '<option value="">Pick the game the sub played in</option>' + games.map(function (g) {
+      return '<option value="' + esc(g.key) + '">' + esc(g.a + ' vs ' + g.b + ' · ' + sbDay(g.start) + (g.played ? '' : ' · no result yet')) + '</option>';
+    }).join('');
+    sel.value = games.some(function (g) { return g.key === keep; }) ? keep : '';
+    sbPick.game = games.filter(function (g) { return g.key === sel.value; })[0] || null;
   }
   function loadSubs() {
     return L.apiAll('/rest/v1/player_subs?select=id,sub,player,week,created_at,created_by&order=id')
@@ -1494,7 +1522,8 @@
   }
   function sbSubOptions(q) {
     q = q.trim().toLowerCase();
-    var seen = sbSeen(), out = [], have = {};
+    var seen = sbSeen(), out = [], have = {}, g = sbPick.game;
+    if (g && g.r) { var only = {}; Object.keys(seen).forEach(function (n) { if (seen[n].indexOf(g.r) >= 0) only[n] = [g.r]; }); seen = only; }   // who subbed in that game
     Object.keys(seen).sort().forEach(function (n) {
       if (q && n.indexOf(q) < 0) return;
       have[n] = true;
@@ -1511,10 +1540,10 @@
   }
   function sbPlayerOptions(q) {
     q = q.trim().toLowerCase();
-    var where = sbPick.sub ? (sbSeen()[sbPick.sub] || []) : [], first = {};
+    var where = sbPick.game && sbPick.game.r ? [sbPick.game.r] : sbPick.sub ? (sbSeen()[sbPick.sub] || []) : [], first = {}, g = sbPick.game;
     // Listed players of the teams in the series the sub played in, who sat it out, come first.
     where.forEach(function (r) { PLAYERS_NOW().forEach(function (p) { if ((p.team === r.a || p.team === r.b) && !(p.id in (r.stats || {}))) first[p.id] = r; }); });
-    return PLAYERS_NOW().filter(function (p) { return !q || p.name.toLowerCase().indexOf(q) >= 0 || p.id.indexOf(q) >= 0 || p.team.toLowerCase() === q; })
+    return PLAYERS_NOW().filter(function (p) { return (!g || p.team === g.a || p.team === g.b) && (!q || p.name.toLowerCase().indexOf(q) >= 0 || p.id.indexOf(q) >= 0 || p.team.toLowerCase() === q); })
       .sort(function (a, b) { return (first[b.id] ? 1 : 0) - (first[a.id] ? 1 : 0) || a.name.toLowerCase().localeCompare(b.name.toLowerCase()); })
       .slice(0, 40).map(function (p) { return { value: p.id, label: p.name, meta: p.team + ' · ' + p.role + (first[p.id] ? ' · sat out ' + sbSeries(first[p.id]) : '') }; });
   }
@@ -1554,10 +1583,12 @@
     if (SUBS.some(function (r) { return r.sub === s && r.player === id && sbWk(r) === b; })) { el.textContent = 'That sub is already in the list for this gameweek.'; return; }
     var copy = JSON.parse(JSON.stringify(sbResults())), hit = L.applySubs([{ sub: s, player: id, week: iso }], copy);
     el.innerHTML = hit.length ? '<span class="sb-on">' + esc(p.name) + ' gets ' + esc(s) + '\'s points in ' + esc(hit.map(sbSeries).join(', ')) + '.</span>'
+      : sbPick.game && !sbPick.game.played ? esc(p.name) + ' gets ' + esc(s) + '\'s points in ' + esc(sbPick.game.a + ' vs ' + sbPick.game.b) + ' once its result comes in.'
       : 'No series yet this gameweek where ' + esc(s) + ' played for ' + esc(p.team) + ' and ' + esc(p.name) + ' didn\'t. It will count if one comes in before the week ends.';
   }
   function drawSubs() {
-    $('sb-add').disabled = sbBusy || !sbPick.sub || !sbPick.player;
+    $('sb-add').disabled = sbBusy || !sbPick.game || !sbPick.sub || !sbPick.player;
+    if (!$('sb-game').options.length || $('sb-game').options.length === 1) fillSbGames();
     var cells = function (r) {
       var p = BY_ID[r.player], b = sbWk(r), where = sbResults().filter(function (x) { return x.subs && x.subs[r.player] === r.sub && L.weekStart(Date.parse(x.start)) === b; });
       return '<td><b>' + esc(r.sub) + '</b></td><td>' + esc(p ? p.name : r.player) + ' <span class="who">' + esc(p ? p.team : '') + '</span></td>' +
@@ -1575,12 +1606,18 @@
     $('sb-past-rows').innerHTML = past.map(function (r) { return '<tr>' + cells(r) + '</tr>'; }).join('');
     $('sb-badge').textContent = live.length ? '(' + live.length + ')' : '';
   }
+  $('sb-game').addEventListener('change', function () {
+    sbPick.game = sbGames().filter(function (g) { return g.key === $('sb-game').value; })[0] || null;
+    // a player picked for another game's teams is cleared
+    if (sbPick.player && sbPick.game && [sbPick.game.a, sbPick.game.b].indexOf((BY_ID[sbPick.player] || {}).team) < 0) { sbPick.player = null; $('sb-player').value = ''; }
+    $('sb-msg').textContent = ''; sbPreview(); drawSubs();
+  });
   sbCombo($('sb-sub'), $('sb-sub-list'), sbSubOptions, function (o) { sbPick.sub = o ? o.value : null; $('sb-msg').textContent = ''; sbPreview(); drawSubs(); });
   sbCombo($('sb-player'), $('sb-player-list'), sbPlayerOptions, function (o) { sbPick.player = o ? o.value : null; $('sb-msg').textContent = ''; sbPreview(); drawSubs(); });
   $('sb-form').addEventListener('submit', function (e) {
     e.preventDefault();
     var s = sbPick.sub, id = sbPick.player, p = BY_ID[id];
-    if (!s || !p || sbBusy) return;
+    if (!s || !p || !sbPick.game || sbBusy) return;
     if (PLAYERS_NOW().some(function (q) { return q.team === p.team && q.name.toLowerCase() === s; })) return;
     var wk = new Date(sbWeekFor(s, id)).toISOString();
     if (SUBS.some(function (r) { return r.sub === s && r.player === id && sbWk(r) === Date.parse(wk); })) return;
@@ -1588,7 +1625,7 @@
     L.api('/rest/v1/player_subs', { method: 'POST', headers: { Prefer: 'return=representation' }, body: { sub: s, player: id, week: wk, created_by: L.myId } }).then(function (rows) {
       var row = (rows || [])[0] || { id: Date.now(), sub: s, player: id, week: wk, created_at: new Date().toISOString(), created_by: L.myId };
       SUBS.push(row); L.applySubs([row]);
-      sbBusy = false; sbPick = { sub: null, player: null }; $('sb-sub').value = ''; $('sb-player').value = ''; $('sb-preview').textContent = ''; $('sb-week').textContent = '';
+      sbBusy = false; sbPick = { sub: null, player: null, game: sbPick.game }; $('sb-sub').value = ''; $('sb-player').value = ''; $('sb-preview').textContent = ''; $('sb-week').textContent = '';
       $('sb-msg').className = 'msg ok'; $('sb-msg').textContent = 'Saved: ' + s + ' played for ' + p.name + ', gameweek ' + sbWeekLabel(Date.parse(wk)) + '.';
       drawSubs();
     }, function (err) {
