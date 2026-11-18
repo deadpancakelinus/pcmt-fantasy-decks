@@ -1456,7 +1456,15 @@
       if (best === null || b > best) best = b;
     });
     if (best !== null) return best;
-    var now = Date.now(), cur = L.weekStart(now);
+    // No result yet: the week of that team's game that's on now or next (a sub entered during a Tuesday-night game
+    // belongs to that week, not the next one; Nov 18 2026), else this week until decks reopen, then next week.
+    var now = Date.now(), cur = L.weekStart(now), soon = null;
+    if (p) (window.PCMT_MATCHES || []).concat(sbResults()).forEach(function (m) {
+      var t = Date.parse(m.start);
+      if ((m.a !== p.team && m.b !== p.team) || !(t > now - 12 * 3600e3)) return;
+      if (soon === null || t < soon) soon = t;
+    });
+    if (soon !== null && !sbPaid(L.weekStart(soon))) return L.weekStart(soon);
     return now < cur + 5 * DAY_MS ? cur : L.weekEnd(cur);
   }
   function loadSubs() {
