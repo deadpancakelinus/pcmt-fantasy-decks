@@ -558,8 +558,27 @@ var PCMT_DECK_BG = {
 // The NA Season 3 FNC team deck (cow paulo FaN Club) shares its code with NA Season 4's FNC: the card back keeps the
 // Season 3 colour and logo (Nov 17 2026, when the Season 3 team decks came back).
 var PCMT_S3_DECK_LOOK = { FNC: { color: '#ff8a1f', logo: 'assets/8a102a19e71060bb2dacb6d6b5263457.png' } };
+// NA Season 4 team decks (update): S4-<team> card backs from Customization.
+var PCMT_S4_DECK_LOOK = {
+  'S4-FNC': { label: 'FNC', color: '#fd5800', logo: '' },
+  'S4-WBG': { label: 'WBG', color: '#e01b1b', logo: 'assets/922748265b1b5fd89b83855c910a508e.png' },
+  'S4-GENG': { label: 'GENG', color: '#c9a43a', logo: '' },
+  'S4-LOUD': { label: 'LOUD', color: '#2fe02f', logo: '' },
+  'S4-EDM': { label: 'EDM', color: '#ff6eb4', logo: 'assets/40ffd4b28537a0b9f85ea3ddc1b8648b.png' },
+  'S4-CR': { label: 'CR', color: '#8f0000', logo: 'assets/67018bbb36052ad295b759d99349ee25.png' },
+  'S4-EDG': { label: 'EDG', color: '#e8e8e8', logo: '' },
+  'S4-DEI': { label: 'DEI', color: '#8a9c3a', logo: 'assets/7fe66dc5467f5b6217a0e10b4dc8a7b9.png' },
+  'S4-PRX': { label: 'PRX', color: '#f39ab8', logo: 'assets/79c87ed722ef3486b05a0ad9d25968fa.png' },
+  'S4-NBR': { label: 'NBR', color: '#f51e0f', logo: 'assets/27edb7501cd650e12be44be54b9d85b6.png' },
+  'S4-DRX': { label: 'DRX', color: '#4a5cff', logo: '' },
+  'S4-SRG': { label: 'SRG', color: '#ffd966', logo: '' },
+  'S4-BLG': { label: 'BLG', color: '#33cff3', logo: 'assets/0ec86b0372796e07d3e1d908b74087b2.png' },
+  'S4-TANK': { label: 'TANK', color: '#45dfe8', logo: 'assets/5f8ffbf391e6c3cb9c62a3f196ea8a0e.png' },
+  'S4-XLG': { label: 'XLG', color: '#006394', logo: 'assets/91f981c237673a78c8eec4eb03b085c6.png' },
+  'S4-NRG': { label: 'NRG', color: '#f63d0a', logo: '' }
+};
 function pcmtDeckTheme(code) {
-  var team = !!(code && (PCMT_TEAMS[code] || PCMT_S3_DECK_LOOK[code])), s3 = PCMT_S3_DECK_LOOK[code] || null;
+  var team = !!(code && (PCMT_TEAMS[code] || PCMT_S3_DECK_LOOK[code] || PCMT_S4_DECK_LOOK[code])), s3 = PCMT_S3_DECK_LOOK[code] || PCMT_S4_DECK_LOOK[code] || null;
   var blue = code === 'BLUE';
   var retro = code === 'RETRO';
   var cotton = code === 'COTTON';
@@ -584,7 +603,7 @@ function pcmtDeckTheme(code) {
     bg: PCMT_DECK_BG[code] || 'radial-gradient(circle at 50% 50%, #172124 0 28%, rgba(11,16,17,0) 50%), repeating-linear-gradient(45deg, ' + pcmtRgba(color, team ? 0.24 : 0.22) + ' 0 1px, transparent 1px 11px), repeating-linear-gradient(-45deg, ' + pcmtRgba(color, team ? 0.24 : 0.22) + ' 0 1px, transparent 1px 11px), radial-gradient(circle at 50% 50%, #12191a 0%, #080b0c 100%)',
     lattice: pcmtRgba(color, team ? 0.24 : 0.22),
     plainBg: PCMT_DECK_BG[code] || 'radial-gradient(circle at 50% 50%, #12191a 0%, #080b0c 100%)',
-    code: code, noLogo: team && !(s3 ? s3.logo : PCMT_LOGOS[code]),
+    code: s3 && s3.label ? s3.label : code, noLogo: team && !(s3 ? s3.logo : PCMT_LOGOS[code]),
     logo: s3 ? s3.logo : team ? (PCMT_LOGOS[code] || '') : trophy ? 'assets/a8390c53c5aa10a347b6af0841aa6835.png' : (retro ? 'assets/87cba7684f074c59095952d5b1038f45.png' : regionDeck ? regionDeck.logo : 'assets/3bf9d529cabff94109b561693539029f.png'),
     imgSize: team ? ((s3 ? s3.logo : PCMT_LOGOS[code]) ? (PCMT_SMALL_LOGOS[code] ? '54%' : '70%') : '0') : code === 'EMEA' ? '66%' : '100%',
     imgRadius: (team || trophy || regionDeck) ? '0' : '50%'

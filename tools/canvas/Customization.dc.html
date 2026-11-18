@@ -781,23 +781,25 @@ var PCMT_BEST_WEEK = 0;
 // NA Season 4 team decks (Nov 11 2026): being built. The panel is locked and blurred with "Coming soon" until they're done.
 // Fill in each team's tricode (label), name, colour and logo as they come in; codes stay 'S4-…' so they never clash with
 // an old deck code. The NA Season 3 team decks are retired (PCMT_RETIRED_DECKS): anyone who had one equipped is on PCMT Blue.
+// NA Season 4 team decks (update): the 16 Season 4 teams, with the uniform logos where there is one (the others show
+// their code until a logo comes). Codes are S4-<team> so they never clash with a Season 3 deck of the same team code.
 var PCMT_DECK_TEAMS = [
-  { code: 'S4-T1', label: 'T1', name: 'Team 1', color: '#8a9a9b', logo: null },
-  { code: 'S4-T2', label: 'T2', name: 'Team 2', color: '#8a9a9b', logo: null },
-  { code: 'S4-T3', label: 'T3', name: 'Team 3', color: '#8a9a9b', logo: null },
-  { code: 'S4-T4', label: 'T4', name: 'Team 4', color: '#8a9a9b', logo: null },
-  { code: 'S4-DEI', label: 'DEI', name: 'Doofenshmirtz Evil Inc.', color: '#8a9a9b', logo: null },
-  { code: 'S4-EDM', label: 'EDM', name: 'Everyone Dance Meow', color: '#8a9a9b', logo: null },
-  { code: 'S4-T7', label: 'T7', name: 'Team 7', color: '#8a9a9b', logo: null },
-  { code: 'S4-T8', label: 'T8', name: 'Team 8', color: '#8a9a9b', logo: null },
-  { code: 'S4-T9', label: 'T9', name: 'Team 9', color: '#8a9a9b', logo: null },
-  { code: 'S4-T10', label: 'T10', name: 'Team 10', color: '#8a9a9b', logo: null },
-  { code: 'S4-BLG', label: 'BLG', name: 'Bartho Lemew Gaming', color: '#8a9a9b', logo: null },
-  { code: 'S4-T12', label: 'T12', name: 'Team 12', color: '#8a9a9b', logo: null },
-  { code: 'S4-T13', label: 'T13', name: 'Team 13', color: '#8a9a9b', logo: null },
-  { code: 'S4-T14', label: 'T14', name: 'Team 14', color: '#8a9a9b', logo: null },
-  { code: 'S4-XLG', label: 'XLG', name: 'Xtremely Lacking Gamesense', color: '#8a9a9b', logo: null },
-  { code: 'S4-T16', label: 'T16', name: 'Team 16', color: '#8a9a9b', logo: null }
+  { code: 'S4-FNC', label: 'FNC', name: 'Freaks Need Caesparz', color: '#fd5800', logo: null },
+  { code: 'S4-WBG', label: 'WBG', name: 'We Been Gaming', color: '#e01b1b', logo: '/_blob/922748265b1b5fd89b83855c910a508e' },
+  { code: 'S4-GENG', label: 'GENG', name: 'Generally Goofy', color: '#c9a43a', logo: null },
+  { code: 'S4-LOUD', label: 'LOUD', name: 'Leading Ourselves Under Delusion', color: '#2fe02f', logo: null },
+  { code: 'S4-EDM', label: 'EDM', name: 'Everybody Dance Meow', color: '#ff6eb4', logo: '/_blob/40ffd4b28537a0b9f85ea3ddc1b8648b' },
+  { code: 'S4-CR', label: 'CR', name: 'CRazy zigzagoon', color: '#8f0000', logo: '/_blob/67018bbb36052ad295b759d99349ee25' },
+  { code: 'S4-EDG', label: 'EDG', name: 'EggheaD Gaming', color: '#e8e8e8', logo: null },
+  { code: 'S4-DEI', label: 'DEI', name: 'Doofenshmirtz Evil Inc.', color: '#8a9c3a', logo: '/_blob/7fe66dc5467f5b6217a0e10b4dc8a7b9' },
+  { code: 'S4-PRX', label: 'PRX', name: 'Perfect RetaXe', color: '#f39ab8', logo: '/_blob/79c87ed722ef3486b05a0ad9d25968fa' },
+  { code: 'S4-NBR', label: 'NBR', name: 'Namebrand Ramyeon', color: '#f51e0f', logo: '/_blob/27edb7501cd650e12be44be54b9d85b6' },
+  { code: 'S4-DRX', label: 'DRX', name: 'Doing Rails of X', color: '#4a5cff', logo: null },
+  { code: 'S4-SRG', label: 'SRG', name: 'Shaymins Really Good', color: '#ffd966', logo: null },
+  { code: 'S4-BLG', label: 'BLG', name: 'Bartho Lomew Gaming', color: '#33cff3', logo: '/_blob/0ec86b0372796e07d3e1d908b74087b2' },
+  { code: 'S4-TANK', label: 'TANK', name: 'TANKERS', color: '#45dfe8', logo: '/_blob/5f8ffbf391e6c3cb9c62a3f196ea8a0e' },
+  { code: 'S4-XLG', label: 'XLG', name: 'Xtremely Lacking Gamesense', color: '#006394', logo: '/_blob/91f981c237673a78c8eec4eb03b085c6' },
+  { code: 'S4-NRG', label: 'NRG', name: 'Not Really Good', color: '#f63d0a', logo: null }
 ];
 // NA Season 3 team decks: back on Customization (Nov 17 2026, after being retired on Nov 11), in their own panel.
 var PCMT_DECK_TEAMS_S3 = [
@@ -818,7 +820,7 @@ var PCMT_DECK_TEAMS_S3 = [
   { code: '100T', name: "100 Tony's", color: '#45dfe8', logo: '/_blob/2afecaefb84157c171a79e0bae8932b5' },
   { code: 'SPG', name: 'Spank Ptheory Gaming', color: '#ff7f66', logo: '/_blob/fb1551434b59a200d90d2e9ed6a51e8b' }
 ];
-var PCMT_NA_S4_READY = false;   // true once the S4 decks are done: unlocks the panel
+var PCMT_NA_S4_READY = true;   // the S4 decks are done (update): the panel is open
 var PCMT_RETIRED_DECKS = [];   // none since Nov 17 2026: the NA Season 3 team decks are back
 // EMEA Season 2 team decks: same unlock rule as NA. logo: null shows the tricode until a logo is added.
 var PCMT_EMEA_DECK_TEAMS = [
