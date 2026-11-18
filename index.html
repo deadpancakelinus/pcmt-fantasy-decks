@@ -818,6 +818,12 @@ function pcmtSeriesPoints(r) {
 }
 // Points each player has scored this gameweek, added up across every series they played. Back to zero at the 5:00 AM Thursday EDT rollover.
 var pcmtWeekCache = { b: null, pts: null };
+// Each player's best-two NA Stage 1 total up to now; worked out once per new result.
+var pcmtStageCache = { n: -1, v: {} };
+function pcmtStageBestCached(now) {
+  if (pcmtStageCache.n !== PCMT_RESULTS.length) pcmtStageCache = { n: PCMT_RESULTS.length, v: pcmtStageBest(now + 1) };
+  return pcmtStageCache.v;
+}
 function pcmtWeekPointsAt(now) {
   var b = pcmtMondayStart(now);
   if (pcmtWeekCache.b === b && pcmtWeekCache.n === PCMT_RESULTS.length) return pcmtWeekCache.pts;
@@ -1011,7 +1017,15 @@ class Component extends DCLogic {
       for (var i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) % 997;
       return h % 46;
     }
-    return pcmtWeekPointsAt((this.state && this.state.now) || Date.now())[id] || 0;
+    var now = (this.state && this.state.now) || Date.now();
+    // NA deck (Nov 17 2026): a card shows the player's Stage 1 points, their two best series so far, which is what
+    // counts for an NA deck. It moves whenever the PCMT.gg sync brings in a new result.
+    if (this.naStageCards()) return pcmtStageBestCached(now)[id] || 0;
+    return pcmtWeekPointsAt(now)[id] || 0;
+  }
+  naStageCards() {
+    var S = PCMT_NA_STAGE, now = (this.state && this.state.now) || Date.now();
+    return !!S && (this.state && this.state.deckRegion) === 'NA' && now >= S.start && (S.end == null || now < S.end);
   }
 
   _pageWillUnmount() {
@@ -1589,7 +1603,7 @@ class Component extends DCLogic {
         id: p.id,
         isIgl: s.igl === p.id, notIgl: s.igl !== p.id,
         points: pcmtNum(self.weekPoints(p.id)),
-        pointsTitle: pcmtNum(self.weekPoints(p.id)) + ' points this gameweek',
+        pointsTitle: pcmtNum(self.weekPoints(p.id)) + (self.naStageCards() ? ' Stage 1 points (best 2 series)' : ' points this gameweek'),
         makeIgl: function () { self.setIgl(p.id); },
         removeTap: function () {
           if (self.state.crownArmed || self.state.clearing || self.isLocked()) return;
