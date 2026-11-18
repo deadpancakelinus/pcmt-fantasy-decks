@@ -436,7 +436,9 @@
         stageIds.forEach(function (id) { add(id, d[id] || 0, stage.igl); });
         w.results.forEach(function (r) { if (inNaStage(r)) flags(r, stageIds); });
       }
-      out.push({ week: w, deck: use || stage, stageDeck: inStage ? stage : null,
+      // The deck shown for the week (leaderboard name and IGL): the Stage 1 deck while the stage counts, since that's the
+      // NA deck being scored (Nov 18 2026: it showed the deck locked in before that week's lock, often an older one).
+      out.push({ week: w, deck: (inStage && stage) ? stage : (use || stage), stageDeck: inStage ? stage : null,
                  pts: Math.round(pts * 10) / 10, byTeam: byTeam, cards: cards, champWin: champWin, missedWin: missedWin });
     });
     return out;
