@@ -7,15 +7,6 @@
 var PCMT_MATCHES = [
   {
     "region": "EMEA",
-    "start": "2026-11-05T21:30:00Z",
-    "a": "NATS",
-    "b": "NIP",
-    "bo": 3,
-    "hours": 3,
-    "url": "https://pcmt.gg/events/s2-emea/nats-vs-nip-s2-playoffs-2026-11-05"
-  },
-  {
-    "region": "EMEA",
     "start": "2026-11-15T15:00:00Z",
     "a": "SOG",
     "b": "XTC",
