@@ -352,9 +352,6 @@
 
     <!-- ===== Player prices ===== -->
     <section class="pane" role="tabpanel" id="pane-prices" aria-labelledby="tab-prices" hidden>
-      <p class="note">Every cell is editable: the player's name, team, region, role and start price, and their price. Press Save to keep the changes; the site uses them the next time a page loads. Add a player with the row at the bottom of the table.</p>
-      <p class="note">Change a price and press Save. The site uses the new price the next time a page loads: The Deck's prices and budget, and the cards in packs. Decks already saved keep counting with the prices from when they were saved, so a price rise never breaks someone's deck; it only applies to new changes. Prices go from 0 to 30 in steps of 0.5.</p>
-      <p class="note">Remove takes a player out of The Deck's store straight away: nobody can buy them or get them from a random deal. Managers who already have them keep them in their deck. Put back undoes it.</p>
       <div class="toolbar">
         <label class="field"><span class="kicker">Search</span><input type="search" id="p-search" placeholder="Player or team" autocomplete="off"></label>
         <label class="field"><span class="kicker">Region</span><select id="p-region"><option value="">All</option><option>NA</option><option>EMEA</option></select></label>
@@ -397,7 +394,6 @@
 
     <!-- ===== Teams ===== -->
     <section class="pane" role="tabpanel" id="pane-teams" aria-labelledby="tab-teams" hidden>
-      <p class="note">Teams for The Deck: each team's code, name, region, logo and players with their roles. Import a team from PCMT.gg to fill everything in from its team page (name, code, logo, roster, and each player's role from the agents they play most), check it, then save. Saved teams and players show on the site the next time a page loads. The code has to match the team's code on PCMT.gg, or its results won't reach the players.</p>
 
       <div class="panel" style="display: flex; flex-direction: column; gap: 14px">
         <h2 class="kicker" style="margin: 0">Import from PCMT.gg</h2>
@@ -449,13 +445,12 @@
           <label class="check"><input type="checkbox" id="tm-show-retired"> Show retired teams</label>
         </div>
         <ul class="tm-list" id="tm-list"></ul>
-        <button type="button" class="tm-item tm-add tm-add-bottom" id="tm-add-team"><span class="tm-logo" aria-hidden="true" style="font-size:28px;color:var(--accent,#a5dcdd);display:grid;place-items:center">+</span><span class="tm-main"><b>Add a team</b><span class="dim">Fill in a new team and its players, or import one from PCMT.gg</span></span></button>
+        <button type="button" class="tm-item tm-add tm-add-bottom" id="tm-add-team"><span class="tm-logo" aria-hidden="true" style="font-size:28px;color:var(--accent,#a5dcdd);display:grid;place-items:center">+</span><span class="tm-main"><b>Add a team</b></span></button>
       </div>
     </section>
 
     <!-- ===== Cards ===== -->
     <section class="pane" role="tabpanel" id="pane-cards" aria-labelledby="tab-cards" hidden>
-      <p class="note">Every card in packs: its rarity, the pack it comes from, how many copies players own and how many players own it. Retired cards (taken out of packs) are kept for the people who already pulled them.</p>
       <div class="stats" id="c-stats"></div>
       <div class="toolbar">
         <label class="field"><span class="kicker">Search</span><input type="search" id="c-search" placeholder="Card, player or series" autocomplete="off"></label>
@@ -483,12 +478,10 @@
     
     <!-- ===== Card packs ===== -->
     <section class="pane" role="tabpanel" id="pane-packs" aria-labelledby="tab-packs" hidden>
-      <p class="note">Set each pack's price in Credits. While "Open to everyone" is off, only PCMT Team staff and site admins can buy it, so you can test (a price of 0 is free). Odds and what's in each pack come from <span class="mono">tools/cards.py</span>.</p>
       <h3 class="kicker" style="margin: 4px 0 0">Packs</h3>
       <ul class="pg-list" id="pk-rows"></ul>
       <div class="bar"><button class="btn" id="pk-save" type="button">Save packs</button><p class="msg" id="pk-msg" role="status" aria-live="polite"></p></div>
       <h3 class="kicker" style="margin: 12px 0 0">Series</h3>
-      <p class="note" style="margin-top: -8px">Launch a whole series at once: every card in it is released together, into the packs named on its cards. Hold back the series to stop new pulls of all of them. </p>
       <p class="msg" id="ser-msg" role="status" aria-live="polite"></p>
       <ul class="pg-list" id="r-series"></ul>
     </section>
@@ -504,7 +497,6 @@
 
     <!-- ===== 4Ks & 5Ks ===== -->
     <section class="pane" role="tabpanel" id="pane-multi" aria-labelledby="tab-multi" hidden>
-      <p class="note">Enter each player's 4Ks and 5Ks for a series. 4K +1, 5K (ace) +3 (an ace counts as a 5K only). Everything else comes from PCMT.gg. The new points show on the site the next time a page loads, and Credits pay out with them.</p>
       <section class="panel">
         <label class="kicker" for="series">Series</label>
         <select id="series"></select>
@@ -519,7 +511,6 @@
 
     <!-- ===== Subs ===== -->
     <section class="pane" role="tabpanel" id="pane-subs" aria-labelledby="tab-subs" hidden>
-      <p class="note">When a player sits out and someone else plays in their place, enter it here and the sub's points go to the player they replaced: on their card, every deck with them, the Leaderboard and Credits. A sub lasts one gameweek: it counts in that week's series where the sub played for that player's team and the player didn't, and stays active until decks reopen. Nothing carries into later games. You can remove it until the gameweek ends; once that week's points are paid it's locked and moves to Past gameweeks. Changes show on the site the next time a page loads.</p>
       <form class="panel" id="sb-form" autocomplete="off" novalidate>
         <label class="field sb-game"><span class="kicker">Game</span><select id="sb-game"><option value="">Pick the game the sub played in</option></select></label>
         <div class="sb-row">
@@ -555,14 +546,12 @@
 
     <!-- ===== Patch notes ===== -->
     <section class="pane" role="tabpanel" id="pane-notes" aria-labelledby="tab-notes" hidden>
-      <p class="note">Write a patch note and press Go live: it shows at the top of the Home page for everyone, replacing the one before. The date fills in with today's date when it goes live. A blank line in the note starts a new paragraph.</p>
       <form class="panel" id="ver-form" autocomplete="off" novalidate>
         <div class="bar" style="align-items: flex-end">
-          <label class="field" style="flex: 0 1 260px"><span class="kicker">Current version</span><input id="ver-input" type="text" maxlength="20" placeholder="1.4" aria-describedby="ver-help"></label>
+          <label class="field" style="flex: 0 1 260px"><span class="kicker">Current version</span><input id="ver-input" type="text" maxlength="20" placeholder="1.4"></label>
           <button class="btn" id="ver-save" type="submit">Update version</button>
           <span class="msg" id="ver-msg" role="status" aria-live="polite"></span>
         </div>
-        <p class="note" id="ver-help" style="margin: 0">Shows at the bottom of every page as "Version …". Type just the number, like 1.4.</p>
       </form>
       <form class="panel pn-form" id="pn-form" autocomplete="off" novalidate>
         <div class="pn-top">
@@ -578,7 +567,6 @@
 
     <!-- ===== Champions panel (posted as a patch note) ===== -->
     <section class="pane" role="tabpanel" id="pane-champs" aria-labelledby="tab-champs" hidden>
-      <p class="note">Make a champions panel and post it as a patch note: when it goes live it's the patch note on Home (the newest live patch note shows there), with the team's logo, name, maps and stats like below, and your note under it. Pick a team to fill in its name, logo and colour; Fill players puts in that team's PCMT.gg roster. Posted panels are listed under the form (and in Patch notes) with Take down, Go live again and Delete.</p>
       <form class="panel" id="ch-form" autocomplete="off" novalidate>
         <div class="ch-grid">
           <label class="field"><span class="kicker">Patch note title</span><input id="ch-title" type="text" maxlength="120" value="NA Season 3 Champions"></label>
@@ -607,7 +595,6 @@
 
     <!-- ===== Complaints ===== -->
     <section class="pane" role="tabpanel" id="pane-complaints" aria-labelledby="tab-complaints" hidden>
-      <p class="note">Everything sent from the "comments and complaints always welcome :)" box on the Home page, newest first. Players can write logged in or logged out (up to 50 words). Press Settled once it's dealt with: that deletes it for good (you'll be asked to press again to make sure).</p>
       <div class="toolbar">
         <label class="field"><span class="kicker">Search</span><input type="search" id="cx-search" placeholder="Words or player" autocomplete="off"></label>
         <span class="spacer"></span>
@@ -1221,7 +1208,7 @@
     var s = cur, wrap = $('teams');
     if (!s) { wrap.hidden = true; $('savebar').hidden = true; return; }
     $('series-note').textContent = s.result ? 'Result is in (' + s.result.winner + ' won). Points update as soon as you save.'
-      : 'No result yet. You can enter them now; they count once the result is added (the results check runs every 6 hours).';
+      : 'No result yet.';
     wrap.innerHTML = [s.m.a, s.m.b].map(function (team) {
       return '<section class="panel" aria-label="' + esc(team) + '"><span class="kicker">' + esc(team) + '</span><div class="mk-scroll"><table class="mk"><thead><tr><th>Player</th>' + KINDS.map(function (k) { return '<th class="n">' + k[1] + '</th>'; }).join('') + '<th class="pts">Pts</th></tr></thead><tbody>' +
         teamPlayers(s, team).map(function (id) {
