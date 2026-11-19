@@ -216,7 +216,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <sc-if value="{{deckNaOn}}" hint-placeholder-val="{{ true }}">
 <aside aria-label="New NA point rule" style="display: flex; gap: 14px; align-items: flex-start; padding: 14px 18px; border-radius: 12px; border: 1px solid #a5dcdd; background: #13292b; font-family: 'National Park', system-ui, sans-serif; color: #c4d4d4; font-size: 15px; line-height: 1.5">
 <img src="{{regionNA}}" alt="" style="width: 28px; height: 28px; object-fit: contain; flex: none; margin-top: 1px">
-<p style="margin: 0"><b style="color: #eaf4f4">New point rule for NA Stage 1:</b> each player in your NA deck only scores their <b style="color: #eaf4f4">2 best series</b> of the whole stage. NA decks lock <b style="color: #eaf4f4">Saturday, Nov 21 at 9:00 PM EST</b> and stay locked until Stage 1 ends. <a href="guide.html#regions" style="color: #a5dcdd">Read the rules</a></p>
+<p style="margin: 0"><b style="color: #eaf4f4">New point rule for NA Stage 1:</b> each player in your NA deck only scores their <b style="color: #eaf4f4">2 best series</b> of the whole stage. NA decks lock <b style="color: #eaf4f4">{{naLockText}}</b> and stay locked until Stage 1 ends. <a href="guide.html#regions" style="color: #a5dcdd">Read the rules</a></p>
 </aside>
 </sc-if>
 
@@ -1821,6 +1821,8 @@ function pcmtNextLock(now) {
 // stage, and each player scores only their two best NA series of the stage. EMEA decks keep the weekly locks. Same as
 // NA_STAGE in league.js and vp_na_stage() in setup/na-stage.sql.
 var PCMT_NA_STAGE = { start: Date.parse('2026-11-18T03:00:00Z'), lock: Date.parse('2026-11-22T02:00:00Z'), end: null, name: 'Stage 1' };
+// The backend's Season tab can move these (league.js window.PCMT_SEASON, from site_settings 'na_stage').
+if (window.PCMT_SEASON && window.PCMT_SEASON.naStage) Object.assign(PCMT_NA_STAGE, window.PCMT_SEASON.naStage);
 function pcmtInNaStage(r) {
   var t = Date.parse(r.start);
   return !!PCMT_NA_STAGE && r.region === 'NA' && t >= PCMT_NA_STAGE.start && (PCMT_NA_STAGE.end == null || t < PCMT_NA_STAGE.end);
@@ -2641,6 +2643,7 @@ class Component extends DCLogic {
       deckToNA: function () { self.switchDeckRegion('NA'); },
       deckToEMEA: function () { self.switchDeckRegion('EMEA'); },
       deckRegionLabel: (s.deckRegion || 'NA') + ' deck',
+      naLockText: new Date(PCMT_NA_STAGE.lock).toLocaleString('en-US', { timeZone: 'America/New_York', weekday: 'long', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).replace(/, (\d{1,2}:\d\d)/, ' at $1') + ' EST',
       league: (window.PCMT_LEAGUE_VALS_BY_REGION && window.PCMT_LEAGUE_VALS_BY_REGION[s.deckRegion || 'NA']) || { total: '0', rank: '\u2014', rankLabel: (s.deckRegion || 'NA') + ' rank \u2014' },
       weekLocked: weekLocked, weekOpen: !weekLocked,
       lockNote: weekLocked ? (wk.stage ? (wk.until ? 'Locked until ' + pcmtWhen(wk.until) : 'Locked for ' + PCMT_NA_STAGE.name) : wk.until ? 'Locked until ' + pcmtWhen(wk.until) : 'Locked until Tuesday\'s result is in') : '',

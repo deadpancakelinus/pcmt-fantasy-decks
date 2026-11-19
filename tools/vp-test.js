@@ -157,6 +157,12 @@ sql(vpSql.slice(0, vpSql.indexOf('-- [supabase-only]'))); // setup is safe to ru
 sql(fs.readFileSync(__dirname + '/../setup/thursday-weeks.sql', 'utf8'));   // Thursday gameweeks, the budget rule
 sql(fs.readFileSync(__dirname + '/../setup/na-stage.sql', 'utf8'));   // NA Stage 1: best two series
 sql(fs.readFileSync(__dirname + '/../setup/two-decks.sql', 'utf8'));   // two decks: NA and EMEA
+sql(fs.readFileSync(__dirname + '/../setup/site-settings-setup.sql', 'utf8'));
+{ // stage dates from the backend's Season tab (setup/backend-overhaul.sql): same dates stored as a setting
+  const ov = fs.readFileSync(__dirname + '/../setup/backend-overhaul.sql', 'utf8');
+  const i = ov.indexOf('create or replace function public.vp_na_stage'); sql(ov.slice(i, ov.indexOf('$$;', i) + 3));
+  sql(`insert into public.site_settings (key, value) values ('na_stage', '{"start":"2026-11-18T03:00:00Z","lock":"2026-11-22T02:00:00Z","end":null}');`);
+}
 sql('alter table public.deck_history disable trigger user;');
 
 // ---- a real series from PCMT.gg (NAVI 2-1 C9, Oct 10), scored by the site and by the server ----

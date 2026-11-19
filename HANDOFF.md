@@ -354,3 +354,14 @@ Supabase's Discord login always asks Discord for the email. Triggers drop it bef
 
 ## 42. Backend overhaul (update, not released yet)
 - Step 1, no descriptions: the explanation paragraphs at the top of each backend tab (Player prices, Teams, Cards, Card packs, launch, 4Ks & 5Ks, Subs, Patch notes, Champions, Complaints), the version help line and the "Add a team" sub-line are gone. Status lines that change with what's picked (gameweek, sub preview, series result, messages) stay; the 4Ks & 5Ks "no result yet" line is just that.
+
+## 43. Backend dashboard and new tabs (update, not released yet)
+- **Release day: paste setup/backend-overhaul.sql into the Supabase SQL editor first** (after setup/usernames.sql). Until then the new tabs and page counting fail quietly.
+- Dashboard is the first tab: tiles from `fb_dashboard()` (accounts, managers per region, deck saves, Credits paid, packs, cards, complaints, subs), sign-ups and page views for 14 days, views per page for 7 days, what's coming up (deck locks and games, EST), site health (last Credits run, failed runs in 24 h, last Pick'ems sync, newest result) and the Pick'ems split per game.
+- Page views: `countView()` in tools/league.js calls `pcmt_count_view(page)` once per page per browser session (not on the backend). Only a count per day and page is kept, nothing about who; the privacy notice says so.
+- Schedule tab: staff add, edit and remove games (region, EST time, teams, Bo, round, Pick'ems on or off) in `schedule_games`. The site and tools/pcmt-sync.js add them to the matches and the games Pick'ems (`extra: <id>`); a removed game is kept with removed = true.
+- Season tab: NA stage start, lock and end saved as site_settings 'na_stage' (JSON). The Deck, Home and `vp_na_stage()` read it, with the Stage 1 dates as fallback. The guide's lock time is text, so update it by hand if the lock moves.
+- Pick'ems tab: open or close each event and set Credits per right pick (`pickem_events.open`, `credits_win`).
+- Staff tab: add or remove staff by Discord name (`fb_staff_list` / `fb_staff_add` / `fb_staff_remove`).
+- Not on the backend on purpose: budget and weekly lock times. `vp_valid_deck` / `vp_fits_budget` use 100 for every past deck, so changing it would rewrite past payouts; it needs a dated "from" setting first.
+- tools/vp-test.js also loads site-settings-setup.sql and the stage function from backend-overhaul.sql, with the dates stored as a setting.

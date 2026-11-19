@@ -417,6 +417,7 @@ class Component extends DCLogic {
     }
     // NA Stage 1 (Nov 17 2026): NA decks lock when the stage's first game starts, until the stage ends (as on The Deck).
     var NA_STAGE = { lock: Date.parse('2026-11-22T02:00:00Z'), end: null, name: 'Stage 1' };
+    if (W.PCMT_SEASON && W.PCMT_SEASON.naStage) { NA_STAGE.lock = W.PCMT_SEASON.naStage.lock; NA_STAGE.end = W.PCMT_SEASON.naStage.end; }   // backend Season tab
     if (!NA_STAGE.end || now < NA_STAGE.end) {
       lockLabel = (now < NA_STAGE.lock ? 'NA decks lock ' + when(new Date(NA_STAGE.lock).toISOString()) : 'NA decks locked for ' + NA_STAGE.name) + ' · EMEA ' + lockLabel.replace(/^Decks/, 'decks');
     }

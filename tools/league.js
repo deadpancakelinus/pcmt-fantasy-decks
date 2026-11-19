@@ -358,6 +358,32 @@
   // EMEA result score as before. end: null until the stage's end is set. Same as vp_na_stage() in setup/na-stage.sql
   // and PCMT_NA_STAGE in the Main board.
   var NA_STAGE = { start: Date.parse('2026-11-18T03:00:00Z'), lock: Date.parse('2026-11-22T02:00:00Z'), end: null };
+  // NA stage dates from the backend's Season tab (site_settings 'na_stage', JSON { start, lock, end }); without it, the
+  // dates above. window.PCMT_SEASON carries them to the Main and Home boards.
+  function applySeason(row) {
+    var v = null;
+    try { v = row && row.value ? JSON.parse(row.value) : null; } catch (e) {}
+    if (v && v.start && v.lock && NA_STAGE) {
+      var st = Date.parse(v.start), lk = Date.parse(v.lock), en = v.end ? Date.parse(v.end) : null;
+      if (st && lk) { NA_STAGE.start = st; NA_STAGE.lock = lk; NA_STAGE.end = en || null; stageCache = { n: -1, by: {} }; }
+    }
+    window.PCMT_SEASON = { naStage: NA_STAGE ? { start: NA_STAGE.start, lock: NA_STAGE.lock, end: NA_STAGE.end } : null };
+  }
+  // Games added on the backend's Schedule tab show straight away; the hourly sync then writes them into data.js (with
+  // extra: <id>), and PCMT.gg takes them over once it posts them. A removed one with no result is hidden.
+  function applyExtraGames(rows) {
+    var M = window.PCMT_MATCHES = window.PCMT_MATCHES || [], R = window.PCMT_RESULTS || [];
+    (rows || []).forEach(function (g) {
+      var at = M.findIndex(function (m) { return m.extra === g.id; });
+      if (g.removed) { if (at >= 0 && !M[at].url) M.splice(at, 1); return; }
+      var t = Date.parse(g.start), near = function (m) { return ((m.a === g.a && m.b === g.b) || (m.a === g.b && m.b === g.a)) && Math.abs(Date.parse(m.start) - t) < 3 * 864e5; };
+      if (at >= 0) { if (!M[at].url) Object.assign(M[at], { region: g.region, start: new Date(t).toISOString().replace('.000', ''), a: g.a, b: g.b, bo: g.bo }); return; }
+      if (M.some(near) || R.some(near)) return;
+      M.push({ region: g.region, start: new Date(t).toISOString().replace('.000', ''), a: g.a, b: g.b, bo: g.bo, hours: g.bo === 5 ? 4 : 3, extra: g.id });
+    });
+    M.sort(function (x, y) { return Date.parse(x.start) - Date.parse(y.start); });
+    window.PCMT_SCHEDULE_ROWS = rows || [];
+  }
   function inNaStage(r) {
     var t = Date.parse(r.start);
     return !!NA_STAGE && r.region === 'NA' && t >= NA_STAGE.start && (NA_STAGE.end == null || t < NA_STAGE.end);
@@ -550,6 +576,16 @@
     apiAll: function (path) { return refreshIfNeeded().then(function () { return apiAll(path); }); },
     applySubs: function (rows, results) { return applySubs(rows, results); },   // backend.html, Subs tab
     weekStart: function (t) { return weekStart(t); }, weekEnd: function (b) { return weekEnd(b); },
+    // The next weekly (EMEA) deck lock after t: the coming gameweek's lock (backend dashboard).
+    nextWeekLock: function (t) {
+      var b = weekStart(t), all = (window.PCMT_MATCHES || []).concat(window.PCMT_RESULTS || []);
+      for (var i = 0; i < 3; i++, b = weekEnd(b)) {
+        var first = all.map(function (m) { return Date.parse(m.start); }).filter(function (x) { return x >= b && x < weekEnd(b); }).sort(function (x, y) { return x - y; })[0];
+        var at = weekLockAt(b, first == null ? b : first);
+        if (at > t) return at;
+      }
+      return null;
+    },
     // Puts an owned Rare (or rarer) card in your MVP VS deck, or takes it out (Library page).
     setInDeck: function (cardId, on) {
       if (!me) return Promise.reject(new Error('Log in with Discord first.'));
@@ -764,8 +800,18 @@
   }
   window.PCMT_SUBS = [];
 
+  // Page views for the backend's dashboard (backend overhaul): one per page per browser session, no names or accounts
+  // (pcmt_count_view in setup/backend-overhaul.sql). Fails quietly until that's been run.
+  function countView() {
+    var page = (location.pathname.split('/').pop() || 'index').replace(/\.html$/, '').toLowerCase() || 'index';
+    if (!/^[a-z0-9-]{1,30}$/.test(page) || page === 'backend') return;
+    try { if (sessionStorage.getItem('pcmt-viewed-' + page)) return; sessionStorage.setItem('pcmt-viewed-' + page, '1'); } catch (e) {}
+    api('/rest/v1/rpc/pcmt_count_view', { method: 'POST', body: { p_page: page }, keepalive: true }).catch(function () {});
+  }
+
   // ---------- load everything, then let the page draw ----------
   function load() {
+    setTimeout(countView, 1500);
     launchList();
     takeRedirectTokens();
     session = readSession();
@@ -828,9 +874,14 @@
       // Teams and players edited or added on the backend (empty until setup/deck-edits-setup.sql has been run)
       var dTeams = apiAll('/rest/v1/deck_teams?select=code,name,color,region,season,logo,retired&order=code').catch(function () { return []; });
       var dPlayers = apiAll('/rest/v1/deck_players?select=id,name,team,region,role,price,champ&order=id').catch(function () { return apiAll('/rest/v1/deck_players?select=id,name,team,region,role,price&order=id'); }).catch(function () { return []; });
-      return Promise.all([decks, profiles, unlocks, vp, multi, admin, packs, mine, catalog, prices, released, staff, picks, pkEvents, pkBoard, removed, subs, note, niche, dTeams, dPlayers]);
+      // Backend overhaul: Season settings (NA stage dates) and games added on the backend's Schedule tab.
+      var season = api('/rest/v1/site_settings?select=value&key=eq.na_stage').catch(function () { return []; });
+      var extraGames = apiAll('/rest/v1/schedule_games?select=id,region,start,a,b,bo,round,pickem,removed&order=start').catch(function () { return []; });
+      return Promise.all([decks, profiles, unlocks, vp, multi, admin, packs, mine, catalog, prices, released, staff, picks, pkEvents, pkBoard, removed, subs, note, niche, dTeams, dPlayers, season, extraGames]);
     }).then(function (res) {
       applyDeckEdits(res[19], res[20]);
+      applySeason((res[21] || [])[0]);
+      applyExtraGames(res[22]);
       window.PCMT_SUBS = res[16] || [];
       window.PCMT_PATCH_NOTE = res[17] || null;
       window.PCMT_NICHE = {};
@@ -1120,7 +1171,7 @@
     return wrap;
   }
 
-  var PRIVACY = '<div class="pcmt-pv"><h2 id="pcmt-pv-t">Privacy notice</h2><p class="pcmt-pv-date">Last updated October 26, 2026</p>' +
+  var PRIVACY = '<div class="pcmt-pv"><h2 id="pcmt-pv-t">Privacy notice</h2><p class="pcmt-pv-date">Last updated November 19, 2026</p>' +
     '<p>fantasy.pcmt.gg is a free fan site for the Plat Chat Members Tourney, run by the PCMT Team. This is what we keep about you and why.</p>' +
     '<h3>What we keep</h3><ul>' +
     '<li><b>From Discord, when you log in:</b> your display name, avatar, username and Discord account ID. We use them to know it’s you and to show your name on the leaderboards.</li>' +
@@ -1128,6 +1179,7 @@
     '<li><b>What you do on the site:</b> your decks and deck names (with when you saved them), Pick’ems picks, Credits, cards and codes you redeem.</li>' +
     '<li><b>Comments and complaints</b> you send from Home.</li>' +
     '<li><b>Login records:</b> our database provider keeps the time, IP address and browser of each login, to keep you signed in and stop abuse.</li>' +
+    '<li><b>Page visits:</b> we count how many times each page is opened each day, with no names, accounts or devices attached, to see which pages get used.</li>' +
     '<li><b>On your device:</b> your browser remembers your login and some settings (favorites, opened packs, panels you collapsed). This is not used for tracking or ads.</li></ul>' +
     '<h3>Who can see it</h3><ul>' +
     '<li><b>Everyone:</b> your display name and avatar, your saved decks and deck names, and your place in the standings.</li>' +
