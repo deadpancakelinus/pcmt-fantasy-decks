@@ -132,11 +132,6 @@
   .pv-plain { aspect-ratio: 5 / 7; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); display: grid; place-items: center; font: 700 22px/1 'Cabin Sketch', cursive; color: var(--dim); }
   .pv-search { min-height: 40px; padding: 0 12px; border-radius: 8px; border: 1px solid #3a4f53; background: #0d1416; font-size: 15px; width: min(100%, 260px); margin-bottom: 10px; }
   .db-head { display: flex; align-items: center; justify-content: flex-end; gap: 14px; margin-bottom: 12px; }
-  .db-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; margin-bottom: 14px; }
-  .db-tile { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px; }
-  .db-tile b { font: 700 30px/1.1 'National Park', system-ui, sans-serif; color: var(--ink); }
-  .db-tile span { font: 600 12px/1.3 'National Park', system-ui, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); }
-  .db-tile em { font-style: normal; font-size: 13px; color: var(--accent); }
   .db-two { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; margin-bottom: 14px; }
   .db-h { margin: 0; font: 600 13px/1.2 'National Park', system-ui, sans-serif; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
   .db-bars { display: flex; align-items: flex-end; gap: 4px; height: 120px; }
@@ -378,7 +373,6 @@
     <section class="pane" role="tabpanel" id="pane-dash" aria-labelledby="tab-dash">
       <div class="db-head"><span class="who" id="db-when"></span><button type="button" class="btn ghost" id="db-refresh">Refresh</button></div>
       <p class="msg" id="db-msg" role="status" aria-live="polite"></p>
-      <div class="db-tiles" id="db-tiles"></div>
       <div class="db-two">
         <section class="panel"><h2 class="db-h">Sign-ups · last 14 days</h2><div class="db-bars" id="db-signups"></div></section>
         <section class="panel"><h2 class="db-h">Page views · last 14 days</h2><div class="db-bars" id="db-views"></div><ul class="db-list" id="db-pages"></ul></section>
@@ -2063,17 +2057,6 @@
     var d = DASH || {};
     $('db-msg').className = 'msg' + (dashErr ? ' err' : ''); $('db-msg').textContent = dashErr;
     $('db-when').textContent = d.now ? 'Updated ' + etWhen(Date.parse(d.now)) + ' EST' : '';
-    var tile = function (label, big, sub) { return '<div class="db-tile"><span>' + esc(label) + '</span><b>' + esc(big) + '</b>' + (sub ? '<em>' + esc(sub) + '</em>' : '') + '</div>'; };
-    $('db-tiles').innerHTML = DASH ? [
-      tile('Accounts', nfmt(d.accounts), '+' + nfmt(d.accounts_7d) + ' this week · +' + nfmt(d.accounts_today) + ' today'),
-      tile('Managers', nfmt(d.managers), 'NA ' + nfmt(d.managers_na) + ' · EMEA ' + nfmt(d.managers_emea) + (d.managers_untagged ? ' · older ' + nfmt(d.managers_untagged) : '')),
-      tile('Deck saves, 7 days', nfmt(d.saves_7d), nfmt(d.savers_7d) + ' managers · ' + nfmt(d.saves_24h) + ' in 24 h'),
-      tile('Credits paid', nfmt(d.credits_paid), '+' + nfmt(d.credits_paid_7d) + ' this week' + (d.credits_by_kind && d.credits_by_kind.pickem ? ' · Pick\'ems ' + nfmt(d.credits_by_kind.pickem) : '')),
-      tile('Packs opened', nfmt(d.packs_opened), '+' + nfmt(d.packs_opened_7d) + ' this week · ' + nfmt(d.credits_spent) + ' Credits spent'),
-      tile('Cards owned', nfmt(d.cards_owned), nfmt(d.collectors) + (d.collectors === 1 ? ' collector' : ' collectors')),
-      tile('Complaints', nfmt(d.complaints), '+' + nfmt(d.complaints_7d) + ' this week'),
-      tile('Subs this week', nfmt(d.subs_open), nfmt(d.mvp_rooms_7d) + ' MVP VS rooms this week')
-    ].join('') : '';
     bars($('db-signups'), d.signups);
     bars($('db-views'), d.views);
     var pages = Object.keys(d.views_by_page_7d || {}).map(function (k) { return [k, d.views_by_page_7d[k]]; }).sort(function (a, b) { return b[1] - a[1]; }).slice(0, 8);
