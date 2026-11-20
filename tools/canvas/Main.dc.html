@@ -1838,7 +1838,10 @@ function pcmtStageLock(now, region) {
   return region === 'NA' ? { locked: true, until: S.end, lockAt: S.lock, stage: true } : null;
 }
 // { <player id>: sum of their two best stage series that started before upTo }
+var pcmtStageCache = {};
 function pcmtStageBest(upTo) {
+  var key = PCMT_RESULTS.length + ':' + PCMT_RESULTS.filter(function (r) { return Date.parse(r.start) < upTo; }).length;
+  if (pcmtStageCache.key === key) return pcmtStageCache.out;
   var lists = {}, out = {};
   PCMT_RESULTS.forEach(function (r) {
     if (!pcmtInNaStage(r) || Date.parse(r.start) >= upTo) return;
@@ -1846,6 +1849,7 @@ function pcmtStageBest(upTo) {
     Object.keys(sp).forEach(function (k) { (lists[k] || (lists[k] = [])).push(sp[k]); });
   });
   Object.keys(lists).forEach(function (k) { var a = lists[k].sort(function (x, y) { return y - x; }); out[k] = (a[0] || 0) + (a.length > 1 ? a[1] : 0); });
+  pcmtStageCache = { key: key, out: out };
   return out;
 }
 function pcmtCountdown(ms) {
@@ -1935,6 +1939,15 @@ class Component extends DCLogic {
       return h % 46;
     }
     return pcmtWeekPointsAt((this.state && this.state.now) || Date.now())[id] || 0;
+  }
+
+  // NA deck during the stage: a card shows the player's stage total (their two best series so far), not this gameweek's.
+  stageCards() {
+    var S = PCMT_NA_STAGE, now = (this.state && this.state.now) || Date.now();
+    return !this.props.samplePoints && !!S && this.state && this.state.deckRegion === 'NA' && now >= S.start && (S.end == null || now < S.end);
+  }
+  cardPoints(id) {
+    return this.stageCards() ? pcmtStageBest((this.state && this.state.now) || Date.now())[id] || 0 : this.weekPoints(id);
   }
 
   _pageWillUnmount() {
@@ -2511,8 +2524,8 @@ class Component extends DCLogic {
         teamFullSize: (PCMT_TEAM_NAMES[p.team] || p.team).length <= 16 ? 11 : 9.5,
         id: p.id,
         isIgl: s.igl === p.id, notIgl: s.igl !== p.id,
-        points: pcmtNum(self.weekPoints(p.id)),
-        pointsTitle: pcmtNum(self.weekPoints(p.id)) + ' points this gameweek',
+        points: pcmtNum(self.cardPoints(p.id)),
+        pointsTitle: pcmtNum(self.cardPoints(p.id)) + (self.stageCards() ? ' points in ' + PCMT_NA_STAGE.name + ' (best two series)' : ' points this gameweek'),
         makeIgl: function () { self.setIgl(p.id); },
         removeTap: function () {
           if (self.state.crownArmed || self.state.clearing || self.isLocked()) return;
