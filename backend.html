@@ -166,6 +166,9 @@
   .sb-past summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; gap: 8px; font: 600 13px/1 'National Park', system-ui, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--soft); }
   .sb-past .sheet { margin-top: 8px; }
   .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .sheet-skips { margin: 10px 0 0; padding: 12px 16px 12px 32px; border: 1px solid var(--line); border-radius: 10px; font-size: 13px; color: var(--soft); max-height: 220px; overflow: auto; }
+  .sheet-skips li + li { margin-top: 4px; }
+  .sheet-skips b { color: var(--ink); }
   .toolbar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 16px; }
   .field { display: flex; flex-direction: column; gap: 6px; }
   .field input, .field select { min-height: 44px; padding: 0 12px; border-radius: 8px; border: 1px solid #3a4f53; background: #0d1416; width: auto; min-width: 160px; }
@@ -445,6 +448,8 @@
         <label class="check"><input type="checkbox" id="p-changed"> Only changed prices</label>
         <label class="check"><input type="checkbox" id="p-removed"> Only removed from the store</label>
         <span class="spacer"></span>
+        <button class="btn ghost" id="p-sheet-btn" type="button">Upload sheet</button>
+        <input type="file" id="p-sheet" accept=".xlsx,.xls,.ods,.csv,.tsv,text/csv" hidden>
         <button class="btn ghost" id="p-csv" type="button">Download CSV</button>
       </div>
       <div class="sheet"><table class="grid" id="p-table">
@@ -477,6 +482,7 @@
         <button class="btn ghost" id="p-undo" type="button" disabled>Undo edits</button>
         <p class="msg" id="p-msg" role="status" aria-live="polite"></p>
       </div>
+      <ul class="sheet-skips" id="p-skips" hidden></ul>
     </section>
 
     <!-- ===== Teams ===== -->
@@ -808,6 +814,7 @@
 
   // ---------- player prices ----------
   var LOG = [], edits = {}, info = {}, pSort = { key: 'team', dir: 1 };   // info: { <id>: { name, team, region, role, base } } edits to the player
+  var ADDS = [];   // new players from an uploaded sheet: { name, team, region, role, price, champ }, saved with Save
   var REMOVED = {}, removedReady = true, storeBusy = {};   // REMOVED: { <player id>: { removed_at, removed_by } }
   function latest(id) { var c = null; LOG.forEach(function (x) { if (x.player === id) c = x; }); return c; }
   function current(id) { var c = latest(id); return c && c.price != null ? +c.price : BASE[id]; }
@@ -844,9 +851,9 @@
           : '<button type="button" class="link danger" data-store="remove" data-pid="' + esc(r.id) + '" aria-label="Remove ' + esc(r.name) + ' from the store">Remove</button>') + '</td></tr>';
     }).join('') : '<tr><td colspan="10" class="dim">No players match.</td></tr>';
     markSort($('p-table'), pSort);
-    var n = Object.keys(edits).length, m = Object.keys(info).length;
-    $('p-save').disabled = !(n + m); $('p-undo').disabled = !(n + m);
-    $('p-save').textContent = n + m ? 'Save ' + (m ? m + ' player' + (m === 1 ? '' : 's') : '') + (m && n ? ' and ' : '') + (n ? n + ' price' + (n === 1 ? '' : 's') : '') : 'Save changes';
+    var n = Object.keys(edits).length, m = Object.keys(info).length, a = ADDS.length;
+    $('p-save').disabled = !(n + m + a); $('p-undo').disabled = !(n + m + a);
+    $('p-save').textContent = n + m + a ? 'Save ' + [a ? a + ' new player' + (a === 1 ? '' : 's') : '', m ? m + ' player' + (m === 1 ? '' : 's') : '', n ? n + ' price' + (n === 1 ? '' : 's') : ''].filter(Boolean).join(', ').replace(/, ([^,]*)$/, ' and $1') : 'Save changes';
     $('team-codes').innerHTML = teamList().filter(function (t) { return !t.retired; }).map(function (t) { return '<option value="' + esc(t.code) + '">' + esc(t.name) + '</option>'; }).join('');
   }
   function pSay(t, cls) { $('p-msg').textContent = t; $('p-msg').className = 'msg' + (cls ? ' ' + cls : ''); }
@@ -895,7 +902,7 @@
   // Search boxes redraw as you type; not again when they lose focus, or a click on a row button would be lost mid-redraw.
   ['p-search', 'p-region', 'p-changed', 'p-removed'].forEach(function (id) { $(id).addEventListener($(id).type === 'search' ? 'input' : 'change', drawPrices); });
   wireSort($('p-table'), pSort, drawPrices);
-  $('p-undo').addEventListener('click', function () { edits = {}; info = {}; pSay(''); drawPrices(); });
+  $('p-undo').addEventListener('click', function () { edits = {}; info = {}; ADDS = []; skips([]); pSay(''); drawPrices(); });
   // One player as a deck_players row (the full row: the server keeps whole players, not single fields).
   function deckRow(p, inf) {
     inf = inf || {};
@@ -920,11 +927,14 @@
   }
   $('p-save').addEventListener('click', function () {
     var body = Object.keys(edits).map(function (id) { return { player: id, price: edits[id] }; });
-    var rows = Object.keys(info).map(function (id) { return deckRow(BY_ID[id], info[id]); });
+    var rows = Object.keys(info).map(function (id) { return deckRow(BY_ID[id], info[id]); }).concat(ADDS.map(function (a) {
+      var t = teamOf(a.team);
+      return { id: newId(a.name, a.team), name: a.name, team: a.team, role: a.role, region: t && t.region === a.region ? null : a.region, price: a.price, champ: a.champ == null ? null : a.champ };
+    }));
     if (!body.length && !rows.length) return;
     $('p-save').disabled = true; pSay('Saving…');
     saveRows(rows).then(function () {
-      info = {};
+      info = {}; ADDS = []; skips([]);
       if (!body.length) return;
       return L.api('/rest/v1/player_price_changes', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: body })
         .then(function () { return loadPrices(); }).then(function () { edits = {}; });
@@ -962,6 +972,128 @@
     csv('pcmt-player-prices.csv', ['Player', 'Player id', 'Team', 'Region', 'Role', 'Start price', 'Price', 'Last change', 'Changed by', 'In the store'],
       sortBy(priceRows(), pSort.key, pSort.dir).map(function (r) { return [r.name, r.id, r.team, r.region, r.role, r.base, r.price, r.when ? new Date(r.when).toISOString() : '', r.by, r.removed ? 'No (removed)' : 'Yes']; }));
   });
+  // ---------- Upload sheet: an Excel / Google Sheets / CSV file of players, read here and lined up as edits for Save ----------
+  // Columns are found by their heading (the Download CSV headings work): Player, Player id, Team, Region, Role, Trophy,
+  // Start price, Price. A row finds its player by id, then by name and team, then by name alone; a row with a new
+  // name, a team and a price becomes a new player.
+  var XLSX_URL = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+  function loadXlsx() {
+    if (window.XLSX) return Promise.resolve(window.XLSX);
+    return new Promise(function (ok, no) {
+      var sc = document.createElement('script'); sc.src = XLSX_URL; sc.async = true;
+      sc.onload = function () { window.XLSX ? ok(window.XLSX) : no(new Error('the sheet reader didn\'t load')); };
+      sc.onerror = function () { no(new Error('the sheet reader didn\'t load (check the connection)')); };
+      document.head.appendChild(sc);
+    });
+  }
+  function parseDelimited(text) {   // CSV or TSV, with quoted cells
+    text = text.replace(/^﻿/, '');
+    var first = text.split(/\r?\n/)[0] || '', sep = (first.match(/\t/g) || []).length > (first.match(/,/g) || []).length ? '\t' : (first.match(/;/g) || []).length > (first.match(/,/g) || []).length ? ';' : ',';
+    var rows = [], row = [], cell = '', q = false;
+    for (var i = 0; i < text.length; i++) {
+      var c = text[i];
+      if (q) { if (c === '"') { if (text[i + 1] === '"') { cell += '"'; i++; } else q = false; } else cell += c; }
+      else if (c === '"') q = true;
+      else if (c === sep) { row.push(cell); cell = ''; }
+      else if (c === '\n' || c === '\r') { if (c === '\r' && text[i + 1] === '\n') i++; row.push(cell); rows.push(row); row = []; cell = ''; }
+      else cell += c;
+    }
+    if (cell !== '' || row.length) { row.push(cell); rows.push(row); }
+    return rows;
+  }
+  function readSheet(file) {
+    if (/\.(csv|tsv|txt)$/i.test(file.name)) return file.text().then(parseDelimited);
+    return Promise.all([loadXlsx(), file.arrayBuffer()]).then(function (x) {
+      var wb = x[0].read(x[1], { type: 'array' }), best = [];
+      wb.SheetNames.forEach(function (n) {   // the tab with a Player or Player id heading; else the first
+        var rows = x[0].utils.sheet_to_json(wb.Sheets[n], { header: 1, raw: true, defval: '' });
+        if (!best.length || (!sheetHead(best) && sheetHead(rows))) best = rows;
+      });
+      return best;
+    });
+  }
+  var SHEET_COLS = {
+    id: ['playerid', 'id'], name: ['player', 'name', 'playername', 'ign'], team: ['team', 'teamcode', 'code'], region: ['region'],
+    role: ['role'], champ: ['trophy', 'champ', 'champion'], base: ['startprice', 'start', 'baseprice', 'base'], price: ['price', 'currentprice', 'newprice', 'cost']
+  };
+  function sheetHead(rows) {   // { at: header row index, col: { name: i, ... } } or null
+    for (var r = 0; r < Math.min(rows.length, 10); r++) {
+      var col = {};
+      (rows[r] || []).forEach(function (h, i) {
+        var k = String(h).toLowerCase().replace(/[^a-z]/g, '');
+        Object.keys(SHEET_COLS).forEach(function (f) { if (col[f] == null && SHEET_COLS[f].indexOf(k) >= 0) col[f] = i; });
+      });
+      if (col.name != null || col.id != null) return { at: r, col: col };
+    }
+    return null;
+  }
+  function sheetRegion(v) { v = String(v).trim().toUpperCase(); return v === 'NA' || v === 'NORTH AMERICA' || v === 'AMERICAS' ? 'NA' : v === 'EMEA' || v === 'EU' || v === 'EUROPE' ? 'EMEA' : v ? false : ''; }
+  function sheetRole(v) { v = String(v).trim().toLowerCase(); if (!v) return ''; if (AGENT_ROLE[v]) return AGENT_ROLE[v]; var r = ROLES.filter(function (x) { return x.indexOf(v) === 0 || v.indexOf(x) === 0; })[0]; return r || false; }
+  function sheetPrice(v) { if (v === '' || v == null) return ''; var n = typeof v === 'number' ? v : +String(v).replace(/[^0-9.\-]/g, ''); return isFinite(n) && n >= 0 && n <= 30 && Math.round(n * 2) === n * 2 ? n : false; }
+  function sheetYes(v) { v = String(v).trim().toLowerCase(); return v === '' ? '' : /^(y|yes|true|1|x|🏆|champ|champion)$/.test(v) ? true : /^(n|no|false|0|-)$/.test(v) ? false : ''; }
+  function skips(list) {
+    var all = ADDS.map(function (a) { return '<li><b>New player</b> · ' + esc(a.name) + ' · ' + esc(a.team) + ' · ' + esc(a.region) + ' · ' + esc(cap(a.role)) + ' · ' + (+a.price).toFixed(1) + '</li>'; })
+      .concat(list.map(function (x) { return '<li><b>Row ' + x.row + ' left out</b> · ' + esc(x.why) + '</li>'; }));
+    $('p-skips').hidden = !all.length; $('p-skips').innerHTML = all.join('');
+  }
+  function applySheet(rows) {
+    var h = sheetHead(rows);
+    if (!h) return pSay('No Player or Player id column found in that sheet.', 'err');
+    var c = h.col, list = PLAYERS_NOW(), bad = [], seen = {}, nP = 0, nI = 0, nA = 0, same = 0;
+    var cell = function (row, f) { return c[f] == null ? '' : row[c[f]] == null ? '' : row[c[f]]; };
+    ADDS = [];
+    for (var r = h.at + 1; r < rows.length; r++) {
+      var row = rows[r] || [], line = r + 1;
+      var id = String(cell(row, 'id')).trim(), name = String(cell(row, 'name')).trim(), team = String(cell(row, 'team')).replace(/\s+/g, '');
+      if (!id && !name) continue;
+      var reg = sheetRegion(cell(row, 'region')), rl = sheetRole(cell(row, 'role')), base = sheetPrice(cell(row, 'base')), price = sheetPrice(cell(row, 'price')), champ = sheetYes(cell(row, 'champ'));
+      if (team && !/^[A-Za-z0-9]{1,8}$/.test(team)) { bad.push({ row: line, why: '"' + team + '" isn\'t a team code (1 to 8 letters or numbers).' }); continue; }
+      if (reg === false) { bad.push({ row: line, why: 'region "' + cell(row, 'region') + '" should be NA or EMEA.' }); continue; }
+      if (rl === false) { bad.push({ row: line, why: 'role "' + cell(row, 'role') + '" isn\'t a role or agent.' }); continue; }
+      if (base === false || price === false) { bad.push({ row: line, why: 'prices go from 0 to 30 in steps of 0.5.' }); continue; }
+      var lo = name.toLowerCase(), p = id && BY_ID[id];
+      if (!p && name && team) p = list.filter(function (x) { return x.name.toLowerCase() === lo && x.team.toLowerCase() === team.toLowerCase(); })[0];
+      if (!p && name) { var byName = list.filter(function (x) { return x.name.toLowerCase() === lo; }); if (byName.length === 1) p = byName[0]; else if (byName.length > 1) { bad.push({ row: line, why: name + ' is on more than one team: add a Team or Player id column.' }); continue; } }
+      if (!p) {
+        if (id && !name) { bad.push({ row: line, why: 'no player has the id "' + id + '".' }); continue; }
+        var np = base !== '' ? base : price, t = teamOf(team);
+        if (!team || np === '') { bad.push({ row: line, why: name + ' isn\'t on the site: a new player needs a team and a price.' }); continue; }
+        if (!t && !reg) { bad.push({ row: line, why: team + ' isn\'t a team yet: add a Region column, or add the team on the Teams tab first.' }); continue; }
+        ADDS.push({ name: name, team: t ? t.code : team, region: reg || t.region, role: rl || 'duelist', price: np, champ: champ === '' ? null : champ });
+        nA++; continue;
+      }
+      if (seen[p.id]) { bad.push({ row: line, why: p.name + ' is already on row ' + seen[p.id] + '; this row is left out.' }); continue; }
+      seen[p.id] = line;
+      if (team) { var tt = teamOf(team); if (tt) team = tt.code; }
+      var want = { name: name || null, team: team || null, region: reg || null, role: rl || null, base: base === '' ? null : base, champ: champ === '' ? null : champ };
+      var was = { name: p.name, team: p.team, region: regionOf(p), role: role(p), base: BASE[p.id], champ: isChamp(p.id) };
+      var inf = Object.assign({}, info[p.id]), changed = false;
+      Object.keys(want).forEach(function (k) {
+        if (want[k] == null || (k === 'name' && !id)) return;   // matched by name: the name stays as it is
+        if (want[k] === was[k]) delete inf[k]; else { inf[k] = want[k]; changed = true; }
+      });
+      if (Object.keys(inf).length) info[p.id] = inf; else delete info[p.id];
+      if (changed) nI++;
+      if (price !== '') {
+        var cur = current(p.id);
+        if (price === cur) delete edits[p.id]; else { edits[p.id] = price === BASE[p.id] && cur !== BASE[p.id] ? null : price; nP++; changed = true; }
+      }
+      if (!changed) same++;
+    }
+    skips(bad);
+    var parts = [nP ? nP + ' price' + (nP === 1 ? '' : 's') : '', nI ? nI + ' player' + (nI === 1 ? '' : 's') + ' changed' : '', nA ? nA + ' new player' + (nA === 1 ? '' : 's') : ''].filter(Boolean);
+    if (parts.length) { $('p-changed').checked = true; }
+    drawPrices();
+    pSay(parts.length ? 'From the sheet: ' + parts.join(', ') + (same ? ' (' + same + ' unchanged)' : '') + (bad.length ? ' · ' + bad.length + ' row' + (bad.length === 1 ? '' : 's') + ' left out' : '') + '. Check them, then Save.'
+                      : 'Nothing in the sheet differs from the site' + (bad.length ? ' · ' + bad.length + ' row' + (bad.length === 1 ? '' : 's') + ' left out' : '') + '.', parts.length ? 'ok' : (bad.length ? 'err' : ''));
+  }
+  $('p-sheet-btn').addEventListener('click', function () { $('p-sheet').value = ''; $('p-sheet').click(); });
+  $('p-sheet').addEventListener('change', function () {
+    var f = $('p-sheet').files[0]; if (!f) return;
+    if (f.size > 5e6) return pSay('That file is over 5 MB.', 'err');
+    pSay('Reading ' + f.name + '…');
+    readSheet(f).then(applySheet, function (e) { pSay('Couldn\'t read ' + f.name + ': ' + e.message, 'err'); });
+  });
   function loadRemoved() {
     return L.apiAll('/rest/v1/store_removed_players?select=player,removed_at,removed_by&order=player')
       .then(function (r) { removedReady = true; REMOVED = {}; (r || []).forEach(function (x) { REMOVED[x.player] = x; }); },
@@ -971,7 +1103,7 @@
     return L.apiAll('/rest/v1/player_price_changes?select=player,price,changed_at,changed_by&order=changed_at.asc,id.asc')
       .then(function (r) { LOG = r || []; });
   }
-  window.addEventListener('beforeunload', function (e) { if (Object.keys(edits).length || Object.keys(info).length || tmDirty || multiDirty) { e.preventDefault(); e.returnValue = ''; } });
+  window.addEventListener('beforeunload', function (e) { if (Object.keys(edits).length || Object.keys(info).length || ADDS.length || tmDirty || multiDirty) { e.preventDefault(); e.returnValue = ''; } });
   var ROLES = ['duelist', 'initiator', 'controller', 'sentinel'];
   function loadDeck() {
     return Promise.all([
