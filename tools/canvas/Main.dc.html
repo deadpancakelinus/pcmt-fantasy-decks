@@ -135,6 +135,22 @@ button:disabled{cursor:not-allowed}
 @keyframes mist-spin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion: reduce){.mist-p,.mist-swirl{animation:none}.mist-p{opacity:.5;transform:translate(-50%,-50%) rotate(var(--a)) translate(0,-60%) scale(.8)}}
 input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !important;box-shadow:0 0 0 3px rgba(165,220,221,.3)}
+.pcmt-pts-pop { position: fixed; z-index: 9999; width: 280px; box-sizing: border-box; padding: 14px 16px; border-radius: 12px; background: #101a1c; border: 1px solid #2a3a3e; border-top: 4px solid var(--c, #a5dcdd); box-shadow: 0 14px 40px rgba(0,0,0,.55); color: #e8f1f1; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; pointer-events: none; opacity: 0; transform: translateY(4px); transition: opacity .12s, transform .12s; }
+.pcmt-pts-pop.on { opacity: 1; transform: none; }
+.pcmt-pts-pop .hd { display: flex; align-items: center; gap: 10px; }
+.pcmt-pts-pop .hd img { width: 38px; height: 38px; object-fit: contain; flex: none; }
+.pcmt-pts-pop .hd .code { width: 38px; flex: none; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 16px; color: var(--c); text-align: center; }
+.pcmt-pts-pop .nm { font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 24px; line-height: 1.05; }
+.pcmt-pts-pop .tm { font-size: 11px; color: var(--c); margin-top: 2px; }
+.pcmt-pts-pop .lb { margin: 12px 0 6px; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: #8fa5a8; }
+.pcmt-pts-pop .g { display: grid; grid-template-columns: 1fr auto auto; gap: 2px 12px; align-items: baseline; padding: 7px 0; border-top: 1px solid #22312f; }
+.pcmt-pts-pop .g .vs { font-weight: 600; }
+.pcmt-pts-pop .g .dt { grid-column: 1; font-size: 11px; color: #8fa5a8; }
+.pcmt-pts-pop .g .kda { grid-row: 1 / span 2; grid-column: 2; font-variant-numeric: tabular-nums; color: #cfe0e0; align-self: center; }
+.pcmt-pts-pop .g .kda small { display: block; font-size: 9px; letter-spacing: .1em; color: #8fa5a8; text-align: center; }
+.pcmt-pts-pop .g .pt { grid-row: 1 / span 2; grid-column: 3; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 20px; color: var(--c); align-self: center; font-variant-numeric: tabular-nums; }
+.pcmt-pts-pop .tot { display: flex; justify-content: space-between; padding-top: 8px; border-top: 1px solid #2a3a3e; font-weight: 600; }
+.pcmt-pts-pop .none { padding: 8px 0 2px; color: #8fa5a8; }
 </style>
 </helmet>
 <div data-pcmt-root="Main" style="position: relative; min-height: 100vh; background: #0d1416; color: #eaf4f4; font-family: 'National Park', system-ui, sans-serif">
@@ -310,7 +326,7 @@ IGL
 </span>
 </sc-if>
 </span>
-<span title="{{slot.pointsTitle}}" style="flex: none; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 30px; line-height: 1; color: {{slot.teamColor}}; font-variant-numeric: tabular-nums">{{slot.points}}</span>
+<span title="{{slot.pointsTitle}}" data-pcmt-pts="{{slot.ptsKey}}" style="flex: none; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 30px; line-height: 1; color: {{slot.teamColor}}; font-variant-numeric: tabular-nums">{{slot.points}}</span>
 </div>
 <div style="container-type: inline-size; font-family: 'Cabin Sketch', cursive; font-weight: 700; line-height: 1.1; white-space: nowrap; overflow: hidden; height: 38px; flex: none; display: flex; align-items: center; gap: 6px">
 <span style="overflow: hidden; text-overflow: clip; min-width: 0; font-size: {{slot.nameFont}}">{{slot.name}}</span>
@@ -1854,6 +1870,61 @@ function pcmtStageBest(upTo) {
   pcmtStageCache = { key: key, out: out };
   return out;
 }
+// NA Stage 1 card number: hovering it opens a window with the player and their two best stage series (K/D/A, points).
+function pcmtStageGames(id, upTo) {
+  var out = [];
+  PCMT_RESULTS.forEach(function (r) {
+    if (!pcmtInNaStage(r) || Date.parse(r.start) >= upTo || !(r.stats || {})[id]) return;
+    var sp = pcmtSeriesPoints(r);
+    if (sp[id] == null) return;
+    out.push({ r: r, pts: sp[id], s: r.stats[id] });
+  });
+  return out.sort(function (a, b) { return b.pts - a.pts || Date.parse(a.r.start) - Date.parse(b.r.start); }).slice(0, 2);
+}
+(function () {
+  var pop = null, cur = null;
+  function esc(t) { return String(t == null ? '' : t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function html(id) {
+    var p = null; PCMT_PLAYERS.forEach(function (x) { if (x.id === id) p = x; });
+    if (!p) return '';
+    var logo = PCMT_LOGOS[p.team], games = pcmtStageGames(id, Date.now()), tot = 0;
+    var h = '<div class="hd">' + (logo ? '<img src="' + esc(logo) + '" alt="">' : '<span class="code">' + esc(p.team) + '</span>') +
+      '<div><div class="nm">' + esc(p.name) + '</div><div class="tm">' + esc(PCMT_TEAM_NAMES[p.team] || p.team) + '</div></div></div>' +
+      '<div class="lb">' + esc(PCMT_NA_STAGE.name) + ' · best two series</div>';
+    if (!games.length) return h + '<div class="none">No ' + esc(PCMT_NA_STAGE.name) + ' series yet.</div>';
+    games.forEach(function (g) {
+      var opp = g.r.a === p.team ? g.r.b : g.r.b === p.team ? g.r.a : (g.r.a + ' / ' + g.r.b), won = g.r.winner === p.team;
+      var d = new Date(g.r.start).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+      tot += g.pts;
+      h += '<div class="g"><span class="vs">vs ' + esc(opp) + '</span><span class="kda"><small>K / D / A</small>' + (+g.s[0] || 0) + ' / ' + (+g.s[1] || 0) + ' / ' + (+g.s[2] || 0) + '</span>' +
+        '<span class="pt">' + pcmtNum(g.pts) + '</span><span class="dt">' + esc(d) + (g.r.winner ? ' · ' + (won ? 'Won' : 'Lost') : '') + '</span></div>';
+    });
+    return h + '<div class="tot"><span>Stage total</span><span>' + pcmtNum(tot) + '</span></div>';
+  }
+  function place(el) {
+    var r = el.getBoundingClientRect(), w = pop.offsetWidth, hgt = pop.offsetHeight, m = 10;
+    var x = Math.min(Math.max(m, r.right - w), window.innerWidth - w - m), y = r.top - hgt - 10;
+    if (y < m) y = r.bottom + 10;
+    pop.style.left = x + 'px'; pop.style.top = y + 'px';
+  }
+  function show(el) {
+    var id = el.getAttribute('data-pcmt-pts'); if (!id) return;
+    if (!pop) { pop = document.createElement('div'); pop.className = 'pcmt-pts-pop'; pop.setAttribute('role', 'tooltip'); document.body.appendChild(pop); }
+    var p = null; PCMT_PLAYERS.forEach(function (x) { if (x.id === id) p = x; });
+    pop.style.setProperty('--c', (p && PCMT_TEAMS[p.team]) || '#a5dcdd');
+    pop.innerHTML = html(id); cur = el; place(el);
+    requestAnimationFrame(function () { if (pop && cur === el) pop.classList.add('on'); });
+  }
+  function hide() { cur = null; if (pop) pop.classList.remove('on'); }
+  function start() {
+    document.addEventListener('mouseover', function (e) {
+      var el = e.target && e.target.closest ? e.target.closest('[data-pcmt-pts]') : null;
+      if (el && el.getAttribute('data-pcmt-pts')) { if (el !== cur) show(el); } else if (cur) hide();
+    });
+    window.addEventListener('scroll', hide, true);
+  }
+  if (document.body) start(); else document.addEventListener('DOMContentLoaded', start);
+})();
 function pcmtCountdown(ms) {
   if (ms <= 0) return '0:00:00';
   var s = Math.floor(ms / 1000), d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60), sec = s % 60;
@@ -2527,7 +2598,8 @@ class Component extends DCLogic {
         id: p.id,
         isIgl: s.igl === p.id, notIgl: s.igl !== p.id,
         points: pcmtNum(self.cardPoints(p.id)),
-        pointsTitle: pcmtNum(self.cardPoints(p.id)) + (self.stageCards() ? ' points in ' + PCMT_NA_STAGE.name + ' (best two series)' : ' points this gameweek'),
+        pointsTitle: self.stageCards() ? '' : pcmtNum(self.cardPoints(p.id)) + ' points this gameweek',
+        ptsKey: self.stageCards() ? p.id : '',
         makeIgl: function () { self.setIgl(p.id); },
         removeTap: function () {
           if (self.state.crownArmed || self.state.clearing || self.isLocked()) return;
