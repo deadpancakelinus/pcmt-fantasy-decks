@@ -410,7 +410,10 @@ var PCMT_PICKEMS = [
         "b": "CR",
         "bo": 3,
         "start": "2026-11-20T01:00:00Z",
-        "score": null,
+        "score": [
+          2,
+          0
+        ],
         "url": "https://pcmt.gg/events/s4-na/edm-vs-cr-s4-group-b-2026-11-20"
       },
       {
