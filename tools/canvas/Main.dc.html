@@ -326,7 +326,7 @@ IGL
 </span>
 </sc-if>
 </span>
-<span title="{{slot.pointsTitle}}" data-pcmt-pts="{{slot.ptsKey}}" style="flex: none; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 30px; line-height: 1; color: {{slot.teamColor}}; font-variant-numeric: tabular-nums">{{slot.points}}</span>
+<span title="{{slot.pointsTitle}}" data-pcmt-pts="{{slot.ptsKey}}" style="flex: none; cursor: {{slot.ptsCursor}}; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 30px; line-height: 1; color: {{slot.teamColor}}; font-variant-numeric: tabular-nums">{{slot.points}}</span>
 </div>
 <div style="container-type: inline-size; font-family: 'Cabin Sketch', cursive; font-weight: 700; line-height: 1.1; white-space: nowrap; overflow: hidden; height: 38px; flex: none; display: flex; align-items: center; gap: 6px">
 <span style="overflow: hidden; text-overflow: clip; min-width: 0; font-size: {{slot.nameFont}}">{{slot.name}}</span>
@@ -1915,10 +1915,21 @@ function pcmtStageGames(id, upTo) {
   }
   function hide() { cur = null; if (pop) pop.classList.remove('on'); }
   function start() {
+    var touch = false;   // the last pointer was a finger: no hover, a tap opens and closes the window
+    document.addEventListener('pointerdown', function (e) { touch = e.pointerType === 'touch' || e.pointerType === 'pen'; }, true);
     document.addEventListener('mouseover', function (e) {
+      if (touch) return;
       var el = e.target && e.target.closest ? e.target.closest('[data-pcmt-pts]') : null;
       if (el && el.getAttribute('data-pcmt-pts')) { if (el !== cur) show(el); } else if (cur) hide();
     });
+    // A tap or click on the number opens the window (and doesn't count as a tap on the card); a tap anywhere else closes it.
+    document.addEventListener('click', function (e) {
+      var el = e.target && e.target.closest ? e.target.closest('[data-pcmt-pts]') : null;
+      if (el && el.getAttribute('data-pcmt-pts')) {
+        e.preventDefault(); e.stopPropagation();
+        if (cur === el && pop && pop.classList.contains('on')) hide(); else show(el);
+      } else if (cur) hide();
+    }, true);
     window.addEventListener('scroll', hide, true);
   }
   if (document.body) start(); else document.addEventListener('DOMContentLoaded', start);
@@ -2597,7 +2608,7 @@ class Component extends DCLogic {
         isIgl: s.igl === p.id, notIgl: s.igl !== p.id,
         points: pcmtNum(self.cardPoints(p.id)),
         pointsTitle: self.stageCards() ? '' : pcmtNum(self.cardPoints(p.id)) + ' points this gameweek',
-        ptsKey: self.stageCards() ? p.id : '',
+        ptsKey: self.stageCards() ? p.id : '', ptsCursor: self.stageCards() ? 'help' : 'inherit',
         makeIgl: function () { self.setIgl(p.id); },
         removeTap: function () {
           if (self.state.crownArmed || self.state.clearing || self.isLocked()) return;
