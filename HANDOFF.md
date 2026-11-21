@@ -2,6 +2,28 @@
 
 Start here. It covers what exists, how changes are made and shipped, and what's next.
 
+## 0. Held release (Nov 21 2026): read this first
+
+Everything not yet live is on the branch **`release`**, built and tested, NOT pushed. `main` on GitHub is the live site (the PCMT.gg sync adds commits there every hour). `release` = `main` (as of `9a9c662`) plus three merged updates:
+
+| Update | Sections | Database first |
+|---|---|---|
+| Usernames, Account window | 40 | `setup/usernames.sql` |
+| NA Season 4 team decks (Customization) | 41 | none |
+| Backend overhaul: no descriptions, Dashboard, Schedule, Season, Pick'ems, Staff tabs, Upload sheet on Player prices, page views | 42, 43 | `setup/backend-overhaul.sql` |
+
+The old `update-na-cards` branch is merged with nothing taken from it: the live Stage 1 totals and points window (hotfixes, Nov 20) replaced it.
+
+**To ship `release`:**
+1. Paste `setup/usernames.sql`, then `setup/backend-overhaul.sql`, into the Supabase SQL editor (both are safe to run again).
+2. `git fetch origin && git checkout release && git merge origin/main` (the sync's commits only touch data files; if `index.html` or another built page conflicts, take either side and rebuild).
+3. Rebuild: `python3 -I tools/build.py tools/canvas assets <out>`, then copy the built pages to the repo root, except `data.js`, `pickems.js` and `rankings.js`.
+4. Check: `NODE_PATH=$(npm root -g) node tools/smoke-test.js http://localhost:8771 <shots>` (with `python3 -m http.server 8771` in the repo) and `node tools/vp-test.js "psql ..." players.js` against a local Postgres.
+5. Commit as `deadpancakelinus <sixthneigh@gmail.com>`, short plain message, then `git push origin release:main`.
+6. After it's live: on the backend's Season tab, check the NA stage dates (start Nov 17 10 PM EST, lock Nov 21 9 PM EST); Stage 1's end date can be set there once it's known.
+
+Still to do: logos for FNC, GENG, LOUD, EDG, DRX, SRG and NRG (S4 decks and cards fall back to the team code). Budget and weekly lock times aren't editable on the backend on purpose (see 43).
+
 ## 1. Links
 
 | What | Where |
