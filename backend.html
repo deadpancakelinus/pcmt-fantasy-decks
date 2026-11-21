@@ -131,6 +131,26 @@
   .pv-item { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
   .pv-plain { aspect-ratio: 5 / 7; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); display: grid; place-items: center; font: 700 22px/1 'Cabin Sketch', cursive; color: var(--dim); }
   .pv-search { min-height: 40px; padding: 0 12px; border-radius: 8px; border: 1px solid #3a4f53; background: #0d1416; font-size: 15px; width: min(100%, 260px); margin-bottom: 10px; }
+  .db-head { display: flex; align-items: center; justify-content: flex-end; gap: 14px; margin-bottom: 12px; }
+  .db-two { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; margin-bottom: 14px; }
+  .db-h { margin: 0; font: 600 13px/1.2 'National Park', system-ui, sans-serif; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+  .db-bars { display: flex; align-items: flex-end; gap: 4px; height: 120px; }
+  .db-bars div { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; height: 100%; }
+  .db-bars i { display: block; width: 100%; max-width: 26px; border-radius: 4px 4px 0 0; background: var(--accent); min-height: 2px; }
+  .db-bars small { font-size: 10px; color: var(--dim); white-space: nowrap; }
+  .db-bars b { font: 600 11px 'National Park', system-ui, sans-serif; color: var(--soft); }
+  .db-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; font-size: 14px; color: var(--soft); }
+  .db-list li { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+  .db-list li:last-child { border-bottom: 0; padding-bottom: 0; }
+  .db-list .ok { color: var(--good); } .db-list .bad { color: var(--bad); }
+  .db-ev { margin: 4px 0 12px; font: 600 14px 'National Park', system-ui, sans-serif; color: var(--ink); }
+  .db-split { display: grid; grid-template-columns: minmax(120px, 220px) 1fr; gap: 6px 14px; align-items: center; font-size: 13px; color: var(--soft); margin-bottom: 18px; }
+  .db-split .bar { display: flex; flex-wrap: nowrap; gap: 0; align-items: stretch; padding: 0; height: 22px; border-radius: 6px; overflow: hidden; background: #0d1416; }
+  .db-split .bar span { flex: none; min-width: 0; box-sizing: border-box; display: flex; align-items: center; padding: 0 8px; font: 600 11px 'National Park', system-ui, sans-serif; color: #000; white-space: nowrap; overflow: hidden; }
+  .db-split .bar span + span { background: #3a4f53; color: var(--ink); }
+  .db-split .bar span:last-child { flex: 1 1 auto; }
+  .chk-line { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-size: 14px; color: var(--soft); }
+  .chk-line input { width: 18px; height: 18px; accent-color: var(--accent); }
   .sb-game { display: block; margin: 0 0 14px; max-width: 520px; }
   .sb-game select { width: 100%; }
   .sb-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 16px; }
@@ -146,6 +166,9 @@
   .sb-past summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; gap: 8px; font: 600 13px/1 'National Park', system-ui, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--soft); }
   .sb-past .sheet { margin-top: 8px; }
   .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .sheet-skips { margin: 10px 0 0; padding: 12px 16px 12px 32px; border: 1px solid var(--line); border-radius: 10px; font-size: 13px; color: var(--soft); max-height: 220px; overflow: auto; }
+  .sheet-skips li + li { margin-top: 4px; }
+  .sheet-skips b { color: var(--ink); }
   .toolbar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 16px; }
   .field { display: flex; flex-direction: column; gap: 6px; }
   .field input, .field select { min-height: 44px; padding: 0 12px; border-radius: 8px; border: 1px solid #3a4f53; background: #0d1416; width: auto; min-width: 160px; }
@@ -332,7 +355,11 @@
 
   <div id="st-staff" hidden>
     <div class="tabs" role="tablist" aria-label="Backend sheets">
-      <button type="button" role="tab" id="tab-pages" aria-controls="pane-pages" aria-selected="true">Pages <span class="count" id="pg-badge"></span></button>
+      <button type="button" role="tab" id="tab-dash" aria-controls="pane-dash" aria-selected="true">Dashboard</button>
+      <button type="button" role="tab" id="tab-pages" aria-controls="pane-pages" aria-selected="false" tabindex="-1">Pages <span class="count" id="pg-badge"></span></button>
+      <button type="button" role="tab" id="tab-schedule" aria-controls="pane-schedule" aria-selected="false" tabindex="-1">Schedule</button>
+      <button type="button" role="tab" id="tab-season" aria-controls="pane-season" aria-selected="false" tabindex="-1">Season</button>
+      <button type="button" role="tab" id="tab-pickems" aria-controls="pane-pickems" aria-selected="false" tabindex="-1">Pick'ems</button>
       <button type="button" role="tab" id="tab-prices" aria-controls="pane-prices" aria-selected="false" tabindex="-1">Player prices</button>
       <button type="button" role="tab" id="tab-teams" aria-controls="pane-teams" aria-selected="false" tabindex="-1">Teams</button>
       <button type="button" role="tab" id="tab-cards" aria-controls="pane-cards" aria-selected="false" tabindex="-1">Cards</button>
@@ -342,25 +369,87 @@
       <button type="button" role="tab" id="tab-notes" aria-controls="pane-notes" aria-selected="false" tabindex="-1">Patch notes</button>
       <button type="button" role="tab" id="tab-champs" aria-controls="pane-champs" aria-selected="false" tabindex="-1">Champions</button>
       <button type="button" role="tab" id="tab-complaints" aria-controls="pane-complaints" aria-selected="false" tabindex="-1">Complaints <span class="count" id="cx-badge"></span></button>
+      <button type="button" role="tab" id="tab-staff" aria-controls="pane-staff" aria-selected="false" tabindex="-1">Staff</button>
     </div>
 
     <!-- ===== Pages waiting for launch ===== -->
-    <section class="pane" role="tabpanel" id="pane-pages" aria-labelledby="tab-pages">
+    <!-- ===== Dashboard ===== -->
+    <section class="pane" role="tabpanel" id="pane-dash" aria-labelledby="tab-dash">
+      <div class="db-head"><span class="who" id="db-when"></span><button type="button" class="btn ghost" id="db-refresh">Refresh</button></div>
+      <p class="msg" id="db-msg" role="status" aria-live="polite"></p>
+      <div class="db-two">
+        <section class="panel"><h2 class="db-h">Sign-ups · last 14 days</h2><div class="db-bars" id="db-signups"></div></section>
+        <section class="panel"><h2 class="db-h">Page views · last 14 days</h2><div class="db-bars" id="db-views"></div><ul class="db-list" id="db-pages"></ul></section>
+      </div>
+      <div class="db-two">
+        <section class="panel"><h2 class="db-h">Coming up · EST</h2><ul class="db-list" id="db-next"></ul></section>
+        <section class="panel"><h2 class="db-h">Site health</h2><ul class="db-list" id="db-health"></ul></section>
+      </div>
+      <section class="panel"><h2 class="db-h">Pick'ems</h2><div id="db-pickems"></div></section>
+    </section>
+
+    <!-- ===== Schedule ===== -->
+    <section class="pane" role="tabpanel" id="pane-schedule" aria-labelledby="tab-schedule" hidden>
+      <form class="panel" id="sc-form" autocomplete="off" novalidate>
+        <h2 class="db-h" id="sc-title">Add a game</h2>
+        <div class="sb-row">
+          <label class="field"><span class="kicker">Region</span><select id="sc-region"><option>NA</option><option>EMEA</option></select></label>
+          <label class="field"><span class="kicker">Date and time (EST)</span><input id="sc-when" type="datetime-local" required></label>
+          <label class="field"><span class="kicker">Team</span><select id="sc-a"></select></label>
+          <span class="sb-for" aria-hidden="true">vs</span>
+          <label class="field"><span class="kicker">Team</span><select id="sc-b"></select></label>
+          <label class="field" style="flex: 0 0 96px"><span class="kicker">Best of</span><select id="sc-bo"><option>1</option><option selected>3</option><option>5</option></select></label>
+          <label class="field" style="flex: 1 1 200px"><span class="kicker">Round</span><input id="sc-round" type="text" maxlength="40" placeholder="Group A, Opening 1"></label>
+          <label class="chk-line"><input id="sc-pickem" type="checkbox" checked> Pick'ems game</label>
+        </div>
+        <div class="sb-row"><button class="btn" id="sc-save" type="submit">Add game</button><button class="btn ghost" id="sc-cancel" type="button" hidden>Cancel</button></div>
+        <p class="msg" id="sc-msg" role="status" aria-live="polite"></p>
+      </form>
+      <div class="sheet"><table class="grid">
+        <thead><tr><th class="plain" scope="col">When (EST)</th><th class="plain" scope="col">Game</th><th class="plain" scope="col">Region</th><th class="plain" scope="col">Round</th><th class="plain" scope="col">From</th><th class="plain" scope="col"><span class="sr-only">Actions</span></th></tr></thead>
+        <tbody id="sc-rows"></tbody>
+      </table></div>
+    </section>
+
+    <!-- ===== Season ===== -->
+    <section class="pane" role="tabpanel" id="pane-season" aria-labelledby="tab-season" hidden>
+      <form class="panel" id="se-form" autocomplete="off" novalidate>
+        <h2 class="db-h">NA Stage 1</h2>
+        <div class="sb-row">
+          <label class="field"><span class="kicker">Starts (first game that counts, EST)</span><input id="se-start" type="datetime-local"></label>
+          <label class="field"><span class="kicker">NA decks lock (EST)</span><input id="se-lock" type="datetime-local"></label>
+          <label class="field"><span class="kicker">Ends (EST, empty = not set)</span><input id="se-end" type="datetime-local"></label>
+        </div>
+        <div class="sb-row"><button class="btn" id="se-save" type="submit">Save stage dates</button></div>
+        <p class="who" id="se-now"></p>
+        <p class="msg" id="se-msg" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <!-- ===== Pick'ems ===== -->
+    <section class="pane" role="tabpanel" id="pane-pickems" aria-labelledby="tab-pickems" hidden>
+      <div class="sheet"><table class="grid">
+        <thead><tr><th class="plain" scope="col">Event</th><th class="plain" scope="col">Open</th><th class="plain" scope="col">Points per right pick</th><th class="plain" scope="col">Players</th><th class="plain" scope="col"><span class="sr-only">Save</span></th></tr></thead>
+        <tbody id="pe-rows"></tbody>
+      </table></div>
+      <p class="msg" id="pe-msg" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="pane" role="tabpanel" id="pane-pages" aria-labelledby="tab-pages" hidden>
       <ul class="pg-list" id="pg-list"></ul>
       <p class="msg" id="pg-msg" role="status" aria-live="polite"></p>
     </section>
 
     <!-- ===== Player prices ===== -->
     <section class="pane" role="tabpanel" id="pane-prices" aria-labelledby="tab-prices" hidden>
-      <p class="note">Every cell is editable: the player's name, team, region, role and start price, and their price. Press Save to keep the changes; the site uses them the next time a page loads. Add a player with the row at the bottom of the table.</p>
-      <p class="note">Change a price and press Save. The site uses the new price the next time a page loads: The Deck's prices and budget, and the cards in packs. Decks already saved keep counting with the prices from when they were saved, so a price rise never breaks someone's deck; it only applies to new changes. Prices go from 0 to 30 in steps of 0.5.</p>
-      <p class="note">Remove takes a player out of The Deck's store straight away: nobody can buy them or get them from a random deal. Managers who already have them keep them in their deck. Put back undoes it.</p>
       <div class="toolbar">
         <label class="field"><span class="kicker">Search</span><input type="search" id="p-search" placeholder="Player or team" autocomplete="off"></label>
         <label class="field"><span class="kicker">Region</span><select id="p-region"><option value="">All</option><option>NA</option><option>EMEA</option></select></label>
         <label class="check"><input type="checkbox" id="p-changed"> Only changed prices</label>
         <label class="check"><input type="checkbox" id="p-removed"> Only removed from the store</label>
         <span class="spacer"></span>
+        <button class="btn ghost" id="p-sheet-btn" type="button">Upload sheet</button>
+        <input type="file" id="p-sheet" accept=".xlsx,.xls,.ods,.csv,.tsv,text/csv" hidden>
         <button class="btn ghost" id="p-csv" type="button">Download CSV</button>
       </div>
       <div class="sheet"><table class="grid" id="p-table">
@@ -393,11 +482,11 @@
         <button class="btn ghost" id="p-undo" type="button" disabled>Undo edits</button>
         <p class="msg" id="p-msg" role="status" aria-live="polite"></p>
       </div>
+      <ul class="sheet-skips" id="p-skips" hidden></ul>
     </section>
 
     <!-- ===== Teams ===== -->
     <section class="pane" role="tabpanel" id="pane-teams" aria-labelledby="tab-teams" hidden>
-      <p class="note">Teams for The Deck: each team's code, name, region, logo and players with their roles. Import a team from PCMT.gg to fill everything in from its team page (name, code, logo, roster, and each player's role from the agents they play most), check it, then save. Saved teams and players show on the site the next time a page loads. The code has to match the team's code on PCMT.gg, or its results won't reach the players.</p>
 
       <div class="panel" style="display: flex; flex-direction: column; gap: 14px">
         <h2 class="kicker" style="margin: 0">Import from PCMT.gg</h2>
@@ -449,13 +538,12 @@
           <label class="check"><input type="checkbox" id="tm-show-retired"> Show retired teams</label>
         </div>
         <ul class="tm-list" id="tm-list"></ul>
-        <button type="button" class="tm-item tm-add tm-add-bottom" id="tm-add-team"><span class="tm-logo" aria-hidden="true" style="font-size:28px;color:var(--accent,#a5dcdd);display:grid;place-items:center">+</span><span class="tm-main"><b>Add a team</b><span class="dim">Fill in a new team and its players, or import one from PCMT.gg</span></span></button>
+        <button type="button" class="tm-item tm-add tm-add-bottom" id="tm-add-team"><span class="tm-logo" aria-hidden="true" style="font-size:28px;color:var(--accent,#a5dcdd);display:grid;place-items:center">+</span><span class="tm-main"><b>Add a team</b></span></button>
       </div>
     </section>
 
     <!-- ===== Cards ===== -->
     <section class="pane" role="tabpanel" id="pane-cards" aria-labelledby="tab-cards" hidden>
-      <p class="note">Every card in packs: its rarity, the pack it comes from, how many copies players own and how many players own it. Retired cards (taken out of packs) are kept for the people who already pulled them.</p>
       <div class="stats" id="c-stats"></div>
       <div class="toolbar">
         <label class="field"><span class="kicker">Search</span><input type="search" id="c-search" placeholder="Card, player or series" autocomplete="off"></label>
@@ -483,12 +571,10 @@
     
     <!-- ===== Card packs ===== -->
     <section class="pane" role="tabpanel" id="pane-packs" aria-labelledby="tab-packs" hidden>
-      <p class="note">Set each pack's price in Credits. While "Open to everyone" is off, only PCMT Team staff and site admins can buy it, so you can test (a price of 0 is free). Odds and what's in each pack come from <span class="mono">tools/cards.py</span>.</p>
       <h3 class="kicker" style="margin: 4px 0 0">Packs</h3>
       <ul class="pg-list" id="pk-rows"></ul>
       <div class="bar"><button class="btn" id="pk-save" type="button">Save packs</button><p class="msg" id="pk-msg" role="status" aria-live="polite"></p></div>
       <h3 class="kicker" style="margin: 12px 0 0">Series</h3>
-      <p class="note" style="margin-top: -8px">Launch a whole series at once: every card in it is released together, into the packs named on its cards. Hold back the series to stop new pulls of all of them. </p>
       <p class="msg" id="ser-msg" role="status" aria-live="polite"></p>
       <ul class="pg-list" id="r-series"></ul>
     </section>
@@ -504,7 +590,6 @@
 
     <!-- ===== 4Ks & 5Ks ===== -->
     <section class="pane" role="tabpanel" id="pane-multi" aria-labelledby="tab-multi" hidden>
-      <p class="note">Enter each player's 4Ks and 5Ks for a series. 4K +1, 5K (ace) +3 (an ace counts as a 5K only). Everything else comes from PCMT.gg. The new points show on the site the next time a page loads, and Credits pay out with them.</p>
       <section class="panel">
         <label class="kicker" for="series">Series</label>
         <select id="series"></select>
@@ -519,7 +604,6 @@
 
     <!-- ===== Subs ===== -->
     <section class="pane" role="tabpanel" id="pane-subs" aria-labelledby="tab-subs" hidden>
-      <p class="note">When a player sits out and someone else plays in their place, enter it here and the sub's points go to the player they replaced: on their card, every deck with them, the Leaderboard and Credits. A sub lasts one gameweek: it counts in that week's series where the sub played for that player's team and the player didn't, and stays active until decks reopen. Nothing carries into later games. You can remove it until the gameweek ends; once that week's points are paid it's locked and moves to Past gameweeks. Changes show on the site the next time a page loads.</p>
       <form class="panel" id="sb-form" autocomplete="off" novalidate>
         <label class="field sb-game"><span class="kicker">Game</span><select id="sb-game"><option value="">Pick the game the sub played in</option></select></label>
         <div class="sb-row">
@@ -555,14 +639,12 @@
 
     <!-- ===== Patch notes ===== -->
     <section class="pane" role="tabpanel" id="pane-notes" aria-labelledby="tab-notes" hidden>
-      <p class="note">Write a patch note and press Go live: it shows at the top of the Home page for everyone, replacing the one before. The date fills in with today's date when it goes live. A blank line in the note starts a new paragraph.</p>
       <form class="panel" id="ver-form" autocomplete="off" novalidate>
         <div class="bar" style="align-items: flex-end">
-          <label class="field" style="flex: 0 1 260px"><span class="kicker">Current version</span><input id="ver-input" type="text" maxlength="20" placeholder="1.4" aria-describedby="ver-help"></label>
+          <label class="field" style="flex: 0 1 260px"><span class="kicker">Current version</span><input id="ver-input" type="text" maxlength="20" placeholder="1.4"></label>
           <button class="btn" id="ver-save" type="submit">Update version</button>
           <span class="msg" id="ver-msg" role="status" aria-live="polite"></span>
         </div>
-        <p class="note" id="ver-help" style="margin: 0">Shows at the bottom of every page as "Version …". Type just the number, like 1.4.</p>
       </form>
       <form class="panel pn-form" id="pn-form" autocomplete="off" novalidate>
         <div class="pn-top">
@@ -578,7 +660,6 @@
 
     <!-- ===== Champions panel (posted as a patch note) ===== -->
     <section class="pane" role="tabpanel" id="pane-champs" aria-labelledby="tab-champs" hidden>
-      <p class="note">Make a champions panel and post it as a patch note: when it goes live it's the patch note on Home (the newest live patch note shows there), with the team's logo, name, maps and stats like below, and your note under it. Pick a team to fill in its name, logo and colour; Fill players puts in that team's PCMT.gg roster. Posted panels are listed under the form (and in Patch notes) with Take down, Go live again and Delete.</p>
       <form class="panel" id="ch-form" autocomplete="off" novalidate>
         <div class="ch-grid">
           <label class="field"><span class="kicker">Patch note title</span><input id="ch-title" type="text" maxlength="120" value="NA Season 3 Champions"></label>
@@ -606,8 +687,26 @@
     </section>
 
     <!-- ===== Complaints ===== -->
+    <!-- ===== Staff ===== -->
+    <section class="pane" role="tabpanel" id="pane-staff" aria-labelledby="tab-staff" hidden>
+      <form class="panel" id="st-form" autocomplete="off" novalidate>
+        <div class="sb-row">
+          <div class="field sb-combo" style="flex: 1 1 320px">
+            <label class="kicker" for="st-who" id="st-who-label">Add to staff</label>
+            <input id="st-who" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="st-who-list" placeholder="Search a name" spellcheck="false">
+            <ul class="sb-list" id="st-who-list" role="listbox" aria-labelledby="st-who-label" hidden></ul>
+          </div>
+          <button class="btn" id="st-add" type="submit" disabled>Add</button>
+        </div>
+        <p class="msg" id="st-msg" role="status" aria-live="polite"></p>
+      </form>
+      <div class="sheet"><table class="grid">
+        <thead><tr><th class="plain" scope="col">Staff</th><th class="plain" scope="col">Added</th><th class="plain" scope="col"><span class="sr-only">Remove</span></th></tr></thead>
+        <tbody id="st-rows"></tbody>
+      </table></div>
+    </section>
+
     <section class="pane" role="tabpanel" id="pane-complaints" aria-labelledby="tab-complaints" hidden>
-      <p class="note">Everything sent from the "comments and complaints always welcome :)" box on the Home page, newest first. Players can write logged in or logged out (up to 50 words). Press Settled once it's dealt with: that deletes it for good (you'll be asked to press again to make sure).</p>
       <div class="toolbar">
         <label class="field"><span class="kicker">Search</span><input type="search" id="cx-search" placeholder="Words or player" autocomplete="off"></label>
         <span class="spacer"></span>
@@ -623,6 +722,7 @@
 <footer><div><span>fantasy.pcmt.gg · Plat Chat Members Tourney</span><span style="display: flex; flex-wrap: wrap; gap: 6px 18px"><a href="#privacy" data-pcmt-privacy>Privacy notice</a><a href="#settings" data-pcmt-settings>Settings</a><span>PCMT Team backend</span></span></div><p style="max-width: 1280px; margin: 0 auto; padding: 0 24px 22px; font-family: 'National Park', system-ui, sans-serif; font-size: 11px; line-height: 1.6; color: #93a9aa"><span style="display: block; margin-bottom: 6px; font-size: 12px; color: #c4d4d4">A <b style="font-weight: 700; color: #eaf4f4">PCMT</b> product</span>fantasy.pcmt.gg was created under Riot Games' <a href="https://www.riotgames.com/en/legal" target="_blank" rel="noopener" style="color: #a5dcdd">&quot;Legal Jibber Jabber&quot;</a> policy using assets owned by Riot Games. Riot Games does not endorse or sponsor this project.</p></footer>
 
 <script src="data.js"></script>
+<script src="pickems.js"></script>
 <script src="players.js"></script>
 <script src="trumps-cards.js"></script>
 <script src="league.js"></script>
@@ -693,7 +793,7 @@
   })();
 
   // ---------- tabs ----------
-  var TABS = ['pages', 'prices', 'teams', 'cards', 'packs', 'multi', 'subs', 'notes', 'champs', 'complaints'];
+  var TABS = ['dash', 'pages', 'schedule', 'season', 'pickems', 'prices', 'teams', 'cards', 'packs', 'multi', 'subs', 'notes', 'champs', 'complaints', 'staff'];
   function openTab(name, focus) {
     TABS.forEach(function (t) {
       var on = t === name, tab = $('tab-' + t);
@@ -714,6 +814,7 @@
 
   // ---------- player prices ----------
   var LOG = [], edits = {}, info = {}, pSort = { key: 'team', dir: 1 };   // info: { <id>: { name, team, region, role, base } } edits to the player
+  var ADDS = [];   // new players from an uploaded sheet: { name, team, region, role, price, champ }, saved with Save
   var REMOVED = {}, removedReady = true, storeBusy = {};   // REMOVED: { <player id>: { removed_at, removed_by } }
   function latest(id) { var c = null; LOG.forEach(function (x) { if (x.player === id) c = x; }); return c; }
   function current(id) { var c = latest(id); return c && c.price != null ? +c.price : BASE[id]; }
@@ -750,9 +851,9 @@
           : '<button type="button" class="link danger" data-store="remove" data-pid="' + esc(r.id) + '" aria-label="Remove ' + esc(r.name) + ' from the store">Remove</button>') + '</td></tr>';
     }).join('') : '<tr><td colspan="10" class="dim">No players match.</td></tr>';
     markSort($('p-table'), pSort);
-    var n = Object.keys(edits).length, m = Object.keys(info).length;
-    $('p-save').disabled = !(n + m); $('p-undo').disabled = !(n + m);
-    $('p-save').textContent = n + m ? 'Save ' + (m ? m + ' player' + (m === 1 ? '' : 's') : '') + (m && n ? ' and ' : '') + (n ? n + ' price' + (n === 1 ? '' : 's') : '') : 'Save changes';
+    var n = Object.keys(edits).length, m = Object.keys(info).length, a = ADDS.length;
+    $('p-save').disabled = !(n + m + a); $('p-undo').disabled = !(n + m + a);
+    $('p-save').textContent = n + m + a ? 'Save ' + [a ? a + ' new player' + (a === 1 ? '' : 's') : '', m ? m + ' player' + (m === 1 ? '' : 's') : '', n ? n + ' price' + (n === 1 ? '' : 's') : ''].filter(Boolean).join(', ').replace(/, ([^,]*)$/, ' and $1') : 'Save changes';
     $('team-codes').innerHTML = teamList().filter(function (t) { return !t.retired; }).map(function (t) { return '<option value="' + esc(t.code) + '">' + esc(t.name) + '</option>'; }).join('');
   }
   function pSay(t, cls) { $('p-msg').textContent = t; $('p-msg').className = 'msg' + (cls ? ' ' + cls : ''); }
@@ -801,7 +902,7 @@
   // Search boxes redraw as you type; not again when they lose focus, or a click on a row button would be lost mid-redraw.
   ['p-search', 'p-region', 'p-changed', 'p-removed'].forEach(function (id) { $(id).addEventListener($(id).type === 'search' ? 'input' : 'change', drawPrices); });
   wireSort($('p-table'), pSort, drawPrices);
-  $('p-undo').addEventListener('click', function () { edits = {}; info = {}; pSay(''); drawPrices(); });
+  $('p-undo').addEventListener('click', function () { edits = {}; info = {}; ADDS = []; skips([]); pSay(''); drawPrices(); });
   // One player as a deck_players row (the full row: the server keeps whole players, not single fields).
   function deckRow(p, inf) {
     inf = inf || {};
@@ -826,11 +927,14 @@
   }
   $('p-save').addEventListener('click', function () {
     var body = Object.keys(edits).map(function (id) { return { player: id, price: edits[id] }; });
-    var rows = Object.keys(info).map(function (id) { return deckRow(BY_ID[id], info[id]); });
+    var rows = Object.keys(info).map(function (id) { return deckRow(BY_ID[id], info[id]); }).concat(ADDS.map(function (a) {
+      var t = teamOf(a.team);
+      return { id: newId(a.name, a.team), name: a.name, team: a.team, role: a.role, region: t && t.region === a.region ? null : a.region, price: a.price, champ: a.champ == null ? null : a.champ };
+    }));
     if (!body.length && !rows.length) return;
     $('p-save').disabled = true; pSay('Saving…');
     saveRows(rows).then(function () {
-      info = {};
+      info = {}; ADDS = []; skips([]);
       if (!body.length) return;
       return L.api('/rest/v1/player_price_changes', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: body })
         .then(function () { return loadPrices(); }).then(function () { edits = {}; });
@@ -868,6 +972,128 @@
     csv('pcmt-player-prices.csv', ['Player', 'Player id', 'Team', 'Region', 'Role', 'Start price', 'Price', 'Last change', 'Changed by', 'In the store'],
       sortBy(priceRows(), pSort.key, pSort.dir).map(function (r) { return [r.name, r.id, r.team, r.region, r.role, r.base, r.price, r.when ? new Date(r.when).toISOString() : '', r.by, r.removed ? 'No (removed)' : 'Yes']; }));
   });
+  // ---------- Upload sheet: an Excel / Google Sheets / CSV file of players, read here and lined up as edits for Save ----------
+  // Columns are found by their heading (the Download CSV headings work): Player, Player id, Team, Region, Role, Trophy,
+  // Start price, Price. A row finds its player by id, then by name and team, then by name alone; a row with a new
+  // name, a team and a price becomes a new player.
+  var XLSX_URL = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+  function loadXlsx() {
+    if (window.XLSX) return Promise.resolve(window.XLSX);
+    return new Promise(function (ok, no) {
+      var sc = document.createElement('script'); sc.src = XLSX_URL; sc.async = true;
+      sc.onload = function () { window.XLSX ? ok(window.XLSX) : no(new Error('the sheet reader didn\'t load')); };
+      sc.onerror = function () { no(new Error('the sheet reader didn\'t load (check the connection)')); };
+      document.head.appendChild(sc);
+    });
+  }
+  function parseDelimited(text) {   // CSV or TSV, with quoted cells
+    text = text.replace(/^﻿/, '');
+    var first = text.split(/\r?\n/)[0] || '', sep = (first.match(/\t/g) || []).length > (first.match(/,/g) || []).length ? '\t' : (first.match(/;/g) || []).length > (first.match(/,/g) || []).length ? ';' : ',';
+    var rows = [], row = [], cell = '', q = false;
+    for (var i = 0; i < text.length; i++) {
+      var c = text[i];
+      if (q) { if (c === '"') { if (text[i + 1] === '"') { cell += '"'; i++; } else q = false; } else cell += c; }
+      else if (c === '"') q = true;
+      else if (c === sep) { row.push(cell); cell = ''; }
+      else if (c === '\n' || c === '\r') { if (c === '\r' && text[i + 1] === '\n') i++; row.push(cell); rows.push(row); row = []; cell = ''; }
+      else cell += c;
+    }
+    if (cell !== '' || row.length) { row.push(cell); rows.push(row); }
+    return rows;
+  }
+  function readSheet(file) {
+    if (/\.(csv|tsv|txt)$/i.test(file.name)) return file.text().then(parseDelimited);
+    return Promise.all([loadXlsx(), file.arrayBuffer()]).then(function (x) {
+      var wb = x[0].read(x[1], { type: 'array' }), best = [];
+      wb.SheetNames.forEach(function (n) {   // the tab with a Player or Player id heading; else the first
+        var rows = x[0].utils.sheet_to_json(wb.Sheets[n], { header: 1, raw: true, defval: '' });
+        if (!best.length || (!sheetHead(best) && sheetHead(rows))) best = rows;
+      });
+      return best;
+    });
+  }
+  var SHEET_COLS = {
+    id: ['playerid', 'id'], name: ['player', 'name', 'playername', 'ign'], team: ['team', 'teamcode', 'code'], region: ['region'],
+    role: ['role'], champ: ['trophy', 'champ', 'champion'], base: ['startprice', 'start', 'baseprice', 'base'], price: ['price', 'currentprice', 'newprice', 'cost']
+  };
+  function sheetHead(rows) {   // { at: header row index, col: { name: i, ... } } or null
+    for (var r = 0; r < Math.min(rows.length, 10); r++) {
+      var col = {};
+      (rows[r] || []).forEach(function (h, i) {
+        var k = String(h).toLowerCase().replace(/[^a-z]/g, '');
+        Object.keys(SHEET_COLS).forEach(function (f) { if (col[f] == null && SHEET_COLS[f].indexOf(k) >= 0) col[f] = i; });
+      });
+      if (col.name != null || col.id != null) return { at: r, col: col };
+    }
+    return null;
+  }
+  function sheetRegion(v) { v = String(v).trim().toUpperCase(); return v === 'NA' || v === 'NORTH AMERICA' || v === 'AMERICAS' ? 'NA' : v === 'EMEA' || v === 'EU' || v === 'EUROPE' ? 'EMEA' : v ? false : ''; }
+  function sheetRole(v) { v = String(v).trim().toLowerCase(); if (!v) return ''; if (AGENT_ROLE[v]) return AGENT_ROLE[v]; var r = ROLES.filter(function (x) { return x.indexOf(v) === 0 || v.indexOf(x) === 0; })[0]; return r || false; }
+  function sheetPrice(v) { if (v === '' || v == null) return ''; var n = typeof v === 'number' ? v : +String(v).replace(/[^0-9.\-]/g, ''); return isFinite(n) && n >= 0 && n <= 30 && Math.round(n * 2) === n * 2 ? n : false; }
+  function sheetYes(v) { v = String(v).trim().toLowerCase(); return v === '' ? '' : /^(y|yes|true|1|x|🏆|champ|champion)$/.test(v) ? true : /^(n|no|false|0|-)$/.test(v) ? false : ''; }
+  function skips(list) {
+    var all = ADDS.map(function (a) { return '<li><b>New player</b> · ' + esc(a.name) + ' · ' + esc(a.team) + ' · ' + esc(a.region) + ' · ' + esc(cap(a.role)) + ' · ' + (+a.price).toFixed(1) + '</li>'; })
+      .concat(list.map(function (x) { return '<li><b>Row ' + x.row + ' left out</b> · ' + esc(x.why) + '</li>'; }));
+    $('p-skips').hidden = !all.length; $('p-skips').innerHTML = all.join('');
+  }
+  function applySheet(rows) {
+    var h = sheetHead(rows);
+    if (!h) return pSay('No Player or Player id column found in that sheet.', 'err');
+    var c = h.col, list = PLAYERS_NOW(), bad = [], seen = {}, nP = 0, nI = 0, nA = 0, same = 0;
+    var cell = function (row, f) { return c[f] == null ? '' : row[c[f]] == null ? '' : row[c[f]]; };
+    ADDS = [];
+    for (var r = h.at + 1; r < rows.length; r++) {
+      var row = rows[r] || [], line = r + 1;
+      var id = String(cell(row, 'id')).trim(), name = String(cell(row, 'name')).trim(), team = String(cell(row, 'team')).replace(/\s+/g, '');
+      if (!id && !name) continue;
+      var reg = sheetRegion(cell(row, 'region')), rl = sheetRole(cell(row, 'role')), base = sheetPrice(cell(row, 'base')), price = sheetPrice(cell(row, 'price')), champ = sheetYes(cell(row, 'champ'));
+      if (team && !/^[A-Za-z0-9]{1,8}$/.test(team)) { bad.push({ row: line, why: '"' + team + '" isn\'t a team code (1 to 8 letters or numbers).' }); continue; }
+      if (reg === false) { bad.push({ row: line, why: 'region "' + cell(row, 'region') + '" should be NA or EMEA.' }); continue; }
+      if (rl === false) { bad.push({ row: line, why: 'role "' + cell(row, 'role') + '" isn\'t a role or agent.' }); continue; }
+      if (base === false || price === false) { bad.push({ row: line, why: 'prices go from 0 to 30 in steps of 0.5.' }); continue; }
+      var lo = name.toLowerCase(), p = id && BY_ID[id];
+      if (!p && name && team) p = list.filter(function (x) { return x.name.toLowerCase() === lo && x.team.toLowerCase() === team.toLowerCase(); })[0];
+      if (!p && name) { var byName = list.filter(function (x) { return x.name.toLowerCase() === lo; }); if (byName.length === 1) p = byName[0]; else if (byName.length > 1) { bad.push({ row: line, why: name + ' is on more than one team: add a Team or Player id column.' }); continue; } }
+      if (!p) {
+        if (id && !name) { bad.push({ row: line, why: 'no player has the id "' + id + '".' }); continue; }
+        var np = base !== '' ? base : price, t = teamOf(team);
+        if (!team || np === '') { bad.push({ row: line, why: name + ' isn\'t on the site: a new player needs a team and a price.' }); continue; }
+        if (!t && !reg) { bad.push({ row: line, why: team + ' isn\'t a team yet: add a Region column, or add the team on the Teams tab first.' }); continue; }
+        ADDS.push({ name: name, team: t ? t.code : team, region: reg || t.region, role: rl || 'duelist', price: np, champ: champ === '' ? null : champ });
+        nA++; continue;
+      }
+      if (seen[p.id]) { bad.push({ row: line, why: p.name + ' is already on row ' + seen[p.id] + '; this row is left out.' }); continue; }
+      seen[p.id] = line;
+      if (team) { var tt = teamOf(team); if (tt) team = tt.code; }
+      var want = { name: name || null, team: team || null, region: reg || null, role: rl || null, base: base === '' ? null : base, champ: champ === '' ? null : champ };
+      var was = { name: p.name, team: p.team, region: regionOf(p), role: role(p), base: BASE[p.id], champ: isChamp(p.id) };
+      var inf = Object.assign({}, info[p.id]), changed = false;
+      Object.keys(want).forEach(function (k) {
+        if (want[k] == null || (k === 'name' && !id)) return;   // matched by name: the name stays as it is
+        if (want[k] === was[k]) delete inf[k]; else { inf[k] = want[k]; changed = true; }
+      });
+      if (Object.keys(inf).length) info[p.id] = inf; else delete info[p.id];
+      if (changed) nI++;
+      if (price !== '') {
+        var cur = current(p.id);
+        if (price === cur) delete edits[p.id]; else { edits[p.id] = price === BASE[p.id] && cur !== BASE[p.id] ? null : price; nP++; changed = true; }
+      }
+      if (!changed) same++;
+    }
+    skips(bad);
+    var parts = [nP ? nP + ' price' + (nP === 1 ? '' : 's') : '', nI ? nI + ' player' + (nI === 1 ? '' : 's') + ' changed' : '', nA ? nA + ' new player' + (nA === 1 ? '' : 's') : ''].filter(Boolean);
+    if (parts.length) { $('p-changed').checked = true; }
+    drawPrices();
+    pSay(parts.length ? 'From the sheet: ' + parts.join(', ') + (same ? ' (' + same + ' unchanged)' : '') + (bad.length ? ' · ' + bad.length + ' row' + (bad.length === 1 ? '' : 's') + ' left out' : '') + '. Check them, then Save.'
+                      : 'Nothing in the sheet differs from the site' + (bad.length ? ' · ' + bad.length + ' row' + (bad.length === 1 ? '' : 's') + ' left out' : '') + '.', parts.length ? 'ok' : (bad.length ? 'err' : ''));
+  }
+  $('p-sheet-btn').addEventListener('click', function () { $('p-sheet').value = ''; $('p-sheet').click(); });
+  $('p-sheet').addEventListener('change', function () {
+    var f = $('p-sheet').files[0]; if (!f) return;
+    if (f.size > 5e6) return pSay('That file is over 5 MB.', 'err');
+    pSay('Reading ' + f.name + '…');
+    readSheet(f).then(applySheet, function (e) { pSay('Couldn\'t read ' + f.name + ': ' + e.message, 'err'); });
+  });
   function loadRemoved() {
     return L.apiAll('/rest/v1/store_removed_players?select=player,removed_at,removed_by&order=player')
       .then(function (r) { removedReady = true; REMOVED = {}; (r || []).forEach(function (x) { REMOVED[x.player] = x; }); },
@@ -877,7 +1103,7 @@
     return L.apiAll('/rest/v1/player_price_changes?select=player,price,changed_at,changed_by&order=changed_at.asc,id.asc')
       .then(function (r) { LOG = r || []; });
   }
-  window.addEventListener('beforeunload', function (e) { if (Object.keys(edits).length || Object.keys(info).length || tmDirty || multiDirty) { e.preventDefault(); e.returnValue = ''; } });
+  window.addEventListener('beforeunload', function (e) { if (Object.keys(edits).length || Object.keys(info).length || ADDS.length || tmDirty || multiDirty) { e.preventDefault(); e.returnValue = ''; } });
   var ROLES = ['duelist', 'initiator', 'controller', 'sentinel'];
   function loadDeck() {
     return Promise.all([
@@ -1221,7 +1447,7 @@
     var s = cur, wrap = $('teams');
     if (!s) { wrap.hidden = true; $('savebar').hidden = true; return; }
     $('series-note').textContent = s.result ? 'Result is in (' + s.result.winner + ' won). Points update as soon as you save.'
-      : 'No result yet. You can enter them now; they count once the result is added (the results check runs every 6 hours).';
+      : 'No result yet.';
     wrap.innerHTML = [s.m.a, s.m.b].map(function (team) {
       return '<section class="panel" aria-label="' + esc(team) + '"><span class="kicker">' + esc(team) + '</span><div class="mk-scroll"><table class="mk"><thead><tr><th>Player</th>' + KINDS.map(function (k) { return '<th class="n">' + k[1] + '</th>'; }).join('') + '<th class="pts">Pts</th></tr></thead><tbody>' +
         teamPlayers(s, team).map(function (id) {
@@ -1924,6 +2150,271 @@
     (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { b.textContent = 'Copied'; }, function () { b.textContent = 'Select the text and copy it'; });
   });
 
+  // ===================== Backend overhaul: Dashboard, Schedule, Season, Pick'ems, Staff =====================
+  // All need setup/backend-overhaul.sql; until it's run each shows a short "run the setup" line instead.
+  var NEED_SQL = 'Needs setup/backend-overhaul.sql in Supabase.';
+  function etParts(t) {
+    var p = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date(t));
+    var g = function (k) { return (p.filter(function (x) { return x.type === k; })[0] || {}).value; };
+    return { y: g('year'), m: g('month'), d: g('day'), h: g('hour'), mi: g('minute') };
+  }
+  // A time for a datetime-local box, in New York time, and back.
+  function toEtInput(t) { if (t == null || isNaN(t)) return ''; var q = etParts(t); return q.y + '-' + q.m + '-' + q.d + 'T' + q.h + ':' + q.mi; }
+  function fromEtInput(v) {
+    var m = /^(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d)$/.exec(v || ''); if (!m) return null;
+    var guess = Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]);
+    for (var i = 0; i < 3; i++) { var q = etParts(guess), shown = Date.UTC(+q.y, +q.m - 1, +q.d, +q.h, +q.mi); guess += Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]) - shown; }
+    return guess;
+  }
+  function etWhen(t) { return new Date(t).toLocaleString('en-US', { timeZone: 'America/New_York', weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }); }
+  function nfmt(n) { return Number(n || 0).toLocaleString('en-US'); }
+  function ago(t) {
+    var m = Math.round((Date.now() - Date.parse(t)) / 60000);
+    return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : Math.round(m / 1440) + ' d ago';
+  }
+
+  // ---------- Dashboard ----------
+  var DASH = null, dashErr = '';
+  function loadDash() {
+    return L.api('/rest/v1/rpc/fb_dashboard', { method: 'POST', body: {} }).then(function (d) { DASH = d; dashErr = ''; })
+      .catch(function (e) { DASH = null; dashErr = /fb_dashboard|404|PGRST202/.test(e.message) ? NEED_SQL : 'Couldn\'t load the numbers: ' + e.message; });
+  }
+  function bars(el, rows) {
+    var max = Math.max.apply(null, (rows || []).map(function (r) { return r.n; }).concat([1]));
+    el.innerHTML = (rows || []).map(function (r) {
+      var d = new Date(r.day + 'T12:00:00Z');
+      return '<div title="' + esc(r.day + ': ' + r.n) + '"><b>' + (r.n || '') + '</b><i style="height:' + Math.max(2, Math.round(r.n / max * 86)) + 'px"></i><small>' + (d.getUTCMonth() + 1) + '/' + d.getUTCDate() + '</small></div>';
+    }).join('') || '<p class="who">Nothing yet.</p>';
+  }
+  function drawDash() {
+    var d = DASH || {};
+    $('db-msg').className = 'msg' + (dashErr ? ' err' : ''); $('db-msg').textContent = dashErr;
+    $('db-when').textContent = d.now ? 'Updated ' + etWhen(Date.parse(d.now)) + ' EST' : '';
+    bars($('db-signups'), d.signups);
+    bars($('db-views'), d.views);
+    var pages = Object.keys(d.views_by_page_7d || {}).map(function (k) { return [k, d.views_by_page_7d[k]]; }).sort(function (a, b) { return b[1] - a[1]; }).slice(0, 8);
+    $('db-pages').innerHTML = pages.map(function (x) { return '<li><span>' + esc(x[0]) + '.html</span><b>' + nfmt(x[1]) + '</b></li>'; }).join('') ||
+      '<li><span class="who">' + (DASH ? 'No page views counted yet.' : '') + '</span></li>';
+    // Coming up: the next games, and the deck locks
+    var now = Date.now(), games = (window.PCMT_MATCHES || []).filter(function (m) { return Date.parse(m.start) > now - 3 * 3600e3; })
+      .sort(function (a, b) { return Date.parse(a.start) - Date.parse(b.start); }).slice(0, 6);
+    var S = window.PCMT_SEASON && window.PCMT_SEASON.naStage, emea = L.nextWeekLock ? L.nextWeekLock(now) : null, lines = [];
+    if (S && S.lock > now) lines.push('<li><span>NA decks lock</span><b>' + esc(etWhen(S.lock)) + '</b></li>');
+    else if (S && (!S.end || now < S.end)) lines.push('<li><span>NA decks</span><b>Locked for Stage 1' + (S.end ? ' until ' + esc(etWhen(S.end)) : '') + '</b></li>');
+    if (emea) lines.push('<li><span>EMEA decks lock</span><b>' + esc(etWhen(emea)) + '</b></li>');
+    games.forEach(function (m) { lines.push('<li><span>' + esc(m.a + ' vs ' + m.b) + ' <span class="who">' + esc(m.region || '') + ' · Bo' + esc(m.bo || 3) + (m.extra ? ' · added here' : '') + '</span></span><b>' + esc(etWhen(Date.parse(m.start))) + '</b></li>'); });
+    $('db-next').innerHTML = lines.join('') || '<li><span class="who">No games on the schedule.</span></li>';
+    // Site health
+    var h = [], ls = d.last_sync;
+    if (ls) h.push('<li><span>Credits run</span><b class="' + (ls.ok ? 'ok' : 'bad') + '">' + (ls.ok ? 'OK' : 'Failed') + ' · ' + esc(ago(ls.at)) + '</b></li>');
+    if (DASH) h.push('<li><span>Failed runs, 24 h</span><b class="' + (d.syncs_failed_24h ? 'bad' : 'ok') + '">' + nfmt(d.syncs_failed_24h) + '</b></li>');
+    if (d.pickems_synced) h.push('<li><span>Pick\'ems synced</span><b>' + esc(ago(d.pickems_synced)) + '</b></li>');
+    var lastRes = (window.PCMT_RESULTS || []).map(function (r) { return Date.parse(r.start); }).sort(function (a, b) { return b - a; })[0];
+    if (lastRes) h.push('<li><span>Newest result</span><b>' + esc(etWhen(lastRes)) + '</b></li>');
+    if (ls && !ls.ok && ls.message) h.push('<li><span class="bad">' + esc(ls.message) + '</span></li>');
+    $('db-health').innerHTML = h.join('') || '<li><span class="who">' + (DASH ? '' : '—') + '</span></li>';
+    // Pick'ems: who picked what, per game, for open events
+    var P = window.PCMT_PICKEMS || [];
+    $('db-pickems').innerHTML = (d.pickems || []).filter(function (e) { return e.open || e.pickers; }).map(function (e) {
+      var B = P.filter(function (b) { return b.id === e.id || b.id === e.event; })[0], split = e.split || {};
+      var rows = Object.keys(split).map(Number).sort(function (a, b) { return a - b; }).map(function (n) {
+        var s = B ? (B.series || []).filter(function (x) { return x.n === n; })[0] : null, w = split[n], tot = 0;
+        Object.keys(w).forEach(function (k) { tot += w[k]; });
+        var code = function (x) { return (B && B.seeds && B.seeds[x]) || x; }, sa = s && code(s.a), sb = s && code(s.b);
+        var order = s ? [sa, sb].filter(function (k) { return k in w; }).concat(Object.keys(w).filter(function (k) { return k !== sa && k !== sb; })) : Object.keys(w);
+        var named = s && !/^[WL]\d+$/.test(sa) && !/^[WL]\d+$/.test(sb);
+        var label = (named ? sa + ' vs ' + sb : (s && s.round) || 'Game ' + n) + (s && s.score ? ' · done' : '');
+        return '<span>' + esc(label) + '</span><div class="bar">' + order.map(function (k, i) { var pc = Math.round(w[k] / tot * 100); return '<span style="width:' + pc + '%;' + (i === 0 ? 'background:var(--accent)' : i > 1 ? 'background:#22333a;color:var(--ink)' : '') + '" title="' + esc(k + ': ' + w[k]) + '">' + esc(k) + ' ' + pc + '%</span>'; }).join('') + '</div>';
+      }).join('');
+      return '<p class="db-ev">' + esc(e.event) + ' · ' + nfmt(e.pickers) + ' players · ' + nfmt(e.worth) + ' per right pick' + (e.open ? '' : ' · closed') + '</p>' + (rows ? '<div class="db-split">' + rows + '</div>' : '<p class="who">No picks yet.</p>');
+    }).join('') || '<p class="who">' + (DASH ? 'No Pick\'ems events open.' : '') + '</p>';
+  }
+  $('db-refresh').addEventListener('click', function () { var b = this; b.disabled = true; loadDash().then(drawDash).then(function () { b.disabled = false; }); });
+
+  // ---------- Schedule ----------
+  var SCHED = [], schedErr = '', scEdit = null, scBusy = false, scArmed = null;
+  function loadSchedule() {
+    return L.apiAll('/rest/v1/schedule_games?select=id,region,start,a,b,bo,round,pickem,removed,created_by&order=start').then(function (r) { SCHED = r || []; schedErr = ''; })
+      .catch(function (e) { SCHED = []; schedErr = /schedule_games|404|PGRST205|42P01/.test(e.message) ? NEED_SQL : e.message; });
+  }
+  function scTeams(region) {
+    return teamList().filter(function (t) { return (t.region || 'NA') === region && !t.retired; }).sort(function (a, b) { return a.code.localeCompare(b.code); });
+  }
+  function scFillTeams(keepA, keepB) {
+    var reg = $('sc-region').value, opts = scTeams(reg).map(function (t) { return '<option value="' + esc(t.code) + '">' + esc(t.code + ' · ' + (t.name || '')) + '</option>'; }).join('');
+    $('sc-a').innerHTML = opts; $('sc-b').innerHTML = opts;
+    if (keepA) $('sc-a').value = keepA;
+    if (keepB) $('sc-b').value = keepB; else if ($('sc-b').options.length > 1 && $('sc-b').value === $('sc-a').value) $('sc-b').selectedIndex = 1;
+  }
+  function scReset() {
+    scEdit = null; $('sc-title').textContent = 'Add a game'; $('sc-save').textContent = 'Add game'; $('sc-cancel').hidden = true;
+    $('sc-when').value = ''; $('sc-round').value = ''; $('sc-bo').value = '3'; $('sc-pickem').checked = true; scFillTeams();
+  }
+  function drawSchedule() {
+    var now = Date.now(), mine = {};
+    SCHED.forEach(function (g) { mine[g.id] = g; });
+    var list = (window.PCMT_MATCHES || []).filter(function (m) { return Date.parse(m.start) > now - 6 * 3600e3; }).map(function (m) { return { m: m, g: m.extra ? mine[m.extra] : null }; });
+    SCHED.forEach(function (g) { if (!g.removed && Date.parse(g.start) > now - 6 * 3600e3 && !list.some(function (x) { return x.g === g; })) list.push({ m: { region: g.region, start: g.start, a: g.a, b: g.b, bo: g.bo }, g: g }); });
+    list.sort(function (x, y) { return Date.parse(x.m.start) - Date.parse(y.m.start); });
+    $('sc-rows').innerHTML = list.map(function (x) {
+      var m = x.m, g = x.g, armed = g && scArmed === g.id;
+      return '<tr><td>' + esc(etWhen(Date.parse(m.start))) + '</td><td><b>' + esc(m.a) + '</b> vs <b>' + esc(m.b) + '</b> <span class="who">Bo' + esc(m.bo || 3) + '</span></td><td>' + esc(m.region || 'NA') + '</td>' +
+        '<td>' + esc((g && g.round) || '') + '</td><td class="who">' + (m.url ? 'PCMT.gg' : g ? 'Added here' + (g.pickem ? ' · Pick\'ems' : '') : 'By hand') + '</td>' +
+        '<td style="text-align:right;white-space:nowrap">' + (g && !m.url ? '<button class="btn ghost" type="button" data-sc-edit="' + g.id + '">Edit</button> <button class="btn ghost danger" type="button" data-sc-del="' + g.id + '"' + (scBusy ? ' disabled' : '') + '>' + (armed ? 'Press again to remove' : 'Remove') + '</button>' : '') + '</td></tr>';
+    }).join('') || '<tr><td colspan="6" class="who">' + esc(schedErr || 'No games coming up.') + '</td></tr>';
+    $('sc-save').disabled = scBusy || !!schedErr;
+  }
+  $('sc-region').addEventListener('change', function () { scFillTeams(); });
+  $('sc-cancel').addEventListener('click', function () { scReset(); $('sc-msg').textContent = ''; });
+  $('sc-rows').addEventListener('click', function (e) {
+    var ed = e.target.closest('[data-sc-edit]'), del = e.target.closest('[data-sc-del]');
+    if (ed) {
+      var g = SCHED.filter(function (x) { return String(x.id) === ed.getAttribute('data-sc-edit'); })[0]; if (!g) return;
+      scEdit = g.id; $('sc-title').textContent = 'Edit ' + g.a + ' vs ' + g.b; $('sc-save').textContent = 'Save game'; $('sc-cancel').hidden = false;
+      $('sc-region').value = g.region; scFillTeams(g.a, g.b); $('sc-when').value = toEtInput(Date.parse(g.start)); $('sc-bo').value = String(g.bo);
+      $('sc-round').value = g.round || ''; $('sc-pickem').checked = !!g.pickem; $('sc-msg').textContent = '';
+      $('sc-form').scrollIntoView({ behavior: 'smooth', block: 'start' }); $('sc-when').focus();
+    }
+    if (del) {
+      var id = +del.getAttribute('data-sc-del');
+      if (scArmed !== id) { scArmed = id; drawSchedule(); return; }
+      scArmed = null; scBusy = true; drawSchedule();
+      L.api('/rest/v1/schedule_games?id=eq.' + id, { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: { removed: true, updated_at: new Date().toISOString(), updated_by: L.myId } }).then(function () {
+        SCHED.forEach(function (g) { if (g.id === id) g.removed = true; });
+        var M = window.PCMT_MATCHES || [], at = M.findIndex(function (m) { return m.extra === id && !m.url; }); if (at >= 0) M.splice(at, 1);
+        $('sc-msg').className = 'msg ok'; $('sc-msg').textContent = 'Removed. It leaves the site at the next sync (within the hour).';
+      }).catch(function (e) { $('sc-msg').className = 'msg err'; $('sc-msg').textContent = 'Couldn\'t remove it: ' + e.message; })
+        .then(function () { scBusy = false; drawSchedule(); drawDash(); });
+    }
+  });
+  $('sc-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var msg = $('sc-msg'), t = fromEtInput($('sc-when').value), a = $('sc-a').value, b = $('sc-b').value;
+    msg.className = 'msg err';
+    if (!t) { msg.textContent = 'Pick the date and time.'; return; }
+    if (!a || !b || a === b) { msg.textContent = 'Pick two different teams.'; return; }
+    var body = { region: $('sc-region').value, start: new Date(t).toISOString(), a: a, b: b, bo: +$('sc-bo').value, round: $('sc-round').value.trim(), pickem: $('sc-pickem').checked, updated_at: new Date().toISOString(), updated_by: L.myId };
+    scBusy = true; drawSchedule(); msg.className = 'msg'; msg.textContent = 'Saving…';
+    var req = scEdit ? L.api('/rest/v1/schedule_games?id=eq.' + scEdit, { method: 'PATCH', headers: { Prefer: 'return=representation' }, body: body })
+      : L.api('/rest/v1/schedule_games', { method: 'POST', headers: { Prefer: 'return=representation' }, body: Object.assign({ created_by: L.myId }, body) });
+    req.then(function (rows) {
+      var row = (rows || [])[0];
+      if (row) { var at = SCHED.findIndex(function (g) { return g.id === row.id; }); if (at >= 0) SCHED[at] = row; else SCHED.push(row); }
+      var M = window.PCMT_MATCHES = window.PCMT_MATCHES || [], m = row && M.filter(function (x) { return x.extra === row.id; })[0];
+      if (row && m && !m.url) Object.assign(m, { region: row.region, start: row.start, a: row.a, b: row.b, bo: row.bo });
+      else if (row && !m) M.push({ region: row.region, start: row.start, a: row.a, b: row.b, bo: row.bo, hours: 3, extra: row.id });
+      msg.className = 'msg ok'; msg.textContent = (scEdit ? 'Saved ' : 'Added ') + a + ' vs ' + b + ', ' + etWhen(t) + ' EST. It shows on the site straight away' + (body.pickem ? ' and in Pick\'ems at the next sync (within the hour).' : '.');
+      scReset();
+    }).catch(function (e2) { msg.className = 'msg err'; msg.textContent = 'Couldn\'t save it: ' + e2.message; })
+      .then(function () { scBusy = false; drawSchedule(); drawDash(); });
+  });
+
+  // ---------- Season (NA stage dates, site_settings 'na_stage') ----------
+  var seasonRow = null, seasonErr = '';
+  function loadSeason() {
+    return L.api('/rest/v1/site_settings?select=value,updated_at,updated_by&key=eq.na_stage').then(function (r) { seasonRow = (r || [])[0] || null; seasonErr = ''; })
+      .catch(function (e) { seasonRow = null; seasonErr = e.message; });
+  }
+  function drawSeason() {
+    var S = (window.PCMT_SEASON && window.PCMT_SEASON.naStage) || {};
+    $('se-start').value = toEtInput(S.start); $('se-lock').value = toEtInput(S.lock); $('se-end').value = S.end ? toEtInput(S.end) : '';
+    $('se-now').textContent = seasonRow ? 'Last saved ' + etWhen(Date.parse(seasonRow.updated_at)) + (NAMES[seasonRow.updated_by] ? ' by ' + NAMES[seasonRow.updated_by] : '') + '.' : 'Using the dates built into the site.';
+    if (seasonErr) { $('se-msg').className = 'msg err'; $('se-msg').textContent = seasonErr; }
+  }
+  $('se-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var msg = $('se-msg'), st = fromEtInput($('se-start').value), lk = fromEtInput($('se-lock').value), en = $('se-end').value ? fromEtInput($('se-end').value) : null;
+    msg.className = 'msg err';
+    if (!st || !lk) { msg.textContent = 'Fill in the start and the lock.'; return; }
+    if ($('se-end').value && !en) { msg.textContent = 'The end date isn\'t a date.'; return; }
+    if (en && en <= lk) { msg.textContent = 'The end has to be after the lock.'; return; }
+    var value = JSON.stringify({ start: new Date(st).toISOString(), lock: new Date(lk).toISOString(), end: en ? new Date(en).toISOString() : null });
+    $('se-save').disabled = true; msg.className = 'msg'; msg.textContent = 'Saving…';
+    L.api('/rest/v1/site_settings?on_conflict=key', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=representation' }, body: { key: 'na_stage', value: value, updated_at: new Date().toISOString(), updated_by: L.myId } }).then(function (rows) {
+      seasonRow = (rows || [])[0] || seasonRow;
+      window.PCMT_SEASON = { naStage: { start: st, lock: lk, end: en } };
+      msg.className = 'msg ok'; msg.textContent = 'Saved. The site uses these dates from the next page load; Credits use them from the next run. The Deck\'s notice follows them; update the guide\'s lock time if it moved.';
+      drawSeason(); drawDash();
+    }).catch(function (e2) { msg.className = 'msg err'; msg.textContent = 'Couldn\'t save: ' + e2.message; })
+      .then(function () { $('se-save').disabled = false; });
+  });
+
+  // ---------- Pick'ems events ----------
+  var PK_EVENTS = [], pkErr = '';
+  function loadPickemEvents() {
+    return L.apiAll('/rest/v1/pickem_events?select=id,open,credits_win&order=id').then(function (r) { PK_EVENTS = r || []; pkErr = ''; })
+      .catch(function (e) { PK_EVENTS = []; pkErr = e.message; });
+  }
+  function drawPickemEvents() {
+    var pickers = {};
+    ((DASH && DASH.pickems) || []).forEach(function (e) { pickers[e.event] = e.pickers; });
+    $('pe-rows').innerHTML = PK_EVENTS.map(function (e) {
+      return '<tr data-pk="' + esc(e.id) + '"><td><b>' + esc(e.id) + '</b></td>' +
+        '<td><label class="chk-line" style="min-height:0"><input type="checkbox" data-pk-open' + (e.open ? ' checked' : '') + ' aria-label="' + esc(e.id) + ' open"> ' + (e.open ? 'Open' : 'Closed') + '</label></td>' +
+        '<td><input class="cell" type="number" min="0" max="1000" step="1" data-pk-worth value="' + esc(e.credits_win) + '" aria-label="' + esc(e.id) + ' points per right pick" style="max-width:110px"></td>' +
+        '<td>' + (pickers[e.id] != null ? nfmt(pickers[e.id]) : '<span class="who">—</span>') + '</td>' +
+        '<td style="text-align:right"><button class="btn ghost" type="button" data-pk-save disabled>Save</button></td></tr>';
+    }).join('') || '<tr><td colspan="5" class="who">' + esc(pkErr || 'No Pick\'ems events.') + '</td></tr>';
+  }
+  $('pe-rows').addEventListener('input', function (e) { var tr = e.target.closest('tr[data-pk]'); if (tr) tr.querySelector('[data-pk-save]').disabled = false; });
+  $('pe-rows').addEventListener('change', function (e) { var tr = e.target.closest('tr[data-pk]'); if (tr) tr.querySelector('[data-pk-save]').disabled = false; });
+  $('pe-rows').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-pk-save]'); if (!b) return;
+    var tr = b.closest('tr'), id = tr.getAttribute('data-pk'), open = tr.querySelector('[data-pk-open]').checked, worth = Math.round(+tr.querySelector('[data-pk-worth]').value);
+    var msg = $('pe-msg');
+    if (!(worth >= 0 && worth <= 1000)) { msg.className = 'msg err'; msg.textContent = 'Points per right pick: 0 to 1000.'; return; }
+    b.disabled = true; msg.className = 'msg'; msg.textContent = 'Saving…';
+    L.api('/rest/v1/pickem_events?id=eq.' + encodeURIComponent(id), { method: 'PATCH', headers: { Prefer: 'return=representation' }, body: { open: open, credits_win: worth } }).then(function (rows) {
+      if (!rows || !rows.length) throw new Error(NEED_SQL);
+      PK_EVENTS.forEach(function (x) { if (x.id === id) { x.open = open; x.credits_win = worth; } });
+      msg.className = 'msg ok'; msg.textContent = 'Saved ' + id + ': ' + (open ? 'open' : 'closed') + ', ' + worth + ' per right pick.';
+      drawPickemEvents();
+    }).catch(function (e2) { msg.className = 'msg err'; msg.textContent = 'Couldn\'t save ' + id + ': ' + e2.message; b.disabled = false; });
+  });
+
+  // ---------- Staff ----------
+  var STAFF = [], staffErr = '', stPick = null, stArmed = null, stBusy = false;
+  function loadStaff() {
+    return L.api('/rest/v1/rpc/fb_staff_list', { method: 'POST', body: {} }).then(function (r) { STAFF = r || []; staffErr = ''; })
+      .catch(function (e) { STAFF = []; staffErr = /fb_staff_list|404|PGRST202/.test(e.message) ? NEED_SQL : e.message; });
+  }
+  function drawStaff() {
+    $('st-rows').innerHTML = STAFF.map(function (r) {
+      var me = r.user_id === L.myId, armed = stArmed === r.user_id;
+      return '<tr><td>' + (r.avatar ? '<img src="' + esc(r.avatar) + '" alt="" style="width:28px;height:28px;border-radius:50%;vertical-align:middle;margin-right:10px">' : '') + '<b>' + esc(r.username || r.name || r.user_id) + '</b>' +
+        (r.username && r.name ? ' <span class="who">' + esc(r.name) + '</span>' : '') + (me ? ' <span class="who">(you)</span>' : '') + '</td>' +
+        '<td class="who">' + (r.added_at ? esc(sbDay(r.added_at)) : '') + '</td>' +
+        '<td style="text-align:right">' + (me ? '' : '<button class="btn ghost danger" type="button" data-st-del="' + esc(r.user_id) + '"' + (stBusy ? ' disabled' : '') + '>' + (armed ? 'Press again to remove' : 'Remove') + '</button>') + '</td></tr>';
+    }).join('') || '<tr><td colspan="3" class="who">' + esc(staffErr || 'No staff.') + '</td></tr>';
+    $('st-add').disabled = stBusy || !stPick || !!staffErr;
+  }
+  function stOptions(q) {
+    q = q.trim().toLowerCase();
+    var on = {}; STAFF.forEach(function (r) { on[r.user_id] = true; });
+    return Object.keys(NAMES).filter(function (id) { return !on[id] && (!q || String(NAMES[id]).toLowerCase().indexOf(q) >= 0); })
+      .sort(function (a, b) { return String(NAMES[a]).localeCompare(String(NAMES[b])); }).slice(0, 30)
+      .map(function (id) { return { value: id, label: NAMES[id], meta: 'logged in before' }; });
+  }
+  sbCombo($('st-who'), $('st-who-list'), stOptions, function (o) { stPick = o ? o.value : null; $('st-msg').textContent = ''; drawStaff(); });
+  $('st-form').addEventListener('submit', function (e) {
+    e.preventDefault(); if (!stPick || stBusy) return;
+    var id = stPick, msg = $('st-msg'); stBusy = true; drawStaff(); msg.className = 'msg'; msg.textContent = 'Adding…';
+    L.api('/rest/v1/rpc/fb_staff_add', { method: 'POST', body: { p_user: id } }).then(loadStaff).then(function () {
+      msg.className = 'msg ok'; msg.textContent = (NAMES[id] || 'They') + ' is on the staff list. They get in with the page password and their Discord login.';
+      stPick = null; $('st-who').value = '';
+    }).catch(function (e2) { msg.className = 'msg err'; msg.textContent = 'Couldn\'t add them: ' + e2.message; })
+      .then(function () { stBusy = false; drawStaff(); });
+  });
+  $('st-rows').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-st-del]'); if (!b) return;
+    var id = b.getAttribute('data-st-del'), msg = $('st-msg');
+    if (stArmed !== id) { stArmed = id; drawStaff(); return; }
+    stArmed = null; stBusy = true; drawStaff();
+    L.api('/rest/v1/rpc/fb_staff_remove', { method: 'POST', body: { p_user: id } }).then(loadStaff).then(function () { msg.className = 'msg ok'; msg.textContent = 'Removed from the staff list.'; })
+      .catch(function (e2) { msg.className = 'msg err'; msg.textContent = 'Couldn\'t remove them: ' + e2.message; })
+      .then(function () { stBusy = false; drawStaff(); });
+  });
+
   var gate = $('gate'), behind = document.querySelectorAll('header, main');
   function lockPage(on) { behind.forEach(function (el) { if (on) el.setAttribute('inert', ''); else el.removeAttribute('inert'); }); }
   function openGate(step) {
@@ -1978,11 +2469,13 @@
       if (ok !== true) return show('st-nostaff');
       return Promise.all([
         L.apiAll('/rest/v1/profiles?select=id,name&order=id').then(function (r) { (r || []).forEach(function (p) { NAMES[p.id] = p.name; }); }).catch(function () {}),
-        loadPrices(), loadRemoved(), loadCards(), loadDeck(), loadComplaints(), loadPages(), loadSubs(), loadNotes(), loadVersion()
+        loadPrices(), loadRemoved(), loadCards(), loadDeck(), loadComplaints(), loadPages(), loadSubs(), loadNotes(), loadVersion(),
+        loadDash(), loadSchedule(), loadSeason(), loadPickemEvents(), loadStaff()
       ]).then(function () {
         show('st-staff');
         var h = (location.hash || '').slice(1);
-        openTab(TABS.indexOf(h) >= 0 ? h : 'pages');
+        openTab(TABS.indexOf(h) >= 0 ? h : 'dash');
+        drawDash(); scReset(); drawSchedule(); drawSeason(); drawPickemEvents(); drawStaff();
         drawPages(); drawPrices(); setupTeams(); drawCards(); drawRares(); drawPacks(); setupMulti(); drawSubs(); drawNotes(); setupChamps(); drawComplaints();
       });
     }).catch(function (e) { show('st-staff'); $('p-msg').textContent = 'Something went wrong loading the backend: ' + e.message; $('p-msg').className = 'msg err'; });

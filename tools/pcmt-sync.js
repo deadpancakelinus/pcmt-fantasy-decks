@@ -119,6 +119,61 @@ brackets.filter(B => B.mode === 'games').forEach(B => {
   B.series.sort((x, y) => x.n - y.n);
 });
 
+// ---- Games added on the backend's Schedule tab (Supabase schedule_games) ----
+// Each one is written into the schedule (and, with pickem on, the region's game-by-game Pick'ems) as a hand-added game
+// marked extra: <id>, until PCMT.gg posts it and takes it over above. Edits move it while it has no PCMT.gg link and no
+// result; removing it drops it unless it already has a result. Needs nothing on the machine: the table reads with the
+// site's publishable key.
+(function backendGames() {
+  let rows;
+  try {
+    const lg = fs.readFileSync(path.join(ROOT, 'tools', 'league.js'), 'utf8');
+    const url = (lg.match(/var SB_URL = '([^']+)'/) || [])[1], key = (lg.match(/var SB_KEY = '([^']+)'/) || [])[1];
+    if (!url || !key) return;
+    const { execFileSync } = require('child_process');
+    rows = JSON.parse(execFileSync('curl', ['-sS', '--fail', '--max-time', '30', '-H', 'apikey: ' + key, '-H', 'Authorization: Bearer ' + key,
+      url + '/rest/v1/schedule_games?select=id,region,start,a,b,bo,round,pickem,removed&order=id'], { encoding: 'utf8' }));
+  } catch (e) { log.push('Backend games skipped: ' + String(e.message || e).split('\n')[0]); return; }
+  if (!Array.isArray(rows)) return;
+  const iso = t => new Date(t).toISOString().replace('.000', '');
+  const near = (x, g) => ((x.a === g.a && x.b === g.b) || (x.a === g.b && x.b === g.a)) && Math.abs(Date.parse(x.start) - Date.parse(g.start)) < 3 * 864e5;
+  rows.forEach(g => {
+    const start = iso(Date.parse(g.start));
+    // schedule
+    const at = matches.findIndex(m => m.extra === g.id);
+    const played = results.some(r => near(r, g));
+    if (g.removed) {
+      if (at >= 0 && !matches[at].url && !played) { log.push('Backend game removed: ' + g.a + ' vs ' + g.b); matches.splice(at, 1); }
+    } else if (at >= 0) {
+      const m = matches[at];
+      if (!m.url && !played && (m.start !== start || m.a !== g.a || m.b !== g.b || m.bo !== g.bo || m.region !== g.region)) {
+        log.push('Backend game moved: ' + g.a + ' vs ' + g.b + ' ' + start); Object.assign(m, { region: g.region, start, a: g.a, b: g.b, bo: g.bo });
+      }
+    } else if (!matches.some(m => near(m, g)) && !played && Date.parse(start) >= since) {
+      matches.push({ region: g.region, start, a: g.a, b: g.b, bo: g.bo, hours: g.bo === 5 ? 4 : 3, extra: g.id });
+      log.push('Backend game: ' + g.a + ' vs ' + g.b + ' (' + start + ')');
+    }
+    // Pick'ems: the region's newest game-by-game event
+    const B = brackets.filter(x => x.mode === 'games' && String(x.region).toUpperCase() === g.region).sort((x, y) => (+y.season || 0) - (+x.season || 0))[0];
+    if (!B) return;
+    const si = B.series.findIndex(x => x.extra === g.id), s = B.series[si];
+    if (g.removed || !g.pickem) {
+      if (s && !s.url && !s.score) { log.push("Pick'ems backend game removed: " + s.a + ' vs ' + s.b); B.series.splice(si, 1); }
+    } else if (s) {
+      if (!s.url && !s.score && (s.start !== start || s.a !== g.a || s.b !== g.b || s.bo !== g.bo || s.round !== (g.round || s.round))) {
+        Object.assign(s, { start, a: g.a, b: g.b, bo: g.bo, round: g.round || s.round }); log.push("Pick'ems backend game moved: " + g.a + ' vs ' + g.b);
+      }
+    } else if (!B.series.some(x => near(x, g))) {
+      B.seeds = B.seeds || {}; B.teams = B.teams || {};
+      [g.a, g.b].forEach(c => { B.seeds[c] = c; if (!B.teams[c]) B.teams[c] = c; });
+      B.series.push({ n: B.series.reduce((m, x) => Math.max(m, x.n), 0) + 1, round: g.round || 'Game', a: g.a, b: g.b, bo: g.bo, start, score: null, extra: g.id });
+      log.push("Pick'ems backend game: " + g.a + ' vs ' + g.b);
+    }
+    B.series.sort((x, y) => x.n - y.n);
+  });
+  matches.sort((x, y) => Date.parse(x.start) - Date.parse(y.start));
+})();
+
 // ---- Pick'ems: playoff brackets ----
 brackets.filter(B => B.mode !== 'games').forEach(B => {
   const ev = B.event || (B.region === 'NA' ? null : 's2-emea');   // the bracket's event on PCMT.gg
