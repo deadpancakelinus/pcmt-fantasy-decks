@@ -657,6 +657,16 @@
     toast: toast
   };
   window.PCMT_SERVER_UNLOCKS = [];
+  // Usernames (update): the signed-in player's username, from the Account window, shows instead of their Discord name.
+  function useUsername(row) {
+    if (!me) return;
+    me.username = row && row.username || '';
+    me.usernameChangedAt = row && row.username_changed_at ? Date.parse(row.username_changed_at) : null;
+    var shown = me.username || me.name;
+    window.PCMT_AUTH = Object.assign({}, window.PCMT_AUTH, { name: shown, initial: shown.charAt(0).toUpperCase(), label: shown });
+  }
+  window.PCMT_ACCOUNT = { me: function () { return me; }, useUsername: useUsername };
+
   function sendDeck(leaving) {
     clearTimeout(pendingTimer);
     var rg = pendingBy.NA ? 'NA' : pendingBy.EMEA ? 'EMEA' : null, d = rg && pendingBy[rg];
@@ -786,7 +796,8 @@
       var tree = (document.getElementById('dc-tree') || {}).textContent || '';
       var needDecks = /"data-pcmt-root":"(Main|Leaderboard|Customization|Store)"/.test(tree);
       var decks = !needDecks ? Promise.resolve([]) : apiAll('/rest/v1/deck_history?select=user_id,name,slots,igl,region,created_at&order=created_at.asc,id.asc').catch(function () { return apiAll('/rest/v1/deck_history?select=user_id,name,slots,igl,created_at&order=created_at.asc,id.asc'); }).catch(function () { return []; });
-      var profiles = !needDecks ? Promise.resolve([]) : apiAll('/rest/v1/profiles?select=id,name&order=id').catch(function () { return []; });
+      var profiles = !needDecks ? Promise.resolve([]) : apiAll('/rest/v1/profiles?select=id,name,username&order=id').catch(function () { return apiAll('/rest/v1/profiles?select=id,name&order=id'); }).catch(function () { return []; });
+      var myProfile = me ? api('/rest/v1/profiles?select=username,username_changed_at&id=eq.' + me.id).catch(function () { return []; }) : Promise.resolve([]);
       var unlocks = me ? api('/rest/v1/user_unlocks?select=unlock').catch(function () { return []; }) : Promise.resolve([]);
       // null = the VP table isn't set up yet (setup/vp-setup.sql not run)
       // 4Ks and 5Ks per series (public; empty until setup/vp-setup.sql has been run)
@@ -828,9 +839,10 @@
       // Teams and players edited or added on the backend (empty until setup/deck-edits-setup.sql has been run)
       var dTeams = apiAll('/rest/v1/deck_teams?select=code,name,color,region,season,logo,retired&order=code').catch(function () { return []; });
       var dPlayers = apiAll('/rest/v1/deck_players?select=id,name,team,region,role,price,champ&order=id').catch(function () { return apiAll('/rest/v1/deck_players?select=id,name,team,region,role,price&order=id'); }).catch(function () { return []; });
-      return Promise.all([decks, profiles, unlocks, vp, multi, admin, packs, mine, catalog, prices, released, staff, picks, pkEvents, pkBoard, removed, subs, note, niche, dTeams, dPlayers]);
+      return Promise.all([decks, profiles, unlocks, vp, multi, admin, packs, mine, catalog, prices, released, staff, picks, pkEvents, pkBoard, removed, subs, note, niche, dTeams, dPlayers, myProfile]);
     }).then(function (res) {
       applyDeckEdits(res[19], res[20]);
+      useUsername((res[21] || [])[0]);
       window.PCMT_SUBS = res[16] || [];
       window.PCMT_PATCH_NOTE = res[17] || null;
       window.PCMT_NICHE = {};
@@ -861,7 +873,7 @@
       var decks = res[0] || [], profiles = res[1] || [], unlocks = res[2] || [];
       window.PCMT_SERVER_UNLOCKS = unlocks.map(function (u) { return u.unlock; });
       var names = {};
-      profiles.forEach(function (p) { names[p.id] = p.name; });
+      profiles.forEach(function (p) { names[p.id] = p.username || p.name; });   // a username (Account window) shows instead of the Discord name
       var subsBy = {};
       decks.forEach(function (d) { (subsBy[d.user_id] = subsBy[d.user_id] || []).push({ slots: d.slots, igl: d.igl, name: d.name, region: d.region || null, t: Date.parse(d.created_at) }); });
       var weeks = buildWeeks(now), curB = weekStart(now), curKey = weekKey(curB);
@@ -1045,6 +1057,15 @@
     '.pcmt-del-row button:focus-visible{outline:2px solid #fff;outline-offset:2px}' +
     '.pcmt-del-msg{margin:12px 0 0;min-height:1.4em;font-size:14px;color:#ff8a80}' +
     '.pcmt-del-msg.ok{color:#8be4b7}' +
+    '.pcmt-acct-me{display:flex;align-items:center;gap:14px;margin:0 0 18px}' +
+    '.pcmt-acct-me img,.pcmt-acct-me .av{width:56px;height:56px;border-radius:50%;flex:none;object-fit:cover;background:#13292b;display:grid;place-items:center;font:700 22px "National Park",system-ui,sans-serif;color:#a5dcdd}' +
+    '.pcmt-acct-me b{display:block;font:700 18px "National Park",system-ui,sans-serif;color:#fff}' +
+    '.pcmt-acct-me span{font-size:13px;color:#93a9aa}' +
+    '.pcmt-acct input{letter-spacing:.02em}' +
+    '.pcmt-acct input:focus{border-color:#a5dcdd;box-shadow:0 0 0 3px rgba(165,220,221,.3)}' +
+    '.pcmt-acct .hint{margin:8px 0 0;font-size:13px;line-height:1.5;color:#93a9aa}' +
+    '.pcmt-acct .pcmt-del-yes{border-color:#a5dcdd;background:#a5dcdd;color:#000}' +
+    '.pcmt-acct-login{display:inline-flex;align-items:center;min-height:46px;padding:0 20px;border-radius:10px;background:#4752C4;color:#fff;font:700 13px "National Park",system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;text-decoration:none}' +
     '.pcmt-set-row{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:16px 0;border-top:1px solid rgba(255,255,255,.12)}' +
     '.pcmt-set-name{display:block;font-size:17px;font-weight:700;color:#fff}' +
     '.pcmt-set-note{display:block;margin-top:4px;font-size:14px;line-height:1.45;color:#c4d4d4}' +
@@ -1130,7 +1151,7 @@
     '<li><b>Login records:</b> our database provider keeps the time, IP address and browser of each login, to keep you signed in and stop abuse.</li>' +
     '<li><b>On your device:</b> your browser remembers your login and some settings (favorites, opened packs, panels you collapsed). This is not used for tracking or ads.</li></ul>' +
     '<h3>Who can see it</h3><ul>' +
-    '<li><b>Everyone:</b> your display name and avatar, your saved decks and deck names, and your place in the standings.</li>' +
+    '<li><b>Everyone:</b> your username if you picked one (else your Discord display name) and avatar, your saved decks and deck names, and your place in the standings.</li>' +
     '<li><b>Only you:</b> your Pick’ems picks before they score, your Credits and your cards.</li>' +
     '<li><b>PCMT Team staff:</b> comments and complaints, and the account details above when needed to run the site.</li>' +
     '<li>We never sell your information, show ads, or share it with anyone else.</li></ul>' +
@@ -1251,7 +1272,60 @@
     draw();
   }
   window.PCMT_SETTINGS = { show: showSettings };
+
+  // Account window (update): the person button next to Settings. Pick a username that shows on the leaderboards instead
+  // of your Discord name; it can change once every 30 days (the server checks too: setup/usernames.sql).
+  var USERNAME_RE = /^[A-Za-z0-9_.-]{3,20}$/, DAY = 864e5;
+  function escA(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function showAccount(from) {
+    var A = window.PCMT_ACCOUNT, me = A && A.me && A.me();
+    if (!me) {
+      show('<div class="pcmt-del pcmt-acct"><h2 id="pcmt-acct-t">Account</h2><p>Log in with Discord to pick a username for the leaderboards.</p>' +
+        '<div class="pcmt-del-row"><a class="pcmt-acct-login" href="login.html">Log in with Discord</a></div></div>', from, 'pcmt-acct-t', '.pcmt-acct-login');
+      return;
+    }
+    var next = me.usernameChangedAt ? me.usernameChangedAt + 30 * DAY : 0, wait = next > Date.now();
+    var when = wait ? new Date(next).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '';
+    var av = me.avatar ? '<img src="' + escA(me.avatar) + '" alt="">' : '<span class="av" aria-hidden="true">' + escA((me.username || me.name).charAt(0).toUpperCase()) + '</span>';
+    var w = show('<div class="pcmt-del pcmt-acct"><h2 id="pcmt-acct-t">Account</h2>' +
+      '<div class="pcmt-acct-me">' + av + '<div><b>' + escA(me.username || me.name) + '</b><span>Discord: ' + escA(me.name) + '</span></div></div>' +
+      '<label for="pcmt-acct-u">Username</label>' +
+      '<input id="pcmt-acct-u" type="text" maxlength="20" autocomplete="off" spellcheck="false" value="' + escA(me.username) + '" placeholder="' + escA(me.name.replace(/[^A-Za-z0-9_.-]/g, '').slice(0, 20)) + '"' + (wait ? ' disabled' : '') + ' aria-describedby="pcmt-acct-h">' +
+      '<p class="hint" id="pcmt-acct-h">' + (wait ? 'You can change your username again on ' + when + '.' :
+        '3 to 20 letters, numbers, _ . or -. It shows on the leaderboards instead of your Discord name. You can change it once every 30 days. Leave it empty to use your Discord name.') + '</p>' +
+      '<p class="pcmt-del-msg" role="status" aria-live="polite"></p>' +
+      '<div class="pcmt-del-row"><button type="button" class="pcmt-del-no" data-close>Close</button>' +
+      (wait ? '' : '<button type="button" class="pcmt-del-yes" data-acct-save>Save username</button>') + '</div></div>', from, 'pcmt-acct-t', wait ? '.pcmt-del-no' : '#pcmt-acct-u');
+    var input = w.querySelector('#pcmt-acct-u'), msg = w.querySelector('.pcmt-del-msg'), save = w.querySelector('[data-acct-save]');
+    if (!save) return;
+    function say(t, ok) { msg.textContent = t; msg.classList.toggle('ok', !!ok); }
+    function go() {
+      var v = input.value.trim();
+      if (v === (me.username || '')) { say('That\'s already your username.'); return; }
+      if (v && !USERNAME_RE.test(v)) { say('Use 3 to 20 letters, numbers, _ . or -, with no spaces.'); return; }
+      if (v && window.PCMT_CENSOR_NAME && window.PCMT_CENSOR_NAME(v).bad) { say('That username isn\'t allowed. Pick another one.'); return; }
+      save.disabled = true; w.setAttribute('data-busy', '1'); say('Saving…', true);
+      window.PCMT_LEAGUE.api('/rest/v1/profiles?id=eq.' + me.id, { method: 'PATCH', headers: { Prefer: 'return=representation' }, body: { username: v || null } }).then(function (rows) {
+        var row = Array.isArray(rows) ? rows[0] : null;
+        if (!row) throw new Error('Your account couldn\'t be found. Log in again and try once more.');
+        A.useUsername(row);
+        say(v ? 'Saved. You\'re ' + v + ' on the leaderboards now.' : 'Saved. Your Discord name shows on the leaderboards again.', true);
+        w.querySelector('.pcmt-acct-me b').textContent = v || me.name;
+        input.disabled = true; save.remove();
+        if (window.PCMT_REDRAW) window.PCMT_REDRAW();
+      }).catch(function (e) {
+        var t = String(e && e.message || e);
+        say(/23505|duplicate|unique/i.test(t) ? 'That username is taken. Pick another one.' : /23514|profiles_username_ok/.test(t) ? 'Use 3 to 20 letters, numbers, _ . or -, with no spaces.' : t.replace(/^.*?(That username|You can change)/, '$1'));
+        save.disabled = false;
+      }).then(function () { w.removeAttribute('data-busy'); });
+    }
+    save.addEventListener('click', go);
+    input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); go(); } });
+  }
+  window.PCMT_ACCOUNT_UI = { show: showAccount };
   document.addEventListener('click', function (e) {
+    var ac = e.target.closest && e.target.closest('[data-pcmt-account],a[href="#account"]');
+    if (ac) { e.preventDefault(); showAccount(ac); return; }
     var st = e.target.closest && e.target.closest('[data-pcmt-settings],a[href="#settings"]');
     if (st) { e.preventDefault(); showSettings(st); return; }
     var a = e.target.closest && e.target.closest('[data-pcmt-privacy],a[href="#privacy"]');
@@ -1266,7 +1340,7 @@
   document.addEventListener('keydown', function (e) {
     if ((e.key === 'Enter' || e.key === ' ') && e.target.closest && e.target.closest('[data-pcmt-power]') && !open) { e.preventDefault(); showPower(e.target.closest('[data-pcmt-power]')); }
   });
-  function fromHash() { if (location.hash === '#privacy') setTimeout(function () { showPrivacy(null); }, 400); else if (location.hash === '#settings') setTimeout(function () { showSettings(null); }, 400); }
+  function fromHash() { if (location.hash === '#account') setTimeout(function () { showAccount(null); }, 400); else if (location.hash === '#privacy') setTimeout(function () { showPrivacy(null); }, 400); else if (location.hash === '#settings') setTimeout(function () { showSettings(null); }, 400); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fromHash); else fromHash();
   window.addEventListener('hashchange', fromHash);
 })();
