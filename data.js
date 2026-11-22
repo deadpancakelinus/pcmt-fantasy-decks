@@ -69,6 +69,15 @@ var PCMT_MATCHES = [
     "url": "https://pcmt.gg/events/s4-na/dei-vs-edg-s4-group-b-2026-11-28"
   },
   {
+    "region": "EMEA",
+    "start": "2026-11-29T14:00:00Z",
+    "a": "XTC",
+    "b": "NIP",
+    "bo": 3,
+    "hours": 3,
+    "url": "https://pcmt.gg/events/s2-emea/xtc-vs-nip-s2-playoffs-2026-11-29"
+  },
+  {
     "region": "NA",
     "start": "2026-11-29T22:00:00Z",
     "a": "DRX",

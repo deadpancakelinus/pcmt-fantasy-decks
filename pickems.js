@@ -83,9 +83,9 @@ var PCMT_PICKEMS = [
         "a": "W3",
         "b": "W4",
         "bo": 3,
-        "start": null,
+        "start": "2026-11-29T14:00:00Z",
         "score": null,
-        "url": null
+        "url": "https://pcmt.gg/events/s2-emea/xtc-vs-nip-s2-playoffs-2026-11-29"
       },
       {
         "n": 6,
