@@ -102,6 +102,8 @@ os.makedirs(OUT, exist_ok=True)
 os.makedirs(os.path.join(OUT, 'assets'), exist_ok=True)
 blob_map = {}
 for f in os.listdir(ASSETS):
+    if os.path.isdir(os.path.join(ASSETS, f)):   # assets/teams/ (team logos from tools/pcmt-teams.js) is served as it is
+        continue
     bid, ext = os.path.splitext(f)
     shutil.copy(os.path.join(ASSETS, f), os.path.join(OUT, 'assets', f))
     blob_map[bid] = 'assets/' + f
@@ -167,6 +169,8 @@ for board, outname in PAGES.items():
     logic = wire.logic(board, logic)
     assert '</script' not in logic.lower()
     data_tag = '<script src="data.js"></script>\n<script src="players.js"></script>\n<script src="league.js"></script>\n'
+    if board in ('Customization.dc.html', 'Main.dc.html'):  # team card backs from PCMT.gg (tools/pcmt-teams.js)
+        data_tag = '<script src="season-teams.js"></script>\n' + data_tag
     if board in ('Library.dc.html', 'Store.dc.html'):  # Library and Store show each card's MVP VS stats
         data_tag += '<script src="trumps-cards.js"></script>\n'
     if board == 'Pickems.dc.html':  # brackets, kept up to date by the match check like data.js

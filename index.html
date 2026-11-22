@@ -593,6 +593,19 @@ var PCMT_S4_DECK_LOOK = {
   'S4-XLG': { label: 'XLG', color: '#006394', logo: 'assets/91f981c237673a78c8eec4eb03b085c6.png' },
   'S4-NRG': { label: 'NRG', color: '#f63d0a', logo: '' }
 };
+// Team card backs from PCMT.gg (Nov 22 2026): season-teams.js (tools/pcmt-teams.js in the PCMT.gg sync) gives NA Season 4's
+// decks PCMT.gg's logos and adds every later season's team decks (S<season>-<team> for NA, S<season>E-<team> for EMEA).
+// Same as PCMT_AUTO_SEASONS in the Customization board.
+(function pcmtAutoLooks() {
+  var seasons = (typeof window !== 'undefined' && window.PCMT_SEASON_TEAMS) || [];
+  seasons.forEach(function (s) {
+    (s.teams || []).forEach(function (t) {
+      var l = PCMT_S4_DECK_LOOK[t.code];
+      if (l) { if (t.logo) l.logo = t.logo; }
+      else PCMT_S4_DECK_LOOK[t.code] = { label: t.label, color: t.color, logo: t.logo || '' };
+    });
+  });
+})();
 function pcmtDeckTheme(code) {
   var team = !!(code && (PCMT_TEAMS[code] || PCMT_S3_DECK_LOOK[code] || PCMT_S4_DECK_LOOK[code])), s3 = PCMT_S3_DECK_LOOK[code] || PCMT_S4_DECK_LOOK[code] || null;
   var blue = code === 'BLUE';
@@ -2000,6 +2013,7 @@ class Component extends DCLogic {
   }
 }
 </script>
+<script src="season-teams.js"></script>
 <script src="data.js"></script>
 <script src="players.js"></script>
 <script src="league.js"></script>

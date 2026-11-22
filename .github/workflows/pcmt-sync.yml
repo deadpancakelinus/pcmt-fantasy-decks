@@ -1,7 +1,8 @@
 name: PCMT.gg sync
 
 # Every half hour (and on demand from the Actions tab): pull matches, results and Pick'ems from PCMT.gg's API,
-# refresh the MVP VS stats and the Pick'ems team rosters from pcmt.gg/stats, and push any changes to main (Cloudflare Pages redeploys the site).
+# refresh the MVP VS stats and the Pick'ems team rosters from pcmt.gg/stats, make team card backs for each new season's teams
+# (logos from their PCMT.gg team pages), and push any changes to main (Cloudflare Pages redeploys the site).
 on:
   schedule:
     - cron: '17,47 * * * *'
@@ -55,9 +56,19 @@ jobs:
           node --check series-stats.js
           if ! git diff --quiet -- rosters.js series-stats.js; then echo "Team rosters" > "$RUNNER_TEMP/msg-rosters.txt"; fi
 
+      - name: Team card backs
+        id: teams
+        continue-on-error: true
+        run: |
+          python3 -c "import PIL" 2>/dev/null || python3 -m pip install -q --user --break-system-packages pillow
+          node tools/pcmt-teams.js
+          node --check season-teams.js
+          if ! git diff --quiet -- season-teams.js || [ -n "$(git status --porcelain -- assets/teams)" ]; then echo "Team card backs" > "$RUNNER_TEMP/msg-teams.txt"; fi
+
       - name: Commit and push
         run: |
-          git add data.js pickems.js rankings.js trumps/data/pcmt-stats.tsv trumps-cards.js rosters.js series-stats.js
+          git add data.js pickems.js rankings.js trumps/data/pcmt-stats.tsv trumps-cards.js rosters.js series-stats.js season-teams.js
+          git add -A assets/teams 2>/dev/null || true
           if git diff --cached --quiet; then echo "Nothing new."; exit 0; fi
           msg=$(cat "$RUNNER_TEMP"/msg-*.txt 2>/dev/null | paste -sd ';' - | sed 's/;/; /g')
           git -c user.name="deadpancakelinus" -c user.email="sixthneigh@gmail.com" commit -m "${msg:-PCMT.gg sync}"
@@ -68,7 +79,7 @@ jobs:
           exit 1
 
       - name: Report a failed step
-        if: steps.matches.outcome == 'failure' || steps.stats.outcome == 'failure' || steps.rosters.outcome == 'failure'
+        if: steps.matches.outcome == 'failure' || steps.stats.outcome == 'failure' || steps.rosters.outcome == 'failure' || steps.teams.outcome == 'failure'
         run: |
-          echo "matches: ${{ steps.matches.outcome }}, stats: ${{ steps.stats.outcome }}, rosters: ${{ steps.rosters.outcome }}"
+          echo "matches: ${{ steps.matches.outcome }}, stats: ${{ steps.stats.outcome }}, rosters: ${{ steps.rosters.outcome }}, teams: ${{ steps.teams.outcome }}"
           exit 1
