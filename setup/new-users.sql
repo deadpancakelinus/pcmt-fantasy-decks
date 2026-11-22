@@ -1,7 +1,7 @@
 -- New users (Nov 22 2026): anyone whose account was made after the NA Stage 1 deck lock gets their own NA lock, 5 days
 -- after they signed up. Their NA deck stays open until then, and the last valid NA deck saved before it counts for the
 -- whole stage like everyone else's (best two series, every stage series counts). Everyone else keeps the stage lock.
--- Same as lateLock() in tools/league.js and pcmtMyStageLock() in the Main board. Paste into the Supabase SQL editor
+-- Same as stageLockFor() in tools/league.js and pcmtMyStageLock() in the Main board. Paste into the Supabase SQL editor
 -- after two-decks.sql (safe to run again).
 
 -- The NA stage lock for one player: 5 days after sign-up for accounts made after the stage lock, else the stage lock.
