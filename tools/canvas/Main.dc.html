@@ -233,7 +233,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <sc-if value="{{deckNaOn}}" hint-placeholder-val="{{ true }}">
 <aside aria-label="New NA point rule" style="display: flex; gap: 14px; align-items: flex-start; padding: 14px 18px; border-radius: 12px; border: 1px solid #a5dcdd; background: #13292b; font-family: 'National Park', system-ui, sans-serif; color: #c4d4d4; font-size: 15px; line-height: 1.5">
 <img src="{{regionNA}}" alt="" style="width: 28px; height: 28px; object-fit: contain; flex: none; margin-top: 1px">
-<p style="margin: 0"><b style="color: #eaf4f4">New point rule for NA Stage 1:</b> each player in your NA deck only scores their <b style="color: #eaf4f4">2 best series</b> of the whole stage. NA decks lock <b style="color: #eaf4f4">{{naLockText}}</b> and stay locked until Stage 1 ends. <a href="guide.html#regions" style="color: #a5dcdd">Read the rules</a></p>
+<p style="margin: 0"><b style="color: #eaf4f4">New point rule for NA Stage 1:</b> each player in your NA deck only scores their <b style="color: #eaf4f4">2 best series</b> of the whole stage. {{naLockWord}} <b style="color: #eaf4f4">{{naLockWhen}}</b> and stay{{naLockStay}} locked until Stage 1 ends. <a href="guide.html#regions" style="color: #a5dcdd">Read the rules</a></p>
 </aside>
 </sc-if>
 
@@ -1866,14 +1866,18 @@ function pcmtInNaStage(r) {
 // One-time region switch (Nov 17 2026): once a player answers the switch window (tools/league.js), their account keeps
 // to one region (window.PCMT_REGION_PICK = { region, from, switched }) and only that region's players can join the deck.
 function pcmtPickRegion() { return null; }   // (the one-time switch was replaced by two decks, Nov 17 2026)
-function pcmtNaStageOn(now) { var S = PCMT_NA_STAGE; return !!S && now >= S.lock && (S.end == null || now < S.end); }
+// New users (Nov 22 2026): an account made after the stage lock gets its own NA lock, 5 days after sign-up
+// (league.js sets window.PCMT_MY_STAGE_LOCK; setup/new-users.sql does the same for Credits).
+function pcmtMyStageLock() { var S = PCMT_NA_STAGE, mine = +(window.PCMT_MY_STAGE_LOCK || 0); return S ? Math.max(S.lock, mine) : 0; }
+function pcmtNaStageOn(now) { var S = PCMT_NA_STAGE; return !!S && now >= pcmtMyStageLock() && (S.end == null || now < S.end); }
 // The lock for a deck of this region (null = empty deck): the stage's for NA (and for an empty deck before the stage
 // locks), else null (the weekly lock applies).
 function pcmtStageLock(now, region) {
   var S = PCMT_NA_STAGE;
   if (!S || region === 'EMEA' || (S.end != null && now >= S.end)) return null;
-  if (now < S.lock) return { locked: false, until: null, lockAt: S.lock, stage: true };
-  return region === 'NA' ? { locked: true, until: S.end, lockAt: S.lock, stage: true } : null;
+  var lk = pcmtMyStageLock();
+  if (now < lk) return { locked: false, until: null, lockAt: lk, stage: true };
+  return region === 'NA' ? { locked: true, until: S.end, lockAt: lk, stage: true } : null;
 }
 // { <player id>: sum of their two best stage series that started before upTo }
 var pcmtStageCache = {};
@@ -2751,6 +2755,9 @@ class Component extends DCLogic {
       }),
       // NA / EMEA deck toggle (two decks, Nov 17 2026), and the total and rank for the deck on show.
       deckNaOn: (s.deckRegion || 'NA') === 'NA', deckEmeaOn: s.deckRegion === 'EMEA',
+      naLockWord: window.PCMT_MY_STAGE_LOCK ? 'Your NA deck locks' : 'NA decks lock',
+      naLockWhen: window.PCMT_MY_STAGE_LOCK ? pcmtWhen(window.PCMT_MY_STAGE_LOCK) : new Date(PCMT_NA_STAGE.lock).toLocaleString('en-US', { timeZone: 'America/New_York', weekday: 'long', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).replace(/, (\d{1,2}:\d\d)/, ' at $1') + ' EST',
+      naLockStay: window.PCMT_MY_STAGE_LOCK ? 's' : '',
       deckNaBg: (s.deckRegion || 'NA') === 'NA' ? '#13292b' : 'transparent', deckEmeaBg: s.deckRegion === 'EMEA' ? '#13292b' : 'transparent',
       deckNaBorder: (s.deckRegion || 'NA') === 'NA' ? '#a5dcdd' : '#3a4f53', deckEmeaBorder: s.deckRegion === 'EMEA' ? '#a5dcdd' : '#3a4f53',
       deckNaColor: (s.deckRegion || 'NA') === 'NA' ? '#eaf4f4' : '#93a9aa', deckEmeaColor: s.deckRegion === 'EMEA' ? '#eaf4f4' : '#93a9aa',

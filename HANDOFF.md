@@ -11,6 +11,7 @@ Everything not yet live is on the branch **`release`**, built and tested, NOT pu
 | Usernames, Account window | 40 | `setup/usernames.sql` |
 | NA Season 4 team decks (Customization) | 41 | none |
 | Backend overhaul: no descriptions, Dashboard, Schedule, Season, Pick'ems, Staff tabs, Upload sheet on Player prices, page views | 42, 43 | `setup/backend-overhaul.sql` |
+| New users' NA lock (hotfix, also on `main` once sent) | New users' NA lock | `setup/new-users.sql` |
 
 The old `update-na-cards` branch is merged with nothing taken from it: the live Stage 1 totals and points window (hotfixes, Nov 20) replaced it.
 
@@ -397,3 +398,10 @@ Supabase's Discord login always asks Discord for the email. Triggers drop it bef
 - Not on the backend on purpose: budget and weekly lock times. `vp_valid_deck` / `vp_fits_budget` use 100 for every past deck, so changing it would rewrite past payouts; it needs a dated "from" setting first.
 - tools/vp-test.js also loads site-settings-setup.sql and the stage function from backend-overhaul.sql, with the dates stored as a setting.
 - Player prices, Upload sheet: takes .xlsx / .xls / .ods (read with SheetJS 0.18.5 from cdnjs, loaded only when a file is picked) or .csv / .tsv (read here). Columns are found by heading, the Download CSV headings included: Player, Player id, Team, Region, Role, Trophy, Start price, Price (a title row above the headings is fine; agents work as roles). A row finds its player by id, then name and team, then name alone; a new name with a team and a price becomes a new player. Everything is staged as edits (highlighted, "Only changed prices" turned on) and nothing saves until Save; rows that can't be used are listed under the buttons with the reason.
+
+## New users' NA lock (Nov 22 2026)
+- Anyone whose account was made after the NA Stage 1 deck lock (Sat Nov 21 9:00 PM EST) gets their own NA lock, 5 days after they signed up. Their NA deck stays open until then, and the last valid NA deck saved before it counts for the whole stage like everyone else's (best two series, every Stage 1 series counts, over budget at their lock scores nothing). Everyone else keeps the stage lock. EMEA is unchanged.
+- They see a small window once per account (localStorage `pcmt-new-user-hi-<id>`) while their lock is ahead: "Hello New User! Decks lock in 5 days! GLHF!" with their lock time under it. The NA notice on The Deck says "Your NA deck locks <their time>" for them.
+- Site: `NEW_USER_DAYS`, `LATE_LOCKS`, `lateLockFrom()` and `stageLockFor(uid)` in tools/league.js (scoreManager takes the user id; the signed-in player's own lock comes from their account's `created_at` and is put in `window.PCMT_MY_STAGE_LOCK`; everyone else's from `pcmt_late_locks()`); `pcmtMyStageLock()` in the Main board, used by `pcmtStageLock` and `pcmtNaStageOn`; `newUserHello()` at the end of load() in tools/league.js.
+- Server: setup/new-users.sql (paste after two-decks.sql; safe to run again): `vp_user_stage_lock(user, stage lock)` (used by `vp_compute` for the stage deck), `pcmt_late_locks()` (user id and lock time only, for accounts made after the stage lock). Until it's run, new users' decks are kept but only score with the stage lock.
+- tools/vp-test.js seeds 25-28 give four users sign-ups after the stage lock and check site and server agree.

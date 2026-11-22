@@ -384,6 +384,16 @@
     M.sort(function (x, y) { return Date.parse(x.start) - Date.parse(y.start); });
     window.PCMT_SCHEDULE_ROWS = rows || [];
   }
+  // New users (Nov 22 2026): an account made after the NA stage lock gets its own NA lock, 5 days after sign-up; until then
+  // its NA deck stays open, and the last valid NA deck saved before it counts for the whole stage like everyone else's.
+  // LATE_LOCKS comes from pcmt_late_locks() (setup/new-users.sql, where vp_user_stage_lock() does the same for Credits);
+  // the signed-in player's own comes from their account. pcmtMyStageLock() in the Main board reads PCMT_MY_STAGE_LOCK.
+  var NEW_USER_DAYS = 5, LATE_LOCKS = {};
+  function lateLockFrom(created) {
+    var t = Date.parse(created);
+    return (NA_STAGE && t >= NA_STAGE.lock && (NA_STAGE.end == null || t < NA_STAGE.end)) ? t + NEW_USER_DAYS * 86400000 : null;
+  }
+  function stageLockFor(uid) { return Math.max(NA_STAGE.lock, (uid && LATE_LOCKS[uid]) || 0); }
   function inNaStage(r) {
     var t = Date.parse(r.start);
     return !!NA_STAGE && r.region === 'NA' && t >= NA_STAGE.start && (NA_STAGE.end == null || t < NA_STAGE.end);
@@ -415,12 +425,13 @@
   // both) and that region's series are scored, and only NA has the Stage 1 rules. Without one, every save and series.
   // Same as vp_compute in setup/two-decks.sql.
   function resultRegion(r) { return r.region === 'EMEA' ? 'EMEA' : 'NA'; }
-  function scoreManager(subs, weeks, region) {
+  function scoreManager(subs, weeks, region, uid) {
     subs = subs.filter(function (x) { return !region || !x.region || x.region === region; }).sort(function (a, b) { return a.t - b.t; });
     var prev = null, out = [], stage = null;
     if (NA_STAGE && region !== 'EMEA') {
-      for (var j = subs.length - 1; j >= 0; j--) if (subs[j].t < NA_STAGE.lock && validDeck(subs[j].slots, subs[j].t)) { stage = subs[j]; break; }
-      if (stage && !fitsBudget(stage.slots, NA_STAGE.lock)) stage = null;
+      var sLock = stageLockFor(uid);   // the stage lock, or a new user's own (5 days after sign-up)
+      for (var j = subs.length - 1; j >= 0; j--) if (subs[j].t < sLock && validDeck(subs[j].slots, subs[j].t)) { stage = subs[j]; break; }
+      if (stage && !fitsBudget(stage.slots, sLock)) stage = null;
     }
     var stageIds = stage ? deckIds(stage.slots) : [];   // only NA stage series count, so EMEA players add nothing
     weeks.forEach(function (w) {
@@ -834,6 +845,7 @@
         var md = user.user_metadata || {};
         var name = pickName(md);
         me = { id: user.id, name: name, avatar: md.avatar_url || '' };
+        me.created = user.created_at;
         window.PCMT_AUTH = { signedIn: true, name: name, initial: name.charAt(0).toUpperCase(), label: name, href: 'login.html', avatar: me.avatar };
         api('/rest/v1/profiles', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: { id: me.id, name: name, avatar_url: me.avatar, updated_at: new Date().toISOString() } }).catch(function () {});
       }
@@ -888,11 +900,16 @@
       // Backend overhaul: Season settings (NA stage dates) and games added on the backend's Schedule tab.
       var season = api('/rest/v1/site_settings?select=value&key=eq.na_stage').catch(function () { return []; });
       var extraGames = apiAll('/rest/v1/schedule_games?select=id,region,start,a,b,bo,round,pickem,removed&order=start').catch(function () { return []; });
-      return Promise.all([decks, profiles, unlocks, vp, multi, admin, packs, mine, catalog, prices, released, staff, picks, pkEvents, pkBoard, removed, subs, note, niche, dTeams, dPlayers, myProfile, season, extraGames]);
+      // New users' own NA locks (setup/new-users.sql; empty until it's run)
+      var late = !needDecks ? Promise.resolve([]) : api('/rest/v1/rpc/pcmt_late_locks', { method: 'POST', body: {} }).catch(function () { return []; });
+      return Promise.all([decks, profiles, unlocks, vp, multi, admin, packs, mine, catalog, prices, released, staff, picks, pkEvents, pkBoard, removed, subs, note, niche, dTeams, dPlayers, myProfile, season, extraGames, late]);
     }).then(function (res) {
       applyDeckEdits(res[19], res[20]);
       useUsername((res[21] || [])[0]);
       applySeason((res[22] || [])[0]);
+      (res[24] || []).forEach(function (x) { var t = Date.parse(x.lock_at); if (x.user_id && !isNaN(t)) LATE_LOCKS[x.user_id] = Math.max(LATE_LOCKS[x.user_id] || 0, t); });
+      var myLate = me && lateLockFrom(me.created);   // after the Season tab's dates are in
+      if (myLate) { LATE_LOCKS[me.id] = Math.max(LATE_LOCKS[me.id] || 0, myLate); window.PCMT_MY_STAGE_LOCK = LATE_LOCKS[me.id]; }
       applyExtraGames(res[23]);
       window.PCMT_SUBS = res[16] || [];
       window.PCMT_PATCH_NOTE = res[17] || null;
@@ -937,7 +954,7 @@
       var REGIONS = ['NA', 'EMEA'], scoredBy = { NA: {}, EMEA: {} }, rowsBy = { NA: [], EMEA: [] }, all = {};
       Object.keys(subsBy).forEach(function (uid) {
         REGIONS.forEach(function (rg) {
-          var sc = scoredBy[rg][uid] = scoreManager(subsBy[uid], weeks, rg);
+          var sc = scoredBy[rg][uid] = scoreManager(subsBy[uid], weeks, rg, uid);
           var w = {};
           sc.forEach(function (x) { w[x.week.key] = x.pts; });
           var own = subsBy[uid].filter(function (x) { return !x.region || x.region === rg; });
@@ -1005,7 +1022,27 @@
         if (lastAny) window.PCMT_MY_REMOTE_DECK = { slots: lastAny.slots, igl: lastAny.igl, name: lastAny.name || '', uid: me.id };
       }
       if (window.PCMT_LOGIN_ERROR) setTimeout(function () { toast('Discord sign-in didn\'t finish: ' + window.PCMT_LOGIN_ERROR); }, 600);
-    }).catch(function (e) { console.warn('league load failed', e); }).then(launchDecide);
+    }).catch(function (e) { console.warn('league load failed', e); }).then(launchDecide).then(newUserHello);
+  }
+  // New users: a small window, once per account, while their own NA deck lock is still ahead.
+  function newUserHello() {
+    var at = window.PCMT_MY_STAGE_LOCK, key = me && ('pcmt-new-user-hi-' + me.id);
+    if (!at || !key || Date.now() >= at) return;
+    try { if (localStorage.getItem(key)) return; localStorage.setItem(key, '1'); } catch (e) {}
+    if (!document.body) return;
+    var el = document.createElement('div');
+    el.style.cssText = 'position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(5,9,10,.6)';
+    el.innerHTML = '<div role="dialog" aria-modal="true" aria-labelledby="nu-h" style="width:100%;max-width:380px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:14px;padding:26px 24px 22px;border-radius:14px;border:1px solid #a5dcdd;background:#111a1c;color:#eaf4f4;box-shadow:0 24px 70px rgba(0,0,0,.55);font-family:\'National Park\',system-ui,sans-serif;text-align:center;line-height:1.4">' +
+      '<h2 id="nu-h" style="margin:0;font-family:\'Cabin Sketch\',cursive;font-weight:700;font-size:30px;line-height:1.1">Hello New User!</h2>' +
+      '<p style="margin:0;font-size:18px">Decks lock in 5 days! GLHF!</p>' +
+      '<p style="margin:0;font-size:13px;color:#9fb3b4">Your NA deck locks ' + fmtWhen(at) + '.</p>' +
+      '<button type="button" style="min-height:44px;padding:0 28px;border-radius:10px;border:0;background:#a5dcdd;color:#000;font:inherit;font-weight:700;letter-spacing:.06em;cursor:pointer">OK</button></div>';
+    function close() { el.remove(); }
+    el.querySelector('button').addEventListener('click', close);
+    el.addEventListener('click', function (e) { if (e.target === el) close(); });
+    el.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+    document.body.appendChild(el);
+    setTimeout(function () { try { el.querySelector('button').focus(); } catch (e) {} }, 0);
   }
   window.PCMT_LEAGUE_READY = load();
 })();

@@ -20,7 +20,7 @@ function siteRules(matches, results) {
   ctx.window.PCMT_MATCHES = matches; ctx.window.PCMT_RESULTS = results;
   vm.runInNewContext('var DAY = 86400000, BUDGET = 100, TEAM_LIMIT = 2, TRANSFERS = Infinity, LOCK_LEAD_H = 6, ROLES = ["duelist","controller","initiator","sentinel"];' +
     ' ' + SCORING_JS + '\n' + core +
-    '\nthis.api = { buildWeeks: buildWeeks, scoreManager: scoreManager, weekCardVP: weekCardVP, validDeck: validDeck, mergeScored: mergeScored };', ctx);
+    '\nthis.api = { buildWeeks: buildWeeks, scoreManager: scoreManager, weekCardVP: weekCardVP, validDeck: validDeck, mergeScored: mergeScored, lateLocks: function (m) { Object.assign(LATE_LOCKS, m); } };', ctx);
   return ctx.api;
 }
 const P = (() => { const c = { window: {} }; vm.runInNewContext(PLAYERS_JS.replace(/var (PCMT_SITE_\w+)/g, 'window.$1'), c); return c.window.PCMT_SITE_PLAYERS; })();
@@ -125,12 +125,13 @@ function withMulti(sc) {
   (sc.multi || []).forEach(x => { const v = [x.k4, x.k5]; if (v.some(Boolean)) (by[x.series] = by[x.series] || {})[x.player] = v; });   // as league.js attachMulti
   return sc.results.map(r => Object.assign({}, r, { multi: by[r.start + '|' + r.a + '|' + r.b] || {} }));
 }
-function expected(sc, now) {
+function expected(sc, now, noLate) {
   const api = siteRules(sc.matches, withMulti(sc)), weeks = api.buildWeeks(now), out = {};
+  if (sc.late && !noLate) api.lateLocks(sc.late);
   sc.users.forEach(u => {
     const subs = sc.decks.filter(d => d.user_id === u).map(d => ({ slots: d.slots, igl: d.igl, name: d.name, region: d.region || null, t: Date.parse(d.created_at) }));
     // two decks: NA and EMEA scored on their own, paid together per gameweek
-    api.mergeScored(['NA', 'EMEA'].map(rg => api.scoreManager(subs, weeks, rg))).forEach(x => { if (x.week.done) out[u + '|' + x.week.key] = api.weekCardVP(x).total; });
+    api.mergeScored(['NA', 'EMEA'].map(rg => api.scoreManager(subs, weeks, rg, u))).forEach(x => { if (x.week.done) out[u + '|' + x.week.key] = api.weekCardVP(x).total; });
   });
   return out;
 }
@@ -146,7 +147,7 @@ function same(a, b) { const keys = new Set(Object.keys(a).concat(Object.keys(b))
 
 // ---- database ----
 sql('drop database if exists vptest;', 'postgres'); sql('create database vptest;', 'postgres');
-sql(`create schema auth; create table auth.users (id uuid primary key, raw_user_meta_data jsonb);
+sql(`create schema auth; create table auth.users (id uuid primary key, raw_user_meta_data jsonb, created_at timestamptz not null default '2026-10-01T00:00:00Z');
 create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('test.uid', true), '')::uuid $$;
 do $$ begin create role anon; exception when duplicate_object then null; end $$;
 do $$ begin create role authenticated; exception when duplicate_object then null; end $$;`);
@@ -163,6 +164,7 @@ sql(fs.readFileSync(__dirname + '/../setup/site-settings-setup.sql', 'utf8'));
   const i = ov.indexOf('create or replace function public.vp_na_stage'); sql(ov.slice(i, ov.indexOf('$$;', i) + 3));
   sql(`insert into public.site_settings (key, value) values ('na_stage', '{"start":"2026-11-18T03:00:00Z","lock":"2026-11-22T02:00:00Z","end":null}');`);
 }
+sql(fs.readFileSync(__dirname + '/../setup/new-users.sql', 'utf8'));   // new users: own NA lock 5 days after sign-up
 sql('alter table public.deck_history disable trigger user;');
 
 // ---- a real series from PCMT.gg (NAVI 2-1 C9, Oct 10), scored by the site and by the server ----
@@ -201,12 +203,28 @@ sql('alter table public.deck_history disable trigger user;');
 let totalWeeks = 0, totalVp = 0;
 // seeds 13-20 run across NA Stage 1 (lock Nov 18 03:00 UTC): decks saved before and after it, best two series each
 // seeds 21-28: two decks (saves tagged NA / EMEA / none) and EMEA series too
+// seeds 25-28: four users sign up after the NA stage lock and get their own NA lock 5 days after sign-up
+const STAGE_LOCK = Date.parse('2026-11-22T02:00:00Z');
+let lateMatters = 0;
 for (let seed = 1; seed <= 28; seed++) {
   const stageRun = seed > 12;
   const sc = scenario(seed, stageRun ? '2026-11-05T09:00:00Z' : null);
+  sc.joined = {};
+  if (seed > 24) {
+    sc.late = {};
+    sc.users.slice(10).forEach((u, i) => {
+      const joined = STAGE_LOCK + 3600000 + i * 1.3 * 86400000;
+      sc.joined[u] = joined; sc.late[u] = joined + 5 * 86400000;
+      sc.decks.filter(d => d.user_id === u).forEach((d, j) => { d.created_at = new Date(joined + 600000 + j * 1.4 * 86400000).toISOString(); if (d.region === 'EMEA') d.region = 'NA'; });
+    });
+  }
   sql('truncate public.vp_ledger, public.deck_history, public.multikills; delete from auth.users;');
   if (sc.multi.length) sql('insert into public.multikills (series, player, k4, k5) values ' + sc.multi.map(m => `(${lit(m.series)}, ${lit(m.player)}, ${m.k4}, ${m.k5})`).join(',') + ';');
-  sql('insert into auth.users (id) values ' + sc.users.map(u => '(' + lit(u) + ')').join(',') + ';');
+  sql('insert into auth.users (id, created_at) values ' + sc.users.map(u => '(' + lit(u) + ', ' + lit(new Date(sc.joined[u] || Date.parse('2026-10-01T00:00:00Z')).toISOString()) + ')').join(',') + ';');
+  if (sc.late) {
+    const locks = sql('select user_id || \'|\' || extract(epoch from lock_at) from public.pcmt_late_locks();').trim().split('\n').filter(Boolean);
+    check(locks.length === Object.keys(sc.late).length && locks.every(l => { const [u, t] = l.split('|'); return Math.abs(+t * 1000 - sc.late[u]) < 1000; }), `seed ${seed}: pcmt_late_locks lists only the late sign-ups, 5 days after joining`);
+  }
   if (sc.decks.length) sql('insert into public.deck_history (user_id, name, slots, igl, created_at, region) values ' +
     sc.decks.map(d => `(${lit(d.user_id)}, ${lit(d.name)}, ${lit(JSON.stringify(d.slots))}::jsonb, ${lit(d.igl)}, ${lit(d.created_at)}, ${d.region ? lit(d.region) : 'null'})`).join(',\n') + ';');
   const call = (s, now, pay = true) => JSON.parse(sql(`select public.vp_ingest(${lit(dataJs(s))}, ${lit(PLAYERS_JS)}, ${lit(new Date(now).toISOString())}, ${pay});`));
@@ -215,6 +233,7 @@ for (let seed = 1; seed <= 28; seed++) {
   const mid = Date.parse(stageRun ? '2026-11-27T10:00:00Z' : '2026-11-03T10:00:00Z');
   call(sc, mid);
   let d = same(expected(sc, mid), ledger());
+  if (sc.late && same(expected(sc, mid), expected(sc, mid, true)).length) lateMatters++;
   check(!d.length, `seed ${seed}: mid-season payouts match the site (${Object.keys(expected(sc, mid)).length} manager-weeks) ${d.slice(0, 3).join('; ')}`);
   // 2) Running again pays nothing new.
   const again = call(sc, mid);
@@ -279,5 +298,6 @@ const realData = fs.readFileSync(__dirname + '/../data.js', 'utf8');
 const res = JSON.parse(sql(`select public.vp_ingest(${lit(realData)}, ${lit(PLAYERS_JS)}, now(), false);`));
 check(Array.isArray(res.weeks), 'reads the real data.js and players.js');
 sql('drop database vptest;', 'postgres');
+check(lateMatters > 0, `new users: their own NA lock changed the payout in ${lateMatters} of 4 seeds (the late rule is exercised)`);
 console.log(bad ? bad + ' problem(s)' : 'All VP checks passed');
 process.exit(bad ? 1 : 0);
