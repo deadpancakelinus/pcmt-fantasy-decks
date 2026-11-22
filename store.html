@@ -199,6 +199,33 @@ var PCMT_EMEA_DECK_TEAMS = [
 var PCMT_SMALL_LOGOS = { HOT: 1, LARP: 1 }; // photo logos: shown smaller so they sit inside the ring
 var PCMT_REGION_LOGOS = { NA: 'assets/c265e976f8968e60e4a2bdd32542b499.png', EMEA: 'assets/3c7e7374dceead68d5c58818d0bcfe8a.png' };
 var PCMT_ALL_DECK_TEAMS = PCMT_DECK_TEAMS.concat(PCMT_EMEA_DECK_TEAMS);
+// NA Season 4 teams (Nov 22 2026) for NA S4 players' cards (player ids ending -s4): same names as The Deck's S4 team list,
+// colours and logos as PCMT_S4_DECK_LOOK in the Main board (keep in step). logo '' shows the team code until one is added.
+// FNC here is S4's "Freaks Need Caesparz"; S3's FNC stays in PCMT_DECK_TEAMS for S3 cards.
+var PCMT_S4_TEAMS = [
+  { code: 'FNC', name: 'Freaks Need Caesparz', color: '#fd5800', logo: '' },
+  { code: 'WBG', name: 'We Been Gaming', color: '#e01b1b', logo: 'assets/922748265b1b5fd89b83855c910a508e.png' },
+  { code: 'GENG', name: 'Generally Goofy', color: '#c9a43a', logo: '' },
+  { code: 'LOUD', name: 'Leading Ourselves Under Delusion', color: '#2fe02f', logo: '' },
+  { code: 'EDM', name: 'Everybody Dance Meow', color: '#ff6eb4', logo: 'assets/40ffd4b28537a0b9f85ea3ddc1b8648b.png' },
+  { code: 'CR', name: 'CRazy zigzagoon', color: '#8f0000', logo: 'assets/67018bbb36052ad295b759d99349ee25.png' },
+  { code: 'EDG', name: 'EggheaD Gaming', color: '#e8e8e8', logo: '' },
+  { code: 'DEI', name: 'Doofenshmirtz Evil Inc.', color: '#8a9c3a', logo: 'assets/7fe66dc5467f5b6217a0e10b4dc8a7b9.png' },
+  { code: 'PRX', name: 'Perfect RetaXe', color: '#f39ab8', logo: 'assets/79c87ed722ef3486b05a0ad9d25968fa.png' },
+  { code: 'NBR', name: 'Namebrand Ramyeon', color: '#f51e0f', logo: 'assets/27edb7501cd650e12be44be54b9d85b6.png' },
+  { code: 'DRX', name: 'Doing Rails of X', color: '#4a5cff', logo: '' },
+  { code: 'SRG', name: 'Shaymins Really Good', color: '#ffd966', logo: '' },
+  { code: 'BLG', name: 'Bartho Lomew Gaming', color: '#33cff3', logo: 'assets/0ec86b0372796e07d3e1d908b74087b2.png' },
+  { code: 'TANK', name: 'TANKERS', color: '#45dfe8', logo: 'assets/5f8ffbf391e6c3cb9c62a3f196ea8a0e.png' },
+  { code: 'XLG', name: 'Xtremely Lacking Gamesense', color: '#006394', logo: 'assets/91f981c237673a78c8eec4eb03b085c6.png' },
+  { code: 'NRG', name: 'Not Really Good', color: '#f63d0a', logo: '' }
+];
+function pcmtIsS4(pid) { return /-s4$/.test(String(pid || '')); }
+// A card's team: an S4 player's from the S4 list (so S4 FNC isn't S3's), everyone else's as before.
+function pcmtCardTeam(p) {
+  var code = p.team, hit = function (x) { return x.code === code; };
+  return (pcmtIsS4(p.id) && PCMT_S4_TEAMS.find(hit)) || PCMT_ALL_DECK_TEAMS.find(hit) || { code: code, name: code, color: '#a5dcdd', logo: '' };
+}
 function pcmtRgba(hex, a) {
   var h = hex.replace('#', '');
   return 'rgba(' + parseInt(h.slice(0, 2), 16) + ',' + parseInt(h.slice(2, 4), 16) + ',' + parseInt(h.slice(4, 6), 16) + ',' + a + ')';
@@ -818,10 +845,11 @@ function pcmtPackAnim(cfg, onClose) {
 function pcmtMvpStats(region, name, pid) {
   var W = typeof window !== 'undefined' ? window : {}, st = null, key = String(name).toLowerCase();
   if (W.PCMT_TRUMPS_CARDS) (W.PCMT_TRUMPS_CARDS[region === 'EMEA' ? 'emea' : 'na'] || []).forEach(function (c) { if (c.deck === pid) st = c; });   // by id: names can differ on PCMT.gg
-  if (!st && W.PCMT_TRUMPS_CARDS) (W.PCMT_TRUMPS_CARDS[region === 'EMEA' ? 'emea' : 'na'] || []).forEach(function (c) { if (String(c.name).toLowerCase() === key) st = c; });
-  if (!st) PCMT_STORE_ITEMS.forEach(function (it) { if (it.name === pid || it.name === key) st = it; });
+  // S4 players: by id only, so a returning player's S4 card doesn't show their S3 stats (none until S4 MVP VS stats exist)
+  if (!st && !pcmtIsS4(pid) && W.PCMT_TRUMPS_CARDS) (W.PCMT_TRUMPS_CARDS[region === 'EMEA' ? 'emea' : 'na'] || []).forEach(function (c) { if (String(c.name).toLowerCase() === key) st = c; });
+  if (!st && !pcmtIsS4(pid)) PCMT_STORE_ITEMS.forEach(function (it) { if (it.name === pid || it.name === key) st = it; });
   var f = function (v, fn) { return st && v != null ? fn(v) : '—'; };
-  return { maps: st ? String(st.maps) : '—', season: region === 'EMEA' ? 'S2 EMEA' : 'S3 NA', stats: [
+  return { maps: st ? String(st.maps) : '—', season: region === 'EMEA' ? 'S2 EMEA' : pcmtIsS4(pid) ? 'S4 NA' : 'S3 NA', stats: [
     { label: 'ACS', value: f(st && st.acs, String) },
     { label: 'KAST', value: f(st && st.kast, function (v) { return v + '%'; }) },
     { label: 'HS%', value: f(st && st.hs, function (v) { return v + '%'; }) },
@@ -859,7 +887,7 @@ function pcmtStoreCards(pulled) {
       };
     }
     var p = byId[c.player] || { id: c.player, name: c.player, team: '', role: 'duelist', price: 0 };
-    var tm = PCMT_ALL_DECK_TEAMS.find(function (x) { return x.code === p.team; }) || { code: p.team, name: p.team, color: '#a5dcdd', logo: '' };
+    var tm = pcmtCardTeam(p);
     var role = p.role === 'yoru' ? 'duelist' : p.role, pr = Math.round(p.price * 10) / 10;
     return {
       name: p.name, role: role.charAt(0).toUpperCase() + role.slice(1), roleIcon: abs(PCMT_PACK_ROLE_ICONS[role] || PCMT_PACK_ROLE_ICONS.duelist),

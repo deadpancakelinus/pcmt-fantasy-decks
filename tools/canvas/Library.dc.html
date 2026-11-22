@@ -356,6 +356,33 @@ var PCMT_EMEA_DECK_TEAMS = [
 ];
 var PCMT_REGION_LOGOS = { NA: '/_blob/c265e976f8968e60e4a2bdd32542b499', EMEA: '/_blob/3c7e7374dceead68d5c58818d0bcfe8a' };
 var PCMT_ALL_DECK_TEAMS = PCMT_DECK_TEAMS.concat(PCMT_EMEA_DECK_TEAMS);
+// NA Season 4 teams (Nov 22 2026) for NA S4 players' cards (player ids ending -s4): same names as The Deck's S4 team list,
+// colours and logos as PCMT_S4_DECK_LOOK in the Main board (keep in step). logo '' shows the team code until one is added.
+// FNC here is S4's "Freaks Need Caesparz"; S3's FNC stays in PCMT_DECK_TEAMS for S3 cards.
+var PCMT_S4_TEAMS = [
+  { code: 'FNC', name: 'Freaks Need Caesparz', color: '#fd5800', logo: '' },
+  { code: 'WBG', name: 'We Been Gaming', color: '#e01b1b', logo: '/_blob/922748265b1b5fd89b83855c910a508e' },
+  { code: 'GENG', name: 'Generally Goofy', color: '#c9a43a', logo: '' },
+  { code: 'LOUD', name: 'Leading Ourselves Under Delusion', color: '#2fe02f', logo: '' },
+  { code: 'EDM', name: 'Everybody Dance Meow', color: '#ff6eb4', logo: '/_blob/40ffd4b28537a0b9f85ea3ddc1b8648b' },
+  { code: 'CR', name: 'CRazy zigzagoon', color: '#8f0000', logo: '/_blob/67018bbb36052ad295b759d99349ee25' },
+  { code: 'EDG', name: 'EggheaD Gaming', color: '#e8e8e8', logo: '' },
+  { code: 'DEI', name: 'Doofenshmirtz Evil Inc.', color: '#8a9c3a', logo: '/_blob/7fe66dc5467f5b6217a0e10b4dc8a7b9' },
+  { code: 'PRX', name: 'Perfect RetaXe', color: '#f39ab8', logo: '/_blob/79c87ed722ef3486b05a0ad9d25968fa' },
+  { code: 'NBR', name: 'Namebrand Ramyeon', color: '#f51e0f', logo: '/_blob/27edb7501cd650e12be44be54b9d85b6' },
+  { code: 'DRX', name: 'Doing Rails of X', color: '#4a5cff', logo: '' },
+  { code: 'SRG', name: 'Shaymins Really Good', color: '#ffd966', logo: '' },
+  { code: 'BLG', name: 'Bartho Lomew Gaming', color: '#33cff3', logo: '/_blob/0ec86b0372796e07d3e1d908b74087b2' },
+  { code: 'TANK', name: 'TANKERS', color: '#45dfe8', logo: '/_blob/5f8ffbf391e6c3cb9c62a3f196ea8a0e' },
+  { code: 'XLG', name: 'Xtremely Lacking Gamesense', color: '#006394', logo: '/_blob/91f981c237673a78c8eec4eb03b085c6' },
+  { code: 'NRG', name: 'Not Really Good', color: '#f63d0a', logo: '' }
+];
+function pcmtIsS4(pid) { return /-s4$/.test(String(pid || '')); }
+// A card's team: an S4 player's from the S4 list (so S4 FNC isn't S3's), everyone else's as before.
+function pcmtCardTeam(p) {
+  var code = p.team, hit = function (x) { return x.code === code; };
+  return (pcmtIsS4(p.id) && PCMT_S4_TEAMS.find(hit)) || PCMT_ALL_DECK_TEAMS.find(hit) || { code: code, name: code, color: '#a5dcdd', logo: '' };
+}
 function pcmtRgba(hex, a) {
   var h = hex.replace('#', '');
   return 'rgba(' + parseInt(h.slice(0, 2), 16) + ',' + parseInt(h.slice(2, 4), 16) + ',' + parseInt(h.slice(4, 6), 16) + ',' + a + ')';
@@ -538,10 +565,10 @@ class Component extends DCLogic {
       var c = byId[k], past = pcmtPastCard(c), ps = past && past.st;   // past: a throwback card with that season's player, team and stats
       var p = past ? { id: c.player, name: ps ? ps.name : c.title, team: past.team.code, role: (ps && ps.role) || '' }
                    : (players[c.player] || { id: c.player, name: c.player, team: '', role: 'duelist' });
-      var tm = past ? past.team : (PCMT_ALL_DECK_TEAMS.find(function (x) { return x.code === p.team; }) || { code: p.team, name: p.team, color: '#a5dcdd', logo: '' });
+      var tm = past ? past.team : pcmtCardTeam(p);
       var role = String(p.role || (past ? '' : 'duelist')).split('/')[0]; if (role === 'yoru') role = 'duelist';
       // MVP VS stats: matched by the player's id (names can differ on PCMT.gg), then by name
-      var st = past ? ps : (stats['id|' + c.player] || stats[c.region + '|' + String(p.name).toLowerCase()] || null);
+      var st = past ? ps : (stats['id|' + c.player] || (pcmtIsS4(c.player) ? null : stats[c.region + '|' + String(p.name).toLowerCase()]) || null);   // S4: by id only
       var fmt = function (v, f) { return st && v != null ? f(v) : '—'; };
       var shiny = c.rarity !== 'common', col = tm.color || '#a5dcdd';
       return {
@@ -552,7 +579,7 @@ class Component extends DCLogic {
         hasTitle: c.rarity !== 'common' && !!c.variant, slotTitle: c.rarity !== 'common' && c.variant ? '' : p.name,
         titleInk: PCMT_RARITY_INK[c.rarity] || '#7cc2ff', titleGlow: pcmtRgba(PCMT_RARITY_INK[c.rarity] || '#7cc2ff', 0.35),
         name: p.name, team: tm.code, teamName: tm.name, teamLogo: tm.logo || '', hasLogo: !!tm.logo, teamWm: !!(tm.logo && c.variant && PCMT_VARIANT_BG[c.variant]), noLogo: !tm.logo, color: col,
-        season: past ? c.season : (PCMT_SEASON_LABEL[c.region] || c.region), maps: st ? String(st.maps) : '—',
+        season: past ? c.season : pcmtIsS4(c.player) ? 'S4 NA' : (PCMT_SEASON_LABEL[c.region] || c.region), maps: st ? String(st.maps) : '—',
         regionLogo: PCMT_REGION_LOGOS[c.region] || PCMT_REGION_LOGOS.NA,
         art: pcmtSplatty(c.variant) && PCMT_VARIANT_ART[c.variant] ? PCMT_VARIANT_ART[c.variant] : '', hasArt: !!(c.variant && PCMT_VARIANT_ART[c.variant]), artClass: pcmtSplatty(c.variant) && PCMT_VARIANT_BG[c.variant] ? 'st-art-full st-art-bg' : c.variant && PCMT_VARIANT_FULL[c.variant] ? 'st-art-full' : c.variant && PCMT_VARIANT_CENTER[c.variant] ? 'st-art-center' : '',
         roleIcon: role ? (PCMT_PACK_ROLE_ICONS[role] || PCMT_PACK_ROLE_ICONS.duelist) : '', roleLabel: role.charAt(0).toUpperCase() + role.slice(1), hasRole: !!role, noRole: !role,

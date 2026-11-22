@@ -2,24 +2,25 @@
 
 Start here. It covers what exists, how changes are made and shipped, and what's next.
 
-## 0. Held release (Nov 21 2026): read this first
+## 0. Held release (Nov 22 2026): read this first
 
-Everything not yet live is on the branch **`release`**, built and tested, NOT pushed. `main` on GitHub is the live site (the PCMT.gg sync adds commits there every hour). `release` = `main` (as of `9a9c662`) plus three merged updates:
+Everything not yet live is ONE update on the branch **`release`**, built and tested, NOT pushed. `main` on GitHub is the live site (the PCMT.gg sync adds data commits there). `release` = `main` (as of `92d3d63`, the new-user hotfix, plus the Nov 22 sync data) and these parts, all shipped together:
 
-| Update | Sections | Database first |
+| Part | Sections | Database |
 |---|---|---|
 | Usernames, Account window | 40 | `setup/usernames.sql` |
 | NA Season 4 team decks (Customization) | 41 | none |
 | Backend overhaul: no descriptions, Dashboard, Schedule, Season, Pick'ems, Staff tabs, Upload sheet on Player prices, page views | 42, 43 | `setup/backend-overhaul.sql` |
-| New users' NA lock (hotfix, also on `main` once sent) | New users' NA lock | `setup/new-users.sql` |
+| NA Season 4 cards: 81 S4 Commons join the NA Card Pack, 81 S4 Splatty Rares (held back like the other Splattys) | 27, 44 | `setup/cards-setup.sql` |
+| New users' NA lock | New users' NA lock | `setup/new-users.sql` (already run on Nov 22; it's live) |
 
 The old `update-na-cards` branch is merged with nothing taken from it: the live Stage 1 totals and points window (hotfixes, Nov 20) replaced it.
 
 **To ship `release`:**
-1. Paste `setup/usernames.sql`, then `setup/backend-overhaul.sql`, into the Supabase SQL editor (both are safe to run again).
+1. In the Supabase SQL editor, run `setup/usernames.sql`, then `setup/backend-overhaul.sql`, then `setup/cards-setup.sql` (all safe to run again). On Nov 22 cards-setup.sql only added the 162 S4 cards to the live catalog: its pack functions matched live exactly and no existing card changed.
 2. `git fetch origin && git checkout release && git merge origin/main` (the sync's commits only touch data files; if `index.html` or another built page conflicts, take either side and rebuild).
 3. Rebuild: `python3 -I tools/build.py tools/canvas assets <out>`, then copy the built pages to the repo root, except `data.js`, `pickems.js` and `rankings.js`.
-4. Check: `NODE_PATH=$(npm root -g) node tools/smoke-test.js http://localhost:8771 <shots>` (with `python3 -m http.server 8771` in the repo) and `node tools/vp-test.js "psql ..." players.js` against a local Postgres.
+4. Check: `NODE_PATH=$(npm root -g) node tools/smoke-test.js http://localhost:8771 <shots>` (with `python3 -m http.server 8771` in the repo) and `node tools/vp-test.js "psql ..." players.js` against a local Postgres. (`tools/cards-test.js` has 7 known failures from counts written before the Splatty and S4 cards; same on `main`.)
 5. Commit as `deadpancakelinus <sixthneigh@gmail.com>`, short plain message, then `git push origin release:main`.
 6. After it's live: on the backend's Season tab, check the NA stage dates (start Nov 17 10 PM EST, lock Nov 21 9 PM EST); Stage 1's end date can be set there once it's known.
 
@@ -405,3 +406,8 @@ Supabase's Discord login always asks Discord for the email. Triggers drop it bef
 - Site: `NEW_USER_DAYS`, `LATE_LOCKS`, `lateLockFrom()` and `stageLockFor(uid)` in tools/league.js (scoreManager takes the user id; the signed-in player's own lock comes from their account's `created_at` and is put in `window.PCMT_MY_STAGE_LOCK`; everyone else's from `pcmt_late_locks()`); `pcmtMyStageLock()` in the Main board, used by `pcmtStageLock` and `pcmtNaStageOn`; `newUserHello()` at the end of load() in tools/league.js.
 - Server: setup/new-users.sql (paste after two-decks.sql; safe to run again): `vp_user_stage_lock(user, stage lock)` (used by `vp_compute` for the stage deck), `pcmt_late_locks()` (user id and lock time only, for accounts made after the stage lock). Until it's run, new users' decks are kept but only score with the stage lock.
 - tools/vp-test.js seeds 25-28 give four users sign-ups after the stage lock and check site and server agree.
+
+## 44. NA Season 4 cards (update, not released yet)
+- The NA S4 players' cards come from `setup/cards-setup.sql` (tools/cards.py, unchanged since Nov 12: cards are keyed by player id): a Common `c:<id>-s4` for each of the 81 S4 players (NA Card Pack, next to the NA S3 Commons) and a held-back Splatty `v:splatty-<id>-s4`.
+- Store (pack opening) and Library draw an S4 card (player id ending `-s4`) with its S4 team: `PCMT_S4_TEAMS` and `pcmtCardTeam(p)` in both boards (names from The Deck's S4 team list, colours and logos from `PCMT_S4_DECK_LOOK`; keep in step), so S4 FNC isn't S3's FNC. The card says "S4 NA", and its MVP VS stats are matched by player id only (`pcmtIsS4`), so a returning player's S4 card shows dashes rather than their S3 numbers until S4 MVP VS stats exist.
+- A new S4 logo goes in `PCMT_S4_TEAMS` in the Store and Library boards as well as the two lists in section 41.
