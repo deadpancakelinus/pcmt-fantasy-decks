@@ -113,7 +113,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <sc-for list="{{rows}}" as="r" hint-placeholder-count="6">
 <tr class="{{r.cls}}" style="background: {{r.bg}}">
 <td style="padding: 16px 18px; border-bottom: 1px solid #2a3a3e; font-family: {{r.rankFont}}; font-weight: 700; font-size: {{r.rankSize}}; color: {{r.rankColor}}; text-shadow: {{r.rankShadow}}">{{r.rank}}</td>
-<td style="padding: 16px 18px; border-bottom: 1px solid #2a3a3e; font-weight: 600; color: {{r.nameColor}}">{{r.manager}}</td>
+<td style="padding: 16px 18px; border-bottom: 1px solid #2a3a3e; font-weight: 600; color: {{r.nameColor}}"><span style="display: flex; align-items: center; gap: 10px; min-width: 0"><sc-if value="{{r.hasPic}}" hint-placeholder-val="{{ false }}"><img src="{{r.pic}}" alt="" loading="lazy" width="28" height="28" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex: none; background: #13292b"></sc-if><sc-if value="{{r.noPic}}" hint-placeholder-val="{{ true }}"><span aria-hidden="true" style="width: 28px; height: 28px; border-radius: 50%; flex: none; display: grid; place-items: center; background: #13292b; color: #a5dcdd; font-size: 13px; font-weight: 700">{{r.initial}}</span></sc-if><span style="min-width: 0; overflow-wrap: anywhere">{{r.manager}}</span></span></td>
 <td style="padding: 16px 18px; border-bottom: 1px solid #2a3a3e; color: #93a9aa">{{r.squad}}</td>
 <td style="padding: 16px 18px; border-bottom: 1px solid #2a3a3e;">{{r.igl}}</td>
 <td style="padding: 16px 18px; border-bottom: 1px solid #2a3a3e; text-align: right; font-family: 'National Park', system-ui, sans-serif; font-weight: {{r.gwWeight}}">{{r.gw}}</td>
@@ -286,6 +286,8 @@ class Component extends DCLogic {
       var r = x.rank, top = r <= 3;
       return {
         rank: r, manager: x.m.manager, squad: x.m.squad, igl: x.m.igl, gw: num(x.m.gw), total: num(x.m.total),
+        // Profile pictures (update): the uploaded picture, else the Discord avatar, else the first letter of the name
+        pic: x.m.avatar || '', hasPic: !!x.m.avatar, noPic: !x.m.avatar, initial: String(x.m.manager || '?').charAt(0).toUpperCase(),
         cls: r === 1 ? 'lb-gold' : '',
         bg: x.m.me ? '#0f1d1e' : 'transparent',
         nameColor: x.m.me ? '#a5dcdd' : '#eaf4f4',

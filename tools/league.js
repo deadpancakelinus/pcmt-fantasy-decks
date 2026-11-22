@@ -705,14 +705,30 @@
   };
   window.PCMT_SERVER_UNLOCKS = [];
   // Usernames (update): the signed-in player's username, from the Account window, shows instead of their Discord name.
+  // Profile pictures (update, setup/profile-pics.sql): <user id>.webp in the public "avatars" bucket; picture_at (when it
+  // last changed) is in the link so a new picture never shows from a cache.
+  function pictureUrl(uid, at) { var t = at ? Date.parse(at) : NaN; return uid && !isNaN(t) ? SB_URL + '/storage/v1/object/public/avatars/' + uid + '.webp?v=' + t : ''; }
   function useUsername(row) {
     if (!me) return;
+    if (row && 'picture_at' in row) me.picture = pictureUrl(me.id, row.picture_at);
     me.username = row && row.username || '';
     me.usernameChangedAt = row && row.username_changed_at ? Date.parse(row.username_changed_at) : null;
     var shown = me.username || me.name;
     window.PCMT_AUTH = Object.assign({}, window.PCMT_AUTH, { name: shown, initial: shown.charAt(0).toUpperCase(), label: shown });
   }
-  window.PCMT_ACCOUNT = { me: function () { return me; }, useUsername: useUsername };
+  window.PCMT_ACCOUNT = { me: function () { return me; }, useUsername: useUsername,
+    // Uploads a picture (a Blob, already cropped and shrunk) as the player's profile picture, or removes it (null).
+    setPicture: function (blob) {
+      if (!me) return Promise.reject(new Error('Log in first.'));
+      var path = '/storage/v1/object/avatars/' + me.id + '.webp';
+      return refreshIfNeeded().then(function () {   // after the refresh, so the request carries a fresh login
+        return !blob ? fetch(SB_URL + '/storage/v1/object/avatars', { method: 'DELETE', headers: headers(), body: JSON.stringify({ prefixes: [me.id + '.webp'] }) })
+          : fetch(SB_URL + path, { method: 'POST', headers: Object.assign(headers(), { 'Content-Type': blob.type || 'image/webp', 'x-upsert': 'true', 'cache-control': '3600' }), body: blob });
+      }).then(function (res) {
+        if (!res.ok) return res.text().then(function (t) { var m = t; try { m = JSON.parse(t).message || t; } catch (e) {} throw new Error(m || ('Upload failed (' + res.status + ')')); });
+        return api('/rest/v1/profiles?id=eq.' + me.id, { method: 'PATCH', headers: { Prefer: 'return=representation' }, body: { picture_at: blob ? new Date().toISOString() : null } });
+      }).then(function (rows) { var row = Array.isArray(rows) ? rows[0] : null; if (row) useUsername(row); return me.picture || ''; });
+    } };
 
   function sendDeck(leaving) {
     clearTimeout(pendingTimer);
@@ -854,8 +870,11 @@
       var tree = (document.getElementById('dc-tree') || {}).textContent || '';
       var needDecks = /"data-pcmt-root":"(Main|Leaderboard|Customization|Store)"/.test(tree);
       var decks = !needDecks ? Promise.resolve([]) : apiAll('/rest/v1/deck_history?select=user_id,name,slots,igl,region,created_at&order=created_at.asc,id.asc').catch(function () { return apiAll('/rest/v1/deck_history?select=user_id,name,slots,igl,created_at&order=created_at.asc,id.asc'); }).catch(function () { return []; });
-      var profiles = !needDecks ? Promise.resolve([]) : apiAll('/rest/v1/profiles?select=id,name,username&order=id').catch(function () { return apiAll('/rest/v1/profiles?select=id,name&order=id'); }).catch(function () { return []; });
-      var myProfile = me ? api('/rest/v1/profiles?select=username,username_changed_at&id=eq.' + me.id).catch(function () { return []; }) : Promise.resolve([]);
+      var profiles = !needDecks ? Promise.resolve([]) : apiAll('/rest/v1/profiles?select=id,name,username,avatar_url,picture_at&order=id')
+        .catch(function () { return apiAll('/rest/v1/profiles?select=id,name,username,avatar_url&order=id'); })
+        .catch(function () { return apiAll('/rest/v1/profiles?select=id,name&order=id'); }).catch(function () { return []; });
+      var myProfile = me ? api('/rest/v1/profiles?select=username,username_changed_at,picture_at&id=eq.' + me.id)
+        .catch(function () { return api('/rest/v1/profiles?select=username,username_changed_at&id=eq.' + me.id); }).catch(function () { return []; }) : Promise.resolve([]);
       var unlocks = me ? api('/rest/v1/user_unlocks?select=unlock').catch(function () { return []; }) : Promise.resolve([]);
       // null = the VP table isn't set up yet (setup/vp-setup.sql not run)
       // 4Ks and 5Ks per series (public; empty until setup/vp-setup.sql has been run)
@@ -942,6 +961,9 @@
       window.PCMT_SERVER_UNLOCKS = unlocks.map(function (u) { return u.unlock; });
       var names = {};
       profiles.forEach(function (p) { names[p.id] = p.username || p.name; });   // a username (Account window) shows instead of the Discord name
+      // Profile pictures (update): the uploaded picture (Account window), else the Discord avatar, next to the name
+      var pics = {};
+      profiles.forEach(function (p) { pics[p.id] = pictureUrl(p.id, p.picture_at) || p.avatar_url || ''; });
       var subsBy = {};
       decks.forEach(function (d) { (subsBy[d.user_id] = subsBy[d.user_id] || []).push({ slots: d.slots, igl: d.igl, name: d.name, region: d.region || null, t: Date.parse(d.created_at) }); });
       var weeks = buildWeeks(now), curB = weekStart(now), curKey = weekKey(curB);
@@ -964,7 +986,7 @@
           // it. Points, Credits and everything else keep the earlier weeks.
           var board = w;
           if (rg === 'NA' && NA_STAGE) { var from = weekKey(weekStart(NA_STAGE.start)); board = {}; Object.keys(w).forEach(function (k) { if (k >= from) board[k] = w[k]; }); }
-          if (hasRegion(subsBy[uid], rg)) rowsBy[rg].push({ id: uid, manager: names[uid] || 'Manager', squad: (latest && latest.name) ? pcmtCensorName(latest.name).text : '—', igl: iglP ? iglP.name : '—', weeks: board, me: !!me && uid === me.id });
+          if (hasRegion(subsBy[uid], rg)) rowsBy[rg].push({ id: uid, manager: names[uid] || 'Manager', avatar: pics[uid] || '', squad: (latest && latest.name) ? pcmtCensorName(latest.name).text : '—', igl: iglP ? iglP.name : '—', weeks: board, me: !!me && uid === me.id });
           var a = all[uid] || (all[uid] = { id: uid, weeks: {} });
           Object.keys(w).forEach(function (k) { a.weeks[k] = (a.weeks[k] || 0) + w[k]; });
         });
@@ -1148,6 +1170,11 @@
     '.pcmt-acct-me{display:flex;align-items:center;gap:14px;margin:0 0 18px}' +
     '.pcmt-acct-me img,.pcmt-acct-me .av{width:56px;height:56px;border-radius:50%;flex:none;object-fit:cover;background:#13292b;display:grid;place-items:center;font:700 22px "National Park",system-ui,sans-serif;color:#a5dcdd}' +
     '.pcmt-acct-me b{display:block;font:700 18px "National Park",system-ui,sans-serif;color:#fff}' +
+    '.pcmt-acct-pic{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 20px}' +
+    '.pcmt-acct-pic button,.pcmt-acct-pic .pcmt-acct-up{display:inline-flex;margin:0;align-items:center;min-height:44px;padding:0 16px;border-radius:10px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.06);color:#eaf4f4;font:700 12px "National Park",system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;cursor:pointer}' +
+    '.pcmt-acct-pic .pcmt-acct-up:focus-within{outline:2px solid #a5dcdd;outline-offset:2px}' +
+    '.pcmt-acct-pic [hidden]{display:none}' +
+    '.pcmt-acct-pic input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}' +
     '.pcmt-acct-me span{font-size:13px;color:#93a9aa}' +
     '.pcmt-acct input{letter-spacing:.02em}' +
     '.pcmt-acct input:focus{border-color:#a5dcdd;box-shadow:0 0 0 3px rgba(165,220,221,.3)}' +
@@ -1375,19 +1402,60 @@
     }
     var next = me.usernameChangedAt ? me.usernameChangedAt + 30 * DAY : 0, wait = next > Date.now();
     var when = wait ? new Date(next).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '';
-    var av = me.avatar ? '<img src="' + escA(me.avatar) + '" alt="">' : '<span class="av" aria-hidden="true">' + escA((me.username || me.name).charAt(0).toUpperCase()) + '</span>';
+    function avHtml() { var src = me.picture || me.avatar; return src ? '<img src="' + escA(src) + '" alt="">' : '<span class="av" aria-hidden="true">' + escA((me.username || me.name).charAt(0).toUpperCase()) + '</span>'; }
+    var av = avHtml();
     var w = show('<div class="pcmt-del pcmt-acct"><h2 id="pcmt-acct-t">Account</h2>' +
       '<div class="pcmt-acct-me">' + av + '<div><b>' + escA(me.username || me.name) + '</b><span>Discord: ' + escA(me.name) + '</span></div></div>' +
+      // Profile picture (update): shows next to the name on The Deck Leaderboard
+      '<label for="pcmt-acct-file">Profile picture</label><div class="pcmt-acct-pic">' +
+      '<label class="pcmt-acct-up">Upload picture<input id="pcmt-acct-file" type="file" accept="image/png,image/jpeg,image/webp,image/gif" data-acct-pic></label>' +
+      '<button type="button" data-acct-pic-rm' + (me.picture ? '' : ' hidden') + '>Remove picture</button></div>' +
       '<label for="pcmt-acct-u">Username</label>' +
       '<input id="pcmt-acct-u" type="text" maxlength="20" autocomplete="off" spellcheck="false" value="' + escA(me.username) + '" placeholder="' + escA(me.name.replace(/[^A-Za-z0-9_.-]/g, '').slice(0, 20)) + '"' + (wait ? ' disabled' : '') + ' aria-describedby="pcmt-acct-h">' +
-      '<p class="hint" id="pcmt-acct-h">' + (wait ? 'You can change your username again on ' + when + '.' :
-        '3 to 20 letters, numbers, _ . or -. It shows on the leaderboards instead of your Discord name. You can change it once every 30 days. Leave it empty to use your Discord name.') + '</p>' +
+      (wait ? '<p class="hint" id="pcmt-acct-h">You can change your username again on ' + when + '.</p>' : '') +
       '<p class="pcmt-del-msg" role="status" aria-live="polite"></p>' +
       '<div class="pcmt-del-row"><button type="button" class="pcmt-del-no" data-close>Close</button>' +
       (wait ? '' : '<button type="button" class="pcmt-del-yes" data-acct-save>Save username</button>') + '</div></div>', from, 'pcmt-acct-t', wait ? '.pcmt-del-no' : '#pcmt-acct-u');
     var input = w.querySelector('#pcmt-acct-u'), msg = w.querySelector('.pcmt-del-msg'), save = w.querySelector('[data-acct-save]');
-    if (!save) return;
     function say(t, ok) { msg.textContent = t; msg.classList.toggle('ok', !!ok); }
+    // Profile picture: cropped to the middle square and shrunk to 256 x 256 here, then uploaded
+    var picIn = w.querySelector('[data-acct-pic]'), picRm = w.querySelector('[data-acct-pic-rm]');
+    function showPic() {
+      var box = w.querySelector('.pcmt-acct-me'), old = box.querySelector('img,.av'), tmpl = document.createElement('div');
+      tmpl.innerHTML = avHtml(); box.replaceChild(tmpl.firstChild, old); picRm.hidden = !me.picture;
+    }
+    function picBusy(on) { picIn.disabled = on; picRm.disabled = on; if (on) w.setAttribute('data-busy', '1'); else w.removeAttribute('data-busy'); }
+    function shrink(file) {
+      return new Promise(function (ok, no) {
+        var url = URL.createObjectURL(file), img = new Image();
+        img.onload = function () {
+          var n = Math.min(img.naturalWidth, img.naturalHeight), c = document.createElement('canvas');
+          c.width = c.height = 256;
+          c.getContext('2d').drawImage(img, (img.naturalWidth - n) / 2, (img.naturalHeight - n) / 2, n, n, 0, 0, 256, 256);
+          URL.revokeObjectURL(url);
+          c.toBlob(function (b) { b ? ok(b) : no(new Error('That picture couldn\'t be read.')); }, 'image/webp', 0.85);
+        };
+        img.onerror = function () { URL.revokeObjectURL(url); no(new Error('That file isn\'t a picture this browser can open.')); };
+        img.src = url;
+      });
+    }
+    picIn.addEventListener('change', function () {
+      var f = picIn.files && picIn.files[0]; picIn.value = '';
+      if (!f) return;
+      if (!/^image\//.test(f.type)) { say('Pick a picture (PNG, JPG, WebP or GIF).'); return; }
+      if (f.size > 15 * 1024 * 1024) { say('That picture is too big. Pick one under 15 MB.'); return; }
+      picBusy(true); say('Uploading…', true);
+      shrink(f).then(function (b) { return A.setPicture(b); }).then(function () {
+        showPic(); say('Saved. Your picture shows next to your name on the leaderboard.', true);
+        if (window.PCMT_REDRAW) window.PCMT_REDRAW();
+      }).catch(function (e) { say(String(e && e.message || e)); }).then(function () { picBusy(false); });
+    });
+    picRm.addEventListener('click', function () {
+      picBusy(true); say('Removing…', true);
+      A.setPicture(null).then(function () { showPic(); say('Removed. Your Discord avatar shows again.', true); if (window.PCMT_REDRAW) window.PCMT_REDRAW(); })
+        .catch(function (e) { say(String(e && e.message || e)); }).then(function () { picBusy(false); });
+    });
+    if (!save) return;
     function go() {
       var v = input.value.trim();
       if (v === (me.username || '')) { say('That\'s already your username.'); return; }

@@ -9,20 +9,22 @@ Everything not yet live is ONE update on the branch **`release`**, built and tes
 | Part | Sections | Database |
 |---|---|---|
 | Usernames, Account window | 40 | `setup/usernames.sql` |
+| Profile pictures: upload in the Account window, shown next to the name on The Deck Leaderboard | 46 | `setup/profile-pics.sql` |
 | NA Season 4 team decks (Customization) | 41 | none |
 | Backend overhaul: no descriptions, Dashboard, Schedule, Season, Pick'ems, Staff tabs, Upload sheet on Player prices, page views | 42, 43 | `setup/backend-overhaul.sql` |
 | NA Season 4 cards: 81 S4 Commons join the NA Card Pack, 81 S4 Splatty Rares (held back like the other Splattys) | 27, 44 | `setup/cards-setup.sql` |
+| Team card backs from PCMT.gg: NA S4 decks get PCMT.gg's logos, and every new season's teams get card backs on their own (sync step) | 45 | none |
 | New users' NA lock | New users' NA lock | `setup/new-users.sql` (already run on Nov 22; it's live) |
 
 The old `update-na-cards` branch is merged with nothing taken from it: the live Stage 1 totals and points window (hotfixes, Nov 20) replaced it.
 
 **To ship `release`:**
-1. In the Supabase SQL editor, run `setup/usernames.sql`, then `setup/backend-overhaul.sql`, then `setup/cards-setup.sql` (all safe to run again). Checked against live on Nov 22: cards-setup.sql only adds the 162 S4 cards (its pack functions match live exactly and no existing card changes).
+1. In the Supabase SQL editor, run `setup/usernames.sql`, then `setup/profile-pics.sql`, then `setup/backend-overhaul.sql`, then `setup/cards-setup.sql` (all safe to run again). Checked against live on Nov 22: cards-setup.sql only adds the 162 S4 cards (its pack functions match live exactly and no existing card changes).
 2. `git fetch origin && git checkout release && git merge origin/main` (the sync's commits only touch data files; if `index.html` or another built page conflicts, take either side and rebuild).
 3. Rebuild: `python3 -I tools/build.py tools/canvas assets <out>`, then copy the built pages to the repo root, except `data.js`, `pickems.js` and `rankings.js`.
 4. Check: `NODE_PATH=$(npm root -g) node tools/smoke-test.js http://localhost:8771 <shots>` (with `python3 -m http.server 8771` in the repo) and `node tools/vp-test.js "psql ..." players.js` against a local Postgres. (`tools/cards-test.js` has 7 known failures from counts written before the Splatty and S4 cards; same on `main`.)
 5. Commit as `deadpancakelinus <sixthneigh@gmail.com>`, short plain message, then `git push origin release:main`.
-6. After it's live: on the backend's Season tab, check the NA stage dates (start Nov 17 10 PM EST, lock Nov 21 9 PM EST); Stage 1's end date can be set there once it's known.
+6. After it's live: run the PCMT.gg sync once by hand (Actions → PCMT.gg sync → Run workflow) so its new "Team card backs" step downloads the S4 logos; until then the S4 decks keep the logos they had. On the backend's Season tab, check the NA stage dates (start Nov 17 10 PM EST, lock Nov 21 9 PM EST); Stage 1's end date can be set there once it's known.
 
 Still to do: logos for FNC, GENG, LOUD, EDG, DRX, SRG and NRG (S4 decks and cards fall back to the team code). Budget and weekly lock times aren't editable on the backend on purpose (see 43).
 
@@ -411,3 +413,15 @@ Supabase's Discord login always asks Discord for the email. Triggers drop it bef
 - The NA S4 players' cards come from `setup/cards-setup.sql` (tools/cards.py, unchanged since Nov 12: cards are keyed by player id): a Common `c:<id>-s4` for each of the 81 S4 players (NA Card Pack, next to the NA S3 Commons) and a held-back Splatty `v:splatty-<id>-s4`.
 - Store (pack opening) and Library draw an S4 card (player id ending `-s4`) with its S4 team: `PCMT_S4_TEAMS` and `pcmtCardTeam(p)` in both boards (names from The Deck's S4 team list, colours and logos from `PCMT_S4_DECK_LOOK`; keep in step), so S4 FNC isn't S3's FNC. The card says "S4 NA", and its MVP VS stats are matched by player id only (`pcmtIsS4`), so a returning player's S4 card shows dashes rather than their S3 numbers until S4 MVP VS stats exist.
 - A new S4 logo goes in `PCMT_S4_TEAMS` in the Store and Library boards as well as the two lists in section 41.
+
+## 45. Team card backs from PCMT.gg (update, not released yet)
+- **tools/pcmt-teams.js** (a step of the PCMT.gg sync, "Team card backs"): for every event on PCMT.gg's `/api/matches.json` from NA Season 4 and EMEA Season 3 on (`AUTO_FROM`; earlier seasons have hand-made decks; showmatches skipped), reads the event page's team links, each team page's TeamPage props (name, code `abbr`, logo path), downloads the logo to `assets/teams/<event>/<team>-<8-char hash of the logo path>.<ext>` (only when PCMT.gg's logo path changes; the old file is deleted), picks a colour with tools/logo-color.py (Pillow; the most common bright colour, outlines ignored), and writes **season-teams.js** (`PCMT_SEASON_TEAMS`: per event { event, region, season, title, teams: [{ code, label, name, color, logo, src }] }). Codes: `S<season>-<team>` for NA (same as the S4 decks), `S<season>E-<team>` for EMEA. `COLORS` in the script are hand-picked colours (NA S4's from before); any colour in season-teams.js is kept on later runs. A bad read keeps that event's old list; PCMT.gg down = the step fails and nothing changes. Team slugs can end in "." (`doofenshmirtz-evil-inc.`).
+- The repo starts with season-teams.js listing the 16 S4 teams with no logos (made Nov 22 from their PCMT.gg pages); the first sync run downloads them.
+- **Customization:** `PCMT_AUTO_SEASONS` (from season-teams.js) gives NA Season 4's decks PCMT.gg's logos (and adds any team PCMT.gg adds); every other season is a folding panel of its own (`autoPanels`, newest first, above NA Season 4; fold state key `auto-<event>`), same tiles, unlock rule, favourites and first-open card pack as the others. **The Deck:** `pcmtAutoLooks()` adds the same decks to `PCMT_S4_DECK_LOOK`. build.py adds `<script src="season-teams.js">` to Customization and The Deck, and skips folders in `assets/`.
+- Only the card backs use PCMT.gg's logos; the player cards, Store/Library cards and Pick'ems keep the hand-set team logos.
+- tools/teams-test.js checks the script against a pretend PCMT.gg (new season appears, codes, logo download and change, colours, PCMT.gg down). The backend's Teams import skips team slugs with a "." (its link pattern and `pcmt_fetch`'s allowed paths), so DEI can't be imported there.
+
+## 46. Profile pictures (update, not released yet)
+- Account window: the long username help text is gone (the "change again on <date>" note stays while a username is locked). **Profile picture**: Upload picture (PNG, JPG, WebP or GIF, under 15 MB) is cropped to the middle square and shrunk to 256 x 256 WebP in the browser (PNG where a browser can't make WebP), uploaded to the public Storage bucket `avatars` as `<user id>.webp`, then `profiles.picture_at` is set; Remove picture deletes it and clears `picture_at`. `PCMT_ACCOUNT.setPicture(blob | null)` in tools/league.js.
+- The Deck Leaderboard shows a 28 px round picture next to each manager: their uploaded picture (`<Supabase>/storage/v1/object/public/avatars/<id>.webp?v=<picture_at>`), else their Discord avatar (`profiles.avatar_url`), else the first letter of their name.
+- Server (setup/profile-pics.sql): `profiles.picture_at`, the `avatars` bucket (public, 256 KB, WebP/PNG/JPEG), Storage policies (owners add/replace/remove their own file; staff can remove any), `fb_clear_picture(user)` for staff (clears `picture_at`, so the site stops showing it; the file itself is deleted from Storage, since Supabase doesn't allow that from SQL).
