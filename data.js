@@ -76,6 +76,15 @@ var PCMT_MATCHES = [
     "bo": 3,
     "hours": 3,
     "url": "https://pcmt.gg/events/s4-na/drx-vs-nrg-s4-group-c-2026-11-29"
+  },
+  {
+    "region": "NA",
+    "start": "2027-06-08T04:59:00Z",
+    "a": "WOOD",
+    "b": "WING",
+    "bo": 5,
+    "hours": 5,
+    "url": "https://pcmt.gg/events/s2-na/wood-vs-wing-s2-group-stage-2027-06-08"
   }
 ];
 
@@ -1305,6 +1314,169 @@ var PCMT_RESULTS = [
           "jooah-s4": 12,
           "nut-s4": 8,
           "ceiliuir-s4": 2
+        }
+      }
+    ]
+  },
+  {
+    "region": "NA",
+    "start": "2026-11-22T02:00:00Z",
+    "a": "NBR",
+    "b": "PRX",
+    "winner": "NBR",
+    "url": "https://pcmt.gg/events/s4-na/nbr-vs-prx-s4-group-c-2026-11-22",
+    "stats": {
+      "josh-s4": [
+        68,
+        43,
+        21,
+        4,
+        298,
+        70,
+        199.6,
+        1.384
+      ],
+      "platy-s4": [
+        49,
+        45,
+        23,
+        9,
+        231,
+        73,
+        164.9,
+        1.135
+      ],
+      "art-s4": [
+        45,
+        46,
+        11,
+        2,
+        201,
+        70,
+        125.6,
+        0.942
+      ],
+      "makya-s4": [
+        35,
+        47,
+        19,
+        5,
+        162,
+        75,
+        99.9,
+        0.828
+      ],
+      "lore-s4": [
+        29,
+        46,
+        27,
+        1,
+        130,
+        70,
+        85,
+        0.759
+      ],
+      "crocman-s4": [
+        65,
+        44,
+        12,
+        11,
+        284,
+        71,
+        181.5,
+        1.278
+      ],
+      "jaden-s4": [
+        63,
+        46,
+        10,
+        16,
+        284,
+        76,
+        177.2,
+        1.244
+      ],
+      "toastemup-s4": [
+        44,
+        48,
+        27,
+        5,
+        214,
+        73,
+        145.9,
+        1.038
+      ],
+      "~tawngay": [
+        33,
+        45,
+        25,
+        5,
+        155,
+        68,
+        101.9,
+        0.831
+      ],
+      "hankyjanky-s4": [
+        22,
+        43,
+        26,
+        5,
+        107,
+        67,
+        67.5,
+        0.662
+      ]
+    },
+    "maps": [
+      {
+        "map": "Lotus",
+        "a": 8,
+        "b": 13,
+        "k": {
+          "josh-s4": 25,
+          "platy-s4": 13,
+          "art-s4": 15,
+          "makya-s4": 9,
+          "lore-s4": 6,
+          "crocman-s4": 21,
+          "toastemup-s4": 21,
+          "jaden-s4": 21,
+          "~tawngay": 15,
+          "hankyjanky-s4": 7
+        }
+      },
+      {
+        "map": "Summit",
+        "a": 13,
+        "b": 5,
+        "k": {
+          "josh-s4": 26,
+          "platy-s4": 14,
+          "art-s4": 14,
+          "makya-s4": 11,
+          "lore-s4": 10,
+          "crocman-s4": 19,
+          "toastemup-s4": 11,
+          "jaden-s4": 14,
+          "~tawngay": 7,
+          "hankyjanky-s4": 5
+        }
+      },
+      {
+        "map": "Sunset",
+        "a": 13,
+        "b": 11,
+        "k": {
+          "platy-s4": 22,
+          "josh-s4": 17,
+          "art-s4": 16,
+          "makya-s4": 15,
+          "lore-s4": 13,
+          "jaden-s4": 28,
+          "crocman-s4": 25,
+          "toastemup-s4": 12,
+          "~tawngay": 11,
+          "hankyjanky-s4": 10
         }
       }
     ]

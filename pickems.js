@@ -435,7 +435,10 @@ var PCMT_PICKEMS = [
         "b": "PRX",
         "bo": 3,
         "start": "2026-11-22T02:00:00Z",
-        "score": null,
+        "score": [
+          2,
+          1
+        ],
         "url": "https://pcmt.gg/events/s4-na/nbr-vs-prx-s4-group-c-2026-11-22"
       },
       {
