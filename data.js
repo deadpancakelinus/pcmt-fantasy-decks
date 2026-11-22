@@ -49,6 +49,33 @@ var PCMT_MATCHES = [
     "bo": 3,
     "hours": 3,
     "url": "https://pcmt.gg/events/s4-na/blg-vs-tank-s4-group-d-2026-11-23"
+  },
+  {
+    "region": "NA",
+    "start": "2026-11-26T03:00:00Z",
+    "a": "LOUD",
+    "b": "SRG",
+    "bo": 3,
+    "hours": 3,
+    "url": "https://pcmt.gg/events/s4-na/loud-vs-srg-s4-group-a-2026-11-26"
+  },
+  {
+    "region": "NA",
+    "start": "2026-11-28T00:00:00Z",
+    "a": "DEI",
+    "b": "EDG",
+    "bo": 3,
+    "hours": 3,
+    "url": "https://pcmt.gg/events/s4-na/dei-vs-edg-s4-group-b-2026-11-28"
+  },
+  {
+    "region": "NA",
+    "start": "2026-11-29T22:00:00Z",
+    "a": "DRX",
+    "b": "NRG",
+    "bo": 3,
+    "hours": 3,
+    "url": "https://pcmt.gg/events/s4-na/drx-vs-nrg-s4-group-c-2026-11-29"
   }
 ];
 

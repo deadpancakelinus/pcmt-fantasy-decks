@@ -377,7 +377,13 @@ var PCMT_PICKEMS = [
       "NBR": "NBR",
       "PRX": "PRX",
       "BLG": "BLG",
-      "TANK": "TANK"
+      "TANK": "TANK",
+      "LOUD": "LOUD",
+      "SRG": "SRG",
+      "DEI": "DEI",
+      "EDG": "EDG",
+      "DRX": "DRX",
+      "NRG": "NRG"
     },
     "teams": {
       "FNC": "Freaks Need Caesparz",
@@ -387,7 +393,13 @@ var PCMT_PICKEMS = [
       "NBR": "Namebrand Ramyeon",
       "PRX": "Perfect RetaXe",
       "BLG": "Bartho Lomew Gaming",
-      "TANK": "TANKERS"
+      "TANK": "TANKERS",
+      "LOUD": "Leading Ourselves Under Delusion",
+      "SRG": "Shaymins Really Good",
+      "DEI": "Doofenshmirtz Evil Inc.",
+      "EDG": "EggheaD Gaming",
+      "DRX": "Doing Rails of X",
+      "NRG": "Not Really Good"
     },
     "series": [
       {
@@ -435,6 +447,36 @@ var PCMT_PICKEMS = [
         "start": "2026-11-23T02:00:00Z",
         "score": null,
         "url": "https://pcmt.gg/events/s4-na/blg-vs-tank-s4-group-d-2026-11-23"
+      },
+      {
+        "n": 5,
+        "round": "Group A",
+        "a": "LOUD",
+        "b": "SRG",
+        "bo": 3,
+        "start": "2026-11-26T03:00:00Z",
+        "score": null,
+        "url": "https://pcmt.gg/events/s4-na/loud-vs-srg-s4-group-a-2026-11-26"
+      },
+      {
+        "n": 6,
+        "round": "Group B",
+        "a": "DEI",
+        "b": "EDG",
+        "bo": 3,
+        "start": "2026-11-28T00:00:00Z",
+        "score": null,
+        "url": "https://pcmt.gg/events/s4-na/dei-vs-edg-s4-group-b-2026-11-28"
+      },
+      {
+        "n": 7,
+        "round": "Group C",
+        "a": "DRX",
+        "b": "NRG",
+        "bo": 3,
+        "start": "2026-11-29T22:00:00Z",
+        "score": null,
+        "url": "https://pcmt.gg/events/s4-na/drx-vs-nrg-s4-group-c-2026-11-29"
       }
     ]
   }
