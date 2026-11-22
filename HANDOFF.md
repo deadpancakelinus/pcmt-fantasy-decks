@@ -17,7 +17,7 @@ Everything not yet live is ONE update on the branch **`release`**, built and tes
 The old `update-na-cards` branch is merged with nothing taken from it: the live Stage 1 totals and points window (hotfixes, Nov 20) replaced it.
 
 **To ship `release`:**
-1. In the Supabase SQL editor, run `setup/usernames.sql`, then `setup/backend-overhaul.sql`, then `setup/cards-setup.sql` (all safe to run again). On Nov 22 cards-setup.sql only added the 162 S4 cards to the live catalog: its pack functions matched live exactly and no existing card changed.
+1. In the Supabase SQL editor, run `setup/usernames.sql`, then `setup/backend-overhaul.sql`, then `setup/cards-setup.sql` (all safe to run again). Checked against live on Nov 22: cards-setup.sql only adds the 162 S4 cards (its pack functions match live exactly and no existing card changes).
 2. `git fetch origin && git checkout release && git merge origin/main` (the sync's commits only touch data files; if `index.html` or another built page conflicts, take either side and rebuild).
 3. Rebuild: `python3 -I tools/build.py tools/canvas assets <out>`, then copy the built pages to the repo root, except `data.js`, `pickems.js` and `rankings.js`.
 4. Check: `NODE_PATH=$(npm root -g) node tools/smoke-test.js http://localhost:8771 <shots>` (with `python3 -m http.server 8771` in the repo) and `node tools/vp-test.js "psql ..." players.js` against a local Postgres. (`tools/cards-test.js` has 7 known failures from counts written before the Splatty and S4 cards; same on `main`.)
