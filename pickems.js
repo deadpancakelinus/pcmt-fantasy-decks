@@ -83,9 +83,9 @@ var PCMT_PICKEMS = [
         "a": "W3",
         "b": "W4",
         "bo": 3,
-        "start": null,
+        "start": "2026-11-29T14:00:00Z",
         "score": null,
-        "url": null
+        "url": "https://pcmt.gg/events/s2-emea/xtc-vs-nip-s2-playoffs-2026-11-29"
       },
       {
         "n": 6,
@@ -435,7 +435,10 @@ var PCMT_PICKEMS = [
         "b": "PRX",
         "bo": 3,
         "start": "2026-11-22T02:00:00Z",
-        "score": null,
+        "score": [
+          2,
+          1
+        ],
         "url": "https://pcmt.gg/events/s4-na/nbr-vs-prx-s4-group-c-2026-11-22"
       },
       {
@@ -445,7 +448,10 @@ var PCMT_PICKEMS = [
         "b": "TANK",
         "bo": 3,
         "start": "2026-11-23T02:00:00Z",
-        "score": null,
+        "score": [
+          0,
+          2
+        ],
         "url": "https://pcmt.gg/events/s4-na/blg-vs-tank-s4-group-d-2026-11-23"
       },
       {

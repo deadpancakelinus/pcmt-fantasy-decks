@@ -69,6 +69,15 @@ var PCMT_MATCHES = [
     "url": "https://pcmt.gg/events/s4-na/dei-vs-edg-s4-group-b-2026-11-28"
   },
   {
+    "region": "EMEA",
+    "start": "2026-11-29T14:00:00Z",
+    "a": "XTC",
+    "b": "NIP",
+    "bo": 3,
+    "hours": 3,
+    "url": "https://pcmt.gg/events/s2-emea/xtc-vs-nip-s2-playoffs-2026-11-29"
+  },
+  {
     "region": "NA",
     "start": "2026-11-29T22:00:00Z",
     "a": "DRX",
@@ -76,6 +85,15 @@ var PCMT_MATCHES = [
     "bo": 3,
     "hours": 3,
     "url": "https://pcmt.gg/events/s4-na/drx-vs-nrg-s4-group-c-2026-11-29"
+  },
+  {
+    "region": "NA",
+    "start": "2027-06-08T04:59:00Z",
+    "a": "WOOD",
+    "b": "WING",
+    "bo": 5,
+    "hours": 5,
+    "url": "https://pcmt.gg/events/s2-na/wood-vs-wing-s2-group-stage-2027-06-08"
   }
 ];
 
@@ -1305,6 +1323,315 @@ var PCMT_RESULTS = [
           "jooah-s4": 12,
           "nut-s4": 8,
           "ceiliuir-s4": 2
+        }
+      }
+    ]
+  },
+  {
+    "region": "NA",
+    "start": "2026-11-22T02:00:00Z",
+    "a": "NBR",
+    "b": "PRX",
+    "winner": "NBR",
+    "url": "https://pcmt.gg/events/s4-na/nbr-vs-prx-s4-group-c-2026-11-22",
+    "stats": {
+      "josh-s4": [
+        68,
+        43,
+        21,
+        4,
+        298,
+        70,
+        199.6,
+        1.384
+      ],
+      "platy-s4": [
+        49,
+        45,
+        23,
+        9,
+        231,
+        73,
+        164.9,
+        1.135
+      ],
+      "art-s4": [
+        45,
+        46,
+        11,
+        2,
+        201,
+        70,
+        125.6,
+        0.942
+      ],
+      "makya-s4": [
+        35,
+        47,
+        19,
+        5,
+        162,
+        75,
+        99.9,
+        0.828
+      ],
+      "lore-s4": [
+        29,
+        46,
+        27,
+        1,
+        130,
+        70,
+        85,
+        0.759
+      ],
+      "crocman-s4": [
+        65,
+        44,
+        12,
+        11,
+        284,
+        71,
+        181.5,
+        1.278
+      ],
+      "jaden-s4": [
+        63,
+        46,
+        10,
+        16,
+        284,
+        76,
+        177.2,
+        1.244
+      ],
+      "toastemup-s4": [
+        44,
+        48,
+        27,
+        5,
+        214,
+        73,
+        145.9,
+        1.038
+      ],
+      "tawn-s4": [
+        33,
+        45,
+        25,
+        5,
+        155,
+        68,
+        101.9,
+        0.831
+      ],
+      "hankyjanky-s4": [
+        22,
+        43,
+        26,
+        5,
+        107,
+        67,
+        67.5,
+        0.662
+      ]
+    },
+    "maps": [
+      {
+        "map": "Lotus",
+        "a": 8,
+        "b": 13,
+        "k": {
+          "josh-s4": 25,
+          "platy-s4": 13,
+          "art-s4": 15,
+          "makya-s4": 9,
+          "lore-s4": 6,
+          "crocman-s4": 21,
+          "toastemup-s4": 21,
+          "jaden-s4": 21,
+          "tawn-s4": 15,
+          "hankyjanky-s4": 7
+        }
+      },
+      {
+        "map": "Summit",
+        "a": 13,
+        "b": 5,
+        "k": {
+          "josh-s4": 26,
+          "platy-s4": 14,
+          "art-s4": 14,
+          "makya-s4": 11,
+          "lore-s4": 10,
+          "crocman-s4": 19,
+          "toastemup-s4": 11,
+          "jaden-s4": 14,
+          "tawn-s4": 7,
+          "hankyjanky-s4": 5
+        }
+      },
+      {
+        "map": "Sunset",
+        "a": 13,
+        "b": 11,
+        "k": {
+          "platy-s4": 22,
+          "josh-s4": 17,
+          "art-s4": 16,
+          "makya-s4": 15,
+          "lore-s4": 13,
+          "jaden-s4": 28,
+          "crocman-s4": 25,
+          "toastemup-s4": 12,
+          "tawn-s4": 11,
+          "hankyjanky-s4": 10
+        }
+      }
+    ]
+  },
+  {
+    "region": "NA",
+    "start": "2026-11-23T02:00:00Z",
+    "a": "BLG",
+    "b": "TANK",
+    "winner": "TANK",
+    "url": "https://pcmt.gg/events/s4-na/blg-vs-tank-s4-group-d-2026-11-23",
+    "stats": {
+      "phuzzy-s4": [
+        49,
+        43,
+        12,
+        5,
+        239,
+        77,
+        159.6,
+        1.127
+      ],
+      "stingray-s4": [
+        46,
+        42,
+        11,
+        5,
+        236,
+        74,
+        157.3,
+        1.085
+      ],
+      "asher-s4": [
+        41,
+        39,
+        21,
+        6,
+        195,
+        67,
+        132.5,
+        1.016
+      ],
+      "amara-s4": [
+        37,
+        44,
+        20,
+        6,
+        193,
+        67,
+        121.5,
+        0.908
+      ],
+      "caesparz-s4": [
+        31,
+        45,
+        26,
+        3,
+        177,
+        72,
+        129.3,
+        0.903
+      ],
+      "linus-s4": [
+        48,
+        36,
+        20,
+        2,
+        229,
+        75,
+        167,
+        1.216
+      ],
+      "angus-s4": [
+        48,
+        44,
+        21,
+        8,
+        257,
+        74,
+        166.2,
+        1.152
+      ],
+      "kaydeg-s4": [
+        47,
+        45,
+        17,
+        11,
+        236,
+        79,
+        155.5,
+        1.108
+      ],
+      "ahsum-s4": [
+        41,
+        38,
+        4,
+        8,
+        189,
+        70,
+        123.2,
+        0.944
+      ],
+      "androobee-s4": [
+        29,
+        41,
+        32,
+        3,
+        163,
+        74,
+        109.4,
+        0.894
+      ]
+    },
+    "maps": [
+      {
+        "map": "Haven",
+        "a": 16,
+        "b": 18,
+        "k": {
+          "stingray-s4": 29,
+          "phuzzy-s4": 27,
+          "asher-s4": 26,
+          "caesparz-s4": 20,
+          "amara-s4": 17,
+          "angus-s4": 31,
+          "kaydeg-s4": 30,
+          "linus-s4": 25,
+          "androobee-s4": 19,
+          "ahsum-s4": 21
+        }
+      },
+      {
+        "map": "Summit",
+        "a": 10,
+        "b": 13,
+        "k": {
+          "phuzzy-s4": 22,
+          "amara-s4": 20,
+          "stingray-s4": 17,
+          "asher-s4": 15,
+          "caesparz-s4": 11,
+          "linus-s4": 23,
+          "ahsum-s4": 20,
+          "kaydeg-s4": 17,
+          "angus-s4": 17,
+          "androobee-s4": 10
         }
       }
     ]
