@@ -386,6 +386,12 @@
         <section class="panel"><h2 class="db-h">Site health</h2><ul class="db-list" id="db-health"></ul></section>
       </div>
       <section class="panel"><h2 class="db-h">Pick'ems</h2><div id="db-pickems"></div></section>
+      <section class="panel" aria-labelledby="sy-h"><h2 class="db-h" id="sy-h">PCMT.gg sync</h2>
+        <p class="who">Pulls new games, results, Pick'ems, stats, rosters and team card backs from PCMT.gg now (it also runs every hour on its own). Takes about a minute, then the site redeploys. Pick'ems points follow at :37 past the hour, Credits at :07.</p>
+        <ul class="db-list" id="sy-last"></ul>
+        <div class="sb-row"><button type="button" class="btn" id="sy-run">Run PCMT.gg sync</button></div>
+        <p class="msg" id="sy-msg" role="status" aria-live="polite"></p>
+      </section>
     </section>
 
     <!-- ===== Schedule ===== -->
@@ -2229,7 +2235,57 @@
       return '<p class="db-ev">' + esc(e.event) + ' · ' + nfmt(e.pickers) + ' players · ' + nfmt(e.worth) + ' per right pick' + (e.open ? '' : ' · closed') + '</p>' + (rows ? '<div class="db-split">' + rows + '</div>' : '<p class="who">No picks yet.</p>');
     }).join('') || '<p class="who">' + (DASH ? 'No Pick\'ems events open.' : '') + '</p>';
   }
-  $('db-refresh').addEventListener('click', function () { var b = this; b.disabled = true; loadDash().then(drawDash).then(function () { b.disabled = false; }); });
+  $('db-refresh').addEventListener('click', function () { var b = this; b.disabled = true; loadDash().then(drawDash).then(syncStatus).then(function () { b.disabled = false; }); });
+
+  // ---------- PCMT.gg sync button (setup/sync-button.sql; a GitHub token in Supabase Vault) ----------
+  var SYNC_SQL = 'Needs setup/sync-button.sql in Supabase.', syncPoll = null;
+  function syncErr(e) {
+    return e === 'no_token' ? 'No GitHub token yet: add one to Supabase Vault as github_sync_token (see setup/sync-button.sql).'
+      : /github_401|github_403/.test(e) ? 'GitHub turned the token down (' + e.slice(7) + '). It may have expired: make a new one and replace github_sync_token in Supabase Vault.'
+      : /github_404/.test(e) ? 'GitHub couldn\'t find the sync (404). Check the token has this repo and Actions: Read and write.'
+      : 'GitHub answered ' + String(e).replace('github_', '') + '.';
+  }
+  function syncLine(st) {
+    if (!st || st.status === 'none') return '<li><span class="who">No runs yet.</span></li>';
+    var state = st.status !== 'completed' ? (st.status === 'in_progress' ? 'Running…' : 'Waiting to start…') : st.conclusion === 'success' ? 'OK' : (st.conclusion || 'Done');
+    var cls = st.status !== 'completed' ? '' : st.conclusion === 'success' ? 'ok' : 'bad';
+    return '<li><span>Last run' + (st.event === 'schedule' ? ' (hourly)' : st.event === 'workflow_dispatch' ? ' (by hand)' : '') + (st.started ? ' · ' + esc(ago(st.started)) : '') + '</span>' +
+      '<b class="' + cls + '">' + esc(state) + (st.url ? ' · <a href="' + esc(st.url) + '" target="_blank" rel="noopener">details</a>' : '') + '</b></li>';
+  }
+  function syncStatus() {
+    return L.api('/rest/v1/rpc/fb_sync_status', { method: 'POST', body: {} }).then(function (st) {
+      st = st || {};
+      if (st.error) { $('sy-last').innerHTML = ''; $('sy-msg').className = 'msg err'; $('sy-msg').textContent = syncErr(st.error); return st; }
+      $('sy-last').innerHTML = syncLine(st);
+      var busy = st.status && st.status !== 'completed' && st.status !== 'none';
+      $('sy-run').disabled = !!busy;
+      clearTimeout(syncPoll);
+      if (busy) syncPoll = setTimeout(syncStatus, 8000);
+      else if ($('sy-msg').getAttribute('data-wait') === '1') {
+        $('sy-msg').removeAttribute('data-wait');
+        $('sy-msg').className = 'msg' + (st.conclusion === 'success' ? ' ok' : ' err');
+        $('sy-msg').textContent = st.conclusion === 'success' ? 'Sync finished. Any changes go live in a minute or two (reload pages to see them).' : 'The sync didn\'t finish cleanly: open "details" to see why.';
+      }
+      return st;
+    }).catch(function (e) {
+      $('sy-last').innerHTML = ''; $('sy-msg').className = 'msg err';
+      $('sy-msg').textContent = /fb_sync_status|404|PGRST202/.test(e.message) ? SYNC_SQL : 'Couldn\'t check the sync: ' + e.message;
+    });
+  }
+  $('sy-run').addEventListener('click', function () {
+    var b = this; b.disabled = true; $('sy-msg').className = 'msg'; $('sy-msg').textContent = 'Starting…';
+    L.api('/rest/v1/rpc/fb_run_sync', { method: 'POST', body: {} }).then(function (r) {
+      r = r || {};
+      if (r.error) { $('sy-msg').className = 'msg err'; $('sy-msg').textContent = syncErr(r.error); b.disabled = false; return; }
+      $('sy-msg').textContent = r.already ? 'A sync is already running: it\'ll pick up everything.' : 'Sync started.';
+      $('sy-msg').setAttribute('data-wait', '1');
+      setTimeout(syncStatus, r.already ? 0 : 4000);   // GitHub takes a few seconds to list a new run
+    }).catch(function (e) {
+      $('sy-msg').className = 'msg err';
+      $('sy-msg').textContent = /fb_run_sync|404|PGRST202/.test(e.message) ? SYNC_SQL : 'Couldn\'t start it: ' + e.message;
+      b.disabled = false;
+    });
+  });
 
   // ---------- Schedule ----------
   var SCHED = [], schedErr = '', scEdit = null, scBusy = false, scArmed = null;
@@ -2475,7 +2531,7 @@
         show('st-staff');
         var h = (location.hash || '').slice(1);
         openTab(TABS.indexOf(h) >= 0 ? h : 'dash');
-        drawDash(); scReset(); drawSchedule(); drawSeason(); drawPickemEvents(); drawStaff();
+        drawDash(); syncStatus(); scReset(); drawSchedule(); drawSeason(); drawPickemEvents(); drawStaff();
         drawPages(); drawPrices(); setupTeams(); drawCards(); drawRares(); drawPacks(); setupMulti(); drawSubs(); drawNotes(); setupChamps(); drawComplaints();
       });
     }).catch(function (e) { show('st-staff'); $('p-msg').textContent = 'Something went wrong loading the backend: ' + e.message; $('p-msg').className = 'msg err'; });

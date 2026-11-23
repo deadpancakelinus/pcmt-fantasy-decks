@@ -14,12 +14,14 @@ Everything not yet live is ONE update on the branch **`release`**, built and tes
 | Backend overhaul: no descriptions, Dashboard, Schedule, Season, Pick'ems, Staff tabs, Upload sheet on Player prices, page views | 42, 43 | `setup/backend-overhaul.sql` |
 | NA Season 4 cards: 81 S4 Commons join the NA Card Pack, 81 S4 Splatty Rares (held back like the other Splattys) | 27, 44 | `setup/cards-setup.sql` |
 | Team card backs from PCMT.gg: NA S4 decks get PCMT.gg's logos, and every new season's teams get card backs on their own (sync step) | 45 | none |
+| Backend: "Run PCMT.gg sync" button on the Dashboard; the sync back to every hour | 47 | `setup/sync-button.sql` + a GitHub token in Supabase Vault |
+| The Deck store: "Show points" toggle; its NA / EMEA buttons removed (the deck's own toggle at the top does the same) | 48 | none |
 | New users' NA lock | New users' NA lock | `setup/new-users.sql` (already run on Nov 22; it's live) |
 
 The old `update-na-cards` branch is merged with nothing taken from it: the live Stage 1 totals and points window (hotfixes, Nov 20) replaced it.
 
 **To ship `release`:**
-1. In the Supabase SQL editor, run `setup/usernames.sql`, then `setup/profile-pics.sql`, then `setup/backend-overhaul.sql`, then `setup/cards-setup.sql` (all safe to run again). Checked against live on Nov 22: cards-setup.sql only adds the 162 S4 cards (its pack functions match live exactly and no existing card changes).
+1. In the Supabase SQL editor, run `setup/usernames.sql`, then `setup/profile-pics.sql`, then `setup/backend-overhaul.sql`, then `setup/cards-setup.sql`, then `setup/sync-button.sql` (all safe to run again). For the sync button, add the GitHub token to Supabase Vault as `github_sync_token` (steps at the top of sync-button.sql; never in the site, repo or a chat). Checked against live on Nov 22: cards-setup.sql only adds the 162 S4 cards (its pack functions match live exactly and no existing card changes).
 2. `git fetch origin && git checkout release && git merge origin/main` (the sync's commits only touch data files; if `index.html` or another built page conflicts, take either side and rebuild).
 3. Rebuild: `python3 -I tools/build.py tools/canvas assets <out>`, then copy the built pages to the repo root, except `data.js`, `pickems.js` and `rankings.js`.
 4. Check: `NODE_PATH=$(npm root -g) node tools/smoke-test.js http://localhost:8771 <shots>` (with `python3 -m http.server 8771` in the repo) and `node tools/vp-test.js "psql ..." players.js` against a local Postgres. (`tools/cards-test.js` has 7 known failures from counts written before the Splatty and S4 cards; same on `main`.)
@@ -36,7 +38,7 @@ Still to do: logos for FNC, GENG, LOUD, EDG, DRX, SRG and NRG (S4 decks and card
 | GitHub repo | `deadpancakelinus/pcmt-fantasy-decks` (Cloudflare Pages redeploys on every push to `main`) |
 | Designs | The page boards in the design canvas; the current copy is in `tools/canvas/` |
 | Supabase | https://wwrsavqipkxvdsxcemos.supabase.co, publishable key `sb_publishable_e8v-uyAo4fnvwJCHUVA5FQ_LXR6yYM7` (public, already in league.js) |
-| PCMT.gg sync | GitHub Action `.github/workflows/pcmt-sync.yml` (runs on GitHub, every half hour at :17 and :47 (since Nov 22 2026), or by hand from the repo's Actions tab → PCMT.gg sync → Run workflow): `node tools/pcmt-sync.js` for matches, results, Pick'ems and the EMEA power rankings (rankings.js), `tools/pcmt-stats.js` + `trumps/build_cards.py` for MVP VS, then commits as deadpancakelinus and pushes to main. A failed step marks the run red (GitHub emails the repo owner). It doesn't update the design canvas's copy of the arrays. |
+| PCMT.gg sync | GitHub Action `.github/workflows/pcmt-sync.yml` (runs on GitHub, every hour at :17, or by hand (also from the backend: Dashboard → Run PCMT.gg sync, see 47) from the repo's Actions tab → PCMT.gg sync → Run workflow): `node tools/pcmt-sync.js` for matches, results, Pick'ems and the EMEA power rankings (rankings.js), `tools/pcmt-stats.js` + `trumps/build_cards.py` for MVP VS, then commits as deadpancakelinus and pushes to main. A failed step marks the run red (GitHub emails the repo owner). It doesn't update the design canvas's copy of the arrays. |
 
 **Never** put these in the site or the repo, or share them: the Supabase database password, the Supabase secret / service_role key, or the Discord Client Secret. Only the publishable key belongs in the site.
 
@@ -425,3 +427,12 @@ Supabase's Discord login always asks Discord for the email. Triggers drop it bef
 - Account window: the long username help text is gone (the "change again on <date>" note stays while a username is locked). **Profile picture**: Upload picture (PNG, JPG, WebP or GIF, under 15 MB) is cropped to the middle square and shrunk to 256 x 256 WebP in the browser (PNG where a browser can't make WebP), uploaded to the public Storage bucket `avatars` as `<user id>.webp`, then `profiles.picture_at` is set; Remove picture deletes it and clears `picture_at`. `PCMT_ACCOUNT.setPicture(blob | null)` in tools/league.js.
 - The Deck Leaderboard shows a 28 px round picture next to each manager: their uploaded picture (`<Supabase>/storage/v1/object/public/avatars/<id>.webp?v=<picture_at>`), else their Discord avatar (`profiles.avatar_url`), else the first letter of their name.
 - Server (setup/profile-pics.sql): `profiles.picture_at`, the `avatars` bucket (public, 256 KB, WebP/PNG/JPEG), Storage policies (owners add/replace/remove their own file; staff can remove any), `fb_clear_picture(user)` for staff (clears `picture_at`, so the site stops showing it; the file itself is deleted from Storage, since Supabase doesn't allow that from SQL).
+
+## 47. Run PCMT.gg sync from the backend (update, not released yet)
+- Backend Dashboard → **PCMT.gg sync** panel: the latest run (hourly or by hand, how long ago, OK / Failed / Running, a link to it on GitHub) and **Run PCMT.gg sync**, which starts `.github/workflows/pcmt-sync.yml` (skipped if a run is already waiting or running) and follows it until it finishes.
+- Server (setup/sync-button.sql): `fb_run_sync()` and `fb_sync_status()`, staff only, call GitHub's API through the `http` extension with a fine-grained token kept in Supabase Vault as `github_sync_token` (this repo only, Actions: Read and write). The token never reaches the site. No token, or an expired one, shows a line saying what to do.
+- The sync is back to **every hour at :17** (it was every half hour from Nov 22; GitHub skipped most of those runs anyway).
+
+## 48. The Deck store: Show points (update, not released yet)
+- A **Show points** toggle in the store (remembered on the device, `pcmt-store-pts`) adds each player's points next to their price: the same number as their deck card (`cardPoints`: NA Stage 1 best-two total while the stage runs on an NA deck, with the same hover window; else this gameweek's points), in the team colour. Works with search and the role tabs.
+- The store's own NA / EMEA buttons are gone: they only switched the deck's region, which the NA / EMEA toggle at the top of the deck already does.

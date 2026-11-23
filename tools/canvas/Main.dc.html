@@ -560,10 +560,8 @@ AUTHENTIC
 </sc-if>
 </sc-for>
 </div>
-<div role="group" aria-label="Regions shown" style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
-<span style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa; letter-spacing: 0.06em; text-transform: uppercase; margin-right: 4px">Region</span>
-<button onClick="{{toggleNA}}" aria-pressed="{{naOn}}" aria-label="NA players" title="NA" style="min-height: 44px; padding: 0 14px 0 10px; border-radius: 999px; border: 1px solid {{naBorder}}; background: {{naBg}}; color: {{naColor}}; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.06em; display: inline-flex; align-items: center; gap: 8px"><img src="{{regionNA}}" alt="" style="width: 26px; height: 26px; object-fit: contain; display: block; opacity: {{naImgOpacity}}; filter: {{naImgFilter}}">NA</button>
-<button onClick="{{toggleEMEA}}" aria-pressed="{{emeaOn}}" aria-label="EMEA players" title="EMEA" style="min-height: 44px; padding: 0 14px 0 10px; border-radius: 999px; border: 1px solid {{emeaBorder}}; background: {{emeaBg}}; color: {{emeaColor}}; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.06em; display: inline-flex; align-items: center; gap: 8px"><img src="{{regionEMEA}}" alt="" style="width: 26px; height: 26px; object-fit: contain; display: block; opacity: {{emeaImgOpacity}}; filter: {{emeaImgFilter}}">EMEA</button>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
+<button onClick="{{togglePts}}" aria-pressed="{{ptsOn}}" title="Show each player's points (the same number as on their deck card)" style="min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid {{ptsBorder}}; background: {{ptsBg}}; color: {{ptsColor}}; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; cursor: pointer">Show points</button>
 </div>
 <div style="display: flex; flex-direction: column; gap: 6px">
 <label for="player-search" style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa; letter-spacing: 0.06em; text-transform: uppercase">Search</label>
@@ -594,6 +592,9 @@ AUTHENTIC
 <sc-for list="{{p.regionIcons}}" as="ri" hint-placeholder-count="1"><img src="{{ri.src}}" alt="{{ri.label}}" title="{{ri.label}}" style="width: 20px; height: 20px; object-fit: contain; display: block; flex: none; margin-left: 8px"></sc-for>
 </span>
 </div>
+<sc-if value="{{p.showPts}}" hint-placeholder-val="{{ false }}">
+<span class="pcmt-store-pts" title="{{p.ptsTitle}}" data-pcmt-pts="{{p.ptsKey}}" style="flex: none; min-width: 44px; text-align: right; cursor: {{p.ptsCursor}}; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 22px; line-height: 1; color: {{p.teamColor}}; font-variant-numeric: tabular-nums">{{p.points}}<span style="display: block; font-family: 'National Park', system-ui, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; color: #93a9aa">PTS</span></span>
+</sc-if>
 <span class="pcmt-store-price" style="font-family: 'National Park', system-ui, sans-serif; font-size: 15px; font-weight: 600; min-width: 56px; text-align: right">{{p.priceLabel}}</span>
 <sc-if value="{{p.isPicked}}" hint-placeholder-val="{{ false }}">
 <button onClick="{{p.toggle}}" aria-label="Remove {{p.name}}" class="pcmt-store-btn" style="width: 96px; min-height: 44px; border-radius: 8px; border: 1px solid #a5dcdd; background: #13292b; color: #a5dcdd; font-family: 'National Park', system-ui, sans-serif; font-size: 12px; font-weight: 600">In deck</button>
@@ -1118,6 +1119,10 @@ function pcmtReadAura() {
 }
 function pcmtReadStoreOpen() {
   try { return window.localStorage.getItem('pcmt-store-open') !== '0'; } catch (e) { return true; }
+}
+// Store "Show points" toggle (Nov 23 2026): each player's points, the same number (and hover window) as their deck card.
+function pcmtReadStorePts() {
+  try { return window.localStorage.getItem('pcmt-store-pts') === '1'; } catch (e) { return false; }
 }
 // Deck names: words that aren't allowed. Returns { bad, text } where text has each blocked word replaced by *.
 // Look-alike characters count (0=o, 1=i, 3=e, 4=a, 5=s, $=s, @=a ...), and spacing or dots between letters doesn't hide a word.
@@ -2013,7 +2018,7 @@ class Component extends DCLogic {
     var deckRegion = pcmtReadDeckRegion(), mine = pcmtReadMyDeck(deckRegion), only = { NA: deckRegion === 'NA', EMEA: deckRegion === 'EMEA' };
     this.state = {
       slots: mine.slots,
-      igl: mine.igl, tab: 'all', squadName: mine.squadName, crownArmed: false, iglFlip: null, filter: 'ALL', search: '', deckRegion: deckRegion, regions: only, dealRegions: only, saved: mine.saved, storeOpen: pcmtReadStoreOpen()
+      igl: mine.igl, tab: 'all', squadName: mine.squadName, crownArmed: false, iglFlip: null, filter: 'ALL', search: '', deckRegion: deckRegion, regions: only, dealRegions: only, saved: mine.saved, storeOpen: pcmtReadStoreOpen(), storePts: pcmtReadStorePts()
     };
   }
 
@@ -2556,6 +2561,9 @@ class Component extends DCLogic {
           priceLabel: pcmtNum(p.price),
           teamColor: PCMT_TEAMS[p.team],
           rowBg: isPicked ? '#0f1d1e' : 'transparent',
+          showPts: !!s.storePts, points: pcmtNum(self.cardPoints(p.id)),
+          ptsTitle: self.stageCards() ? '' : pcmtNum(self.cardPoints(p.id)) + ' points this gameweek',
+          ptsKey: self.stageCards() ? p.id : '', ptsCursor: self.stageCards() ? 'help' : 'inherit',
           isPicked: isPicked, blocked: !!reason, reason: reason,
           canAdd: !isPicked && !reason,
           toggle: function () { self.toggle(p.id); }
@@ -2845,6 +2853,8 @@ class Component extends DCLogic {
       iglName: iglPlayer ? iglPlayer.name : '—',
       statusText: statusText,
       storeOpen: s.storeOpen !== false, storeClosed: s.storeOpen === false,
+      ptsOn: s.storePts ? 'true' : 'false', ptsBorder: s.storePts ? '#a5dcdd' : '#3a4f53', ptsBg: s.storePts ? '#13292b' : 'transparent', ptsColor: s.storePts ? '#a5dcdd' : '#93a9aa',
+      togglePts: function () { var on = !self.state.storePts; try { window.localStorage.setItem('pcmt-store-pts', on ? '1' : '0'); } catch (e) {} self.setState({ storePts: on }); },
       toggleStore: function () { var open = self.state.storeOpen === false; try { window.localStorage.setItem('pcmt-store-open', open ? '1' : '0'); } catch (e) {} self.setState({ storeOpen: open }); },
       ready: ready && !s.saved, notReady: !(ready && !s.saved),
       save: function () {
