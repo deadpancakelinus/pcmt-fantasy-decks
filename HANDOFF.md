@@ -12,6 +12,7 @@ The next update is on the branch **`update-2`**, NOT pushed (only when the owner
 |---|---|---|
 | Backend 4Ks & 5Ks: the series picker is a dropdown with a Delete button on each game (only the list changes) | 49 | none (uses `site_settings` key `multi_hidden`) |
 | Backend Dashboard Pick'ems: each team's share of the picks in its team colour | 50 | none |
+| Backend Pick'ems tab: a NA Season 4 Pick'ems graphic (PNG) with a Download button | 51 | none |
 
 **To ship `update-2`:** `git fetch origin && git checkout update-2 && git merge origin/main`, rebuild if any board changed (`python3 -I tools/build.py tools/canvas assets <out>`, copy the built pages except `data.js`, `pickems.js`, `rankings.js`), smoke test, commit as `deadpancakelinus <sixthneigh@gmail.com>` (short plain message), `git push origin update-2:main`.
 
@@ -431,3 +432,7 @@ Supabase's Discord login always asks Discord for the email. Triggers drop it bef
 
 ## 50. Pick'ems split in team colours (update-2, not released yet)
 - Backend Dashboard → Pick'ems: each game's bar shows every team's share of the picks in that team's colour (`pkColor` in backend.html): NA Season 4 and later from season-teams.js (now loaded on the backend, so S4 FNC isn't S3's), other events from the team list (players.js teams and the Teams tab). Text on each part is black or white, whichever reads better (`inkOn`). A team with no colour keeps the old look.
+
+## 51. NA Season 4 Pick'ems graphic (update-2, not released yet)
+- Backend → Pick'ems tab → **NA Season 4 Pick'ems graphic**: a 1080-wide picture (canvas, `drawGraphic` in backend.html) of every NA S4 game with picks: both teams' logos, codes and pick %, a split bar in team colours, the round and date, or "Final x–y" with a tick by the winner once played. Header "PCMT · NA SEASON 4 / Pick'ems / What N players picked", footer fantasy.pcmt.gg and the date. **Only games not played yet** narrows it; **Refresh** reloads the numbers; **Download PNG** saves `pcmt-na-s4-pickems-<date>.png`.
+- Picks from `fb_dashboard` (the dashboard's split, staff only), games from pickems.js (`na-s4`; bracket slots like W1 are skipped until teams are known), logos and colours from season-teams.js (same-site files, so the picture can be saved). Fonts: Cabin Sketch and National Park, waited for before drawing.
