@@ -232,7 +232,7 @@
   .btn.ghost.danger { color: #ff8a80; border-color: rgba(255,138,128,.5); }
   /* 4Ks & 5Ks series picker: a dropdown with a Delete button on each game (deleted ones are listed in site_settings 'multi_hidden') */
   .gx { margin-top: 28px; }
-  .gx canvas { display: block; width: 100%; max-width: 560px; height: auto; margin-top: 14px; border-radius: 10px; border: 1px solid #2a3a3e; }
+  .gx canvas { display: block; width: 100%; max-width: 700px; height: auto; margin-top: 14px; border-radius: 10px; border: 1px solid #2a3a3e; }
   .ms { position: relative; }
   .ms-btn { width: 100%; min-height: 46px; padding: 0 40px 0 12px; border-radius: 8px; border: 1px solid #3a4f53; background: #0d1416; text-align: left; cursor: pointer; position: relative; }
   .ms-btn::after { content: ''; position: absolute; right: 16px; top: 50%; width: 8px; height: 8px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: translateY(-70%) rotate(45deg); }
@@ -458,7 +458,7 @@
       <section class="panel gx" aria-labelledby="gx-h">
         <h2 class="db-h" id="gx-h">NA Season 4 Pick'ems graphic</h2>
         <div class="toolbar">
-          <label class="check"><input type="checkbox" id="gx-upcoming"> Only games not played yet</label>
+          <label class="field"><span class="kicker">Game</span><select id="gx-game"></select></label>
           <span class="spacer"></span>
           <button type="button" class="btn ghost" id="gx-refresh">Refresh</button>
           <button type="button" class="btn" id="gx-dl" disabled>Download PNG</button>
@@ -1608,7 +1608,7 @@
 
   // ---------- NA Season 4 Pick'ems graphic (a PNG to post: each game's pick split, team logos and colours) ----------
   // Picks come from fb_dashboard (the dashboard's split), games from pickems.js, logos and colours from season-teams.js.
-  var GX_W = 1080, gxImgs = {};
+  var gxImgs = {};
   function gxTeams() {
     var by = {};
     (window.PCMT_SEASON_TEAMS || []).forEach(function (sn) { if (sn.event === 's4-na') (sn.teams || []).forEach(function (t) { by[t.label] = t; }); });
@@ -1619,12 +1619,12 @@
     if (!gxImgs[src]) gxImgs[src] = new Promise(function (ok) { var im = new Image(); im.onload = function () { ok(im); }; im.onerror = function () { ok(null); }; im.src = src; });
     return gxImgs[src];
   }
+  // One game per picture, 1050 x 560 (the promo square on the S4 break screen), a line per team.
   function gxGames() {
     var B = (window.PCMT_PICKEMS || []).filter(function (b) { return b.id === 'na-s4'; })[0];
     var ev = ((DASH && DASH.pickems) || []).filter(function (e) { return e.event === 'na-s4'; })[0], split = (ev && ev.split) || {};
-    var only = $('gx-upcoming').checked;
     return { players: ev ? ev.pickers : 0, games: ((B && B.series) || []).filter(function (x) {
-      return !/^[WL]\d+$/.test(x.a) && !/^[WL]\d+$/.test(x.b) && split[x.n] && (!only || !x.score);
+      return !/^[WL]\d+$/.test(x.a) && !/^[WL]\d+$/.test(x.b) && split[x.n];
     }).map(function (x) {
       var w = split[x.n] || {}, a = w[x.a] || 0, b = w[x.b] || 0, tot = a + b;
       var pa = tot ? Math.round(a / tot * 100) : 0;
@@ -1632,74 +1632,71 @@
     }) };
   }
   function gxRound(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+  function gxDay(iso) { return new Date(iso).toLocaleDateString('en-US', { timeZone: 'America/New_York', weekday: 'short', month: 'short', day: 'numeric' }); }
+  function gxFill() {   // the game list: the next game to play first picked, played games marked
+    var G = gxGames(), sel = $('gx-game'), was = sel.value, next = null;
+    G.games.forEach(function (g) { if (!g.s.score && (!next || Date.parse(g.s.start) < Date.parse(next.s.start))) next = g; });
+    sel.innerHTML = G.games.map(function (g) {
+      return '<option value="' + g.s.n + '">' + esc(g.a + ' vs ' + g.b + ' · ' + (g.s.score ? 'Final ' + g.s.score[0] + '–' + g.s.score[1] : gxDay(g.s.start))) + '</option>';
+    }).join('');
+    if (was && G.games.some(function (g) { return String(g.s.n) === was; })) sel.value = was;
+    else if (next) sel.value = String(next.s.n);
+    else if (G.games.length) sel.value = String(G.games[G.games.length - 1].s.n);
+    return G;
+  }
   function drawGraphic() {
-    var cv = $('gx'), msg = $('gx-msg'), T = gxTeams(), G = gxGames(), games = G.games;
+    var cv = $('gx'), msg = $('gx-msg'), T = gxTeams();
     $('gx-dl').disabled = true;
     if (!DASH) { msg.className = 'msg err'; msg.textContent = dashErr || 'The Pick\'ems numbers haven\'t loaded yet: press Refresh.'; return Promise.resolve(); }
-    if (!games.length) { msg.className = 'msg'; msg.textContent = 'No NA Season 4 games with picks' + ($('gx-upcoming').checked ? ' still to play.' : ' yet.'); cv.width = 0; cv.height = 0; return Promise.resolve(); }
-    var codes = {}; games.forEach(function (g) { codes[g.a] = 1; codes[g.b] = 1; });
-    var fonts = document.fonts ? Promise.all(["700 96px 'Cabin Sketch'", "700 40px 'Cabin Sketch'", "700 30px 'National Park'", "500 24px 'National Park'"].map(function (f) { return document.fonts.load(f).catch(function () {}); })) : Promise.resolve();
-    return Promise.all([fonts].concat(Object.keys(codes).map(function (k) { return gxImg(T[k] && T[k].logo).then(function (im) { codes[k] = im; }); }))).then(function () {
-      var ROW = 150, TOP = 250, FOOT = 110, H = TOP + games.length * ROW + FOOT, c = cv.getContext('2d');
-      cv.width = GX_W; cv.height = H;
-      // background
-      var bg = c.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, '#13292b'); bg.addColorStop(1, '#0a1112');
-      c.fillStyle = bg; c.fillRect(0, 0, GX_W, H);
-      c.fillStyle = '#a5dcdd'; c.fillRect(0, 0, GX_W, 8);
-      // header
+    var G = gxFill(), g = G.games.filter(function (x) { return String(x.s.n) === $('gx-game').value; })[0];
+    if (!g) { msg.className = 'msg'; msg.textContent = 'No NA Season 4 games with picks yet.'; cv.width = 0; cv.height = 0; return Promise.resolve(); }
+    var ta = T[g.a] || { label: g.a, name: g.a }, tb = T[g.b] || { label: g.b, name: g.b };
+    var fonts = document.fonts ? Promise.all(["700 64px 'Cabin Sketch'", "700 30px 'National Park'", "500 22px 'National Park'"].map(function (f) { return document.fonts.load(f).catch(function () {}); })) : Promise.resolve();
+    return Promise.all([fonts, gxImg(ta.logo), gxImg(tb.logo)]).then(function (r) {
+      var W = 1050, H = 560, c = cv.getContext('2d'), done = g.s.score;
+      cv.width = W; cv.height = H;
+      var bg = c.createLinearGradient(0, 0, W, H); bg.addColorStop(0, '#13292b'); bg.addColorStop(1, '#070c0d');
+      c.fillStyle = bg; c.fillRect(0, 0, W, H);
+      // header: PICK'EMS and the round / date or result
       c.textBaseline = 'alphabetic'; c.textAlign = 'left';
-      c.fillStyle = '#a5dcdd'; c.font = "700 26px 'National Park', system-ui, sans-serif";
-      if (c.letterSpacing !== undefined) c.letterSpacing = '4px';
-      c.fillText('PCMT · NA SEASON 4', 60, 82);
-      if (c.letterSpacing !== undefined) c.letterSpacing = '0px';
-      c.fillStyle = '#ffffff'; c.font = "700 104px 'Cabin Sketch', cursive"; c.fillText("Pick'ems", 56, 176);
-      c.fillStyle = '#93a9aa'; c.font = "500 26px 'National Park', system-ui, sans-serif";
-      c.fillText('What ' + G.players + ' players picked', 60, 218);
-      games.forEach(function (g, i) {
-        var y = TOP + i * ROW, ta = T[g.a] || {}, tb = T[g.b] || {}, ca = ta.color || '#a5dcdd', cb = tb.color || '#3a4f53';
-        c.fillStyle = 'rgba(255,255,255,.05)'; gxRound(c, 40, y, GX_W - 80, ROW - 18, 18); c.fill();
-        var done = g.s.score, wa = done && g.s.score[0] > g.s.score[1], wb = done && g.s.score[1] > g.s.score[0];
-        // logos (or the code in a circle)
-        [[g.a, codes[g.a], 70, ca, wa], [g.b, codes[g.b], GX_W - 70 - 72, cb, wb]].forEach(function (t) {
-          if (t[1]) c.drawImage(t[1], t[2], y + 22, 72, 72);
-          else { c.fillStyle = t[3]; c.beginPath(); c.arc(t[2] + 36, y + 58, 34, 0, 7); c.fill(); c.fillStyle = '#000'; c.font = "700 20px 'National Park', sans-serif"; c.textAlign = 'center'; c.fillText(t[0], t[2] + 36, y + 65); c.textAlign = 'left'; }
-        });
-        // codes and percentages
-        c.fillStyle = '#ffffff'; c.font = "700 32px 'National Park', system-ui, sans-serif";
-        c.fillText(g.a + (wa ? ' ✓' : ''), 160, y + 54);
-        c.textAlign = 'right'; c.fillText((wb ? '✓ ' : '') + g.b, GX_W - 160, y + 54); c.textAlign = 'left';
-        c.font = "700 46px 'Cabin Sketch', cursive";
-        c.fillStyle = '#ffffff'; c.fillText(g.pa + '%', 160, y + 100);
-        c.textAlign = 'right'; c.fillText(g.pb + '%', GX_W - 160, y + 100); c.textAlign = 'left';
-        // middle: round, date or score
-        var mid = (g.s.round || '') + (done ? ' · Final ' + g.s.score[0] + '–' + g.s.score[1] : (g.s.start ? ' · ' + new Date(g.s.start).toLocaleDateString('en-US', { timeZone: 'America/New_York', weekday: 'short', month: 'short', day: 'numeric' }) : ''));
-        c.fillStyle = '#93a9aa'; c.font = "500 22px 'National Park', system-ui, sans-serif"; c.textAlign = 'center'; c.fillText(mid, GX_W / 2, y + 52); c.textAlign = 'left';
-        // the split bar
-        var bx = 300, bw = GX_W - 600, by2 = y + 76, bh = 22, split = Math.round(bw * g.pa / 100);
-        c.save(); gxRound(c, bx, by2, bw, bh, 11); c.clip();
-        c.fillStyle = ca; c.fillRect(bx, by2, split, bh);
-        c.fillStyle = cb; c.fillRect(bx + split, by2, bw - split, bh);
-        c.fillStyle = 'rgba(0,0,0,.45)'; c.fillRect(bx + split - 2, by2, 4, bh);
-        c.restore();
+      c.fillStyle = '#a5dcdd'; c.font = "700 60px 'Cabin Sketch', cursive"; c.fillText("Pick'ems", 48, 92);
+      c.textAlign = 'right'; c.fillStyle = '#ffffff'; c.font = "700 28px 'National Park', system-ui, sans-serif";
+      c.fillText(done ? 'Final ' + g.s.score[0] + '–' + g.s.score[1] : gxDay(g.s.start), W - 48, 66);
+      c.fillStyle = '#93a9aa'; c.font = "500 22px 'National Park', system-ui, sans-serif";
+      c.fillText('NA Season 4' + (g.s.round ? ' · ' + g.s.round : ''), W - 48, 96);
+      c.textAlign = 'left';
+      // a line per team: logo, name, bar, percent
+      [[ta, r[1], g.pa, done && g.s.score[0] > g.s.score[1]], [tb, r[2], g.pb, done && g.s.score[1] > g.s.score[0]]].forEach(function (t, i) {
+        var y = 140 + i * 160, col = t[0].color || (i ? '#3a4f53' : '#a5dcdd');
+        c.fillStyle = 'rgba(255,255,255,.05)'; gxRound(c, 40, y, W - 80, 136, 20); c.fill();
+        if (t[1]) c.drawImage(t[1], 64, y + 20, 96, 96);
+        else { c.fillStyle = col; c.beginPath(); c.arc(112, y + 68, 46, 0, 7); c.fill(); c.fillStyle = inkOn(col); c.font = "700 24px 'National Park', sans-serif"; c.textAlign = 'center'; c.fillText(t[0].label, 112, y + 77); c.textAlign = 'left'; }
+        c.fillStyle = '#ffffff'; c.font = "700 30px 'National Park', system-ui, sans-serif";
+        var nm = (t[0].name || t[0].label) + (t[3] ? '  ✓' : ''), maxW = W - 80 - 200 - 180;
+        while (c.measureText(nm).width > maxW && c.font.indexOf('20px') < 0) c.font = c.font.replace(/(\d+)px/, function (m0, px) { return (px - 2) + 'px'; });
+        c.fillText(nm, 190, y + 56);
+        var bx = 190, bw = W - 80 - 190 - 170, by2 = y + 78, bh = 30;
+        c.fillStyle = 'rgba(255,255,255,.1)'; gxRound(c, bx, by2, bw, bh, 15); c.fill();
+        if (t[2] > 0) { c.fillStyle = col; gxRound(c, bx, by2, Math.max(30, Math.round(bw * t[2] / 100)), bh, 15); c.fill(); }
+        c.fillStyle = '#ffffff'; c.font = "700 72px 'Cabin Sketch', cursive"; c.textAlign = 'right';
+        c.fillText(t[2] + '%', W - 64, y + 102); c.textAlign = 'left';
       });
       // footer
-      var fy = H - FOOT + 50;
-      c.fillStyle = '#a5dcdd'; c.font = "700 34px 'Cabin Sketch', cursive"; c.fillText('fantasy.pcmt.gg', 60, fy + 10);
-      c.fillStyle = '#93a9aa'; c.font = "500 22px 'National Park', system-ui, sans-serif"; c.textAlign = 'right';
-      c.fillText(new Date().toLocaleDateString('en-US', { timeZone: 'America/New_York', month: 'long', day: 'numeric', year: 'numeric' }), GX_W - 60, fy + 6);
-      c.textAlign = 'left';
-      cv.setAttribute('aria-label', 'NA Season 4 Pick\'ems: ' + games.map(function (g) { return g.a + ' ' + g.pa + '%, ' + g.b + ' ' + g.pb + '%'; }).join('; '));
-      msg.className = 'msg'; msg.textContent = games.length + ' game' + (games.length === 1 ? '' : 's') + ', ' + G.players + ' players.';
+      c.fillStyle = '#a5dcdd'; c.font = "700 36px 'Cabin Sketch', cursive"; c.textAlign = 'center';
+      c.fillText('fantasy.pcmt.gg', W / 2, H - 30); c.textAlign = 'left';
+      cv.setAttribute('aria-label', "Pick'ems, " + g.a + ' vs ' + g.b + ': ' + g.a + ' ' + g.pa + '%, ' + g.b + ' ' + g.pb + '%');
+      msg.className = 'msg'; msg.textContent = g.n + ' picks on this game.';
       $('gx-dl').disabled = false;
     });
   }
-  $('gx-upcoming').addEventListener('change', drawGraphic);
+  $('gx-game').addEventListener('change', drawGraphic);
   $('gx-refresh').addEventListener('click', function () { var b = this; b.disabled = true; loadDash().then(drawDash).then(drawGraphic).then(function () { b.disabled = false; }); });
   $('gx-dl').addEventListener('click', function () {
     var cv = $('gx'), day = new Date().toISOString().slice(0, 10);
     cv.toBlob(function (blob) {
       if (!blob) { $('gx-msg').className = 'msg err'; $('gx-msg').textContent = 'Couldn\'t make the picture.'; return; }
-      var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'pcmt-na-s4-pickems-' + day + '.png';
+      var g = $('gx-game').selectedOptions[0], nm = g ? g.textContent.split(' · ')[0].toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'game';
+      var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'pickems-' + nm + '-' + day + '.png';
       document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
     }, 'image/png');
   });
