@@ -27,13 +27,16 @@ const pageUrl = (event, id) => BASE + '/events/' + event + '/' + id;
 
 // One finished match -> one PCMT_RESULTS entry (same format the site and the server score).
 // stats: { <player id>: [K, D, A, FK, ACS, KAST %, ADR, rating] }, maps: [{ map, a, b, k: { <player id>: kills } }].
-// PCMT.gg names map to player ids on the same team (name or id, any case); anyone else is kept as "~" + name.
+// PCMT.gg names map to player ids on the same team (name or id, any case, or NAME_ALIASES); anyone else is kept as "~" + name.
+// PCMT.gg names that differ from the site's (lowercase PCMT.gg name -> player id). Add one when a sync log says
+// "not in the store: ~<name>" for a rostered player (not a sub; subs go on the backend's Subs tab).
+const NAME_ALIASES = { tawngay: 'tawn-s4', sting: 'stingray-s4' };
 function toResult(M, event, players) {
   if (!M.completed) throw new Error('Series is not finished yet.');
   if (!M.combinedStats || M.combinedStats.length < 2 || M.combinedStats.some(t => !t.players || t.players.length < 5)) throw new Error('Stats are missing for a team.');
   const key = (name, team) => {
     const n = String(name).toLowerCase();
-    const p = players.find(q => q.team === team && (q.name.toLowerCase() === n || q.id === n));
+    const p = players.find(q => q.team === team && (q.name.toLowerCase() === n || q.id === n || q.id === NAME_ALIASES[n]));
     return p ? p.id : '~' + n;
   };
   const r1 = x => Math.round(x * 10) / 10;

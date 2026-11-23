@@ -1415,7 +1415,7 @@ var PCMT_RESULTS = [
         145.9,
         1.038
       ],
-      "~tawngay": [
+      "tawn-s4": [
         33,
         45,
         25,
@@ -1450,7 +1450,7 @@ var PCMT_RESULTS = [
           "crocman-s4": 21,
           "toastemup-s4": 21,
           "jaden-s4": 21,
-          "~tawngay": 15,
+          "tawn-s4": 15,
           "hankyjanky-s4": 7
         }
       },
@@ -1467,7 +1467,7 @@ var PCMT_RESULTS = [
           "crocman-s4": 19,
           "toastemup-s4": 11,
           "jaden-s4": 14,
-          "~tawngay": 7,
+          "tawn-s4": 7,
           "hankyjanky-s4": 5
         }
       },
@@ -1484,7 +1484,7 @@ var PCMT_RESULTS = [
           "jaden-s4": 28,
           "crocman-s4": 25,
           "toastemup-s4": 12,
-          "~tawngay": 11,
+          "tawn-s4": 11,
           "hankyjanky-s4": 10
         }
       }
@@ -1508,7 +1508,7 @@ var PCMT_RESULTS = [
         159.6,
         1.127
       ],
-      "~sting": [
+      "stingray-s4": [
         46,
         42,
         11,
@@ -1605,7 +1605,7 @@ var PCMT_RESULTS = [
         "a": 16,
         "b": 18,
         "k": {
-          "~sting": 29,
+          "stingray-s4": 29,
           "phuzzy-s4": 27,
           "asher-s4": 26,
           "caesparz-s4": 20,
@@ -1624,7 +1624,7 @@ var PCMT_RESULTS = [
         "k": {
           "phuzzy-s4": 22,
           "amara-s4": 20,
-          "~sting": 17,
+          "stingray-s4": 17,
           "asher-s4": 15,
           "caesparz-s4": 11,
           "linus-s4": 23,
