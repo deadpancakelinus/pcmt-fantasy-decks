@@ -8,7 +8,7 @@
 <link rel="icon" href="assets/3bf9d529cabff94109b561693539029f.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cabin+Sketch:wght@400;700&family=National+Park:wght@200..800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Alkatra:wght@400..700&family=Cabin+Sketch:wght@400;700&family=National+Park:wght@200..800&display=swap" rel="stylesheet">
 <style>
   :root { color-scheme: dark; --bg: #0d1416; --panel: #172124; --line: #2a3a3e; --ink: #eaf4f4; --dim: #93a9aa; --soft: #c4d4d4; --accent: #a5dcdd; --bad: #ff8a80; --good: #8be4b7; }
   * { box-sizing: border-box; }
@@ -1637,7 +1637,7 @@
     var G = gxGames(), sel = $('gx-game'), was = sel.value, next = null;
     G.games.forEach(function (g) { if (!g.s.score && (!next || Date.parse(g.s.start) < Date.parse(next.s.start))) next = g; });
     sel.innerHTML = G.games.map(function (g) {
-      return '<option value="' + g.s.n + '">' + esc(g.a + ' vs ' + g.b + ' · ' + (g.s.score ? 'Final ' + g.s.score[0] + '–' + g.s.score[1] : gxDay(g.s.start))) + '</option>';
+      return '<option value="' + g.s.n + '">' + esc(g.a + ' vs ' + g.b + ' · ' + gxDay(g.s.start) + (g.s.score ? ' (played)' : '')) + '</option>';
     }).join('');
     if (was && G.games.some(function (g) { return String(g.s.n) === was; })) sel.value = was;
     else if (next) sel.value = String(next.s.n);
@@ -1651,39 +1651,35 @@
     var G = gxFill(), g = G.games.filter(function (x) { return String(x.s.n) === $('gx-game').value; })[0];
     if (!g) { msg.className = 'msg'; msg.textContent = 'No NA Season 4 games with picks yet.'; cv.width = 0; cv.height = 0; return Promise.resolve(); }
     var ta = T[g.a] || { label: g.a, name: g.a }, tb = T[g.b] || { label: g.b, name: g.b };
-    var fonts = document.fonts ? Promise.all(["700 64px 'Cabin Sketch'", "700 30px 'National Park'", "500 22px 'National Park'"].map(function (f) { return document.fonts.load(f).catch(function () {}); })) : Promise.resolve();
+    var F = "Alkatra, 'National Park', system-ui, sans-serif";
+    var fonts = document.fonts ? Promise.all(['700 80px Alkatra', '600 30px Alkatra', '500 24px Alkatra'].map(function (f) { return document.fonts.load(f).catch(function () {}); })) : Promise.resolve();
     return Promise.all([fonts, gxImg(ta.logo), gxImg(tb.logo)]).then(function (r) {
-      var W = 1050, H = 560, c = cv.getContext('2d'), done = g.s.score;
+      // shared before the game: no result, no winner tick
+      var W = 1050, H = 560, c = cv.getContext('2d');
       cv.width = W; cv.height = H;
       var bg = c.createLinearGradient(0, 0, W, H); bg.addColorStop(0, '#13292b'); bg.addColorStop(1, '#070c0d');
       c.fillStyle = bg; c.fillRect(0, 0, W, H);
-      // header: PICK'EMS and the round / date or result
+      // top line: the game's date and round on the left, the site name on the right
       c.textBaseline = 'alphabetic'; c.textAlign = 'left';
-      c.fillStyle = '#a5dcdd'; c.font = "700 60px 'Cabin Sketch', cursive"; c.fillText("Pick'ems", 48, 92);
-      c.textAlign = 'right'; c.fillStyle = '#ffffff'; c.font = "700 28px 'National Park', system-ui, sans-serif";
-      c.fillText(done ? 'Final ' + g.s.score[0] + '–' + g.s.score[1] : gxDay(g.s.start), W - 48, 66);
-      c.fillStyle = '#93a9aa'; c.font = "500 22px 'National Park', system-ui, sans-serif";
-      c.fillText('NA Season 4' + (g.s.round ? ' · ' + g.s.round : ''), W - 48, 96);
-      c.textAlign = 'left';
+      c.fillStyle = '#ffffff'; c.font = '700 34px ' + F; c.fillText(gxDay(g.s.start), 48, 74);
+      c.fillStyle = '#93a9aa'; c.font = '500 24px ' + F; c.fillText('NA Season 4' + (g.s.round ? ' · ' + g.s.round : ''), 48, 106);
+      c.textAlign = 'right'; c.fillStyle = '#a5dcdd'; c.font = '700 40px ' + F; c.fillText('fantasy.pcmt.gg', W - 48, 86); c.textAlign = 'left';
       // a line per team: logo, name, bar, percent
-      [[ta, r[1], g.pa, done && g.s.score[0] > g.s.score[1]], [tb, r[2], g.pb, done && g.s.score[1] > g.s.score[0]]].forEach(function (t, i) {
-        var y = 140 + i * 160, col = t[0].color || (i ? '#3a4f53' : '#a5dcdd');
-        c.fillStyle = 'rgba(255,255,255,.05)'; gxRound(c, 40, y, W - 80, 136, 20); c.fill();
-        if (t[1]) c.drawImage(t[1], 64, y + 20, 96, 96);
-        else { c.fillStyle = col; c.beginPath(); c.arc(112, y + 68, 46, 0, 7); c.fill(); c.fillStyle = inkOn(col); c.font = "700 24px 'National Park', sans-serif"; c.textAlign = 'center'; c.fillText(t[0].label, 112, y + 77); c.textAlign = 'left'; }
-        c.fillStyle = '#ffffff'; c.font = "700 30px 'National Park', system-ui, sans-serif";
-        var nm = (t[0].name || t[0].label) + (t[3] ? '  ✓' : ''), maxW = W - 80 - 200 - 180;
-        while (c.measureText(nm).width > maxW && c.font.indexOf('20px') < 0) c.font = c.font.replace(/(\d+)px/, function (m0, px) { return (px - 2) + 'px'; });
-        c.fillText(nm, 190, y + 56);
-        var bx = 190, bw = W - 80 - 190 - 170, by2 = y + 78, bh = 30;
-        c.fillStyle = 'rgba(255,255,255,.1)'; gxRound(c, bx, by2, bw, bh, 15); c.fill();
-        if (t[2] > 0) { c.fillStyle = col; gxRound(c, bx, by2, Math.max(30, Math.round(bw * t[2] / 100)), bh, 15); c.fill(); }
-        c.fillStyle = '#ffffff'; c.font = "700 72px 'Cabin Sketch', cursive"; c.textAlign = 'right';
-        c.fillText(t[2] + '%', W - 64, y + 102); c.textAlign = 'left';
+      [[ta, r[1], g.pa], [tb, r[2], g.pb]].forEach(function (t, i) {
+        var y = 150 + i * 180, col = t[0].color || (i ? '#3a4f53' : '#a5dcdd');
+        c.fillStyle = 'rgba(255,255,255,.05)'; gxRound(c, 40, y, W - 80, 156, 22); c.fill();
+        if (t[1]) c.drawImage(t[1], 66, y + 24, 108, 108);
+        else { c.fillStyle = col; c.beginPath(); c.arc(120, y + 78, 52, 0, 7); c.fill(); c.fillStyle = inkOn(col); c.font = '700 26px ' + F; c.textAlign = 'center'; c.fillText(t[0].label, 120, y + 87); c.textAlign = 'left'; }
+        var nm = t[0].name || t[0].label, px = 34, maxW = W - 80 - 210 - 190;
+        c.font = '600 ' + px + 'px ' + F;
+        while (c.measureText(nm).width > maxW && px > 22) { px -= 2; c.font = '600 ' + px + 'px ' + F; }
+        c.fillStyle = '#ffffff'; c.fillText(nm, 206, y + 64);
+        var bx = 206, bw = W - 80 - 206 - 190, by2 = y + 88, bh = 32;
+        c.fillStyle = 'rgba(255,255,255,.1)'; gxRound(c, bx, by2, bw, bh, 16); c.fill();
+        if (t[2] > 0) { c.fillStyle = col; gxRound(c, bx, by2, Math.max(32, Math.round(bw * t[2] / 100)), bh, 16); c.fill(); }
+        c.fillStyle = '#ffffff'; c.font = '700 80px ' + F; c.textAlign = 'right';
+        c.fillText(t[2] + '%', W - 64, y + 112); c.textAlign = 'left';
       });
-      // footer
-      c.fillStyle = '#a5dcdd'; c.font = "700 36px 'Cabin Sketch', cursive"; c.textAlign = 'center';
-      c.fillText('fantasy.pcmt.gg', W / 2, H - 30); c.textAlign = 'left';
       cv.setAttribute('aria-label', "Pick'ems, " + g.a + ' vs ' + g.b + ': ' + g.a + ' ' + g.pa + '%, ' + g.b + ' ' + g.pb + '%');
       msg.className = 'msg'; msg.textContent = g.n + ' picks on this game.';
       $('gx-dl').disabled = false;
