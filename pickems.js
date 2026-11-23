@@ -448,7 +448,10 @@ var PCMT_PICKEMS = [
         "b": "TANK",
         "bo": 3,
         "start": "2026-11-23T02:00:00Z",
-        "score": null,
+        "score": [
+          0,
+          2
+        ],
         "url": "https://pcmt.gg/events/s4-na/blg-vs-tank-s4-group-d-2026-11-23"
       },
       {
