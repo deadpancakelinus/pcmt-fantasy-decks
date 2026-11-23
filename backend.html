@@ -1659,14 +1659,12 @@
       cv.width = W; cv.height = H;
       var bg = c.createLinearGradient(0, 0, W, H); bg.addColorStop(0, '#13292b'); bg.addColorStop(1, '#070c0d');
       c.fillStyle = bg; c.fillRect(0, 0, W, H);
-      // top line: the game's date and round on the left, the site name on the right
+      // top: the season and round (no date); the site name goes at the bottom
       c.textBaseline = 'alphabetic'; c.textAlign = 'left';
-      c.fillStyle = '#ffffff'; c.font = '700 34px ' + F; c.fillText(gxDay(g.s.start), 48, 74);
-      c.fillStyle = '#93a9aa'; c.font = '500 24px ' + F; c.fillText('NA Season 4' + (g.s.round ? ' · ' + g.s.round : ''), 48, 106);
-      c.textAlign = 'right'; c.fillStyle = '#a5dcdd'; c.font = '700 40px ' + F; c.fillText('fantasy.pcmt.gg', W - 48, 86); c.textAlign = 'left';
+      c.fillStyle = '#ffffff'; c.font = '700 32px ' + F; c.fillText('NA Season 4' + (g.s.round ? ' · ' + g.s.round : ''), 48, 70);
       // a line per team: logo, name, bar, percent
       [[ta, r[1], g.pa], [tb, r[2], g.pb]].forEach(function (t, i) {
-        var y = 150 + i * 180, col = t[0].color || (i ? '#3a4f53' : '#a5dcdd');
+        var y = 100 + i * 180, col = t[0].color || (i ? '#3a4f53' : '#a5dcdd');
         c.fillStyle = 'rgba(255,255,255,.05)'; gxRound(c, 40, y, W - 80, 156, 22); c.fill();
         if (t[1]) c.drawImage(t[1], 66, y + 24, 108, 108);
         else { c.fillStyle = col; c.beginPath(); c.arc(120, y + 78, 52, 0, 7); c.fill(); c.fillStyle = inkOn(col); c.font = '700 26px ' + F; c.textAlign = 'center'; c.fillText(t[0].label, 120, y + 87); c.textAlign = 'left'; }
@@ -1680,6 +1678,7 @@
         c.fillStyle = '#ffffff'; c.font = '700 80px ' + F; c.textAlign = 'right';
         c.fillText(t[2] + '%', W - 64, y + 112); c.textAlign = 'left';
       });
+      c.fillStyle = '#a5dcdd'; c.font = '700 40px ' + F; c.textAlign = 'center'; c.fillText('fantasy.pcmt.gg', W / 2, H - 34); c.textAlign = 'left';
       cv.setAttribute('aria-label', "Pick'ems, " + g.a + ' vs ' + g.b + ': ' + g.a + ' ' + g.pa + '%, ' + g.b + ' ' + g.pb + '%');
       msg.className = 'msg'; msg.textContent = g.n + ' picks on this game.';
       $('gx-dl').disabled = false;
