@@ -2,33 +2,19 @@
 
 Start here. It covers what exists, how changes are made and shipped, and what's next.
 
-## 0. Held release (Nov 22 2026): read this first
+## 0. Held update (Nov 23 2026): read this first
 
-Everything not yet live is ONE update on the branch **`release`**, built and tested, NOT pushed. `main` on GitHub is the live site (the PCMT.gg sync adds data commits there). `release` = `main` (as of `92d3d63`, the new-user hotfix, plus the Nov 22 sync data) and these parts, all shipped together:
+The big release (usernames, profile pictures, NA S4 decks and cards, team card backs from PCMT.gg, backend overhaul, sync button, store points) **shipped Nov 23 2026** (`4420b44`); its SQL is all run. Still to do from it: the GitHub token for the sync button in Supabase Vault as `github_sync_token` (see 47), and Stage 1's end date on the backend's Season tab once it's known.
 
-| Part | Sections | Database |
+The next update is on the branch **`update-2`**, NOT pushed (only when the owner says to send it). `main` on GitHub is the live site (the PCMT.gg sync adds data commits there).
+
+| Part | Section | Database |
 |---|---|---|
-| Usernames, Account window | 40 | `setup/usernames.sql` |
-| Profile pictures: upload in the Account window, shown next to the name on The Deck Leaderboard | 46 | `setup/profile-pics.sql` |
-| NA Season 4 team decks (Customization) | 41 | none |
-| Backend overhaul: no descriptions, Dashboard, Schedule, Season, Pick'ems, Staff tabs, Upload sheet on Player prices, page views | 42, 43 | `setup/backend-overhaul.sql` |
-| NA Season 4 cards: 81 S4 Commons join the NA Card Pack, 81 S4 Splatty Rares (held back like the other Splattys) | 27, 44 | `setup/cards-setup.sql` |
-| Team card backs from PCMT.gg: NA S4 decks get PCMT.gg's logos, and every new season's teams get card backs on their own (sync step) | 45 | none |
-| Backend: "Run PCMT.gg sync" button on the Dashboard; the sync back to every hour | 47 | `setup/sync-button.sql` + a GitHub token in Supabase Vault |
-| The Deck store: "Show points" toggle (points in a hover window); its NA / EMEA buttons removed (the deck's own toggle at the top does the same) | 48 | none |
-| New users' NA lock | New users' NA lock | `setup/new-users.sql` (already run on Nov 22; it's live) |
+| Backend 4Ks & 5Ks: the series picker is a dropdown with a Delete button on each game (only the list changes) | 49 | none (uses `site_settings` key `multi_hidden`) |
 
-The old `update-na-cards` branch is merged with nothing taken from it: the live Stage 1 totals and points window (hotfixes, Nov 20) replaced it.
+**To ship `update-2`:** `git fetch origin && git checkout update-2 && git merge origin/main`, rebuild if any board changed (`python3 -I tools/build.py tools/canvas assets <out>`, copy the built pages except `data.js`, `pickems.js`, `rankings.js`), smoke test, commit as `deadpancakelinus <sixthneigh@gmail.com>` (short plain message), `git push origin update-2:main`.
 
-**To ship `release`:**
-1. In the Supabase SQL editor, run `setup/usernames.sql`, then `setup/profile-pics.sql`, then `setup/backend-overhaul.sql`, then `setup/cards-setup.sql`, then `setup/sync-button.sql` (all safe to run again). For the sync button, add the GitHub token to Supabase Vault as `github_sync_token` (steps at the top of sync-button.sql; never in the site, repo or a chat). Checked against live on Nov 22: cards-setup.sql only adds the 162 S4 cards (its pack functions match live exactly and no existing card changes).
-2. `git fetch origin && git checkout release && git merge origin/main` (the sync's commits only touch data files; if `index.html` or another built page conflicts, take either side and rebuild).
-3. Rebuild: `python3 -I tools/build.py tools/canvas assets <out>`, then copy the built pages to the repo root, except `data.js`, `pickems.js` and `rankings.js`.
-4. Check: `NODE_PATH=$(npm root -g) node tools/smoke-test.js http://localhost:8771 <shots>` (with `python3 -m http.server 8771` in the repo) and `node tools/vp-test.js "psql ..." players.js` against a local Postgres. (`tools/cards-test.js` has 7 known failures from counts written before the Splatty and S4 cards; same on `main`.)
-5. Commit as `deadpancakelinus <sixthneigh@gmail.com>`, short plain message, then `git push origin release:main`.
-6. After it's live: run the PCMT.gg sync once by hand (Actions → PCMT.gg sync → Run workflow) so its new "Team card backs" step downloads the S4 logos; until then the S4 decks keep the logos they had. On the backend's Season tab, check the NA stage dates (start Nov 17 10 PM EST, lock Nov 21 9 PM EST); Stage 1's end date can be set there once it's known.
-
-Still to do: logos for FNC, GENG, LOUD, EDG, DRX, SRG and NRG (S4 decks and cards fall back to the team code). Budget and weekly lock times aren't editable on the backend on purpose (see 43).
+A small hotfix is also kept on the local-only branch `hotfix-pics` (a profile picture that won't load shows the first letter instead; Discord avatar links die when a player changes their avatar, until they log in again). The owner chose not to ship it (Nov 23).
 
 ## 1. Links
 
@@ -436,3 +422,8 @@ Supabase's Discord login always asks Discord for the email. Triggers drop it bef
 ## 48. The Deck store: Show points (update, not released yet)
 - A **Show points** toggle in the store (remembered on the device, `pcmt-store-pts`): with it on, hovering (or tapping) a player's name opens the same points window as a deck card's number (`data-pcmt-pts` / `data-pcmt-pts-mode`): their NA Stage 1 best two series and stage total while the stage runs on an NA deck, else this gameweek's series and total (`weekGames` in the window code). No numbers in the rows themselves. Works with search and the role tabs.
 - The store's own NA / EMEA buttons are gone: they only switched the deck's region, which the NA / EMEA toggle at the top of the deck already does.
+
+## 49. 4Ks & 5Ks series picker with Delete (update-2, not released yet)
+- The backend's 4Ks & 5Ks tab picks its series from a custom dropdown (`#series` button, `#ms-pop` list) instead of a plain select, newest first as before (every series from the Oct 19 gameweek on, plus games starting in the next 24 hours). Each game has a **Delete** button: after a confirm, the game leaves the list. **Only the list changes**: its result, points and saved 4Ks/5Ks stay, and its numbers still count. **Show deleted (N)** at the bottom lists them with **Restore**.
+- Deleted games are kept for all staff in `site_settings` key `multi_hidden` (a JSON list of series keys `<start>|<a>|<b>`), written with the existing staff policy on site_settings. Deleting the game that's open moves to the newest one left (asking first if there are unsaved numbers).
+- Keyboard: the button opens the list with focus on the current game; arrow keys move, Escape closes.
