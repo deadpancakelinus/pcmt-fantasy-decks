@@ -561,7 +561,7 @@ AUTHENTIC
 </sc-for>
 </div>
 <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
-<button onClick="{{togglePts}}" aria-pressed="{{ptsOn}}" title="Show each player's points (the same number as on their deck card)" style="min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid {{ptsBorder}}; background: {{ptsBg}}; color: {{ptsColor}}; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; cursor: pointer">Show points</button>
+<button onClick="{{togglePts}}" aria-pressed="{{ptsOn}}" title="Hover a player to see their points" style="min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid {{ptsBorder}}; background: {{ptsBg}}; color: {{ptsColor}}; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; cursor: pointer">Show points</button>
 </div>
 <div style="display: flex; flex-direction: column; gap: 6px">
 <label for="player-search" style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa; letter-spacing: 0.06em; text-transform: uppercase">Search</label>
@@ -582,7 +582,7 @@ AUTHENTIC
 <span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 16px; line-height: 1; color: {{p.teamColor}}">{{p.team}}</span>
 </sc-if>
 </span>
-<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+<div data-pcmt-pts="{{p.ptsKey}}" data-pcmt-pts-mode="{{p.ptsMode}}" style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; cursor: {{p.ptsCursor}}">
 <span style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; min-width: 0">
 <span class="pcmt-store-name" style="font-weight: 600; font-size: 16px; overflow-wrap: anywhere">{{p.name}}</span>
 <sc-if value="{{p.champ}}" hint-placeholder-val="{{ false }}">
@@ -592,9 +592,6 @@ AUTHENTIC
 <sc-for list="{{p.regionIcons}}" as="ri" hint-placeholder-count="1"><img src="{{ri.src}}" alt="{{ri.label}}" title="{{ri.label}}" style="width: 20px; height: 20px; object-fit: contain; display: block; flex: none; margin-left: 8px"></sc-for>
 </span>
 </div>
-<sc-if value="{{p.showPts}}" hint-placeholder-val="{{ false }}">
-<span class="pcmt-store-pts" title="{{p.ptsTitle}}" data-pcmt-pts="{{p.ptsKey}}" style="flex: none; min-width: 44px; text-align: right; cursor: {{p.ptsCursor}}; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 22px; line-height: 1; color: {{p.teamColor}}; font-variant-numeric: tabular-nums">{{p.points}}<span style="display: block; font-family: 'National Park', system-ui, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; color: #93a9aa">PTS</span></span>
-</sc-if>
 <span class="pcmt-store-price" style="font-family: 'National Park', system-ui, sans-serif; font-size: 15px; font-weight: 600; min-width: 56px; text-align: right">{{p.priceLabel}}</span>
 <sc-if value="{{p.isPicked}}" hint-placeholder-val="{{ false }}">
 <button onClick="{{p.toggle}}" aria-label="Remove {{p.name}}" class="pcmt-store-btn" style="width: 96px; min-height: 44px; border-radius: 8px; border: 1px solid #a5dcdd; background: #13292b; color: #a5dcdd; font-family: 'National Park', system-ui, sans-serif; font-size: 12px; font-weight: 600">In deck</button>
@@ -1926,14 +1923,26 @@ function pcmtStageGames(id, upTo) {
 (function () {
   var pop = null, cur = null;
   function esc(t) { return String(t == null ? '' : t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
-  function html(id) {
+  // mode 'week' (the store's Show points, outside the NA stage): this gameweek's series and their total
+  function weekGames(id, now) {
+    var b = pcmtMondayStart(now), e = pcmtWeekEnd(b), out = [];
+    PCMT_RESULTS.forEach(function (r) {
+      var st = Date.parse(r.start);
+      if (!(st >= b && st < e) || pcmtInNaStage(r) || !(r.stats || {})[id]) return;
+      var sp = pcmtSeriesPoints(r);
+      if (sp[id] != null) out.push({ r: r, pts: sp[id], s: r.stats[id] });
+    });
+    return out.sort(function (a, b2) { return Date.parse(a.r.start) - Date.parse(b2.r.start); });
+  }
+  function html(id, mode) {
     var p = null; PCMT_PLAYERS.forEach(function (x) { if (x.id === id) p = x; });
     if (!p) return '';
-    var logo = PCMT_LOGOS[p.team], games = pcmtStageGames(id, Date.now()), tot = 0;
+    var week = mode === 'week' || !PCMT_NA_STAGE;
+    var logo = PCMT_LOGOS[p.team], games = week ? weekGames(id, Date.now()) : pcmtStageGames(id, Date.now()), tot = 0;
     var h = '<div class="hd">' + (logo ? '<img src="' + esc(logo) + '" alt="">' : '<span class="code">' + esc(p.team) + '</span>') +
       '<div><div class="nm">' + esc(p.name) + '</div><div class="tm">' + esc(PCMT_TEAM_NAMES[p.team] || p.team) + '</div></div></div>' +
-      '<div class="lb">' + esc(PCMT_NA_STAGE.name) + ' · best two series</div>';
-    if (!games.length) return h + '<div class="none">No ' + esc(PCMT_NA_STAGE.name) + ' series yet.</div>';
+      '<div class="lb">' + (week ? 'This gameweek' : esc(PCMT_NA_STAGE.name) + ' · best two series') + '</div>';
+    if (!games.length) return h + '<div class="none">' + (week ? 'No series this gameweek yet.' : 'No ' + esc(PCMT_NA_STAGE.name) + ' series yet.') + '</div>';
     games.forEach(function (g) {
       var opp = g.r.a === p.team ? g.r.b : g.r.b === p.team ? g.r.a : (g.r.a + ' / ' + g.r.b), won = g.r.winner === p.team;
       var d = new Date(g.r.start).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
@@ -1941,7 +1950,7 @@ function pcmtStageGames(id, upTo) {
       h += '<div class="g"><span class="vs">vs ' + esc(opp) + '</span><span class="kda"><small>K / D / A</small>' + (+g.s[0] || 0) + ' / ' + (+g.s[1] || 0) + ' / ' + (+g.s[2] || 0) + '</span>' +
         '<span class="pt">' + pcmtNum(g.pts) + '</span><span class="dt">' + esc(d) + (g.r.winner ? ' · ' + (won ? 'Won' : 'Lost') : '') + '</span></div>';
     });
-    return h + '<div class="tot"><span>Stage total</span><span>' + pcmtNum(tot) + '</span></div>';
+    return h + '<div class="tot"><span>' + (week ? 'Gameweek total' : 'Stage total') + '</span><span>' + pcmtNum(tot) + '</span></div>';
   }
   function place(el) {
     var r = el.getBoundingClientRect(), w = pop.offsetWidth, hgt = pop.offsetHeight, m = 10;
@@ -1954,7 +1963,7 @@ function pcmtStageGames(id, upTo) {
     if (!pop) { pop = document.createElement('div'); pop.className = 'pcmt-pts-pop'; pop.setAttribute('role', 'tooltip'); document.body.appendChild(pop); }
     var p = null; PCMT_PLAYERS.forEach(function (x) { if (x.id === id) p = x; });
     pop.style.setProperty('--c', (p && PCMT_TEAMS[p.team]) || '#a5dcdd');
-    pop.innerHTML = html(id); cur = el; place(el);
+    pop.innerHTML = html(id, el.getAttribute('data-pcmt-pts-mode')); cur = el; place(el);
     requestAnimationFrame(function () { if (pop && cur === el) pop.classList.add('on'); });
   }
   function hide() { cur = null; if (pop) pop.classList.remove('on'); }
@@ -2561,9 +2570,8 @@ class Component extends DCLogic {
           priceLabel: pcmtNum(p.price),
           teamColor: PCMT_TEAMS[p.team],
           rowBg: isPicked ? '#0f1d1e' : 'transparent',
-          showPts: !!s.storePts, points: pcmtNum(self.cardPoints(p.id)),
-          ptsTitle: self.stageCards() ? '' : pcmtNum(self.cardPoints(p.id)) + ' points this gameweek',
-          ptsKey: self.stageCards() ? p.id : '', ptsCursor: self.stageCards() ? 'help' : 'inherit',
+          // Show points on: hovering (or tapping) the player opens the points window, like a deck card's number
+          ptsKey: s.storePts ? p.id : '', ptsMode: self.stageCards() ? 'stage' : 'week', ptsCursor: s.storePts ? 'help' : 'inherit',
           isPicked: isPicked, blocked: !!reason, reason: reason,
           canAdd: !isPicked && !reason,
           toggle: function () { self.toggle(p.id); }

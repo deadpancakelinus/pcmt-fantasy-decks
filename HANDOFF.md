@@ -15,7 +15,7 @@ Everything not yet live is ONE update on the branch **`release`**, built and tes
 | NA Season 4 cards: 81 S4 Commons join the NA Card Pack, 81 S4 Splatty Rares (held back like the other Splattys) | 27, 44 | `setup/cards-setup.sql` |
 | Team card backs from PCMT.gg: NA S4 decks get PCMT.gg's logos, and every new season's teams get card backs on their own (sync step) | 45 | none |
 | Backend: "Run PCMT.gg sync" button on the Dashboard; the sync back to every hour | 47 | `setup/sync-button.sql` + a GitHub token in Supabase Vault |
-| The Deck store: "Show points" toggle; its NA / EMEA buttons removed (the deck's own toggle at the top does the same) | 48 | none |
+| The Deck store: "Show points" toggle (points in a hover window); its NA / EMEA buttons removed (the deck's own toggle at the top does the same) | 48 | none |
 | New users' NA lock | New users' NA lock | `setup/new-users.sql` (already run on Nov 22; it's live) |
 
 The old `update-na-cards` branch is merged with nothing taken from it: the live Stage 1 totals and points window (hotfixes, Nov 20) replaced it.
@@ -429,10 +429,10 @@ Supabase's Discord login always asks Discord for the email. Triggers drop it bef
 - Server (setup/profile-pics.sql): `profiles.picture_at`, the `avatars` bucket (public, 256 KB, WebP/PNG/JPEG), Storage policies (owners add/replace/remove their own file; staff can remove any), `fb_clear_picture(user)` for staff (clears `picture_at`, so the site stops showing it; the file itself is deleted from Storage, since Supabase doesn't allow that from SQL).
 
 ## 47. Run PCMT.gg sync from the backend (update, not released yet)
-- Backend Dashboard → **PCMT.gg sync** panel: the latest run (hourly or by hand, how long ago, OK / Failed / Running, a link to it on GitHub) and **Run PCMT.gg sync**, which starts `.github/workflows/pcmt-sync.yml` (skipped if a run is already waiting or running) and follows it until it finishes.
+- Backend Dashboard → **PCMT.gg sync** panel (no description text): the latest run (hourly or by hand, how long ago, OK / Failed / Running, a link to it on GitHub) and **Run PCMT.gg sync**, which starts `.github/workflows/pcmt-sync.yml` (skipped if a run is already waiting or running) and follows it until it finishes.
 - Server (setup/sync-button.sql): `fb_run_sync()` and `fb_sync_status()`, staff only, call GitHub's API through the `http` extension with a fine-grained token kept in Supabase Vault as `github_sync_token` (this repo only, Actions: Read and write). The token never reaches the site. No token, or an expired one, shows a line saying what to do.
 - The sync is back to **every hour at :17** (it was every half hour from Nov 22; GitHub skipped most of those runs anyway).
 
 ## 48. The Deck store: Show points (update, not released yet)
-- A **Show points** toggle in the store (remembered on the device, `pcmt-store-pts`) adds each player's points next to their price: the same number as their deck card (`cardPoints`: NA Stage 1 best-two total while the stage runs on an NA deck, with the same hover window; else this gameweek's points), in the team colour. Works with search and the role tabs.
+- A **Show points** toggle in the store (remembered on the device, `pcmt-store-pts`): with it on, hovering (or tapping) a player's name opens the same points window as a deck card's number (`data-pcmt-pts` / `data-pcmt-pts-mode`): their NA Stage 1 best two series and stage total while the stage runs on an NA deck, else this gameweek's series and total (`weekGames` in the window code). No numbers in the rows themselves. Works with search and the role tabs.
 - The store's own NA / EMEA buttons are gone: they only switched the deck's region, which the NA / EMEA toggle at the top of the deck already does.
