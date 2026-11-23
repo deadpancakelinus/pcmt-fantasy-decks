@@ -11,6 +11,7 @@ The next update is on the branch **`update-2`**, NOT pushed (only when the owner
 | Part | Section | Database |
 |---|---|---|
 | Backend 4Ks & 5Ks: the series picker is a dropdown with a Delete button on each game (only the list changes) | 49 | none (uses `site_settings` key `multi_hidden`) |
+| Backend Dashboard Pick'ems: each team's share of the picks in its team colour | 50 | none |
 
 **To ship `update-2`:** `git fetch origin && git checkout update-2 && git merge origin/main`, rebuild if any board changed (`python3 -I tools/build.py tools/canvas assets <out>`, copy the built pages except `data.js`, `pickems.js`, `rankings.js`), smoke test, commit as `deadpancakelinus <sixthneigh@gmail.com>` (short plain message), `git push origin update-2:main`.
 
@@ -427,3 +428,6 @@ Supabase's Discord login always asks Discord for the email. Triggers drop it bef
 - The backend's 4Ks & 5Ks tab picks its series from a custom dropdown (`#series` button, `#ms-pop` list) instead of a plain select, newest first as before (every series from the Oct 19 gameweek on, plus games starting in the next 24 hours). Each game has a **Delete** button: after a confirm, the game leaves the list. **Only the list changes**: its result, points and saved 4Ks/5Ks stay, and its numbers still count. **Show deleted (N)** at the bottom lists them with **Restore**.
 - Deleted games are kept for all staff in `site_settings` key `multi_hidden` (a JSON list of series keys `<start>|<a>|<b>`), written with the existing staff policy on site_settings. Deleting the game that's open moves to the newest one left (asking first if there are unsaved numbers).
 - Keyboard: the button opens the list with focus on the current game; arrow keys move, Escape closes.
+
+## 50. Pick'ems split in team colours (update-2, not released yet)
+- Backend Dashboard → Pick'ems: each game's bar shows every team's share of the picks in that team's colour (`pkColor` in backend.html): NA Season 4 and later from season-teams.js (now loaded on the backend, so S4 FNC isn't S3's), other events from the team list (players.js teams and the Teams tab). Text on each part is black or white, whichever reads better (`inkOn`). A team with no colour keeps the old look.

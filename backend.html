@@ -746,6 +746,7 @@
 
 <script src="data.js"></script>
 <script src="pickems.js"></script>
+<script src="season-teams.js"></script>
 <script src="players.js"></script>
 <script src="trumps-cards.js"></script>
 <script src="league.js"></script>
@@ -2302,7 +2303,18 @@
     if (lastRes) h.push('<li><span>Newest result</span><b>' + esc(etWhen(lastRes)) + '</b></li>');
     if (ls && !ls.ok && ls.message) h.push('<li><span class="bad">' + esc(ls.message) + '</span></li>');
     $('db-health').innerHTML = h.join('') || '<li><span class="who">' + (DASH ? '' : '—') + '</span></li>';
-    // Pick'ems: who picked what, per game, for open events
+    // Pick'ems: who picked what, per game, for open events, each team's share in its team colour
+    // (NA Season 4 from season-teams.js, so S4 FNC isn't S3's; other events from the team list; no colour = the old look)
+    function pkColor(ev, code) {
+      var m = /^na-s(\d+)$/.exec(ev || ''), c = '';
+      if (m && +m[1] >= 4) (window.PCMT_SEASON_TEAMS || []).forEach(function (sn) { if (sn.event === 's' + m[1] + '-na') (sn.teams || []).forEach(function (t) { if (t.label === code) c = t.color; }); });
+      if (!c) { var t = teamOf(code); c = t && t.color; }
+      return /^#[0-9a-f]{6}$/i.test(c || '') ? c : '';
+    }
+    function inkOn(hex) {   // black or white text, whichever reads better on the colour
+      var n = parseInt(hex.slice(1), 16), ch = [n >> 16, (n >> 8) & 255, n & 255].map(function (v) { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
+      return 0.2126 * ch[0] + 0.7152 * ch[1] + 0.0722 * ch[2] > 0.2 ? '#000' : '#fff';
+    }
     var P = window.PCMT_PICKEMS || [];
     $('db-pickems').innerHTML = (d.pickems || []).filter(function (e) { return e.open || e.pickers; }).map(function (e) {
       var B = P.filter(function (b) { return b.id === e.id || b.id === e.event; })[0], split = e.split || {};
@@ -2313,7 +2325,11 @@
         var order = s ? [sa, sb].filter(function (k) { return k in w; }).concat(Object.keys(w).filter(function (k) { return k !== sa && k !== sb; })) : Object.keys(w);
         var named = s && !/^[WL]\d+$/.test(sa) && !/^[WL]\d+$/.test(sb);
         var label = (named ? sa + ' vs ' + sb : (s && s.round) || 'Game ' + n) + (s && s.score ? ' · done' : '');
-        return '<span>' + esc(label) + '</span><div class="bar">' + order.map(function (k, i) { var pc = Math.round(w[k] / tot * 100); return '<span style="width:' + pc + '%;' + (i === 0 ? 'background:var(--accent)' : i > 1 ? 'background:#22333a;color:var(--ink)' : '') + '" title="' + esc(k + ': ' + w[k]) + '">' + esc(k) + ' ' + pc + '%</span>'; }).join('') + '</div>';
+        return '<span>' + esc(label) + '</span><div class="bar">' + order.map(function (k, i) {
+          var pc = Math.round(w[k] / tot * 100), c = pkColor(e.event, k);
+          var look = c ? 'background:' + c + ';color:' + inkOn(c) + ';box-shadow:inset -1px 0 0 rgba(0,0,0,.35)' : (i === 0 ? 'background:var(--accent)' : i > 1 ? 'background:#22333a;color:var(--ink)' : '');
+          return '<span style="width:' + pc + '%;' + look + '" title="' + esc(k + ': ' + w[k] + ' picks') + '">' + esc(k) + ' ' + pc + '%</span>';
+        }).join('') + '</div>';
       }).join('');
       return '<p class="db-ev">' + esc(e.event) + ' · ' + nfmt(e.pickers) + ' players · ' + nfmt(e.worth) + ' per right pick' + (e.open ? '' : ' · closed') + '</p>' + (rows ? '<div class="db-split">' + rows + '</div>' : '<p class="who">No picks yet.</p>');
     }).join('') || '<p class="who">' + (DASH ? 'No Pick\'ems events open.' : '') + '</p>';
