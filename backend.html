@@ -383,6 +383,7 @@
       <button type="button" role="tab" id="tab-packs" aria-controls="pane-packs" aria-selected="false" tabindex="-1">Card packs</button>
       <button type="button" role="tab" id="tab-multi" aria-controls="pane-multi" aria-selected="false" tabindex="-1">4Ks &amp; 5Ks</button>
       <button type="button" role="tab" id="tab-subs" aria-controls="pane-subs" aria-selected="false" tabindex="-1">Subs <span class="count" id="sb-badge"></span></button>
+      <button type="button" role="tab" id="tab-riot" aria-controls="pane-riot" aria-selected="false" tabindex="-1">Riot IDs <span class="count" id="ri-badge"></span></button>
       <button type="button" role="tab" id="tab-notes" aria-controls="pane-notes" aria-selected="false" tabindex="-1">Patch notes</button>
       <button type="button" role="tab" id="tab-champs" aria-controls="pane-champs" aria-selected="false" tabindex="-1">Champions</button>
       <button type="button" role="tab" id="tab-complaints" aria-controls="pane-complaints" aria-selected="false" tabindex="-1">Complaints <span class="count" id="cx-badge"></span></button>
@@ -638,6 +639,27 @@
       </div>
     </section>
 
+    <!-- ===== Riot IDs ===== -->
+    <section class="pane" role="tabpanel" id="pane-riot" aria-labelledby="tab-riot" hidden>
+      <div class="toolbar">
+        <label class="field"><span class="kicker">Search</span><input type="search" id="ri-search" placeholder="Player, team or Riot ID" autocomplete="off"></label>
+        <label class="field"><span class="kicker">Region</span><select id="ri-region"><option value="">All</option><option>NA</option><option>EMEA</option></select></label>
+        <label class="check"><input type="checkbox" id="ri-missing"> Only missing a Riot ID</label>
+      </div>
+      <div class="sheet"><table class="grid" id="ri-table">
+        <thead><tr>
+          <th class="plain">Player</th><th class="plain">Team</th><th class="plain">Region</th>
+          <th class="plain">PCMT.gg name</th><th class="plain">Riot ID</th><th class="plain">Found by</th>
+        </tr></thead>
+        <tbody id="ri-rows"></tbody>
+      </table></div>
+      <div class="bar sticky">
+        <button class="btn" id="ri-save" type="button" disabled>Save Riot IDs</button>
+        <button class="btn ghost" id="ri-undo" type="button" disabled>Undo edits</button>
+        <p class="msg" id="ri-msg" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+
     <!-- ===== Subs ===== -->
     <section class="pane" role="tabpanel" id="pane-subs" aria-labelledby="tab-subs" hidden>
       <form class="panel" id="sb-form" autocomplete="off" novalidate>
@@ -831,7 +853,7 @@
   })();
 
   // ---------- tabs ----------
-  var TABS = ['dash', 'pages', 'schedule', 'season', 'pickems', 'prices', 'teams', 'cards', 'packs', 'multi', 'subs', 'notes', 'champs', 'complaints', 'staff'];
+  var TABS = ['dash', 'pages', 'schedule', 'season', 'pickems', 'prices', 'teams', 'cards', 'packs', 'multi', 'subs', 'riot', 'notes', 'champs', 'complaints', 'staff'];
   function openTab(name, focus) {
     TABS.forEach(function (t) {
       var on = t === name, tab = $('tab-' + t);
@@ -1878,6 +1900,93 @@
     sel.value = games.some(function (g) { return g.key === keep; }) ? keep : '';
     sbPick.game = games.filter(function (g) { return g.key === sel.value; })[0] || null;
   }
+  // ---------- Riot IDs ----------
+  // setup/riot-ids.sql: every current player's PCMT.gg name and Riot ID (name#tag). Staff only; used to find each
+  // series' games in Riot's match data (HenrikDev) for 4Ks and 5Ks. Riot names are 3-16 characters, tags 3-5.
+  var RIOT = {}, riEdits = {}, riErr = '', riBusy = false;
+  function loadRiot() {
+    return L.apiAll('/rest/v1/riot_ids?select=player,pcmt_name,team,region,riot_name,riot_tag,puuid,source,updated_at&order=player')
+      .then(function (r) { RIOT = {}; (r || []).forEach(function (x) { RIOT[x.player] = x; }); riErr = ''; })
+      .catch(function (e) { RIOT = {}; riErr = 'Couldn\'t load Riot IDs (' + e.message + '). Has setup/riot-ids.sql been run?'; });
+  }
+  function riRegion(p) { var t = teamOf(p.team); return (t && t.region) || 'NA'; }
+  function riRows() {
+    return PLAYERS_NOW().map(function (p) {
+      var x = RIOT[p.id] || {}, e = riEdits[p.id] || {};
+      var id = x.riot_name ? x.riot_name + '#' + x.riot_tag : '';
+      return { id: p.id, name: p.name, team: p.team, region: riRegion(p), pcmt: e.pcmt != null ? e.pcmt : (x.pcmt_name || p.name),
+        riot: e.riot != null ? e.riot : id, savedRiot: id, savedPcmt: x.pcmt_name || p.name, source: x.source, when: x.updated_at, row: x };
+    }).sort(function (a, b) { return a.region.localeCompare(b.region) || a.team.localeCompare(b.team) || a.name.toLowerCase().localeCompare(b.name.toLowerCase()); });
+  }
+  function riParse(v) {
+    v = String(v || '').trim(); if (!v) return { name: null, tag: null };
+    var m = /^(.{3,16})#([^#\s]{3,5})$/.exec(v);
+    return m ? { name: m[1].trim(), tag: m[2] } : null;
+  }
+  function riSay(t, cls) { $('ri-msg').textContent = t; $('ri-msg').className = 'msg' + (cls ? ' ' + cls : ''); }
+  function riDirty() { return Object.keys(riEdits).length > 0; }
+  function drawRiot() {
+    var q = $('ri-search').value.trim().toLowerCase(), reg = $('ri-region').value, miss = $('ri-missing').checked;
+    var rows = riRows(), missing = rows.filter(function (r) { return !r.savedRiot; }).length;
+    $('ri-badge').textContent = missing ? String(missing) : '';
+    var show = rows.filter(function (r) {
+      if (reg && r.region !== reg) return false;
+      if (miss && r.savedRiot) return false;
+      return !q || [r.name, r.team, r.pcmt, r.riot].join(' ').toLowerCase().indexOf(q) >= 0;
+    });
+    $('ri-rows').innerHTML = riErr ? '<tr><td colspan="6">' + esc(riErr) + '</td></tr>' : show.map(function (r) {
+      var bad = r.riot && !riParse(r.riot);
+      var by = r.riot !== r.savedRiot || r.pcmt !== r.savedPcmt ? 'Not saved' : !r.savedRiot ? '' : r.source === 'auto' ? 'Matched from a game' : 'Staff';
+      return '<tr data-id="' + esc(r.id) + '">' +
+        '<td class="strong">' + esc(r.name) + '</td><td>' + esc(r.team) + '</td><td>' + esc(r.region) + '</td>' +
+        '<td><input class="cell ri-pcmt' + (r.pcmt !== r.savedPcmt ? ' moved' : '') + '" type="text" maxlength="40" value="' + esc(r.pcmt) + '" aria-label="' + esc(r.name) + '\'s PCMT.gg name"></td>' +
+        '<td><input class="cell ri-riot' + (r.riot !== r.savedRiot ? ' moved' : '') + '" type="text" maxlength="24" placeholder="name#tag" value="' + esc(r.riot) + '" aria-label="' + esc(r.name) + '\'s Riot ID"' + (bad ? ' aria-invalid="true" title="Use name#tag, like Slowbro#Dino"' : '') + '></td>' +
+        '<td>' + esc(by) + '</td></tr>';
+    }).join('') || '<tr><td colspan="6">No players match.</td></tr>';
+    $('ri-save').disabled = riBusy || !riDirty(); $('ri-undo').disabled = riBusy || !riDirty();
+  }
+  function riEdit(e) {
+    var tr = e.target.closest('tr[data-id]'); if (!tr) return;
+    var id = tr.getAttribute('data-id'), r = riRows().filter(function (x) { return x.id === id; })[0]; if (!r) return;
+    var ed = riEdits[id] || {};
+    if (e.target.classList.contains('ri-riot')) ed.riot = e.target.value.trim();
+    else if (e.target.classList.contains('ri-pcmt')) ed.pcmt = e.target.value.trim();
+    else return;
+    if (ed.riot === r.savedRiot) delete ed.riot;
+    if (ed.pcmt === r.savedPcmt) delete ed.pcmt;
+    if (Object.keys(ed).length) riEdits[id] = ed; else delete riEdits[id];
+    e.target.classList.toggle('moved', e.target.classList.contains('ri-riot') ? e.target.value.trim() !== r.savedRiot : e.target.value.trim() !== r.savedPcmt);
+    if (e.target.classList.contains('ri-riot')) { if (e.target.value.trim() && !riParse(e.target.value)) e.target.setAttribute('aria-invalid', 'true'); else e.target.removeAttribute('aria-invalid'); }
+    $('ri-save').disabled = riBusy || !riDirty(); $('ri-undo').disabled = riBusy || !riDirty();
+  }
+  function saveRiot() {
+    if (riBusy || !riDirty()) return;
+    var all = riRows(), byId = {}, body = [], bad = [];
+    all.forEach(function (r) { byId[r.id] = r; });
+    Object.keys(riEdits).forEach(function (id) {
+      var r = byId[id]; if (!r) return;
+      var p = riParse(r.riot); if (!p) { bad.push(r.name); return; }
+      if (!r.pcmt) { bad.push(r.name); return; }
+      var same = r.riot === r.savedRiot;
+      body.push({ player: id, pcmt_name: r.pcmt, team: r.team, region: r.region === 'EMEA' ? 'eu' : 'na',
+        riot_name: p.name, riot_tag: p.tag, puuid: same ? (r.row.puuid || null) : null,
+        source: !p.name ? null : same ? (r.row.source || 'staff') : 'staff', updated_at: new Date().toISOString(), updated_by: L.myId || null });
+    });
+    if (bad.length) return riSay('Fix these first (Riot IDs look like name#tag, and every player needs a PCMT.gg name): ' + bad.join(', '), 'err');
+    riBusy = true; riSay('Saving…'); drawRiot();
+    L.api('/rest/v1/riot_ids?on_conflict=player', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: body })
+      .then(function () { riEdits = {}; return loadRiot(); })
+      .then(function () { riBusy = false; drawRiot(); riSay('Saved ' + body.length + (body.length === 1 ? ' player.' : ' players.'), 'ok'); },
+            function (e) { riBusy = false; drawRiot(); riSay('Couldn\'t save: ' + e.message, 'err'); });
+  }
+  function setupRiot() {
+    ['ri-search', 'ri-region', 'ri-missing'].forEach(function (id) { $(id).addEventListener(id === 'ri-search' ? 'input' : 'change', drawRiot); });
+    $('ri-rows').addEventListener('input', riEdit);
+    $('ri-save').addEventListener('click', saveRiot);
+    $('ri-undo').addEventListener('click', function () { riEdits = {}; riSay(''); drawRiot(); });
+    drawRiot();
+  }
+
   function loadSubs() {
     return L.apiAll('/rest/v1/player_subs?select=id,sub,player,week,created_at,created_by&order=id')
       .then(function (r) { SUBS = r || []; sbErr = ''; })
@@ -2691,14 +2800,14 @@
       if (ok !== true) return show('st-nostaff');
       return Promise.all([
         L.apiAll('/rest/v1/profiles?select=id,name&order=id').then(function (r) { (r || []).forEach(function (p) { NAMES[p.id] = p.name; }); }).catch(function () {}),
-        loadPrices(), loadRemoved(), loadCards(), loadDeck(), loadComplaints(), loadPages(), loadSubs(), loadNotes(), loadVersion(),
+        loadPrices(), loadRemoved(), loadCards(), loadDeck(), loadComplaints(), loadPages(), loadSubs(), loadRiot(), loadNotes(), loadVersion(),
         loadDash(), loadSchedule(), loadSeason(), loadPickemEvents(), loadStaff()
       ]).then(function () {
         show('st-staff');
         var h = (location.hash || '').slice(1);
         openTab(TABS.indexOf(h) >= 0 ? h : 'dash');
         drawDash(); drawGraphic(); syncStatus(); scReset(); drawSchedule(); drawSeason(); drawPickemEvents(); drawStaff();
-        drawPages(); drawPrices(); setupTeams(); drawCards(); drawRares(); drawPacks(); setupMulti(); drawSubs(); drawNotes(); setupChamps(); drawComplaints();
+        drawPages(); drawPrices(); setupTeams(); drawCards(); drawRares(); drawPacks(); setupMulti(); drawSubs(); setupRiot(); drawNotes(); setupChamps(); drawComplaints();
       });
     }).catch(function (e) { show('st-staff'); $('p-msg').textContent = 'Something went wrong loading the backend: ' + e.message; $('p-msg').className = 'msg err'; });
   }
