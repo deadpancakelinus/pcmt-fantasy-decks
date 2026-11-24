@@ -1,6 +1,6 @@
 // Pick'ems graphic: one game's pick split as a 1050 x 560 picture (the promo square on the PCMT S4 break screen).
 // Used by the backend's Pick'ems tab (download) and by promo/pickems.html (the live "Pick'ems slide" on the break screen).
-// Made to share before the game: no result. Top: "NA Season 4 · <round>"; a line per team (logo, full name, a bar of its
+// Made to share before the game: no result. Top: "NA Season 4 · <round>"; a line per team (logo, tricode, a bar of its
 // pick % in the team colour, the %); fantasy.pcmt.gg bottom right. All text in Radio Canada (load it on the page).
 //
 //   PCMT_PICKEMS_GRAPHIC.draw(canvas, { season: 'NA Season 4', round, a: team, b: team, pa, pb }, base) -> Promise
@@ -39,7 +39,7 @@
         c.fillStyle = 'rgba(255,255,255,.05)'; round(c, 40, y, W - 80, 156, 22); c.fill();
         if (t[1]) c.drawImage(t[1], 66, y + 24, 108, 108);
         else { c.fillStyle = col; c.beginPath(); c.arc(120, y + 78, 52, 0, 7); c.fill(); c.fillStyle = inkOn(col); c.font = '700 26px ' + F; c.textAlign = 'center'; c.fillText(t[0].label || '?', 120, y + 87); c.textAlign = 'left'; }
-        var nm = t[0].name || t[0].label || '', px = 34, maxW = W - 80 - 210 - 190;
+        var nm = t[0].label || t[0].name || '', px = 34, maxW = W - 80 - 210 - 190;
         c.font = '600 ' + px + 'px ' + F;
         while (c.measureText(nm).width > maxW && px > 22) { px -= 2; c.font = '600 ' + px + 'px ' + F; }
         c.fillStyle = '#ffffff'; c.fillText(nm, 206, y + 64);
