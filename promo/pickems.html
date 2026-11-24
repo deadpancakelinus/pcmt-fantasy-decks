@@ -12,10 +12,20 @@
   /* The "Pick'ems slide" on the PCMT S4 break screen (its promo panel embeds this page, 1050 x 560). */
   html, body { margin: 0; height: 100%; background: #070c0d; overflow: hidden; }
   canvas { display: block; width: 100vw; height: 100vh; object-fit: contain; }
+  /* opened in a normal browser (not OBS or the break screen): a Download button, so the picture can be uploaded as an
+     Image slide in the break screen's control panel */
+  body.tab { height: auto; min-height: 100%; overflow: auto; padding: 24px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; gap: 16px; font-family: 'Radio Canada', system-ui, sans-serif; color: #eaf4f4; }
+  body.tab canvas { width: 100%; max-width: 1050px; height: auto; border-radius: 12px; border: 1px solid #2a3a3e; }
+  .bar { display: none; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; }
+  body.tab .bar { display: flex; }
+  .bar button { min-height: 48px; padding: 0 26px; border-radius: 10px; border: 0; background: #a5dcdd; color: #000; font: 700 17px 'Radio Canada', system-ui, sans-serif; cursor: pointer; }
+  .bar button:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+  .bar p { margin: 0; color: #93a9aa; font-size: 15px; }
 </style>
 </head>
 <body>
 <canvas id="gx" role="img" aria-label="Pick'ems"></canvas>
+<div class="bar"><button type="button" id="dl">Download picture</button><p>1050 × 560 · add it as an Image slide on the break screen</p></div>
 <script src="/season-teams.js"></script>
 <script src="/pickems.js"></script>
 <script src="/pickems-graphic.js"></script>
@@ -30,7 +40,7 @@
   var SB_URL = 'https://wwrsavqipkxvdsxcemos.supabase.co', SB_KEY = 'sb_publishable_e8v-uyAo4fnvwJCHUVA5FQ_LXR6yYM7';
   var EVENT = 'na-s4', TEAMS_EVENT = 's4-na', SEASON = 'NA Season 4';
   var q = new URLSearchParams(location.search), A = (q.get('a') || '').toUpperCase(), B = (q.get('b') || '').toUpperCase();
-  var cv = document.getElementById('gx'), G = window.PCMT_PICKEMS_GRAPHIC, last = '';
+  var cv = document.getElementById('gx'), G = window.PCMT_PICKEMS_GRAPHIC, last = '', shown = 'na-s4';
   function games() {
     var ev = (window.PCMT_PICKEMS || []).filter(function (b) { return b.id === EVENT; })[0];
     return ((ev && ev.series) || []).filter(function (s) { return !/^[WL]\d+$/.test(s.a) && !/^[WL]\d+$/.test(s.b); });
@@ -52,6 +62,7 @@
   }
   function draw() {
     var g = pick(games());
+    if (g) shown = (g.a + '-vs-' + g.b).toLowerCase();
     if (!g) return G.drawNote(cv, "Pick'ems open soon");
     return split().then(function (rows) {
       var a = 0, b = 0;
@@ -64,9 +75,23 @@
       return G.draw(cv, { season: SEASON, round: g.round, a: T[g.a] || { label: g.a, name: g.a }, b: T[g.b] || { label: g.b, name: g.b }, pa: pa, pb: 100 - pa }, '/');
     }).catch(function (e) { console.warn(e); if (!last) G.drawNote(cv, "Pick'ems at fantasy.pcmt.gg"); });   // keep the last picture if a refresh fails
   }
+  // In OBS (window.obsstudio) or inside the break screen (a frame) it's just the picture; in a browser tab it gets a
+  // Download button and no auto-reload.
+  var inTab = window.top === window.self && !window.obsstudio;
+  if (inTab) {
+    document.body.classList.add('tab');
+    document.getElementById('dl').addEventListener('click', function () {
+      cv.toBlob(function (blob) {
+        if (!blob) return;
+        var a = document.createElement('a'), day = new Date().toISOString().slice(0, 10);
+        a.href = URL.createObjectURL(blob); a.download = 'pickems-' + shown + '-' + day + '.png';
+        document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+      }, 'image/png');
+    });
+  }
   draw();
   setInterval(draw, 60000);
-  setTimeout(function () { location.reload(); }, 15 * 60000);
+  if (!inTab) setTimeout(function () { location.reload(); }, 15 * 60000);
 })();
 </script>
 </body>
