@@ -322,7 +322,7 @@
     <!-- ===== Pick'ems ===== -->
     <section class="pane" role="tabpanel" id="pane-pickems" aria-labelledby="tab-pickems" hidden>
       <div class="sheet"><table class="grid">
-        <thead><tr><th class="plain" scope="col">Event</th><th class="plain" scope="col">Open</th><th class="plain" scope="col">Points per right pick</th><th class="plain" scope="col">Players</th><th class="plain" scope="col"><span class="sr-only">Save</span></th></tr></thead>
+        <thead><tr><th class="plain" scope="col">Event</th><th class="plain" scope="col">Open</th><th class="plain" scope="col">Players</th><th class="plain" scope="col"><span class="sr-only">Save</span></th></tr></thead>
         <tbody id="pe-rows"></tbody>
       </table></div>
       <p class="msg" id="pe-msg" role="status" aria-live="polite"></p>
@@ -1569,13 +1569,14 @@
   var CX = [], cxErr = '';
   // ---------- pages waiting for launch ----------
   var PAGES = [], pgErr = '', pgArmed = null, pgBusy = false;
+  var GONE_PAGES = { store: 1, library: 1, database: 1 };   // deleted Nov 23 2026 (their site_pages rows may still be there)
   function loadPages() {
     return L.api('/rest/v1/site_pages?select=id,name,path,sort,launched&order=sort')
-      .then(function (r) { PAGES = r || []; pgErr = ''; })
+      .then(function (r) { PAGES = (r || []).filter(function (p) { return !GONE_PAGES[p.id]; }); pgErr = ''; })
       .catch(function (e) { PAGES = []; pgErr = 'Couldn\'t load the list (' + e.message + '). Has setup/pages-setup.sql been run?'; });
   }
   // Every page, live and hidden. Hidden: only staff can open it. Launch / Take down (press twice) switch it.
-  // Launching the Store also opens every card pack to everyone. Home and Log in aren't listed: they always stay open.
+  // Home and Log in aren't listed: they always stay open.
   function drawPages() {
     var waiting = PAGES.filter(function (p) { return !p.launched; });
     $('pg-badge').textContent = waiting.length ? '(' + waiting.length + ')' : '';
@@ -1776,7 +1777,7 @@
     if (label === 'groups') {
       row.bracket = evBracketId(ev, 'groups');
       if (hand && hand.id === row.bracket) return say('That Pick\'ems id is a bracket already.', 'err');
-      pkRow = { id: row.bracket, open: true, credits_win: 10 };
+      pkRow = { id: row.bracket, open: true, credits_win: 0 };
     } else if (label === 'playoffs') {
       row.bracket = evBracketId(ev, 'playoffs');
       if (handMade) { row.format = hand.format || Object.keys(FORMATS).filter(function (k) { return FORMATS[k] && FORMATS[k].teams === Object.keys(hand.seeds || {}).length; })[0] || 'de10'; }
@@ -1794,7 +1795,7 @@
       var lv = card.querySelector('[data-k="lock"]').value;
       lockAt = lv ? fromEtInput(lv) : null;
       if (lv && lockAt == null) return say('That lock date doesn\'t look right.', 'err');
-      pkRow = { id: row.bracket, open: true, credits_win: 20 };
+      pkRow = { id: row.bracket, open: true, credits_win: 0 };
     }
     var old = EV.labels[id] || {}, pk = row.bracket ? EV.pk[row.bracket] : null;
     var rebuild = label === 'playoffs' && !handMade && old.label === 'playoffs' && (old.format !== row.format || JSON.stringify(old.seeds || {}) !== JSON.stringify(row.seeds));
@@ -1960,9 +1961,7 @@
     games.forEach(function (m) { lines.push('<li><span>' + esc(m.a + ' vs ' + m.b) + ' <span class="who">' + esc(m.region || '') + ' · Bo' + esc(m.bo || 3) + (m.extra ? ' · added here' : '') + '</span></span><b>' + esc(etWhen(Date.parse(m.start))) + '</b></li>'); });
     $('db-next').innerHTML = lines.join('') || '<li><span class="who">No games on the schedule.</span></li>';
     // Site health
-    var h = [], ls = d.last_sync;
-    if (ls) h.push('<li><span>Credits run</span><b class="' + (ls.ok ? 'ok' : 'bad') + '">' + (ls.ok ? 'OK' : 'Failed') + ' · ' + esc(ago(ls.at)) + '</b></li>');
-    if (DASH) h.push('<li><span>Failed runs, 24 h</span><b class="' + (d.syncs_failed_24h ? 'bad' : 'ok') + '">' + nfmt(d.syncs_failed_24h) + '</b></li>');
+    var h = [];
     if (d.pickems_synced) h.push('<li><span>Pick\'ems synced</span><b>' + esc(ago(d.pickems_synced)) + '</b></li>');
     var lastRes = (window.PCMT_RESULTS || []).map(function (r) { return Date.parse(r.start); }).sort(function (a, b) { return b - a; })[0];
     if (lastRes) h.push('<li><span>Newest result</span><b>' + esc(etWhen(lastRes)) + '</b></li>');
@@ -2153,7 +2152,7 @@
     L.api('/rest/v1/site_settings?on_conflict=key', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=representation' }, body: { key: 'na_stage', value: value, updated_at: new Date().toISOString(), updated_by: L.myId } }).then(function (rows) {
       seasonRow = (rows || [])[0] || seasonRow;
       window.PCMT_SEASON = { naStage: { start: st, lock: lk, end: en } };
-      msg.className = 'msg ok'; msg.textContent = 'Saved. The site uses these dates from the next page load; Credits use them from the next run. The Deck\'s notice follows them; update the guide\'s lock time if it moved.';
+      msg.className = 'msg ok'; msg.textContent = 'Saved. The site uses these dates from the next page load. The Deck\'s notice follows them; update the guide\'s lock time if it moved.';
       drawSeason(); drawDash();
     }).catch(function (e2) { msg.className = 'msg err'; msg.textContent = 'Couldn\'t save: ' + e2.message; })
       .then(function () { $('se-save').disabled = false; });
@@ -2162,7 +2161,7 @@
   // ---------- Pick'ems events ----------
   var PK_EVENTS = [], pkErr = '';
   function loadPickemEvents() {
-    return L.apiAll('/rest/v1/pickem_events?select=id,open,credits_win&order=id').then(function (r) { PK_EVENTS = r || []; pkErr = ''; })
+    return L.apiAll('/rest/v1/pickem_events?select=id,open&order=id').then(function (r) { PK_EVENTS = r || []; pkErr = ''; })
       .catch(function (e) { PK_EVENTS = []; pkErr = e.message; });
   }
   function drawPickemEvents() {
@@ -2171,23 +2170,21 @@
     $('pe-rows').innerHTML = PK_EVENTS.map(function (e) {
       return '<tr data-pk="' + esc(e.id) + '"><td><b>' + esc(e.id) + '</b></td>' +
         '<td><label class="chk-line" style="min-height:0"><input type="checkbox" data-pk-open' + (e.open ? ' checked' : '') + ' aria-label="' + esc(e.id) + ' open"> ' + (e.open ? 'Open' : 'Closed') + '</label></td>' +
-        '<td><input class="cell" type="number" min="0" max="1000" step="1" data-pk-worth value="' + esc(e.credits_win) + '" aria-label="' + esc(e.id) + ' points per right pick" style="max-width:110px"></td>' +
         '<td>' + (pickers[e.id] != null ? nfmt(pickers[e.id]) : '<span class="who">—</span>') + '</td>' +
         '<td style="text-align:right"><button class="btn ghost" type="button" data-pk-save disabled>Save</button></td></tr>';
-    }).join('') || '<tr><td colspan="5" class="who">' + esc(pkErr || 'No Pick\'ems events.') + '</td></tr>';
+    }).join('') || '<tr><td colspan="4" class="who">' + esc(pkErr || 'No Pick\'ems events.') + '</td></tr>';
   }
   $('pe-rows').addEventListener('input', function (e) { var tr = e.target.closest('tr[data-pk]'); if (tr) tr.querySelector('[data-pk-save]').disabled = false; });
   $('pe-rows').addEventListener('change', function (e) { var tr = e.target.closest('tr[data-pk]'); if (tr) tr.querySelector('[data-pk-save]').disabled = false; });
   $('pe-rows').addEventListener('click', function (e) {
     var b = e.target.closest('[data-pk-save]'); if (!b) return;
-    var tr = b.closest('tr'), id = tr.getAttribute('data-pk'), open = tr.querySelector('[data-pk-open]').checked, worth = Math.round(+tr.querySelector('[data-pk-worth]').value);
+    var tr = b.closest('tr'), id = tr.getAttribute('data-pk'), open = tr.querySelector('[data-pk-open]').checked;
     var msg = $('pe-msg');
-    if (!(worth >= 0 && worth <= 1000)) { msg.className = 'msg err'; msg.textContent = 'Points per right pick: 0 to 1000.'; return; }
     b.disabled = true; msg.className = 'msg'; msg.textContent = 'Saving…';
-    L.api('/rest/v1/pickem_events?id=eq.' + encodeURIComponent(id), { method: 'PATCH', headers: { Prefer: 'return=representation' }, body: { open: open, credits_win: worth } }).then(function (rows) {
+    L.api('/rest/v1/pickem_events?id=eq.' + encodeURIComponent(id), { method: 'PATCH', headers: { Prefer: 'return=representation' }, body: { open: open } }).then(function (rows) {
       if (!rows || !rows.length) throw new Error(NEED_SQL);
-      PK_EVENTS.forEach(function (x) { if (x.id === id) { x.open = open; x.credits_win = worth; } });
-      msg.className = 'msg ok'; msg.textContent = 'Saved ' + id + ': ' + (open ? 'open' : 'closed') + ', ' + worth + ' per right pick.';
+      PK_EVENTS.forEach(function (x) { if (x.id === id) x.open = open; });
+      msg.className = 'msg ok'; msg.textContent = 'Saved ' + id + ': ' + (open ? 'open' : 'closed') + '.';
       drawPickemEvents();
     }).catch(function (e2) { msg.className = 'msg err'; msg.textContent = 'Couldn\'t save ' + id + ': ' + e2.message; b.disabled = false; });
   });

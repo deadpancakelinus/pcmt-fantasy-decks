@@ -8,10 +8,10 @@
   var SB_KEY = 'sb_publishable_e8v-uyAo4fnvwJCHUVA5FQ_LXR6yYM7';
 
   // ---------- pages waiting for launch (Oct 24 2026) ----------
-  // MVP VS, Store and Library stay hidden until staff press Launch on backend.html (Pages tab), which marks them
+  // MVP VS and LosersQ stay hidden until staff press Launch on backend.html (Pages tab), which marks them
   // launched in the site_pages table. Until then links to them are hidden for everyone (staff open them from the
   // backend), and anyone but staff and site admins who opens one is sent to Home. (mvp-vs.html has its own copy.)
-  var LAUNCH_PAGES = { 'mvp-vs': ['mvp-vs'], store: ['store', 'transactions', 'collection'], library: ['library'], losersq: ['losersq'], database: ['database'] };
+  var LAUNCH_PAGES = { 'mvp-vs': ['mvp-vs'], losersq: ['losersq'] };
   function launchId(path) {
     var f = String(path || '').split('/').pop().replace(/\.html$/, '') || 'index';
     for (var id in LAUNCH_PAGES) if (LAUNCH_PAGES[id].indexOf(f) >= 0) return id;
@@ -497,14 +497,6 @@
     return Object.keys(by).sort().map(function (k) { return by[k]; });
   }
 
-  // VP for one gameweek (an entry from scoreManager): each player's points from the series they were in your deck for,
-  // no IGL bonus, a card below zero counts as 0. Supabase pays the same amount when the gameweek ends (setup/vp-setup.sql).
-  function weekCardVP(entry) {
-    var cards = {}, total = 0;
-    Object.keys(entry.cards || {}).forEach(function (id) { var v = Math.max(0, entry.cards[id]); cards[id] = v; total += v; });
-    return { total: Math.round(total), cards: cards };   // paid in whole Credits
-  }
-
   // ---------- Supabase over plain fetch ----------
   var session = null;
   function readSession() { try { return JSON.parse(localStorage.getItem(TOKEN_KEY) || 'null'); } catch (e) { return null; } }
@@ -597,15 +589,6 @@
       }
       return null;
     },
-    // Puts an owned Rare (or rarer) card in your MVP VS deck, or takes it out (Library page).
-    setInDeck: function (cardId, on) {
-      if (!me) return Promise.reject(new Error('Log in with Discord first.'));
-      return refreshIfNeeded().then(function () { return api('/rest/v1/rpc/set_card_in_deck', { method: 'POST', body: { p_card: cardId, p_on: !!on } }); }).then(function (r) {
-        window.PCMT_MY_IN_DECK = window.PCMT_MY_IN_DECK || {};
-        if (r) window.PCMT_MY_IN_DECK[cardId] = true; else delete window.PCMT_MY_IN_DECK[cardId];
-        return r;
-      });
-    },
     // Saves a Pick'ems pick (winner = team code, null clears it). The server checks the lock, the teams and the score.
     savePick: function (event, series, winner, win, lose) {
       if (!me) return Promise.reject(new Error('Log in with Discord to make picks.'));
@@ -624,19 +607,6 @@
       }).then(function () {
         var mine = window.PCMT_MY_PICKS[event] = {};
         Object.keys(picks).forEach(function (n) { mine[n] = { winner: picks[n] }; });
-      });
-    },
-    // Buys a card pack on the server (it checks the price and your VP, then draws the cards).
-    // Resolves to { pack, price, balance, cards: [{ id, player, variant, rarity, region, count, new }] }.
-    buyPack: function (packId) {
-      if (!me) return Promise.reject(new Error('Log in with Discord to buy packs.'));
-      return refreshIfNeeded().then(function () { return api('/rest/v1/rpc/buy_pack', { method: 'POST', body: { p_pack: packId } }); }).then(function (r) {
-        (r.cards || []).forEach(function (c) { window.PCMT_MY_CARDS[c.id] = c.count; });
-        if (window.PCMT_VP) window.PCMT_VP.balance = String(r.balance);
-        return r;
-      }, function (e) {
-        if (e && e.message) e.message = e.message.replace(/\bVP\b/g, 'Credits');   // older server wording
-        throw e;
       });
     },
     signIn: function (page) {
@@ -756,50 +726,12 @@
   window.addEventListener('pagehide', function () { retry(); sendDeck(true); });
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') { retry(); sendDeck(true); } });
 
-  // ---------- VP for the Collection page ----------
+  // ---------- dates for messages ----------
   function fmtWhen(t) {
     try { return new Date(t).toLocaleString('en-US', { timeZone: 'America/New_York', weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' }); }
     catch (e) { return new Date(t).toUTCString(); }
   }
-  function fmtDay(key) { return new Date(key + 'T12:00:00Z').toLocaleDateString('en-US', { timeZone: 'UTC', month: 'short', day: 'numeric' }); }
-  function buildVP(lines, weeks, scored, curB) {
-    var ready = Array.isArray(lines), balance = 0, earned = 0, byWeek = {}, paidByWeek = {}, spent = [];
-    (lines || []).forEach(function (l) {
-      balance += l.amount;
-      if (l.amount > 0) earned += l.amount;
-      if (l.kind === 'week' && l.week) {
-        paidByWeek[l.week] = (paidByWeek[l.week] || 0) + l.amount;
-        var h = byWeek[l.week] || (byWeek[l.week] = { week: l.week, vp: 0, deck: '' });
-        h.vp += l.amount;
-        if (!h.deck && l.detail && l.detail.deck) h.deck = l.detail.deck;
-      }
-      if (l.kind === 'pickem') {
-        var pd = l.detail || {}, day = new Date(l.created_at).toISOString().slice(0, 10);
-        byWeek['p' + day + (pd.event || '') + (pd.series || '')] = { week: day, vp: l.amount, deck: (pd.label || 'Series') + (pd.exact ? ' (exact score)' : ''), label: 'Pick\u2019ems \u00b7 ' + fmtDay(day) };
-      }
-      if (l.amount < 0) spent.push({ date: new Date(l.created_at).toLocaleDateString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric' }), pack: (l.detail && (l.detail.pack || l.detail.name)) || 'Card pack', vp: String(-l.amount) });
-    });
-    var history = Object.keys(byWeek).sort(function (a, b) { var x = byWeek[a].week, y = byWeek[b].week; return x < y ? 1 : x > y ? -1 : 0; }).map(function (k) {
-      var h = byWeek[k];
-      return { label: h.label || 'Week of ' + fmtDay(k), deck: h.deck || '—', vp: String(h.vp) };
-    });
-    var cw = weeks.filter(function (w) { return w.b === curB; })[0], week = { vp: '0', state: 'nomatch', note: 'No matches are scheduled this gameweek yet.' };
-    if (cw && !cw.locked) week = { vp: '0', state: 'open', note: 'Your deck locks ' + fmtWhen(cw.lockAt) + '. Credits start counting from then.' };
-    else if (cw) {
-      var mine = scored.filter(function (x) { return x.week.b === cw.b; })[0];
-      week = mine
-        ? { vp: String(weekCardVP(mine).total), state: 'live', note: 'So far from the deck you locked in. Paid ' + fmtWhen(cw.e) + ', when your cards reset.' }
-        : { vp: '0', state: 'nodeck', note: 'No deck counted this gameweek. Lock one in on The Deck before the next gameweek locks.' };
-    }
-    var lastDone = weeks.filter(function (w) { return w.done; }).pop();
-    var lastPay = lastDone ? (paidByWeek[lastDone.key] || 0) : 0;
-    var arriving = 0;
-    if (ready) scored.forEach(function (x) { if (x.week.done) arriving += Math.max(0, weekCardVP(x).total - (paidByWeek[x.week.key] || 0)); });
-    return { signedIn: true, ready: ready, balance: String(balance), lastPay: String(lastPay), earned: String(earned), history: history, spent: spent, week: week, arriving: arriving };
-  }
-  window.PCMT_PACKS = []; window.PCMT_MY_CARDS = {}; window.PCMT_CARD_CATALOG = [];
   window.PCMT_IS_STAFF = false; window.PCMT_MY_PICKS = {}; window.PCMT_PICKEM_EVENTS = {}; window.PCMT_PICKEM_STANDINGS = {};
-  window.PCMT_VP = { signedIn: false, ready: true, balance: '0', lastPay: '0', earned: '0', history: [], spent: [], week: { vp: '0', state: 'out', note: '' }, arriving: 0 };
 
   // Series key used by the multikills table: start|a|b, exactly as in data.js.
   function seriesKey(m) { return m.start + '|' + m.a + '|' + m.b; }
@@ -865,10 +797,10 @@
         window.PCMT_AUTH = { signedIn: true, name: name, initial: name.charAt(0).toUpperCase(), label: name, href: 'login.html', avatar: me.avatar };
         api('/rest/v1/profiles', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: { id: me.id, name: name, avatar_url: me.avatar, updated_at: new Date().toISOString() } }).catch(function () {});
       }
-      // Every saved deck, names, 4Ks/5Ks and Credits are only needed where decks are scored (The Deck, the Leaderboard,
-      // Customization's unlocks, the Store's paychecks). Other pages skip them so they load fast and use less data.
+      // Every saved deck, names and 4Ks/5Ks are only needed where decks are scored (The Deck, the Leaderboard,
+      // Customization's unlocks). Other pages skip them so they load fast and use less data.
       var tree = (document.getElementById('dc-tree') || {}).textContent || '';
-      var needDecks = /"data-pcmt-root":"(Main|Leaderboard|Customization|Store)"/.test(tree);
+      var needDecks = /"data-pcmt-root":"(Main|Leaderboard|Customization)"/.test(tree);
       var decks = !needDecks ? Promise.resolve([]) : apiAll('/rest/v1/deck_history?select=user_id,name,slots,igl,region,created_at&order=created_at.asc,id.asc').catch(function () { return apiAll('/rest/v1/deck_history?select=user_id,name,slots,igl,created_at&order=created_at.asc,id.asc'); }).catch(function () { return []; });
       var profiles = !needDecks ? Promise.resolve([]) : apiAll('/rest/v1/profiles?select=id,name,username,avatar_url,picture_at&order=id')
         .catch(function () { return apiAll('/rest/v1/profiles?select=id,name,username,avatar_url&order=id'); })
@@ -876,23 +808,10 @@
       var myProfile = me ? api('/rest/v1/profiles?select=username,username_changed_at,picture_at&id=eq.' + me.id)
         .catch(function () { return api('/rest/v1/profiles?select=username,username_changed_at&id=eq.' + me.id); }).catch(function () { return []; }) : Promise.resolve([]);
       var unlocks = me ? api('/rest/v1/user_unlocks?select=unlock').catch(function () { return []; }) : Promise.resolve([]);
-      // null = the VP table isn't set up yet (setup/vp-setup.sql not run)
       // 4Ks and 5Ks per series (public; empty until setup/vp-setup.sql has been run)
       var multi = !needDecks ? Promise.resolve([]) : apiAll('/rest/v1/multikills?select=series,player,k4,k5&order=series,player').catch(function () { return []; });
       var prices = apiAll('/rest/v1/player_price_changes?select=player,price,changed_at&order=changed_at.asc,id.asc').catch(function () { return []; });
-      var vp = me && needDecks ? apiAll('/rest/v1/vp_ledger?select=kind,week,amount,detail,created_at&order=created_at.desc,id.desc').catch(function () { return null; }) : Promise.resolve([]);
       var admin = me ? api('/rest/v1/pcmt_admins?select=user_id&user_id=eq.' + me.id).catch(function () { return []; }) : Promise.resolve([]);
-      // Card packs for sale (public) and the cards you own (empty until setup/cards-setup.sql has been run)
-      // (season: throwback packs and past-season cards; falls back to the older columns until setup/cards-setup.sql is re-run)
-      var packs = api('/rest/v1/card_packs?select=id,name,region,season,cards,odds,price,active,open_to_all&active=is.true&order=id')
-        .catch(function () { return api('/rest/v1/card_packs?select=id,name,region,cards,odds,price,active,open_to_all&active=is.true&order=id'); }).catch(function () { return []; });
-      var mine = me ? apiAll('/rest/v1/user_cards?select=card_id,count,in_deck&order=card_id').catch(function () { return apiAll('/rest/v1/user_cards?select=card_id,count&order=card_id'); }).catch(function () { return []; }) : Promise.resolve([]);
-      var onLibrary = /"data-pcmt-root":"Library"/.test((document.getElementById('dc-tree') || {}).textContent || ''); // not the address: the site serves /library as well as /library.html
-      var catalog = onLibrary ? apiAll('/rest/v1/cards?select=id,player,variant,rarity,region,season,title&order=id')
-        .catch(function () { return apiAll('/rest/v1/cards?select=id,player,variant,rarity,region,title&order=id'); }).catch(function () { return []; }) : Promise.resolve([]);
-      // Released Rare-and-up cards, so the Store shows the odds a pack can really drop (null = not known yet)
-      var onStore = /"data-pcmt-root":"Store"/.test((document.getElementById('dc-tree') || {}).textContent || '');
-      var released = onStore ? apiAll('/rest/v1/cards?select=region,season,rarity&active=is.true&released=is.true&rarity=neq.common&order=id').catch(function () { return null; }) : Promise.resolve(null);
       // Pick'ems page: who may see it while it's closed, your picks, the standings and each bracket's settings
       var onPickems = /"data-pcmt-root":"Pickems"/.test((document.getElementById('dc-tree') || {}).textContent || '');
       var staff = me ? api('/rest/v1/rpc/is_freshbatch', { method: 'POST', body: {} }).catch(function () { return false; }) : Promise.resolve(false);
@@ -921,7 +840,8 @@
       var extraGames = apiAll('/rest/v1/schedule_games?select=id,region,start,a,b,bo,round,pickem,removed&order=start').catch(function () { return []; });
       // New users' own NA locks (setup/new-users.sql; empty until it's run)
       var late = !needDecks ? Promise.resolve([]) : api('/rest/v1/rpc/pcmt_late_locks', { method: 'POST', body: {} }).catch(function () { return []; });
-      return Promise.all([decks, profiles, unlocks, vp, multi, admin, packs, mine, catalog, prices, released, staff, picks, pkEvents, pkBoard, removed, subs, note, niche, dTeams, dPlayers, myProfile, season, extraGames, late]);
+      return Promise.all([decks, profiles, unlocks, null, multi, admin, null, null, null, prices, null, staff,   // (3, 6-8, 10: Credits and cards, removed Nov 23 2026)
+        picks, pkEvents, pkBoard, removed, subs, note, niche, dTeams, dPlayers, myProfile, season, extraGames, late]);
     }).then(function (res) {
       applyDeckEdits(res[19], res[20]);
       useUsername((res[21] || [])[0]);
@@ -944,10 +864,6 @@
       window.PCMT_REMOVED_PLAYERS = {};
       (res[15] || []).forEach(function (r) { window.PCMT_REMOVED_PLAYERS[r.player] = true; });
       window.PCMT_IS_ADMIN = !!(res[5] && res[5].length);
-      window.PCMT_PACKS = res[6] || [];
-      window.PCMT_MY_CARDS = {};
-      window.PCMT_CARD_CATALOG = res[8] || [];
-      window.PCMT_RELEASED_RARES = res[10] || null;
       window.PCMT_IS_STAFF = res[11] === true;
       window.PCMT_MY_PICKS = {};
       (res[12] || []).forEach(function (p) { (window.PCMT_MY_PICKS[p.event] = window.PCMT_MY_PICKS[p.event] || {})[p.series] = { winner: p.winner, win: p.win_maps, lose: p.lose_maps }; });
@@ -955,8 +871,6 @@
       (res[13] || []).forEach(function (e) { window.PCMT_PICKEM_EVENTS[e.id] = e; });
       window.PCMT_PICKEM_STANDINGS = {};
       (res[14] || []).forEach(function (x) { window.PCMT_PICKEM_STANDINGS[x[0]] = x[1].map(function (r) { return { id: r.user_id, name: r.name, points: r.points, correct: r.correct, exact: r.exact, picked: r.picked, me: !!me && r.user_id === me.id }; }); });
-      window.PCMT_MY_IN_DECK = {};   // Rares picked for the MVP VS deck (Library page)
-      (res[7] || []).forEach(function (c) { window.PCMT_MY_CARDS[c.card_id] = c.count; if (c.in_deck) window.PCMT_MY_IN_DECK[c.card_id] = true; });
       var decks = res[0] || [], profiles = res[1] || [], unlocks = res[2] || [];
       window.PCMT_SERVER_UNLOCKS = unlocks.map(function (u) { return u.unlock; });
       var names = {};
@@ -1030,7 +944,6 @@
           if (x.missedWin) missed = true;
         });
         window.PCMT_ME_STATS = { teamPoints: teamPts, activeWeeks: active, bestWeek: best, championWin: champ, missedWin: missed, id: me.id };
-        window.PCMT_VP = buildVP(res[3], weeks, myScored, curB);
         // The last save of each deck (an older save with no region stands in for both; The Deck keeps that region's players).
         window.PCMT_MY_REMOTE_DECKS = {};
         REGIONS.forEach(function (rg) {
@@ -1583,8 +1496,8 @@
     P + 'body{background:#071012!important;background-image:radial-gradient(900px 600px at 8% 0%,rgba(68,170,175,.38),transparent 65%),radial-gradient(800px 700px at 100% 30%,rgba(118,82,196,.32),transparent 60%),radial-gradient(900px 700px at 30% 100%,rgba(40,120,160,.30),transparent 60%),linear-gradient(160deg,#081417,#0b1020)!important;background-attachment:fixed!important}' +
     P + '[data-pcmt-root]{background:transparent!important}' +
     P + 'header[style*="background: #111a1c"],' + P + '[style*="background: #111a1c"]{background:rgba(10,18,20,.42)!important;-webkit-backdrop-filter:blur(18px) saturate(150%);backdrop-filter:blur(18px) saturate(150%);border-color:rgba(255,255,255,.12)!important}' +
-    P + '[style*="background: #172124"]:not([style*="backface-visibility"]),' + P + '.hm-panel,' + P + '.hm-tile,' + P + '.lib-mvp{' + glassy + ';-webkit-backdrop-filter:blur(14px) saturate(140%);backdrop-filter:blur(14px) saturate(140%)}' +
-    P + '[style*="background: #172124"][style*="backface-visibility"],' + P + '.pk-front,' + P + '.st-card{background-color:rgba(20,32,36,.72)!important;border-color:rgba(255,255,255,.16)!important}' +
+    P + '[style*="background: #172124"]:not([style*="backface-visibility"]),' + P + '.hm-panel,' + P + '.hm-tile{' + glassy + ';-webkit-backdrop-filter:blur(14px) saturate(140%);backdrop-filter:blur(14px) saturate(140%)}' +
+    P + '[style*="background: #172124"][style*="backface-visibility"],' + P + '.pk-front{background-color:rgba(20,32,36,.72)!important;border-color:rgba(255,255,255,.16)!important}' +
     P + '[style*="background: #0d1416"]:not(.pcmt-loading):not([data-pcmt-root]){background:rgba(0,0,0,.22)!important;border-color:rgba(255,255,255,.16)!important}' +
     P + '[style*="background: #080b0c"]{background:rgba(0,0,0,.24)!important}' +
     P + '[style*="background: #13292b"]{background:rgba(165,220,221,.12)!important}' +
@@ -1624,7 +1537,7 @@
     P + 'body{background:#eef3f3!important}',
     P + 'a{color:#17767a}', P + 'a:hover{color:#0d4f52}',
     P + '*{scrollbar-color:#b9caca #eef3f3}',
-    P + '.hm-panel,' + P + '.hm-tile,' + P + '.lib-mvp{background:#ffffff!important;border-color:#d5e0e0!important;box-shadow:0 1px 2px rgba(20,35,34,.06),0 6px 18px rgba(20,35,34,.06)}',
+    P + '.hm-panel,' + P + '.hm-tile{background:#ffffff!important;border-color:#d5e0e0!important;box-shadow:0 1px 2px rgba(20,35,34,.06),0 6px 18px rgba(20,35,34,.06)}',
     P + '.hm-cc textarea,' + P + 'input[type=text],' + P + 'input[type=search],' + P + 'select{background-color:#ffffff!important;color:#142322!important;border-color:#b9caca!important}',
     P + 'input::placeholder,' + P + 'textarea::placeholder{color:#7b9092!important}',
     P + 'table.grid,' + P + '.sheet{background:#ffffff!important}',

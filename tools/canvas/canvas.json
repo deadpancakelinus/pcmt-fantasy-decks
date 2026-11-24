@@ -63,24 +63,6 @@
       "x": 9120,
       "y": 0
     },
-    "Store.dc.html": {
-      "expand": "fill",
-      "h": 1500,
-      "is_interactive": true,
-      "title": "Store",
-      "w": 1440,
-      "x": 10640,
-      "y": 0
-    },
-    "Library.dc.html": {
-      "expand": "fill",
-      "h": 1300,
-      "is_interactive": true,
-      "title": "Library",
-      "w": 1440,
-      "x": 12160,
-      "y": 0
-    },
     "Pickems.dc.html": {
       "expand": "fill",
       "h": 2200,
@@ -117,8 +99,6 @@
     "Login.dc.html",
     "MvpVs.dc.html",
     "Transactions.dc.html",
-    "Store.dc.html",
-    "Library.dc.html",
     "Pickems.dc.html"
   ],
   "pages": [],

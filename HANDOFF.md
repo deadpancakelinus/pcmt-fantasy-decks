@@ -4,25 +4,15 @@ Start here. It covers what exists, how changes are made and shipped, and what's 
 
 ## 0. Held update (Nov 23 2026): read this first
 
-The big release (usernames, profile pictures, NA S4 decks and cards, team card backs from PCMT.gg, backend overhaul, sync button, store points) **shipped Nov 23 2026** (`4420b44`); its SQL is all run. Still to do from it: the GitHub token for the sync button in Supabase Vault as `github_sync_token` (see 47), and Stage 1's end date on the backend's Season tab once it's known.
+`update-2` (event labels, champions on Home, patch notes window, Riot IDs, Pick'ems graphic and slide, backend clean-up) **shipped Nov 23 2026**, with its SQL; later hotfixes (TANK red, S4 favourites) are on `main` too.
 
-The next update is on the branch **`update-2`**, NOT pushed (only when the owner says to send it). `main` on GitHub is the live site (the PCMT.gg sync adds data commits there).
+The next update is on the branch **`update-3`**, NOT pushed (only when the owner says to send it). `main` on GitHub is the live site (the PCMT.gg sync adds data commits there).
 
 | Part | Section | Database |
 |---|---|---|
-| Backend 4Ks & 5Ks tab removed (manual entry gone; saved 4Ks/5Ks still count) | 49 | none |
-| Champions on Home made automatically from each event's grand final on PCMT.gg (the SPG panel look), for 15 days or until the region's next event starts; backend Champions tab removed | 56 | none (new file champions.js, written by the sync) |
-| Backend Cards and Card packs tabs removed (with the View cards window and the Series launch buttons) | 57 | none |
-| The Deck: the "New point rule for NA Stage 1" notice taken down (the rule itself is unchanged) | 58 | none |
-| Backend Dashboard Pick'ems: each team's share of the picks in its team colour | 50 | none |
-| Backend Pick'ems tab: a 1050 x 560 Pick'ems graphic per NA Season 4 game (for the S4 break screen's promo square) with a Download button | 51 | none |
-| Live Pick'ems slide for the S4 break screen: fantasy.pcmt.gg/promo/pickems.html (plus a "Pick'ems slide" type added to the break screen itself) | 52 | `setup/pickem-split.sql` |
-| Riot IDs: a table of every current player's PCMT.gg name and Riot ID, and a backend Riot IDs tab to fill it in (first step to pulling 4Ks and 5Ks automatically) | 53 | `setup/riot-ids.sql` (already run on the live project, Nov 23) |
-| Patch notes window: Update version with a "What's new" note shows it once to every visitor, over whatever page they're on | 54 | none (site_settings key `version_note`) |
-| Backend Dashboard: sign-ups and page views taken off | 43 | none |
-| PCMT.gg events on the Schedule tab: every live event with its games; staff label it Groups (game-by-game Pick'ems) or Playoffs (a bracket from a format and seeds, picked in full before a lock date) | 55 | `setup/event-labels.sql` |
+| Store, Library and the staff Database page deleted, with card packs, Rare cards and Credits; MVP VS keeps only the basic cards; points stay | 59 | `setup/no-credits.sql` |
 
-**To ship `update-2`:** its SQL is already run on the live project (pickem-split.sql, event-labels.sql and riot-ids.sql, Nov 23 2026); then then `git fetch origin && git checkout update-2 && git merge origin/main`, rebuild if any board changed (`python3 -I tools/build.py tools/canvas assets <out>`, copy the built pages except `data.js`, `pickems.js`, `rankings.js`), smoke test, commit as `deadpancakelinus <sixthneigh@gmail.com>` (short plain message), `git push origin update-2:main`.
+**To ship `update-3`:** run `setup/no-credits.sql` in Supabase (stops the Credits payout job, sets Pick'ems Credits to 0, removes the deleted pages from the Pages list), then `git fetch origin && git checkout update-3 && git merge origin/main`, rebuild (`python3 -I tools/build.py tools/canvas assets <out>`, copy the built pages except `data.js`, `pickems.js`, `rankings.js`), smoke test, commit as `deadpancakelinus <sixthneigh@gmail.com>` (short plain message), `git push origin update-3:main`.
 
 A small hotfix is also kept on the local-only branch `hotfix-pics` (a profile picture that won't load shows the first letter instead; Discord avatar links die when a player changes their avatar, until they log in again). The owner chose not to ship it (Nov 23).
 
@@ -74,7 +64,7 @@ Fonts (Nov 10 2026): Cabin Sketch for titles and big numbers; National Park (Goo
 1. Edit the board(s) in `tools/canvas/*.dc.html`.
 2. Build: `python3 -I tools/build.py tools/canvas assets <out>`
 3. Test: copy the repo `data.js` and `pickems.js` into `<out>`, serve it (`python3 -m http.server 8766 --directory <out>`, in the background) and run `NODE_PATH=$(npm root -g) node tools/smoke-test.js http://localhost:8766 <out>/shots`. It mocks Supabase and checks every page on desktop and phone. Look at the screenshots for visual changes.
-4. Copy `home.html index.html customization.html leaderboard.html guide.html login.html store.html library.html pickems.html players.js league.js dc-lite.js variant-art.js _headers` from `<out>` into the repo root (**not** `data.js`, `pickems.js` or `rankings.js`, **not** `assets/`, **not** `mvp-vs.html` or `admin.html`, which are hand-written). Copy changed boards into `tools/canvas/`.
+4. Copy `home.html index.html customization.html leaderboard.html guide.html login.html pickems.html players.js league.js dc-lite.js _headers` from `<out>` into the repo root (**not** `data.js`, `pickems.js` or `rankings.js`, **not** `assets/`, **not** `mvp-vs.html` or `admin.html`, which are hand-written). Copy changed boards into `tools/canvas/`.
 5. Update the design canvas with the changed boards so it stays in step with `tools/canvas/`.
 6. Commit, then `git fetch && git stash && git rebase origin/main && git stash pop && git push` (the scheduled check also pushes to `main`).
 
@@ -485,4 +475,11 @@ Supabase's Discord login always asks Discord for the email. Triggers drop it bef
 
 ## 58. NA Stage 1 notice taken down (update-2, not released yet)
 - The Main board's "New point rule for NA Stage 1" box (above the deck, NA only) is gone. The 2-best-series rule and the Stage 1 lock still apply; the Guide still explains them. Its values (naLockWord, naLockWhen, naLockStay) are still worked out in the board but not shown.
+
+## 59. Store, Library, staff Database and Credits removed (update-3, not released yet)
+- **Deleted pages:** store.html (and its redirects transactions.html, collection.html), library.html, database.html; the Store and Library boards (tools/canvas, canvas.json); variant-art.js (Rare card art); tools/cards.py, tools/cards-test.js, tools/cards-base.sql. The Store and Library links are gone from every page's menu (boards, mvp-vs.html, losersq.html), and from the launch lists (`LAUNCH_PAGES` in tools/league.js and the copies in mvp-vs.html and losersq.html). The backend's Pages tab hides store, library and database (`GONE_PAGES`). Sections 10, 11, 13 (Store/Library parts), 24, 25, 27 and the card parts of 44 describe what was there.
+- **Credits are gone; points stay.** league.js no longer loads Credits (`vp_ledger`), card packs, owned cards or the card catalog, and `PCMT_VP`, `buyPack`, `setInDeck` and the Credits-per-week maths are removed. The Guide's § 6 Credits is gone (Pick'ems is § 6 now) and says a right pick earns 1 point on the Pick'ems standings (what the standings always counted); the Pick'ems page says the same ("Right · +1"). Deck budget "credits" (the 100-credit budget) are unchanged. Backend: the Pick'ems tab has no "Points per right pick" column, new Pick'ems events start at 0 Credits, and the Dashboard's Credits run / failed runs lines are gone.
+- **MVP VS:** basic cards only. trumps.js no longer loads or draws Rares (the Library picks), and mvp-vs.html drops variant-art.js and the Rare styles. The champion trophy on a card stays.
+- **Kept on purpose:** the tables in Supabase (vp_ledger, cards, card_packs, user_cards, player_database ...), so nothing is lost; setup/cards-setup.sql and setup/database-setup.sql stay as the record of them (backend-setup.sql, pages-setup.sql and their tests build on them). Customization's first-open card pack animation on newly unlocked card backs stays (it's part of the card backs, not the Store). The privacy notice still lists Credits and cards, because that data is still stored.
+- **setup/no-credits.sql** (release day): unschedules `pcmt-vp-payout` (the hourly `vp_sync()`, which only paid Credits; `pcmt-pickems` keeps running for Pick'ems locks and standings), sets `credits_win` / `credits_exact` to 0 on every Pick'ems event, deletes the store / library / database rows from `site_pages`.
 

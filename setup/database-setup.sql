@@ -1,3 +1,5 @@
+-- The staff Database page (database.html) is gone from the site (Nov 23 2026). This file stays as the record of the
+-- player_database table, which is kept in Supabase (unused).
 -- PCMT Fantasy Decks: Database (database.html), the player database. Backend-only: only site admins and PCMT Team
 -- staff can read it (RLS), and the page is on the backend's Pages list, not launched.
 -- Paste into Supabase → SQL Editor → Run. Needs setup/pages-setup.sql first. Safe to run more than once.

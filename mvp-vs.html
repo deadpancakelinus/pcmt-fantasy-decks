@@ -90,17 +90,6 @@
   .tt-wm { position: absolute; inset: 0; z-index: 0; pointer-events: none; display: grid; place-items: center; }
   .tt-wm img { width: 78%; max-width: 230px; aspect-ratio: 1; object-fit: contain; opacity: .12; transform: translateY(10px); }
   .tt-team-wm img { opacity: .38; }
-  /* Your Rares (picked on the Library page): their art behind the card, a sheen, a glow in the rarity colour and a stamp */
-  .tt-card.tt-rare { border-color: var(--rare); box-shadow: 0 0 0 1px var(--rare), 0 0 22px color-mix(in srgb, var(--rare) 45%, transparent); }
-  .tt-rare-art { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
-  .tt-rare-art img { position: absolute; right: -8%; bottom: 0; height: 92%; width: auto; max-width: none; opacity: .5; }
-  .tt-rare-art.is-center img { right: 50%; transform: translateX(50%); bottom: 18%; height: 58%; opacity: .32; }
-  .tt-rare-art.is-full img { right: 0; bottom: 0; width: 100%; height: 100%; object-fit: cover; opacity: .55; filter: brightness(.62); }   /* photos and screenshots fill the card, darkened so the card text stays readable */
-  .tt-rare-art.is-full.is-bg img { opacity: .95; filter: none; }   /* Splatty: the neon background is made to sit behind the card text */
-  .tt-rare-sheen { position: absolute; inset: 0; z-index: 0; pointer-events: none; background: linear-gradient(115deg, transparent 42%, color-mix(in srgb, var(--rare) 22%, transparent) 50%, transparent 58%); background-size: 250% 100%; animation: tt-sheen 5s ease-in-out infinite; }
-  @keyframes tt-sheen { 0%, 60% { background-position: 120% 0; } 100% { background-position: -120% 0; } }
-  .tt-rare-stamp { font: 700 10px/1 'National Park', system-ui, sans-serif; letter-spacing: .14em; color: var(--rare); border: 1.5px solid var(--rare); border-radius: 4px; padding: 3px 7px; transform: rotate(-9deg); white-space: nowrap; }
-  @media (prefers-reduced-motion: reduce) { .tt-rare-sheen { animation: none; } }
   .tt-edge { display: block; height: 5px; background: var(--team); flex: none; position: relative; z-index: 1; }
   .tt-card-body { position: relative; z-index: 1; flex: 1; padding: 14px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
   .tt-card-top { display: flex; justify-content: space-between; align-items: center; height: 30px; flex: none; }
@@ -229,7 +218,7 @@
 // until MVP VS is launched (backend.html, Pages tab) only site admins and PCMT Team staff can open it, everyone else goes to Home.
 (function () {
   var d = document.documentElement, css = document.createElement('style');
-  var PAGES = { 'mvp-vs': ['mvp-vs'], store: ['store', 'transactions', 'collection'], library: ['library'], losersq: ['losersq'], database: ['database'] }, rules = [];
+  var PAGES = { 'mvp-vs': ['mvp-vs'], losersq: ['losersq'] }, rules = [];
   Object.keys(PAGES).forEach(function (id) { PAGES[id].forEach(function (f) { rules.push('html.pcmt-hide-' + id + ' a[href^="' + f + '.html"]:not([data-pcmt-keep])'); }); d.classList.add('pcmt-hide-' + id); });
   css.textContent = rules.join(',') + '{display:none!important}html.pcmt-gate body{visibility:hidden}';
   document.head.appendChild(css);
@@ -273,8 +262,6 @@
 <a href="customization.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Customization</a>
 <a href="guide.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Guide</a>
 <a href="mvp-vs.html" aria-current="page" style="padding: 12px 14px; border-radius: 6px; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #000; background: #a5dcdd; font-weight: 600">MVP VS</a>
-<a href="store.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Store</a>
-<a href="library.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Library</a>
 <a id="tt-auth" href="login.html" style="margin-left: auto; order: 2; min-height: 44px; display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; border-radius: 8px; background: #4752C4; color: #fff; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; font-weight: 600; text-decoration: none"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><path d="M10 17l5-5-5-5"></path><path d="M15 12H3"></path></svg><span id="tt-auth-label">Log in with Discord</span></a>
 <span style="order: -1; flex: 1 0 100%; margin-bottom: -4px; text-align: right; line-height: normal; font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa; letter-spacing: 0.08em; white-space: nowrap">NA S4 · EMEA S2</span>
 </div>
@@ -315,7 +302,6 @@
 <p class="tt-foot-note" style="max-width: 1280px; margin: 0 auto; font-family: 'National Park', system-ui, sans-serif; font-size: 11px; line-height: 1.6; color: #93a9aa"><span style="display: block; margin-bottom: 6px; font-size: 12px; color: #c4d4d4">A <b style="font-weight: 700; color: #eaf4f4">PCMT</b> product</span>fantasy.pcmt.gg was created under Riot Games' <a href="https://www.riotgames.com/en/legal" target="_blank" rel="noopener" style="color: #a5dcdd">&quot;Legal Jibber Jabber&quot;</a> policy using assets owned by Riot Games. Riot Games does not endorse or sponsor this project.</p>
 </footer>
 <script src="trumps-cards.js"></script>
-<script src="variant-art.js"></script>
 <script src="trumps.js"></script>
 <script src="version.js"></script>
 </body>
