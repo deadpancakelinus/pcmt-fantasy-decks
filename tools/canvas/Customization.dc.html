@@ -1439,6 +1439,18 @@ class Component extends DCLogic {
     try { codes = JSON.parse(window.localStorage.getItem('pcmt-codes') || '[]'); if (!Array.isArray(codes)) codes = []; } catch (e) { codes = []; }
     var favs = [];
     try { favs = JSON.parse(window.localStorage.getItem('pcmt-favs') || '[]'); if (!Array.isArray(favs)) favs = []; } catch (e) { favs = []; }
+    // Season team decks (codes like S4-TANK) were saved as favourites under their tag ('deck:TANK') before Nov 23 2026,
+    // so the Favorites tile couldn't find their look. Move those to the real code (not a tag that is also a deck's own
+    // code, like FNC, which stays the NA Season 3 deck).
+    var favsBefore = JSON.stringify(favs);
+    favs = favs.map(function (k) {
+      if (typeof k !== 'string' || k.indexOf('deck:') !== 0) return k;
+      var tag = k.slice(5);
+      if (PCMT_ALL_DECK_TEAMS.some(function (t) { return t.code === tag; })) return k;
+      var t = PCMT_ALL_DECK_TEAMS.filter(function (x) { return x.label === tag; })[0];
+      return t ? 'deck:' + t.code : k;
+    }).filter(function (k, i, a) { return a.indexOf(k) === i; });
+    if (JSON.stringify(favs) !== favsBefore) { try { window.localStorage.setItem('pcmt-favs', JSON.stringify(favs)); } catch (e) {} }
     var opened = [];
     try { opened = JSON.parse(window.localStorage.getItem('pcmt-opened') || '[]'); if (!Array.isArray(opened)) opened = []; } catch (e) { opened = []; }
     // Collapsible panels (Nov 17 2026): each panel can fold down to its title line; remembered on this device.
@@ -1649,7 +1661,7 @@ class Component extends DCLogic {
         hint: 'Earn ' + PCMT_DECK_UNLOCK + ' points from ' + t.code + ' players to unlock.',
         label: t.name + ' deck' + (locked ? ', locked. ' + pts + ' of ' + PCMT_DECK_UNLOCK + ' points from ' + t.code + ' players.' : ''),
         title: locked ? 'Earn ' + PCMT_DECK_UNLOCK + ' points from ' + t.code + ' players to unlock (' + pts + ' so far)' : t.name,
-        code: t.label || t.code, name: t.name, color: t.color, logo: t.logo || '', noLogo: !t.logo, on: on, logoMax: PCMT_SMALL_LOGOS[t.code] ? '54%' : '70%',
+        id: t.code, code: t.label || t.code, name: t.name, color: t.color, logo: t.logo || '', noLogo: !t.logo, on: on, logoMax: PCMT_SMALL_LOGOS[t.code] ? '54%' : '70%',
         edge: pcmtRgba(t.color, 0.35),
         frame: pcmtRgba(t.color, 0.8),
         frameSoft: pcmtRgba(t.color, 0.4),
@@ -1802,12 +1814,12 @@ class Component extends DCLogic {
     }
     defaults.forEach(function (d) { Object.assign(d, favBits('deck:' + d.code, d.name, d.locked)); });
     pride.forEach(function (d) { Object.assign(d, favBits('deck:' + d.code, d.name, d.locked)); });
-    decks.concat(euDecks).forEach(function (d) { Object.assign(d, favBits('deck:' + d.code, d.name, d.locked)); });
+    decks.concat(euDecks).forEach(function (d) { Object.assign(d, favBits('deck:' + (d.id || d.code), d.name, d.locked)); });
     // Later seasons' team decks from PCMT.gg (season-teams.js): one folding panel each
     var autoDecks = [];
     var autoPanels = PCMT_AUTO_PANELS.map(function (p) {
       var ds = p.teams.map(function (t, i) { return teamDeckView(t, i); }).sort(byCodeAZ), folded = !!(self.state.folded || {})[p.key];
-      ds.forEach(function (d) { Object.assign(d, favBits('deck:' + d.code, d.name, d.locked)); });
+      ds.forEach(function (d) { Object.assign(d, favBits('deck:' + (d.id || d.code), d.name, d.locked)); });
       autoDecks = autoDecks.concat(ds);
       return { title: p.title, color: p.color, decks: ds, count: ds.length, unlocked: ds.filter(function (d) { return !d.locked; }).length,
                open: !folded, turn: folded ? '-90deg' : '0deg', hid: p.key + '-h', bid: p.key + '-body',
@@ -1822,7 +1834,7 @@ class Component extends DCLogic {
     };
     Object.keys(auraIndex).forEach(function (k) { var a = auraIndex[k]; Object.assign(a.o, favBits('aura:' + k, a.name, !!a.o.locked)); });
     var deckIndex = {};
-    defaults.concat(pride, decks, euDecks, autoDecks).forEach(function (d) { deckIndex[d.code] = d; });
+    defaults.concat(pride, decks, euDecks, autoDecks).forEach(function (d) { deckIndex[d.id || d.code] = d; });
     // Decks that start locked play a card pack the first time they're opened after unlocking.
     var openedSet = {};
     (this.state.opened || []).forEach(function (c) { openedSet[c] = true; });
