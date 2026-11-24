@@ -134,11 +134,6 @@
   .db-head { display: flex; align-items: center; justify-content: flex-end; gap: 14px; margin-bottom: 12px; }
   .db-two { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; margin-bottom: 14px; }
   .db-h { margin: 0; font: 600 13px/1.2 'National Park', system-ui, sans-serif; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
-  .db-bars { display: flex; align-items: flex-end; gap: 4px; height: 120px; }
-  .db-bars div { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; height: 100%; }
-  .db-bars i { display: block; width: 100%; max-width: 26px; border-radius: 4px 4px 0 0; background: var(--accent); min-height: 2px; }
-  .db-bars small { font-size: 10px; color: var(--dim); white-space: nowrap; }
-  .db-bars b { font: 600 11px 'National Park', system-ui, sans-serif; color: var(--soft); }
   .db-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; font-size: 14px; color: var(--soft); }
   .db-list li { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
   .db-list li:last-child { border-bottom: 0; padding-bottom: 0; }
@@ -395,10 +390,6 @@
     <section class="pane" role="tabpanel" id="pane-dash" aria-labelledby="tab-dash">
       <div class="db-head"><span class="who" id="db-when"></span><button type="button" class="btn ghost" id="db-refresh">Refresh</button></div>
       <p class="msg" id="db-msg" role="status" aria-live="polite"></p>
-      <div class="db-two">
-        <section class="panel"><h2 class="db-h">Sign-ups · last 14 days</h2><div class="db-bars" id="db-signups"></div></section>
-        <section class="panel"><h2 class="db-h">Page views · last 14 days</h2><div class="db-bars" id="db-views"></div><ul class="db-list" id="db-pages"></ul></section>
-      </div>
       <div class="db-two">
         <section class="panel"><h2 class="db-h">Coming up · EST</h2><ul class="db-list" id="db-next"></ul></section>
         <section class="panel"><h2 class="db-h">Site health</h2><ul class="db-list" id="db-health"></ul></section>
@@ -700,9 +691,14 @@
       <form class="panel" id="ver-form" autocomplete="off" novalidate>
         <div class="bar" style="align-items: flex-end">
           <label class="field" style="flex: 0 1 260px"><span class="kicker">Current version</span><input id="ver-input" type="text" maxlength="20" placeholder="1.4"></label>
+        </div>
+        <label class="field"><span class="kicker">What's new (shown once to everyone in a window over the site; leave empty for no window)</span><textarea id="ver-note" maxlength="2000" placeholder="A short blurb about this update. A blank line starts a new paragraph." style="min-height: 110px; padding: 12px; border-radius: 8px; border: 1px solid #3a4f53; background: #0d1416; color: inherit; font: inherit; line-height: 1.55; resize: vertical; width: 100%; box-sizing: border-box"></textarea></label>
+        <div class="bar">
           <button class="btn" id="ver-save" type="submit">Update version</button>
+          <button class="btn ghost" id="ver-preview" type="button">Preview window</button>
           <span class="msg" id="ver-msg" role="status" aria-live="polite"></span>
         </div>
+        <p class="who" id="ver-last"></p>
       </form>
       <form class="panel pn-form" id="pn-form" autocomplete="off" novalidate>
         <div class="pn-top">
@@ -2236,20 +2232,41 @@
       .catch(function (e) { PN = []; pnErr = 'Couldn\'t load patch notes (' + e.message + '). Has setup/patch-notes-setup.sql been run?'; });
   }
   // ---------- current version (site_settings 'version'; version.js puts it in every page's footer) ----------
-  function loadVersion() {
-    return L.api('/rest/v1/site_settings?select=value&key=eq.version').then(function (r) { $('ver-input').value = (r && r[0] && r[0].value) || ''; }).catch(function () {});
+  // The "What's new" note goes in site_settings 'version_note' as { version, text, at }; version.js shows it once to
+  // every visitor (a new `at` each time, so updating the version with a note shows it again to everyone).
+  var VER_NOTE = null;
+  function verLast() {
+    $('ver-last').textContent = VER_NOTE && VER_NOTE.text ? 'Last window: Version ' + (VER_NOTE.version || '?') + ', sent ' + etWhen(Date.parse(VER_NOTE.at)) + ' EST.' : '';
   }
+  function loadVersion() {
+    return L.api('/rest/v1/site_settings?select=key,value&key=in.(version,version_note)').then(function (r) {
+      var by = {}; (r || []).forEach(function (x) { by[x.key] = x.value; });
+      $('ver-input').value = by.version || '';
+      try { VER_NOTE = by.version_note ? JSON.parse(by.version_note) : null; } catch (e) { VER_NOTE = null; }
+      verLast();
+    }).catch(function () {});
+  }
+  $('ver-preview').addEventListener('click', function () {
+    var text = $('ver-note').value.trim(), v = $('ver-input').value.trim().replace(/^v(ersion)?\s*/i, '');
+    if (!text) { $('ver-msg').className = 'msg err'; $('ver-msg').textContent = 'Write what\'s new first.'; $('ver-note').focus(); return; }
+    if (window.PCMT_SHOW_PATCH) window.PCMT_SHOW_PATCH({ version: v, text: text, at: 'preview' });
+  });
   $('ver-form').addEventListener('submit', function (e) {
     e.preventDefault();
     var v = $('ver-input').value.trim().replace(/^v(ersion)?\s*/i, ''), btn = $('ver-save'), msg = $('ver-msg');
     if (!v) { msg.className = 'msg err'; msg.textContent = 'Type the version first.'; $('ver-input').focus(); return; }
+    var text = $('ver-note').value.trim(), at = new Date().toISOString();
+    if (text && !confirm('Update to Version ' + v + ' and show the What\'s new window to everyone, once, on whatever page they open next?')) return;
     btn.disabled = true; msg.className = 'msg'; msg.textContent = 'Saving…';
+    var body = [{ key: 'version', value: v, updated_at: at, updated_by: L.myId }];
+    if (text) body.push({ key: 'version_note', value: JSON.stringify({ version: v, text: text, at: at }), updated_at: at, updated_by: L.myId });
     L.api('/rest/v1/site_settings?on_conflict=key', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=representation' },
-      body: { key: 'version', value: v, updated_at: new Date().toISOString(), updated_by: L.myId } }).then(function (rows) {
+      body: body }).then(function (rows) {
       if (!rows || !rows.length) throw new Error('not saved (is this account on the staff list?)');
-      $('ver-input').value = rows[0].value;
-      if (window.PCMT_SET_VERSION) window.PCMT_SET_VERSION(rows[0].value);
-      msg.className = 'msg ok'; msg.textContent = 'Every page now says Version ' + rows[0].value + '.';
+      $('ver-input').value = v;
+      if (window.PCMT_SET_VERSION) window.PCMT_SET_VERSION(v);
+      if (text) { VER_NOTE = { version: v, text: text, at: at }; $('ver-note').value = ''; verLast(); }
+      msg.className = 'msg ok'; msg.textContent = 'Every page now says Version ' + v + '.' + (text ? ' Everyone gets the What\'s new window once.' : '');
     }).catch(function (err) { msg.className = 'msg err'; msg.textContent = 'Couldn\'t save: ' + err.message; })
       .then(function () { btn.disabled = false; });
   });
@@ -2445,22 +2462,10 @@
     return L.api('/rest/v1/rpc/fb_dashboard', { method: 'POST', body: {} }).then(function (d) { DASH = d; dashErr = ''; })
       .catch(function (e) { DASH = null; dashErr = /fb_dashboard|404|PGRST202/.test(e.message) ? NEED_SQL : 'Couldn\'t load the numbers: ' + e.message; });
   }
-  function bars(el, rows) {
-    var max = Math.max.apply(null, (rows || []).map(function (r) { return r.n; }).concat([1]));
-    el.innerHTML = (rows || []).map(function (r) {
-      var d = new Date(r.day + 'T12:00:00Z');
-      return '<div title="' + esc(r.day + ': ' + r.n) + '"><b>' + (r.n || '') + '</b><i style="height:' + Math.max(2, Math.round(r.n / max * 86)) + 'px"></i><small>' + (d.getUTCMonth() + 1) + '/' + d.getUTCDate() + '</small></div>';
-    }).join('') || '<p class="who">Nothing yet.</p>';
-  }
   function drawDash() {
     var d = DASH || {};
     $('db-msg').className = 'msg' + (dashErr ? ' err' : ''); $('db-msg').textContent = dashErr;
     $('db-when').textContent = d.now ? 'Updated ' + etWhen(Date.parse(d.now)) + ' EST' : '';
-    bars($('db-signups'), d.signups);
-    bars($('db-views'), d.views);
-    var pages = Object.keys(d.views_by_page_7d || {}).map(function (k) { return [k, d.views_by_page_7d[k]]; }).sort(function (a, b) { return b[1] - a[1]; }).slice(0, 8);
-    $('db-pages').innerHTML = pages.map(function (x) { return '<li><span>' + esc(x[0]) + '.html</span><b>' + nfmt(x[1]) + '</b></li>'; }).join('') ||
-      '<li><span class="who">' + (DASH ? 'No page views counted yet.' : '') + '</span></li>';
     // Coming up: the next games, and the deck locks
     var now = Date.now(), games = (window.PCMT_MATCHES || []).filter(function (m) { return Date.parse(m.start) > now - 3 * 3600e3; })
       .sort(function (a, b) { return Date.parse(a.start) - Date.parse(b.start); }).slice(0, 6);
