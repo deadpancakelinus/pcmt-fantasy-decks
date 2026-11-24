@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1050, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Pick'ems slide · PCMT Fantasy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alkatra:wght@400..700&display=swap" rel="stylesheet">
+<style>
+  /* The "Pick'ems slide" on the PCMT S4 break screen (its promo panel embeds this page, 1050 x 560). */
+  html, body { margin: 0; height: 100%; background: #070c0d; overflow: hidden; }
+  canvas { display: block; width: 100vw; height: 100vh; object-fit: contain; }
+</style>
+</head>
+<body>
+<canvas id="gx" role="img" aria-label="Pick'ems"></canvas>
+<script src="/season-teams.js"></script>
+<script src="/pickems.js"></script>
+<script src="/pickems-graphic.js"></script>
+<script>
+// Live Pick'ems slide for the PCMT S4 break screen (update-2). Shows the pick split for one NA Season 4 game:
+//   ?a=<team code>&b=<team code>   the game on the break screen (its A and B teams' tags), if they're an NA S4 game
+//   otherwise                      the next game still to be played (or the last one, once the stage is over)
+// Picks come from pickem_split() (setup/pickem-split.sql: totals per team only). The numbers refresh every minute; the
+// page reloads every 15 minutes to pick up new games from the PCMT.gg sync. Drawing: pickems-graphic.js (same as the
+// backend's Pick'ems tab download).
+(function () {
+  var SB_URL = 'https://wwrsavqipkxvdsxcemos.supabase.co', SB_KEY = 'sb_publishable_e8v-uyAo4fnvwJCHUVA5FQ_LXR6yYM7';
+  var EVENT = 'na-s4', TEAMS_EVENT = 's4-na', SEASON = 'NA Season 4';
+  var q = new URLSearchParams(location.search), A = (q.get('a') || '').toUpperCase(), B = (q.get('b') || '').toUpperCase();
+  var cv = document.getElementById('gx'), G = window.PCMT_PICKEMS_GRAPHIC, last = '';
+  function games() {
+    var ev = (window.PCMT_PICKEMS || []).filter(function (b) { return b.id === EVENT; })[0];
+    return ((ev && ev.series) || []).filter(function (s) { return !/^[WL]\d+$/.test(s.a) && !/^[WL]\d+$/.test(s.b); });
+  }
+  function pick(list) {
+    var now = Date.now(), t = function (s) { return Date.parse(s.start) || 0; };
+    if (A && B) {   // the break screen's game (nearest in time if the two teams meet more than once)
+      var m = list.filter(function (s) { return (s.a === A && s.b === B) || (s.a === B && s.b === A); })
+        .sort(function (x, y) { return Math.abs(t(x) - now) - Math.abs(t(y) - now); })[0];
+      if (m) return m;
+    }
+    var next = list.filter(function (s) { return !s.score && t(s) > now - 4 * 3600e3; }).sort(function (x, y) { return t(x) - t(y); })[0];
+    return next || list.slice().sort(function (x, y) { return t(y) - t(x); })[0] || null;
+  }
+  function split() {
+    return fetch(SB_URL + '/rest/v1/rpc/pickem_split', { method: 'POST', cache: 'no-store',
+      headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ p_event: EVENT }) })
+      .then(function (r) { if (!r.ok) throw new Error('pickem_split ' + r.status); return r.json(); });
+  }
+  function draw() {
+    var g = pick(games());
+    if (!g) return G.drawNote(cv, "Pick'ems open soon");
+    return split().then(function (rows) {
+      var a = 0, b = 0;
+      (rows || []).forEach(function (r) { if (r.series === g.n) { if (r.team === g.a) a = r.picks; if (r.team === g.b) b = r.picks; } });
+      var key = g.n + ':' + a + ':' + b;
+      if (key === last) return;   // nothing changed: leave the picture alone
+      last = key;
+      if (!a && !b) return G.drawNote(cv, "Make your picks!");
+      var T = G.teams(TEAMS_EVENT), pa = Math.round(a / (a + b) * 100);
+      return G.draw(cv, { season: SEASON, round: g.round, a: T[g.a] || { label: g.a, name: g.a }, b: T[g.b] || { label: g.b, name: g.b }, pa: pa, pb: 100 - pa }, '/');
+    }).catch(function (e) { console.warn(e); if (!last) G.drawNote(cv, "Pick'ems at fantasy.pcmt.gg"); });   // keep the last picture if a refresh fails
+  }
+  draw();
+  setInterval(draw, 60000);
+  setTimeout(function () { location.reload(); }, 15 * 60000);
+})();
+</script>
+</body>
+</html>

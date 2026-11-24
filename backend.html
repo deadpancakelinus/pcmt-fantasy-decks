@@ -760,6 +760,7 @@
 <script src="data.js"></script>
 <script src="pickems.js"></script>
 <script src="season-teams.js"></script>
+<script src="pickems-graphic.js"></script>
 <script src="players.js"></script>
 <script src="trumps-cards.js"></script>
 <script src="league.js"></script>
@@ -1608,17 +1609,8 @@
 
   // ---------- NA Season 4 Pick'ems graphic (a PNG to post: each game's pick split, team logos and colours) ----------
   // Picks come from fb_dashboard (the dashboard's split), games from pickems.js, logos and colours from season-teams.js.
-  var gxImgs = {};
-  function gxTeams() {
-    var by = {};
-    (window.PCMT_SEASON_TEAMS || []).forEach(function (sn) { if (sn.event === 's4-na') (sn.teams || []).forEach(function (t) { by[t.label] = t; }); });
-    return by;
-  }
-  function gxImg(src) {
-    if (!src) return Promise.resolve(null);
-    if (!gxImgs[src]) gxImgs[src] = new Promise(function (ok) { var im = new Image(); im.onload = function () { ok(im); }; im.onerror = function () { ok(null); }; im.src = src; });
-    return gxImgs[src];
-  }
+
+  function gxTeams() { return PCMT_PICKEMS_GRAPHIC.teams('s4-na'); }
   // One game per picture, 1050 x 560 (the promo square on the S4 break screen), a line per team.
   function gxGames() {
     var B = (window.PCMT_PICKEMS || []).filter(function (b) { return b.id === 'na-s4'; })[0];
@@ -1631,7 +1623,6 @@
       return { s: x, a: x.a, b: x.b, pa: pa, pb: tot ? 100 - pa : 0, n: tot };
     }) };
   }
-  function gxRound(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
   function gxDay(iso) { return new Date(iso).toLocaleDateString('en-US', { timeZone: 'America/New_York', weekday: 'short', month: 'short', day: 'numeric' }); }
   function gxFill() {   // the game list: the next game to play first picked, played games marked
     var G = gxGames(), sel = $('gx-game'), was = sel.value, next = null;
@@ -1651,35 +1642,8 @@
     var G = gxFill(), g = G.games.filter(function (x) { return String(x.s.n) === $('gx-game').value; })[0];
     if (!g) { msg.className = 'msg'; msg.textContent = 'No NA Season 4 games with picks yet.'; cv.width = 0; cv.height = 0; return Promise.resolve(); }
     var ta = T[g.a] || { label: g.a, name: g.a }, tb = T[g.b] || { label: g.b, name: g.b };
-    var F = "Alkatra, 'National Park', system-ui, sans-serif";
-    var fonts = document.fonts ? Promise.all(['700 80px Alkatra', '600 30px Alkatra', '500 24px Alkatra'].map(function (f) { return document.fonts.load(f).catch(function () {}); })) : Promise.resolve();
-    return Promise.all([fonts, gxImg(ta.logo), gxImg(tb.logo)]).then(function (r) {
-      // shared before the game: no result, no winner tick
-      var W = 1050, H = 560, c = cv.getContext('2d');
-      cv.width = W; cv.height = H;
-      var bg = c.createLinearGradient(0, 0, W, H); bg.addColorStop(0, '#13292b'); bg.addColorStop(1, '#070c0d');
-      c.fillStyle = bg; c.fillRect(0, 0, W, H);
-      // top: the season and round (no date); the site name goes at the bottom
-      c.textBaseline = 'alphabetic'; c.textAlign = 'left';
-      c.fillStyle = '#ffffff'; c.font = '700 32px ' + F; c.fillText('NA Season 4' + (g.s.round ? ' · ' + g.s.round : ''), 48, 70);
-      // a line per team: logo, name, bar, percent
-      [[ta, r[1], g.pa], [tb, r[2], g.pb]].forEach(function (t, i) {
-        var y = 100 + i * 180, col = t[0].color || (i ? '#3a4f53' : '#a5dcdd');
-        c.fillStyle = 'rgba(255,255,255,.05)'; gxRound(c, 40, y, W - 80, 156, 22); c.fill();
-        if (t[1]) c.drawImage(t[1], 66, y + 24, 108, 108);
-        else { c.fillStyle = col; c.beginPath(); c.arc(120, y + 78, 52, 0, 7); c.fill(); c.fillStyle = inkOn(col); c.font = '700 26px ' + F; c.textAlign = 'center'; c.fillText(t[0].label, 120, y + 87); c.textAlign = 'left'; }
-        var nm = t[0].name || t[0].label, px = 34, maxW = W - 80 - 210 - 190;
-        c.font = '600 ' + px + 'px ' + F;
-        while (c.measureText(nm).width > maxW && px > 22) { px -= 2; c.font = '600 ' + px + 'px ' + F; }
-        c.fillStyle = '#ffffff'; c.fillText(nm, 206, y + 64);
-        var bx = 206, bw = W - 80 - 206 - 190, by2 = y + 88, bh = 32;
-        c.fillStyle = 'rgba(255,255,255,.1)'; gxRound(c, bx, by2, bw, bh, 16); c.fill();
-        if (t[2] > 0) { c.fillStyle = col; gxRound(c, bx, by2, Math.max(32, Math.round(bw * t[2] / 100)), bh, 16); c.fill(); }
-        c.fillStyle = '#ffffff'; c.font = '700 80px ' + F; c.textAlign = 'right';
-        c.fillText(t[2] + '%', W - 64, y + 112); c.textAlign = 'left';
-      });
-      c.fillStyle = '#a5dcdd'; c.font = '700 40px ' + F; c.textAlign = 'right'; c.fillText('fantasy.pcmt.gg', W - 48, H - 34); c.textAlign = 'left';   // bottom right
-      cv.setAttribute('aria-label', "Pick'ems, " + g.a + ' vs ' + g.b + ': ' + g.a + ' ' + g.pa + '%, ' + g.b + ' ' + g.pb + '%');
+    // the drawing is shared with the live break screen slide (pickems-graphic.js, promo/pickems.html)
+    return PCMT_PICKEMS_GRAPHIC.draw(cv, { season: 'NA Season 4', round: g.s.round, a: ta, b: tb, pa: g.pa, pb: g.pb }, '').then(function () {
       msg.className = 'msg'; msg.textContent = g.n + ' picks on this game.';
       $('gx-dl').disabled = false;
     });
