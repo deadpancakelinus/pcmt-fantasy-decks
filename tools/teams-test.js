@@ -69,7 +69,7 @@ server.listen(0, () => {
     check(Object.keys(by).join() === 'S4-BLG,S4-DEI,S4-FNC,S4-TANK', 'every team, codes S4-<team> (DEI\'s slug ends in a dot)');
     check(by['S4-DEI'].name === 'Doofenshmirtz Evil Inc.' && by['S4-DEI'].label === 'DEI', 'names and labels from the team pages');
     check(S[0].teams.every(t => t.logo && fs.existsSync(path.join(root, t.logo)) && /^assets\/teams\/s4-na\/[a-z]+-[0-9a-f]{8}\.png$/.test(t.logo)), 'logos downloaded into assets/teams/s4-na/');
-    check(by['S4-FNC'].color === '#fd5800' && by['S4-TANK'].color === '#45dfe8', 'NA S4 keeps its hand-picked colours');
+    check(by['S4-FNC'].color === '#fd5800' && by['S4-TANK'].color === '#d80000', 'NA S4 keeps its hand-picked colours');
     const sizeBefore = fs.readFileSync(path.join(root, 'season-teams.js'), 'utf8');
     hits = 0; r = await run();
     check(r.status === 0 && /no change/.test(r.stdout) && fs.readFileSync(path.join(root, 'season-teams.js'), 'utf8') === sizeBefore, 'second run: no change, logos not downloaded again');

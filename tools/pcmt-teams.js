@@ -25,7 +25,7 @@ const AUTO_FROM = { na: 4, emea: 3 };   // first season of each region made here
 const COLORS = {
   'S4-FNC': '#fd5800', 'S4-WBG': '#e01b1b', 'S4-GENG': '#c9a43a', 'S4-LOUD': '#2fe02f', 'S4-EDM': '#ff6eb4', 'S4-CR': '#8f0000',
   'S4-EDG': '#e8e8e8', 'S4-DEI': '#8a9c3a', 'S4-PRX': '#f39ab8', 'S4-NBR': '#f51e0f', 'S4-DRX': '#4a5cff', 'S4-SRG': '#ffd966',
-  'S4-BLG': '#33cff3', 'S4-TANK': '#45dfe8', 'S4-XLG': '#006394', 'S4-NRG': '#f63d0a'
+  'S4-BLG': '#33cff3', 'S4-TANK': '#d80000', 'S4-XLG': '#006394', 'S4-NRG': '#f63d0a'
 };
 
 const curl = args => execFileSync('curl', ['-sS', '--fail', '--max-time', '30', '--retry', '4', '--retry-delay', '5', '--retry-all-errors'].concat(args),

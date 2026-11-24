@@ -249,7 +249,7 @@ var PCMT_SITE_TEAMS = [
   {"code": "DRX", "name": "Doing Rails of X", "color": "#4a5cff", "region": "NA", "season": "S4", "retired": false, "logo": null},
   {"code": "SRG", "name": "Shaymins Really Good", "color": "#ffd966", "region": "NA", "season": "S4", "retired": false, "logo": null},
   {"code": "BLG", "name": "Bartho Lomew Gaming", "color": "#33cff3", "region": "NA", "season": "S4", "retired": false, "logo": "assets/0ec86b0372796e07d3e1d908b74087b2.png"},
-  {"code": "TANK", "name": "TANKERS", "color": "#ff9900", "region": "NA", "season": "S4", "retired": false, "logo": "assets/5f8ffbf391e6c3cb9c62a3f196ea8a0e.png"},
+  {"code": "TANK", "name": "TANKERS", "color": "#d80000", "region": "NA", "season": "S4", "retired": false, "logo": "assets/5f8ffbf391e6c3cb9c62a3f196ea8a0e.png"},
   {"code": "XLG", "name": "Xtremely Lacking Gamesense", "color": "#5da696", "region": "NA", "season": "S4", "retired": false, "logo": "assets/91f981c237673a78c8eec4eb03b085c6.png"},
   {"code": "NRG", "name": "Not Really Good", "color": "#f63d0a", "region": "NA", "season": "S4", "retired": false, "logo": null},
   {"code": "FaZe", "name": "Fabulous and Zesty", "color": "#f28bd8", "region": "EMEA", "season": null, "retired": false, "logo": "assets/9da6e0491a922186cad6bc5daf699626.png"},
