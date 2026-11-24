@@ -173,6 +173,8 @@ for board, outname in PAGES.items():
         data_tag = '<script src="season-teams.js"></script>\n' + data_tag
     if board in ('Library.dc.html', 'Store.dc.html'):  # Library and Store show each card's MVP VS stats
         data_tag += '<script src="trumps-cards.js"></script>\n'
+    if board == 'Home.dc.html':  # grand final champions (tools/pcmt-sync.js) with PCMT.gg team logos and colours
+        data_tag = '<script src="champions.js"></script>\n<script src="season-teams.js"></script>\n' + data_tag
     if board == 'Pickems.dc.html':  # brackets, kept up to date by the match check like data.js
         data_tag = '<script src="pickems.js"></script>\n<script src="pickem-formats.js"></script>\n<script src="rankings.js"></script>\n' + data_tag
     page = f'''<!doctype html>

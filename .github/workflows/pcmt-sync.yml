@@ -67,7 +67,7 @@ jobs:
 
       - name: Commit and push
         run: |
-          git add data.js pickems.js rankings.js trumps/data/pcmt-stats.tsv trumps-cards.js rosters.js series-stats.js season-teams.js
+          git add data.js pickems.js rankings.js champions.js trumps/data/pcmt-stats.tsv trumps-cards.js rosters.js series-stats.js season-teams.js
           git add -A assets/teams 2>/dev/null || true
           if git diff --cached --quiet; then echo "Nothing new."; exit 0; fi
           msg=$(cat "$RUNNER_TEMP"/msg-*.txt 2>/dev/null | paste -sd ';' - | sed 's/;/; /g')

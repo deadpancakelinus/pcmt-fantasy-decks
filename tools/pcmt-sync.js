@@ -14,6 +14,7 @@
 //   * Event labels (Supabase pcmt_event_labels, set on the backend's Schedule tab): an event labelled Groups gets a
 //     game-by-game Pick'ems (above); one labelled Playoffs gets a bracket built from its format (pickem-formats.js) and
 //     seeds, which the playoff matching below then fills from PCMT.gg. A hand-made bracket (no "format") is left as is.
+//   * champions.js: each event's grand final winner for 15 days (or until the region's next event starts), for Home.
 //   * rankings.js: power rankings for each Pick'ems bracket's event (tools/pcmt-power.js) from every finished game of the event, for the Pick'ems page.
 // The arrays stay strict JSON (the server reads them). Exit code 0 even when nothing changed.
 const fs = require('fs'), path = require('path'), vm = require('vm');
@@ -23,7 +24,7 @@ const ROOT = path.join(__dirname, '..');
 const DRY = process.argv.includes('--dry');
 const MSG = process.argv.includes('--message') ? process.argv[process.argv.indexOf('--message') + 1] : null;
 const WINDOW = 14 * 24 * 3600 * 1000;
-const now = Date.now();
+const now = process.env.PCMT_NOW ? Date.parse(process.env.PCMT_NOW) : Date.now();   // PCMT_NOW: tests only
 const SCORED_FROM = Date.parse('2026-10-19T09:00:00Z');   // first scored gameweek: nothing older is ever added
 const since = Math.max(now - WINDOW, SCORED_FROM);
 
@@ -268,6 +269,47 @@ const rkJs = '// Power rankings for the Pick\'ems page, worked out from PCMT.gg 
 const rkOld = fs.existsSync(rkPath) ? fs.readFileSync(rkPath, 'utf8') : '';
 if (Object.keys(power).length && rkJs !== rkOld) log.push('Power rankings updated');
 
+// ---- champions (champions.js): the grand final winner of each event, shown on Home ----
+// The grand final is the last series of the event's Pick'ems bracket once it has a score, or, once PCMT.gg marks the
+// event completed, its last playoff game. It stays on Home for 15 days, or until the region's next event starts.
+const chPath = path.join(ROOT, 'champions.js'), CH_DAYS = 15 * 864e5;
+const champions = [];
+events.forEach(ev => {
+  const list = byEvent[ev.id] || [];
+  const po = list.filter(M => /playoffs/i.test(String(M.id)) || /playoff|final/i.test(String(M.stage || '')));
+  let gf = null;
+  const B = brackets.find(b => b.event === ev.id && b.mode !== 'games');
+  if (B && B.series.length) {
+    const last = B.series.reduce((m, x) => (!m || x.n > m.n ? x : m), null);
+    if (last.score && last.url) gf = po.find(M => A.pageUrl(ev.id, M.id) === last.url) || null;
+  }
+  if (!gf && String(ev.status).toLowerCase() === 'completed')
+    gf = po.filter(M => M.completed).sort((x, y) => Date.parse(y.date) - Date.parse(x.date))[0] || null;
+  if (!gf || !gf.completed || gf.score1 === gf.score2) return;
+  const at = Date.parse(gf.date);
+  if (isNaN(at) || now >= at + CH_DAYS) return;
+  const region = A.regionOf(ev.id);
+  const next = events.filter(o => o.id !== ev.id && A.regionOf(o.id) === region)
+    .map(o => Math.min.apply(null, (byEvent[o.id] || []).map(M => Date.parse(M.date)).filter(t => !isNaN(t))))
+    .filter(t => isFinite(t) && t > at).sort((x, y) => x - y)[0];
+  const until = Math.min(at + CH_DAYS, next || Infinity);
+  if (now >= until) return;
+  const w1 = gf.score1 > gf.score2, team = w1 ? gf.team1 : gf.team2;
+  const side = (gf.combinedStats || []).find(t => t.team === team);
+  champions.push({
+    event: ev.id, region, season: +ev.season || null, title: ev.name || ev.id, team, teamName: (w1 ? gf.team1Name : gf.team2Name) || team,
+    at: gf.date, until: new Date(until).toISOString().replace('.000', ''), url: A.pageUrl(ev.id, gf.id),
+    maps: (gf.maps || []).map(m => ({ map: m.name, w: w1 ? m.score1 : m.score2, l: w1 ? m.score2 : m.score1 })),
+    stats: (side ? side.players : []).map(p => ({ player: p.Player, kda: p.K + '/' + p.D + '/' + p.A, acs: String(Math.round(+p.ACS || 0)), rating: (+p['R1.0'] || 0).toFixed(2) }))
+      .sort((x, y) => +y.rating - +x.rating)
+  });
+});
+champions.sort((x, y) => Date.parse(y.at) - Date.parse(x.at));
+const chJs = '// Champions on Home: each event\'s grand final winner, worked out from PCMT.gg by tools/pcmt-sync.js. Don\'t edit by hand.\n' +
+  'var PCMT_CHAMPIONS = ' + JSON.stringify(champions, null, 2) + ';\n';
+const chOld = fs.existsSync(chPath) ? fs.readFileSync(chPath, 'utf8') : '';
+if (chJs !== chOld) log.push(champions.length ? 'Champions: ' + champions.map(c => c.teamName + ' (' + c.title + ')').join(', ') : 'Champions: none on Home');
+
 // ---- write ----
 if (!log.length) { console.log('Nothing new on PCMT.gg.'); process.exit(0); }
 log.forEach(l => console.log(l));
@@ -280,7 +322,8 @@ for (const [txt, names] of [[dataJs, ['PCMT_MATCHES', 'PCMT_RESULTS']], [pkJs, [
 }
 fs.writeFileSync(dataPath, dataJs); fs.writeFileSync(pkPath, pkJs);
 if (Object.keys(power).length) { vm.runInNewContext(rkJs); fs.writeFileSync(rkPath, rkJs); }
-console.log('Wrote data.js, pickems.js and rankings.js.');
+if (chJs !== chOld) { vm.runInNewContext(chJs); fs.writeFileSync(chPath, chJs); }
+console.log('Wrote data.js, pickems.js, rankings.js and champions.js.');
 if (MSG) {   // e.g. "Add result: T1 vs SPG; Add match: NOOT vs SEAL; Pick'ems: series 8 result"
   const parts = [];
   log.forEach(l => {
@@ -289,6 +332,7 @@ if (MSG) {   // e.g. "Add result: T1 vs SPG; Add match: NOOT vs SEAL; Pick'ems: 
     else if ((m = l.match(/^Add match: (\w+ vs \w+)/))) parts.push('Add match: ' + m[1]);
     else if ((m = l.match(/^Update match: (\w+ vs \w+)/))) parts.push('Move match: ' + m[1]);
     else if (l === 'Power rankings updated') parts.push('Power rankings');
+    else if (/^Champions: /.test(l)) parts.push(l);
     else if ((m = l.match(/^Pick'ems (?:series|game) \d+ result: (\S+) \S+ (\S+)$/))) parts.push("Pick'ems: " + m[1] + ' vs ' + m[2] + ' result');
     else if ((m = l.match(/^Pick'ems game: (\S+ vs \S+)/))) parts.push("Pick'ems: add " + m[1]);
     else if ((m = l.match(/^Pick'ems event: (\S+)/))) parts.push("Pick'ems: " + m[1]);

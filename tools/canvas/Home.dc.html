@@ -114,6 +114,37 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </div>
 </section>
 
+<sc-for list="{{champs}}" as="ch" hint-placeholder-count="1">
+<section aria-labelledby="{{ch.hid}}" class="hm-cb" style="border-top-color: {{ch.color}}">
+<img class="hm-cb-trophy" src="/_blob/a8390c53c5aa10a347b6af0841aa6835" alt="" aria-hidden="true">
+<div>
+<div class="hm-cb-head">
+<sc-if value="{{ch.hasLogo}}" hint-placeholder-val="{{ true }}"><img class="hm-cb-logo" src="{{ch.logo}}" alt=""></sc-if>
+<div style="min-width: 0">
+<p class="hm-cb-kick">{{ch.kicker}}</p>
+<h2 id="{{ch.hid}}" class="hm-cb-name" style="color: {{ch.color}}">{{ch.name}}</h2>
+</div>
+</div>
+<table class="hm-cb-maps" aria-label="Grand Final maps">
+<tbody>
+<sc-for list="{{ch.maps}}" as="cm" hint-placeholder-count="3">
+<tr><th scope="row">{{cm.map}}</th><td><b>{{cm.w}}</b>–{{cm.l}}</td></tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+<table class="hm-cb-roster">
+<caption>Grand Final stats</caption>
+<thead><tr><th scope="col">Player</th><th scope="col">K/D/A</th><th scope="col">ACS</th><th scope="col">Rating</th></tr></thead>
+<tbody>
+<sc-for list="{{ch.stats}}" as="cs" hint-placeholder-count="5">
+<tr class="{{cs.cls}}"><th scope="row">{{cs.player}}</th><td>{{cs.kda}}</td><td>{{cs.acs}}</td><td>{{cs.rating}}</td></tr>
+</sc-for>
+</tbody>
+</table>
+</section>
+</sc-for>
+
 <sc-if value="{{hasNote}}" hint-placeholder-val="{{ true }}">
 <section id="patch-notes" aria-label="Latest patch notes" style="scroll-margin-top: 90px; display: flex; flex-direction: column; gap: 16px; min-width: 0">
 <article class="hm-panel" style="display: flex; flex-direction: column; gap: 14px">
@@ -121,40 +152,6 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <h2 style="margin: 0; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 32px; line-height: 1; color: #a5dcdd">{{note.version}}</h2>
 <span style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa">fantasy.pcmt.gg · {{note.date}}</span>
 </div>
-<sc-if value="{{note.hasChamp}}" hint-placeholder-val="{{ false }}">
-<div class="hm-cb" style="border-top-color: {{note.champ.color}}">
-<img class="hm-cb-trophy" src="/_blob/a8390c53c5aa10a347b6af0841aa6835" alt="" aria-hidden="true">
-<div>
-<div class="hm-cb-head">
-<sc-if value="{{note.champ.hasLogo}}" hint-placeholder-val="{{ true }}"><img class="hm-cb-logo" src="{{note.champ.logo}}" alt=""></sc-if>
-<div style="min-width: 0">
-<p class="hm-cb-kick">{{note.champ.kicker}}</p>
-<h3 class="hm-cb-name" style="color: {{note.champ.color}}">{{note.champ.name}}</h3>
-</div>
-</div>
-<sc-if value="{{note.champ.hasMaps}}" hint-placeholder-val="{{ true }}">
-<table class="hm-cb-maps" aria-label="{{note.champ.mapsLabel}}">
-<tbody>
-<sc-for list="{{note.champ.maps}}" as="cm" hint-placeholder-count="3">
-<tr><th scope="row">{{cm.map}}</th><td><b>{{cm.w}}</b>–{{cm.l}}</td></tr>
-</sc-for>
-</tbody>
-</table>
-</sc-if>
-</div>
-<sc-if value="{{note.champ.hasStats}}" hint-placeholder-val="{{ true }}">
-<table class="hm-cb-roster">
-<caption>{{note.champ.statsLabel}}</caption>
-<thead><tr><th scope="col">Player</th><th scope="col">K/D/A</th><th scope="col">ACS</th><th scope="col">Rating</th></tr></thead>
-<tbody>
-<sc-for list="{{note.champ.stats}}" as="cs" hint-placeholder-count="5">
-<tr class="{{cs.cls}}"><th scope="row">{{cs.player}}</th><td>{{cs.kda}}</td><td>{{cs.acs}}</td><td>{{cs.rating}}</td></tr>
-</sc-for>
-</tbody>
-</table>
-</sc-if>
-</div>
-</sc-if>
 <sc-for list="{{note.paras}}" as="np" hint-placeholder-count="2">
 <p style="margin: 0; color: #c4d4d4; line-height: 1.55; font-size: 16px; white-space: pre-line">{{np.pre}}<sc-if value="{{np.hasLink}}" hint-placeholder-val="{{ false }}"><a href="#comments" onClick="{{ccJump}}" style="color: #a5dcdd">{{np.link}}</a></sc-if>{{np.post}}</p>
 </sc-for>
@@ -260,6 +257,12 @@ var PCMT_EMEA_DECK_TEAMS = [
 var PCMT_SMALL_LOGOS = { HOT: 1, LARP: 1 }; // photo logos: shown smaller so they sit inside the ring
 var PCMT_REGION_LOGOS = { NA: '/_blob/c265e976f8968e60e4a2bdd32542b499', EMEA: '/_blob/3c7e7374dceead68d5c58818d0bcfe8a' };
 var PCMT_ALL_DECK_TEAMS = PCMT_DECK_TEAMS.concat(PCMT_EMEA_DECK_TEAMS);
+// The design canvas (no champions.js) shows the NA Season 3 panel as a sample.
+var PCMT_SAMPLE_CHAMPS = [{ event: 's3-na', region: 'NA', title: 'NA Season 3', team: 'SPG', teamName: 'Spank Ptheory Gaming', at: '2026-10-28T23:30:00Z', until: null,
+  maps: [{ map: 'Abyss', w: 13, l: 3 }, { map: 'Summit', w: 13, l: 5 }, { map: 'Lotus', w: 16, l: 14 }],
+  stats: [{ player: 'Cooleo', kda: '65/39/16', acs: '272', rating: '1.30' }, { player: 'Phuzzythecat', kda: '54/35/17', acs: '233', rating: '1.24' },
+    { player: 'Lil Thighs', kda: '49/35/11', acs: '202', rating: '1.12' }, { player: 'Dunkn', kda: '40/36/31', acs: '179', rating: '1.05' },
+    { player: 'Derpina', kda: '40/48/10', acs: '177', rating: '0.84' }] }];
 class Component extends DCLogic {
   componentDidMount() {
     var self = this, start = Date.now();
@@ -349,19 +352,8 @@ class Component extends DCLogic {
     var pn = window.PCMT_PATCH_NOTE, homeNote = pn ? {
       version: pn.title,
       date: new Date(pn.note_date + 'T12:00:00Z').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' }),
-      paras: String(pn.body || '').split(/\n\s*\n/).map(function (t) { return { pre: t.trim() }; }).filter(function (x) { return x.pre; }),
-      champ: pn.champ || null
+      paras: String(pn.body || '').split(/\n\s*\n/).map(function (t) { return { pre: t.trim() }; }).filter(function (x) { return x.pre; })
     } : PCMT_HOME_NOTE;
-    // A champions panel made on the backend (Champions tab): { kicker, name, logo, color, mapsLabel, maps: [{ map, w, l }],
-    // statsLabel, stats: [{ player, kda, acs, rating }] }. The best rating is picked out in gold.
-    var ch = homeNote && homeNote.champ, best = -Infinity;
-    if (ch) (ch.stats || []).forEach(function (r) { var v = parseFloat(r.rating); if (v > best) best = v; });
-    var champView = ch ? {
-      kicker: ch.kicker || '', name: ch.name || '', logo: ch.logo || '', hasLogo: !!ch.logo, color: ch.color || '#ff7f66',
-      mapsLabel: ch.mapsLabel || 'Grand Final maps', maps: ch.maps || [], hasMaps: !!(ch.maps && ch.maps.length),
-      statsLabel: ch.statsLabel || 'Grand Final stats', hasStats: !!(ch.stats && ch.stats.length),
-      stats: (ch.stats || []).map(function (r) { return { player: r.player || '', kda: r.kda || '', acs: r.acs || '', rating: r.rating || '', cls: parseFloat(r.rating) === best ? 'hm-cb-top' : '' }; })
-    } : {};
     var W = typeof window !== 'undefined' ? window : {};
     var locked = false;   // open to everyone (was admins only)
     var self = this, cc = this.state || {}, ccN = this.ccWords(cc.ccText);
@@ -375,6 +367,17 @@ class Component extends DCLogic {
       } catch (e) { return iso; }
     };
     var now = Date.now();
+    // Champions (champions.js, from the PCMT.gg sync): an event's grand final winner, for 15 days or until the region's
+    // next event starts (`until`). Logo and colour from PCMT.gg's team pictures for that season (season-teams.js), else
+    // the deck teams above. The best rating is picked out in gold, like the NA Season 3 (SPG) panel.
+    var champs = (W.PCMT_CHAMPIONS || (live ? [] : PCMT_SAMPLE_CHAMPS)).filter(function (c) { return !c.until || now < Date.parse(c.until); }).map(function (c, k) {
+      var st = (W.PCMT_SEASON_TEAMS || []).filter(function (e) { return e.event === c.event; })[0];
+      var t = (st && (st.teams || []).filter(function (x) { return x.label === c.team; })[0]) || teams[c.team] || {};
+      var best = Math.max.apply(null, (c.stats || []).map(function (r) { return parseFloat(r.rating) || 0; }).concat([-1]));
+      return { hid: 'champ-h-' + k, kicker: (c.title || '') + ' champions', name: c.teamName || c.team, logo: t.logo || '', hasLogo: !!t.logo, color: t.color || '#f5d76e',
+        maps: (c.maps || []).map(function (m) { return { map: m.map, w: m.w, l: m.l }; }),
+        stats: (c.stats || []).map(function (r) { return { player: r.player, kda: r.kda, acs: r.acs, rating: r.rating, cls: parseFloat(r.rating) === best ? 'hm-cb-top' : '' }; }) };
+    });
     // Next series: the soonest two that haven't started.
     var all = (live ? (W.PCMT_MATCHES || []) : PCMT_HOME_SAMPLE_MATCHES).slice().sort(function (a, b) { return Date.parse(a.start) - Date.parse(b.start); });
     var upcoming = live ? all.filter(function (m) { return Date.parse(m.start) > now; }) : all;
@@ -433,7 +436,8 @@ class Component extends DCLogic {
       matches: matches, hasMatches: matches.length > 0, noMatches: !matches.length,
       lockLabel: lockLabel,
       hasResult: !!last, resultLabel: last ? last.a + ' vs ' + last.b + ', ' + last.winner + ' won' : '',
-      note: homeNote ? Object.assign({}, homeNote, { champ: champView, hasChamp: !!ch, paras: (homeNote.paras || []).map(function (x) { return { pre: x.pre || '', link: x.link || '', post: x.post || '', hasLink: !!x.link }; }) }) : {},
+      champs: champs,
+      note: homeNote ? Object.assign({}, homeNote, { paras: (homeNote.paras || []).map(function (x) { return { pre: x.pre || '', link: x.link || '', post: x.post || '', hasLink: !!x.link }; }) }) : {},
       hasNote: !!homeNote,
       hasAccount: !!(window.PCMT_AUTH && window.PCMT_AUTH.signedIn),
       ccJump: function (e) {
