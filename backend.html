@@ -34,14 +34,9 @@
   .btn.ghost { background: transparent; color: var(--ink); border-color: #3a4f53; }
   select { width: 100%; min-height: 46px; padding: 0 12px; border-radius: 8px; border: 1px solid #3a4f53; background: #0d1416; }
   code { font-family: 'National Park', system-ui, sans-serif; font-size: 13px; background: #0d1416; border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; display: block; overflow-x: auto; white-space: pre; color: var(--soft); }
-  .teams { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 16px; }
-  .mk-scroll { overflow-x: auto; }
-  table.mk { min-width: 320px; }
-  table.mk input[type=number] { width: 52px; }
   table { width: 100%; border-collapse: collapse; }
   th { text-align: left; font: 400 12px/1 'National Park', system-ui, sans-serif; color: var(--dim); letter-spacing: .06em; text-transform: uppercase; padding: 0 6px 10px; }
   th.n, td.n { text-align: center; width: 64px; }
-  th.pts, td.pts { text-align: right; width: 56px; }
   td { padding: 6px; border-top: 1px solid var(--line); }
   td.name { font-weight: 500; }
   td.name small { display: block; color: var(--dim); font: 400 12px/1.3 'National Park', system-ui, sans-serif; text-transform: capitalize; }
@@ -49,8 +44,6 @@
   input[type=number] { width: 64px; height: 42px; text-align: center; border-radius: 8px; border: 1px solid #3a4f53; background: #0d1416; font-family: 'National Park', system-ui, sans-serif; font-size: 16px; }
   input:focus, select:focus, .btn:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(165,220,221,.3); }
   .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; }
-  .msg { margin: 0; color: var(--dim); }
-  .msg.ok { color: var(--good); } .msg.err { color: var(--bad); }
   .note { margin: 0; font-size: 14px; color: var(--dim); }
   [hidden] { display: none !important; }
   footer { border-top: 1px solid var(--line); }
@@ -235,23 +228,8 @@
   .link.danger { color: #ff8a80; }
   .tag.live { color: #8be4b7; border-color: rgba(139,228,183,.45); }
   .btn.ghost.danger { color: #ff8a80; border-color: rgba(255,138,128,.5); }
-  /* 4Ks & 5Ks series picker: a dropdown with a Delete button on each game (deleted ones are listed in site_settings 'multi_hidden') */
   .gx { margin-top: 28px; }
   .gx canvas { display: block; width: 100%; max-width: 700px; height: auto; margin-top: 14px; border-radius: 10px; border: 1px solid #2a3a3e; }
-  .ms { position: relative; }
-  .ms-btn { width: 100%; min-height: 46px; padding: 0 40px 0 12px; border-radius: 8px; border: 1px solid #3a4f53; background: #0d1416; text-align: left; cursor: pointer; position: relative; }
-  .ms-btn::after { content: ''; position: absolute; right: 16px; top: 50%; width: 8px; height: 8px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: translateY(-70%) rotate(45deg); }
-  .ms-btn[aria-expanded="true"] { border-color: var(--accent); }
-  .ms-pop { position: absolute; z-index: 30; left: 0; right: 0; top: calc(100% + 4px); max-height: min(60vh, 420px); overflow: auto; border-radius: 8px; border: 1px solid #3a4f53; background: #0d1416; box-shadow: 0 16px 40px rgba(0,0,0,.5); padding: 4px; }
-  .ms-list { list-style: none; margin: 0; padding: 0; }
-  .ms-row { display: flex; align-items: center; gap: 6px; border-radius: 6px; }
-  .ms-row.on { background: #13292b; }
-  .ms-row.gone .ms-pick { color: var(--dim); text-decoration: line-through; cursor: default; }
-  .ms-pick { flex: 1; min-width: 0; min-height: 44px; padding: 0 10px; border: 0; background: none; text-align: left; cursor: pointer; border-radius: 6px; }
-  .ms-pick:hover, .ms-pick:focus-visible { background: rgba(165,220,221,.1); }
-  .ms-del { flex: none; min-height: 36px; padding: 0 12px; border-radius: 6px; border: 1px solid rgba(255,138,128,.45); background: transparent; color: #ff8a80; font-size: 13px; font-weight: 600; cursor: pointer; }
-  .ms-del.restore { color: var(--accent); border-color: #3a4f53; }
-  .ms-more { width: 100%; min-height: 40px; margin-top: 4px; border: 0; border-top: 1px solid #2a3a3e; background: none; color: var(--dim); font-size: 13px; cursor: pointer; }
   .link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .sticky { position: sticky; bottom: 0; background: var(--bg); padding: 12px 0; border-top: 1px solid var(--line); }
   .stats { display: flex; flex-wrap: wrap; gap: 10px; }
@@ -386,7 +364,6 @@
       <button type="button" role="tab" id="tab-teams" aria-controls="pane-teams" aria-selected="false" tabindex="-1">Teams</button>
       <button type="button" role="tab" id="tab-cards" aria-controls="pane-cards" aria-selected="false" tabindex="-1">Cards</button>
       <button type="button" role="tab" id="tab-packs" aria-controls="pane-packs" aria-selected="false" tabindex="-1">Card packs</button>
-      <button type="button" role="tab" id="tab-multi" aria-controls="pane-multi" aria-selected="false" tabindex="-1">4Ks &amp; 5Ks</button>
       <button type="button" role="tab" id="tab-subs" aria-controls="pane-subs" aria-selected="false" tabindex="-1">Subs <span class="count" id="sb-badge"></span></button>
       <button type="button" role="tab" id="tab-riot" aria-controls="pane-riot" aria-selected="false" tabindex="-1">Riot IDs <span class="count" id="ri-badge"></span></button>
       <button type="button" role="tab" id="tab-notes" aria-controls="pane-notes" aria-selected="false" tabindex="-1">Patch notes</button>
@@ -628,23 +605,6 @@
       <div class="pv-body" id="pv-body"></div>
     </dialog>
 
-    <!-- ===== 4Ks & 5Ks ===== -->
-    <section class="pane" role="tabpanel" id="pane-multi" aria-labelledby="tab-multi" hidden>
-      <section class="panel">
-        <label class="kicker" for="series">Series</label>
-        <div class="ms" id="ms">
-          <button type="button" class="ms-btn" id="series" aria-haspopup="true" aria-expanded="false" aria-controls="ms-pop"><span id="ms-label">Loading…</span></button>
-          <div class="ms-pop" id="ms-pop" hidden><ul class="ms-list" id="ms-list"></ul><button type="button" class="ms-more" id="ms-more" hidden></button></div>
-        </div>
-        <p class="note" id="series-note"></p>
-      </section>
-      <div class="teams" id="teams" hidden></div>
-      <div class="bar" id="savebar" hidden>
-        <button class="btn" id="save" type="button">Save 4Ks and 5Ks</button>
-        <p class="msg" id="msg" role="status" aria-live="polite"></p>
-      </div>
-    </section>
-
     <!-- ===== Riot IDs ===== -->
     <section class="pane" role="tabpanel" id="pane-riot" aria-labelledby="tab-riot" hidden>
       <div class="toolbar">
@@ -865,7 +825,7 @@
   })();
 
   // ---------- tabs ----------
-  var TABS = ['dash', 'pages', 'schedule', 'season', 'pickems', 'prices', 'teams', 'cards', 'packs', 'multi', 'subs', 'riot', 'notes', 'champs', 'complaints', 'staff'];
+  var TABS = ['dash', 'pages', 'schedule', 'season', 'pickems', 'prices', 'teams', 'cards', 'packs', 'subs', 'riot', 'notes', 'champs', 'complaints', 'staff'];
   function openTab(name, focus) {
     TABS.forEach(function (t) {
       var on = t === name, tab = $('tab-' + t);
@@ -1175,7 +1135,7 @@
     return L.apiAll('/rest/v1/player_price_changes?select=player,price,changed_at,changed_by&order=changed_at.asc,id.asc')
       .then(function (r) { LOG = r || []; });
   }
-  window.addEventListener('beforeunload', function (e) { if (Object.keys(edits).length || Object.keys(info).length || ADDS.length || tmDirty || multiDirty) { e.preventDefault(); e.returnValue = ''; } });
+  window.addEventListener('beforeunload', function (e) { if (Object.keys(edits).length || Object.keys(info).length || ADDS.length || tmDirty) { e.preventDefault(); e.returnValue = ''; } });
   var ROLES = ['duelist', 'initiator', 'controller', 'sentinel'];
   function loadDeck() {
     return Promise.all([
@@ -1493,154 +1453,6 @@
     });
   }
 
-  // ---------- 4Ks and 5Ks (same as the admin page) ----------
-  var FROM = Date.parse('2026-10-19T09:00:00Z'); // 4Ks and 5Ks count from this gameweek on (same as league.js)
-  // Columns of the multikills table, with their points (same as SCORING in league.js).
-  var KINDS = [['k4', '4K', 1], ['k5', '5K', 3]];
-  function ptsOf(v) { return KINDS.reduce(function (t, k, i) { return t + (v[i] || 0) * k[2]; }, 0); }
-  function fromRow(x) { return KINDS.map(function (k) { return x[k[0]] || 0; }); }
-  var cur = null, saved = {}, multiDirty = false;
-  function keyOf(m) { return m.start + '|' + m.a + '|' + m.b; }
-  function when(t) { return new Date(t).toLocaleString('en-US', { timeZone: 'America/New_York', weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }); }
-  function seriesList() {
-    var by = {}, soon = Date.now() + 86400000;
-    (window.PCMT_MATCHES || []).forEach(function (m) { by[keyOf(m)] = { m: m, result: null }; });
-    (window.PCMT_RESULTS || []).forEach(function (r) { var k = keyOf(r); by[k] = { m: (by[k] && by[k].m) || r, result: r }; });
-    return Object.keys(by).map(function (k) { return by[k]; })
-      .filter(function (x) { var t = Date.parse(x.m.start); return t >= FROM && t <= soon; })
-      .sort(function (a, b) { return Date.parse(b.m.start) - Date.parse(a.m.start); });
-  }
-  function teamPlayers(s, team) {
-    var ids = s.result ? Object.keys(s.result.stats || {}).filter(function (id) { return BY_ID[id] && BY_ID[id].team === team; }) : [];
-    if (!ids.length) ids = PLAYERS_NOW().filter(function (p) { return p.team === team; }).map(function (p) { return p.id; });
-    return ids;
-  }
-  function drawMulti() {
-    var s = cur, wrap = $('teams');
-    if (!s) { wrap.hidden = true; $('savebar').hidden = true; return; }
-    $('series-note').textContent = s.result ? 'Result is in (' + s.result.winner + ' won). Points update as soon as you save.'
-      : 'No result yet.';
-    wrap.innerHTML = [s.m.a, s.m.b].map(function (team) {
-      return '<section class="panel" aria-label="' + esc(team) + '"><span class="kicker">' + esc(team) + '</span><div class="mk-scroll"><table class="mk"><thead><tr><th>Player</th>' + KINDS.map(function (k) { return '<th class="n">' + k[1] + '</th>'; }).join('') + '<th class="pts">Pts</th></tr></thead><tbody>' +
-        teamPlayers(s, team).map(function (id) {
-          var p = BY_ID[id], v = saved[id] || [0, 0];
-          return '<tr data-id="' + esc(id) + '"><td class="name">' + esc(p.name) + '<small>' + esc(p.role) + '</small></td>' +
-            KINDS.map(function (k, i) { return '<td class="n"><input type="number" inputmode="numeric" min="0" max="30" step="1" value="' + v[i] + '" aria-label="' + esc(p.name) + ' ' + k[1] + 's"></td>'; }).join('') +
-            '<td class="pts">+' + ptsOf(v) + '</td></tr>';
-        }).join('') + '</tbody></table></div></section>';
-    }).join('');
-    wrap.hidden = false; $('savebar').hidden = false;
-  }
-  function multiRows() {
-    return Array.prototype.map.call(document.querySelectorAll('#teams tr[data-id]'), function (tr) {
-      var inp = tr.querySelectorAll('input');
-      return { tr: tr, id: tr.getAttribute('data-id'), v: KINDS.map(function (k, i) { return Math.max(0, Math.min(30, Math.floor(+inp[i].value || 0))); }) };
-    });
-  }
-  function say(t, cls) { $('msg').textContent = t; $('msg').className = 'msg' + (cls ? ' ' + cls : ''); }
-  $('teams').addEventListener('input', function () {
-    multiDirty = true; say('');
-    multiRows().forEach(function (r) { r.tr.querySelector('.pts').textContent = '+' + ptsOf(r.v); });
-  });
-  // Games deleted from the picker (site_settings 'multi_hidden', a JSON list of series keys). Only the list changes:
-  // the result, the points and any saved 4Ks/5Ks stay.
-  var MS_HIDDEN = [], msShowGone = false, msOpen = false;
-  function shownSeries() { return seriesList().filter(function (x) { return MS_HIDDEN.indexOf(keyOf(x.m)) < 0; }); }
-  function loadHidden() {
-    return L.api('/rest/v1/site_settings?select=value&key=eq.multi_hidden').then(function (r) {
-      try { var v = JSON.parse((r && r[0] && r[0].value) || '[]'); MS_HIDDEN = Array.isArray(v) ? v : []; } catch (e) { MS_HIDDEN = []; }
-    }).catch(function () { MS_HIDDEN = []; });
-  }
-  function saveHidden() {
-    return L.api('/rest/v1/site_settings?on_conflict=key', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
-      body: { key: 'multi_hidden', value: JSON.stringify(MS_HIDDEN), updated_at: new Date().toISOString(), updated_by: L.myId } });
-  }
-  function seriesLabel(x) { return when(x.m.start) + ' · ' + x.m.a + ' vs ' + x.m.b + ' (' + x.m.region + (x.m.bo ? ', BO' + x.m.bo : '') + ')' + (x.result ? '' : ' · waiting for result'); }
-  function loadSeries(i) {
-    var list = shownSeries(); cur = list[i] || null; saved = {}; multiDirty = false; say('');
-    if (!cur) return drawMulti();
-    L.api('/rest/v1/multikills?select=*&series=eq.' + encodeURIComponent(keyOf(cur.m))).then(function (got) {
-      (got || []).forEach(function (x) { saved[x.player] = fromRow(x); });
-      drawMulti();
-    }).catch(function (e) { drawMulti(); say('Couldn\'t load saved numbers: ' + e.message, 'err'); });
-  }
-  $('save').addEventListener('click', function () {
-    if (!cur) return;
-    var key = keyOf(cur.m), now = new Date().toISOString();
-    var body = multiRows().map(function (r) { return (function () { var o = { series: key, player: r.id, updated_at: now }; KINDS.forEach(function (k, i) { o[k[0]] = r.v[i]; }); return o; })(); });
-    $('save').disabled = true; say('Saving…');
-    L.api('/rest/v1/multikills?on_conflict=series,player', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: body })
-      .then(function () {
-        body.forEach(function (b) { saved[b.player] = fromRow(b); }); multiDirty = false; drawMulti();
-        say('Saved ' + cur.m.a + ' vs ' + cur.m.b + '.' + (cur.result ? ' The new points are live.' : ' They count once the result is in.'), 'ok');
-      })
-      .catch(function (e) { say('Couldn\'t save: ' + e.message, 'err'); })
-      .then(function () { $('save').disabled = false; });
-  });
-  function drawPicker() {
-    var list = shownSeries(), all = seriesList(), gone = all.filter(function (x) { return MS_HIDDEN.indexOf(keyOf(x.m)) >= 0; });
-    var ck = cur ? keyOf(cur.m) : '';
-    $('ms-label').textContent = cur ? seriesLabel(cur) : (all.length ? 'No series (all deleted from this list)' : 'No series yet');
-    $('series').disabled = !all.length;
-    var rows = list.map(function (x, i) {
-      var k = keyOf(x.m), on = k === ck, lb = seriesLabel(x);
-      return '<li class="ms-row' + (on ? ' on' : '') + '"><button type="button" class="ms-pick" data-i="' + i + '"' + (on ? ' aria-current="true"' : '') + '>' + esc(lb) + '</button>' +
-        '<button type="button" class="ms-del" data-del="' + esc(k) + '" aria-label="Delete ' + esc(lb) + ' from this list">Delete</button></li>';
-    });
-    if (msShowGone) gone.forEach(function (x) {
-      var lb = seriesLabel(x);
-      rows.push('<li class="ms-row gone"><span class="ms-pick">' + esc(lb) + '</span><button type="button" class="ms-del restore" data-restore="' + esc(keyOf(x.m)) + '" aria-label="Put ' + esc(lb) + ' back in this list">Restore</button></li>');
-    });
-    $('ms-list').innerHTML = rows.join('') || '<li class="ms-row"><span class="ms-pick">Nothing here.</span></li>';
-    $('ms-more').hidden = !gone.length;
-    $('ms-more').textContent = msShowGone ? 'Hide deleted' : 'Show deleted (' + gone.length + ')';
-  }
-  function openPicker(on) {
-    msOpen = on; $('ms-pop').hidden = !on; $('series').setAttribute('aria-expanded', on ? 'true' : 'false');
-    if (on) { drawPicker(); var f = $('ms-list').querySelector('.ms-row.on .ms-pick') || $('ms-list').querySelector('.ms-pick'); if (f && f.focus) f.focus(); }
-  }
-  function pickSeries(i) {
-    if (multiDirty && !confirm('You have unsaved numbers for this series. Switch anyway?')) return;
-    openPicker(false); $('series').focus(); loadSeries(i); drawPicker();
-  }
-  $('series').addEventListener('click', function () { openPicker(!msOpen); });
-  $('ms-more').addEventListener('click', function () { msShowGone = !msShowGone; drawPicker(); });
-  $('ms-list').addEventListener('click', function (e) {
-    var t = e.target.closest('button'); if (!t) return;
-    if (t.hasAttribute('data-i')) return pickSeries(+t.getAttribute('data-i'));
-    var del = t.getAttribute('data-del'), back = t.getAttribute('data-restore'), was = MS_HIDDEN.slice();
-    if (del) {
-      if (!confirm('Delete this game from the list?\n\nOnly the list changes: its result, points and saved 4Ks/5Ks stay. You can put it back with "Show deleted".')) return;
-      MS_HIDDEN.push(del);
-    } else if (back) MS_HIDDEN = MS_HIDDEN.filter(function (k) { return k !== back; });
-    else return;
-    var curKey = cur ? keyOf(cur.m) : '';
-    function settle() {
-      var list = shownSeries(), i = -1;
-      list.forEach(function (x, j) { if (keyOf(x.m) === curKey) i = j; });
-      if (i < 0) { if (multiDirty && !confirm('You have unsaved numbers for the game you deleted. Drop them?')) { MS_HIDDEN = was; drawPicker(); return; } loadSeries(0); }
-      drawPicker();
-      var f = $('ms-list').querySelector('.ms-pick[data-i]') || $('ms-more'); if (f && msOpen) f.focus();
-    }
-    settle();
-    saveHidden().then(function () { say(del ? 'Deleted from the list.' : 'Put back in the list.', 'ok'); })
-      .catch(function (e2) { MS_HIDDEN = was; settle(); say('Couldn\'t save that: ' + e2.message, 'err'); });
-  });
-  document.addEventListener('click', function (e) { if (msOpen && e.target.isConnected && !$('ms').contains(e.target)) openPicker(false); });   // (a redrawn row's button is no longer in the page)
-  $('ms').addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && msOpen) { e.preventDefault(); openPicker(false); $('series').focus(); }
-    if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && msOpen) {
-      var bs = [].slice.call($('ms-pop').querySelectorAll('button')), i = bs.indexOf(document.activeElement);
-      e.preventDefault(); var n = bs[(i + (e.key === 'ArrowDown' ? 1 : -1) + bs.length) % bs.length]; if (n) n.focus();
-    }
-  });
-  function setupMulti() {
-    return loadHidden().then(function () {
-      if (!seriesList().length) { $('series-note').textContent = 'Series from the Oct 19 gameweek on show up here once they start.'; }
-      loadSeries(0); drawPicker();
-    });
-  }
-
   // ---------- NA Season 4 Pick'ems graphic (a PNG to post: each game's pick split, team logos and colours) ----------
   // Picks come from fb_dashboard (the dashboard's split), games from pickems.js, logos and colours from season-teams.js.
 
@@ -1888,7 +1700,7 @@
     if (soon !== null && !sbPaid(L.weekStart(soon))) return L.weekStart(soon);
     return now < cur + 5 * DAY_MS ? cur : L.weekEnd(cur);
   }
-  // The Game pull-down (Nov 18 2026), like the 4Ks & 5Ks page: every played series in a week that can still take a sub,
+  // The Game pull-down (Nov 18 2026): every played series in a week that can still take a sub,
   // newest first, then the games on now or coming up (no result yet). The sub goes in that game's gameweek.
   function sbGameKey(r) { return r.start + '|' + r.a + '|' + r.b; }
   function sbGames() {
@@ -2988,7 +2800,7 @@
         openTab(TABS.indexOf(h) >= 0 ? h : 'dash');
         if (h === 'schedule') loadEvents();
         drawDash(); drawGraphic(); syncStatus(); scReset(); drawSchedule(); drawSeason(); drawPickemEvents(); drawStaff();
-        drawPages(); drawPrices(); setupTeams(); drawCards(); drawRares(); drawPacks(); setupMulti(); drawSubs(); setupRiot(); drawNotes(); setupChamps(); drawComplaints();
+        drawPages(); drawPrices(); setupTeams(); drawCards(); drawRares(); drawPacks(); drawSubs(); setupRiot(); drawNotes(); setupChamps(); drawComplaints();
       });
     }).catch(function (e) { show('st-staff'); $('p-msg').textContent = 'Something went wrong loading the backend: ' + e.message; $('p-msg').className = 'msg err'; });
   }
