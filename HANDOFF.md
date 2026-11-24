@@ -22,7 +22,7 @@ The next update is on the branch **`update-2`**, NOT pushed (only when the owner
 | Backend Dashboard: sign-ups and page views taken off | 43 | none |
 | PCMT.gg events on the Schedule tab: every live event with its games; staff label it Groups (game-by-game Pick'ems) or Playoffs (a bracket from a format and seeds, picked in full before a lock date) | 55 | `setup/event-labels.sql` |
 
-**To ship `update-2`:** run `setup/pickem-split.sql` and `setup/event-labels.sql` in Supabase first (riot-ids.sql is already run; all are safe to run again), then `git fetch origin && git checkout update-2 && git merge origin/main`, rebuild if any board changed (`python3 -I tools/build.py tools/canvas assets <out>`, copy the built pages except `data.js`, `pickems.js`, `rankings.js`), smoke test, commit as `deadpancakelinus <sixthneigh@gmail.com>` (short plain message), `git push origin update-2:main`.
+**To ship `update-2`:** its SQL is already run on the live project (pickem-split.sql, event-labels.sql and riot-ids.sql, Nov 23 2026); then then `git fetch origin && git checkout update-2 && git merge origin/main`, rebuild if any board changed (`python3 -I tools/build.py tools/canvas assets <out>`, copy the built pages except `data.js`, `pickems.js`, `rankings.js`), smoke test, commit as `deadpancakelinus <sixthneigh@gmail.com>` (short plain message), `git push origin update-2:main`.
 
 A small hotfix is also kept on the local-only branch `hotfix-pics` (a profile picture that won't load shows the first letter instead; Discord avatar links die when a player changes their avatar, until they log in again). The owner chose not to ship it (Nov 23).
 
