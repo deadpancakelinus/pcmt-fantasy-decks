@@ -144,6 +144,16 @@
   .db-split .bar span { flex: none; min-width: 0; box-sizing: border-box; display: flex; align-items: center; padding: 0 8px; font: 600 11px 'National Park', system-ui, sans-serif; color: #000; white-space: nowrap; overflow: hidden; }
   .db-split .bar span + span { background: #3a4f53; color: var(--ink); }
   .db-split .bar span:last-child { flex: 1 1 auto; }
+  .ev-list { display: flex; flex-direction: column; gap: 14px; }
+  .ev { border: 1px solid var(--line); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 14px; background: #111a1c; }
+  .ev-top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; }
+  .ev-name { margin: 0; font: 700 20px/1.2 'National Park', system-ui, sans-serif; color: var(--ink); }
+  .ev-tag { padding: 3px 10px; border-radius: 999px; font: 600 12px/1.4 'National Park', system-ui, sans-serif; letter-spacing: .04em; background: #2a3a3e; color: var(--soft); }
+  .ev-tag.groups { background: #1d3b2e; color: #8be4b7; } .ev-tag.playoffs { background: #3d2f12; color: #f5d76e; }
+  .ev-seeds { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px 14px; }
+  .ev-seeds select { width: 100%; }
+  .ev details summary { cursor: pointer; min-height: 40px; display: flex; align-items: center; font: 600 13px/1 'National Park', system-ui, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--soft); }
+  .ev details .sheet { max-height: 340px; margin-top: 8px; }
   .chk-line { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-size: 14px; color: var(--soft); }
   .chk-line input { width: 18px; height: 18px; accent-color: var(--accent); }
   .sb-game { display: block; margin: 0 0 14px; max-width: 520px; }
@@ -404,6 +414,11 @@
 
     <!-- ===== Schedule ===== -->
     <section class="pane" role="tabpanel" id="pane-schedule" aria-labelledby="tab-schedule" hidden>
+      <section class="panel" aria-labelledby="ev-h">
+        <div class="db-head" style="justify-content: space-between; align-items: center"><h2 class="db-h" id="ev-h">PCMT.gg events</h2><button type="button" class="btn ghost" id="ev-refresh">Refresh</button></div>
+        <p class="msg" id="ev-msg" role="status" aria-live="polite"></p>
+        <div class="ev-list" id="ev-list"></div>
+      </section>
       <form class="panel" id="sc-form" autocomplete="off" novalidate>
         <h2 class="db-h" id="sc-title">Add a game</h2>
         <div class="sb-row">
@@ -777,6 +792,7 @@
 
 <script src="data.js"></script>
 <script src="pickems.js"></script>
+<script src="pickem-formats.js"></script>
 <script src="season-teams.js"></script>
 <script src="pickems-graphic.js"></script>
 <script src="players.js"></script>
@@ -2231,6 +2247,165 @@
       .then(function (r) { PN = r || []; pnErr = ''; })
       .catch(function (e) { PN = []; pnErr = 'Couldn\'t load patch notes (' + e.message + '). Has setup/patch-notes-setup.sql been run?'; });
   }
+  // ---------- PCMT.gg events (Schedule tab): every live PCMT.gg event, its games, and its Pick'ems label ----------
+  // setup/event-labels.sql. Groups = game-by-game Pick'ems (each game locks when it starts); Playoffs = a bracket from
+  // a format (pickem-formats.js) and seeds, picked in full before the lock date (pickem_events.lock_at; empty = 6 hours
+  // before its first game). The hourly PCMT.gg sync builds the Pick'ems from the label.
+  var EV = { list: null, games: {}, labels: {}, pk: {}, err: '', busy: false, loaded: false };
+  var FORMATS = window.PCMT_PICKEM_FORMATS || {};
+  function evSay(t, cls) { $('ev-msg').textContent = t; $('ev-msg').className = 'msg' + (cls ? ' ' + cls : ''); }
+  function evParse(t) { return typeof t === 'string' ? JSON.parse(t) : t; }
+  function loadEvents() {
+    if (EV.busy) return Promise.resolve();
+    EV.busy = true; evSay('Loading PCMT.gg events…');
+    return Promise.all([
+      pcmt('/api/matches.json').then(evParse),
+      L.apiAll('/rest/v1/pcmt_event_labels?select=event,name,region,season,label,format,seeds,bracket,updated_at&order=event').catch(function (e) { EV.err = 'Couldn\'t load the labels (' + e.message + '). Has setup/event-labels.sql been run?'; return []; }),
+      L.apiAll('/rest/v1/pickem_events?select=id,open,credits_win,lock_at&order=id').catch(function () { return []; })
+    ]).then(function (r) {
+      var live = (r[0] || []).filter(function (e) { return !e.showmatch && /^(na|emea)$/i.test(e.region) && e.status !== 'completed'; });
+      EV.labels = {}; (r[1] || []).forEach(function (l) { EV.labels[l.event] = l; });
+      EV.pk = {}; (r[2] || []).forEach(function (p) { EV.pk[p.id] = p; });
+      return Promise.all(live.map(function (e) {
+        return pcmt('/api/matches/' + e.id + '.json').then(evParse).then(function (g) { EV.games[e.id] = g || []; }, function () { EV.games[e.id] = null; });
+      })).then(function () { EV.list = live; });
+    }).then(function () { EV.busy = false; EV.loaded = true; evSay(EV.err, EV.err ? 'err' : ''); drawEvents(); },
+            function (e) { EV.busy = false; evSay('Couldn\'t load PCMT.gg events: ' + e.message, 'err'); });
+  }
+  function evRegion(e) { return /emea/i.test(e.region) ? 'EMEA' : 'NA'; }
+  // The pickems.js bracket an event already has: game-by-game, or a playoff bracket (made by hand, or from a format).
+  function evBracket(evId, games) {
+    return (window.PCMT_PICKEMS || []).filter(function (b) { return b.event === evId && (games ? b.mode === 'games' : b.mode !== 'games'); })[0] || null;
+  }
+  function evBracketId(e, label) {
+    var l = EV.labels[e.id];
+    if (l && l.label === label && l.bracket) return l.bracket;
+    var have = evBracket(e.id, label === 'groups');
+    if (have) return have.id;
+    var base = evRegion(e).toLowerCase() + '-s' + (e.season || e.id.replace(/\D/g, ''));
+    return label === 'groups' ? base : base + '-playoffs';
+  }
+  function evTeams(e) {
+    var t = {};
+    (EV.games[e.id] || []).forEach(function (M) { if (M.team1) t[M.team1] = M.team1Name || M.team1; if (M.team2) t[M.team2] = M.team2Name || M.team2; });
+    return Object.keys(t).sort(function (a, b) { return a.toLowerCase().localeCompare(b.toLowerCase()); }).map(function (c) { return { code: c, name: t[c] }; });
+  }
+  function drawEvents() {
+    var box = $('ev-list');
+    if (!EV.list) { box.innerHTML = ''; return; }
+    if (!EV.list.length) { box.innerHTML = '<p class="who">No live events on PCMT.gg right now.</p>'; return; }
+    var fmtIds = FORMATS.list ? FORMATS.list() : [];
+    box.innerHTML = EV.list.map(function (e) {
+      var l = EV.labels[e.id] || {}, games = EV.games[e.id], label = l.label || '';
+      var played = (games || []).filter(function (M) { return M.completed; }).length;
+      var hand = evBracket(e.id, false), handMade = hand && !hand.format;
+      var pb = EV.pk[evBracketId(e, 'playoffs')] || {};
+      var fmt = l.format && FORMATS[l.format] ? l.format : (hand && hand.format) || '';
+      var teams = evTeams(e);
+      var seedsHtml = '';
+      if (fmt && FORMATS[fmt]) {
+        for (var i = 1; i <= FORMATS[fmt].teams; i++) {
+          var cur = (l.seeds || {})['S' + i] || '';
+          seedsHtml += '<label class="field"><span class="kicker">Seed ' + i + '</span><select data-seed="S' + i + '"><option value="">Pick a team</option>' +
+            teams.map(function (t) { return '<option value="' + esc(t.code) + '"' + (t.code === cur ? ' selected' : '') + '>' + esc(t.code + ' · ' + t.name) + '</option>'; }).join('') + '</select></label>';
+        }
+      }
+      var rows = (games || []).slice().sort(function (a, b) { return Date.parse(a.date) - Date.parse(b.date); }).map(function (M) {
+        return '<tr><td>' + esc(M.date ? etWhen(Date.parse(M.date)) : 'TBD') + '</td><td class="strong">' + esc((M.team1 || 'TBD') + ' vs ' + (M.team2 || 'TBD')) + '</td><td>' + esc(M.stage || '') + '</td><td>Bo' + esc(M.bestOf || 3) + '</td><td>' +
+          (M.completed ? esc(M.score1 + '-' + M.score2) : '<span class="who">Not played</span>') + '</td></tr>';
+      }).join('');
+      return '<article class="ev" data-ev="' + esc(e.id) + '">' +
+        '<div class="ev-top"><h3 class="ev-name">' + esc(e.name || e.id) + '</h3>' +
+          '<span class="ev-tag ' + esc(label) + '">' + (label === 'groups' ? 'Groups' : label === 'playoffs' ? 'Playoffs' : 'Not labelled') + '</span></div>' +
+        '<p class="who" style="margin:0">' + esc(evRegion(e) + ' · ' + (games ? games.length + ' games, ' + played + ' played' : 'couldn\'t load its games')) + '</p>' +
+        '<div class="sb-row">' +
+          '<label class="field" style="flex: 1 1 320px"><span class="kicker">Label</span><select data-k="label">' +
+            '<option value=""' + (!label ? ' selected' : '') + '>Not labelled (no Pick\'ems from this)</option>' +
+            '<option value="groups"' + (label === 'groups' ? ' selected' : '') + '>Groups: pick game by game, each game locks when it starts</option>' +
+            '<option value="playoffs"' + (label === 'playoffs' ? ' selected' : '') + '>Playoffs: pick the whole bracket before the lock date</option>' +
+          '</select></label>' +
+        '</div>' +
+        '<div data-show="playoffs"' + (label === 'playoffs' ? '' : ' hidden') + ' style="display:flex;flex-direction:column;gap:14px">' +
+          (handMade ? '<p class="who" style="margin:0">Uses the bracket made by hand for this event (' + esc(hand.name || hand.id) + '); only the lock date is set here.</p>' :
+            '<div class="sb-row"><label class="field" style="flex: 1 1 320px"><span class="kicker">Bracket format</span><select data-k="format"><option value="">Pick a format</option>' +
+              fmtIds.map(function (k) { return '<option value="' + esc(k) + '"' + (k === fmt ? ' selected' : '') + '>' + esc(FORMATS[k].name) + '</option>'; }).join('') + '</select></label></div>' +
+            '<div class="ev-seeds" data-seeds>' + seedsHtml + '</div>') +
+          '<div class="sb-row"><label class="field"><span class="kicker">Picks lock (EST, empty = 6 hours before the first playoff game)</span><input type="datetime-local" data-k="lock" value="' + esc(pb.lock_at ? toEtInput(Date.parse(pb.lock_at)) : '') + '"></label></div>' +
+        '</div>' +
+        '<div class="sb-row"><button type="button" class="btn" data-act="save">Save label</button><span class="msg" data-msg role="status" aria-live="polite"></span></div>' +
+        '<details' + ((games || []).some(function (M) { return !M.completed; }) ? ' open' : '') + '><summary>Schedule (' + (games ? games.length : 0) + ' games, EST)</summary><div class="sheet"><table class="grid"><thead><tr><th class="plain" scope="col">When</th><th class="plain" scope="col">Game</th><th class="plain" scope="col">Stage</th><th class="plain" scope="col">Best of</th><th class="plain" scope="col">Result</th></tr></thead><tbody>' +
+          (rows || '<tr><td colspan="5" class="who">No games listed yet.</td></tr>') + '</tbody></table></div></details>' +
+      '</article>';
+    }).join('');
+  }
+  function evCard(el) { return el.closest('[data-ev]'); }
+  $('ev-list').addEventListener('change', function (e) {
+    var card = evCard(e.target); if (!card) return;
+    var k = e.target.getAttribute('data-k');
+    if (k === 'label') card.querySelector('[data-show="playoffs"]').hidden = e.target.value !== 'playoffs';
+    if (k === 'format') {   // redraw the seed boxes for the new format, keeping what's picked
+      var ev = EV.list.filter(function (x) { return x.id === card.getAttribute('data-ev'); })[0], f = FORMATS[e.target.value], wrap = card.querySelector('[data-seeds]');
+      var keep = {}; Array.prototype.forEach.call(wrap.querySelectorAll('select[data-seed]'), function (s) { keep[s.getAttribute('data-seed')] = s.value; });
+      var teams = evTeams(ev), h = '';
+      for (var i = 1; f && i <= f.teams; i++) {
+        h += '<label class="field"><span class="kicker">Seed ' + i + '</span><select data-seed="S' + i + '"><option value="">Pick a team</option>' +
+          teams.map(function (t) { return '<option value="' + esc(t.code) + '"' + (keep['S' + i] === t.code ? ' selected' : '') + '>' + esc(t.code + ' · ' + t.name) + '</option>'; }).join('') + '</select></label>';
+      }
+      wrap.innerHTML = h;
+    }
+  });
+  $('ev-list').addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-act="save"]'); if (!btn) return;
+    var card = evCard(btn), id = card.getAttribute('data-ev'), ev = EV.list.filter(function (x) { return x.id === id; })[0], msg = card.querySelector('[data-msg]');
+    function say(t, c) { msg.textContent = t; msg.className = 'msg' + (c ? ' ' + c : ''); }
+    var label = card.querySelector('[data-k="label"]').value || null;
+    var hand = evBracket(id, false), handMade = !!(hand && !hand.format);
+    var row = { event: id, name: ev.name || id, region: evRegion(ev), season: +ev.season || null, label: label, format: null, seeds: {}, bracket: null, updated_at: new Date().toISOString(), updated_by: L.myId };
+    var lockAt = null, pkRow = null;
+    if (label === 'groups') {
+      row.bracket = evBracketId(ev, 'groups');
+      if (hand && hand.id === row.bracket) return say('That Pick\'ems id is a bracket already.', 'err');
+      pkRow = { id: row.bracket, open: true, credits_win: 10 };
+    } else if (label === 'playoffs') {
+      row.bracket = evBracketId(ev, 'playoffs');
+      if (handMade) { row.format = hand.format || Object.keys(FORMATS).filter(function (k) { return FORMATS[k] && FORMATS[k].teams === Object.keys(hand.seeds || {}).length; })[0] || 'de10'; }
+      else {
+        var fsel = card.querySelector('[data-k="format"]'); row.format = fsel ? fsel.value : '';
+        if (!row.format) return say('Pick a bracket format.', 'err');
+        var used = {}, missing = [], dup = [];
+        Array.prototype.forEach.call(card.querySelectorAll('select[data-seed]'), function (s) {
+          var k = s.getAttribute('data-seed'), v = s.value;
+          if (!v) missing.push(k.slice(1)); else if (used[v]) dup.push(v); else { used[v] = 1; row.seeds[k] = v; }
+        });
+        if (missing.length) return say('Pick a team for seed ' + missing.join(', ') + '.', 'err');
+        if (dup.length) return say(dup.join(', ') + ' is in the bracket twice.', 'err');
+      }
+      var lv = card.querySelector('[data-k="lock"]').value;
+      lockAt = lv ? fromEtInput(lv) : null;
+      if (lv && lockAt == null) return say('That lock date doesn\'t look right.', 'err');
+      pkRow = { id: row.bracket, open: true, credits_win: 20 };
+    }
+    var old = EV.labels[id] || {}, pk = row.bracket ? EV.pk[row.bracket] : null;
+    var rebuild = label === 'playoffs' && !handMade && old.label === 'playoffs' && (old.format !== row.format || JSON.stringify(old.seeds || {}) !== JSON.stringify(row.seeds));
+    if (rebuild && !confirm('Changing the format or seeds rebuilds the bracket. Picks players already made for teams that move may stop counting. Save anyway?')) return;
+    if (label && old.label && old.label !== label && !confirm('Change ' + (ev.name || id) + ' from ' + old.label + ' to ' + label + '? The ' + old.label + ' Pick\'ems stays as it is (its picks still count) but gets no new games.')) return;
+    btn.disabled = true; say('Saving…');
+    L.api('/rest/v1/pcmt_event_labels?on_conflict=event', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: [row] })
+      .then(function () {
+        if (!pkRow) return;
+        if (!pk) return L.api('/rest/v1/pickem_events', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: [Object.assign(pkRow, label === 'playoffs' ? { lock_at: lockAt ? new Date(lockAt).toISOString() : null } : {})] });
+        if (label === 'playoffs' && (pk.lock_at ? Date.parse(pk.lock_at) : null) !== lockAt)
+          return L.api('/rest/v1/pickem_events?id=eq.' + encodeURIComponent(row.bracket), { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: { lock_at: lockAt ? new Date(lockAt).toISOString() : null } });
+      })
+      .then(function () { return loadEvents(); })
+      .then(function () {
+        var c = document.querySelector('[data-ev="' + id + '"] [data-msg]');
+        if (c) { c.className = 'msg ok'; c.textContent = !label ? 'Label taken off.' : 'Saved. Pick\'ems picks it up at the next PCMT.gg sync (hourly at :17, or Run PCMT.gg sync on the Dashboard).'; }
+      }, function (err) { btn.disabled = false; say('Couldn\'t save: ' + err.message, 'err'); });
+  });
+  $('ev-refresh').addEventListener('click', function () { loadEvents(); });
+  $('tab-schedule').addEventListener('click', function () { if (!EV.loaded) loadEvents(); });
+
   // ---------- current version (site_settings 'version'; version.js puts it in every page's footer) ----------
   // The "What's new" note goes in site_settings 'version_note' as { version, text, at }; version.js shows it once to
   // every visitor (a new `at` each time, so updating the version with a note shows it again to everyone).
@@ -2811,6 +2986,7 @@
         show('st-staff');
         var h = (location.hash || '').slice(1);
         openTab(TABS.indexOf(h) >= 0 ? h : 'dash');
+        if (h === 'schedule') loadEvents();
         drawDash(); drawGraphic(); syncStatus(); scReset(); drawSchedule(); drawSeason(); drawPickemEvents(); drawStaff();
         drawPages(); drawPrices(); setupTeams(); drawCards(); drawRares(); drawPacks(); setupMulti(); drawSubs(); setupRiot(); drawNotes(); setupChamps(); drawComplaints();
       });

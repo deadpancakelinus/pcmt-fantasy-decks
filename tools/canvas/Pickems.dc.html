@@ -204,8 +204,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <table data-pcmt-power="{{powerEvent}}" role="button" tabindex="0" aria-label="{{powerAria}}" title="{{powerTitle}}" class="pk-groups" style="position: absolute; left: 24px; top: 36px; width: 330px; border-collapse: collapse; background: #172124; border: 2px solid #3a4f53; font-size: 15px">
 <thead>
 <tr>
-<th scope="col" style="width: 50%; height: 40px; border: 2px solid #3a4f53; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; color: #ef8f8f">GROUP A</th>
-<th scope="col" style="width: 50%; height: 40px; border: 2px solid #3a4f53; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; color: #8be4b7">GROUP B</th>
+<th scope="col" style="width: 50%; height: 40px; border: 2px solid #3a4f53; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; color: #ef8f8f">{{groupHeadA}}</th>
+<th scope="col" style="width: 50%; height: 40px; border: 2px solid #3a4f53; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; color: #8be4b7">{{groupHeadB}}</th>
 </tr>
 </thead>
 <tbody>
@@ -404,6 +404,18 @@ var PCMT_PICKEM_VIEWS = {
     ]
   }
 };
+// Brackets built from a format (labelled Playoffs on the backend; b.format in pickems.js) have no hand-made view: the
+// layout and lines come from pickem-formats.js (window.PCMT_PICKEM_FORMATS), the seeds table shows seeds 1..N.
+var PCMT_NO_LOGO = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';   // a team with no logo yet: an empty space, not a broken picture
+var PCMT_REGION_LOGOS = { NA: '/_blob/c265e976f8968e60e4a2bdd32542b499', EMEA: '/_blob/3c7e7374dceead68d5c58818d0bcfe8a' };
+function pcmtPickemView(b) {
+  if (PCMT_PICKEM_VIEWS[b.id]) return PCMT_PICKEM_VIEWS[b.id];
+  var F = window.PCMT_PICKEM_FORMATS || {}, f = b.format && F[b.format], rg = b.region === 'EMEA' ? 'EMEA' : 'NA';
+  var name = String(b.name || '').replace(/^(NA|EMEA)\s+/i, '');
+  if (f && f.layout) return { tab: rg + (b.mode === 'games' ? '' : ' Playoffs'), label: rg + ' · ' + name, season: b.name, logo: PCMT_REGION_LOGOS[rg], layout: f.layout, lines: f.lines, seeded: true };
+  if (b.mode === 'games') return { tab: rg + (b.season ? ' S' + b.season : ''), label: rg + ' · ' + name, season: b.name, logo: PCMT_REGION_LOGOS[rg], layout: [], lines: [] };
+  return PCMT_PICKEM_VIEWS['emea-s2'];
+}
 var PCMT_PICKEM_TEAMS = window.PCMT_PICKEM_TEAMS = {
   FaZe: { name: 'Fabulous and Zesty', logo: '/_blob/9da6e0491a922186cad6bc5daf699626' },
   ATLC: { name: 'ATLNTIC Esports', logo: '/_blob/086abe908c829ddcb51bee4b1db16b83' },
@@ -682,7 +694,7 @@ class Component extends DCLogic {
 
   _pageVals() {
     var self = this, W = window, now = Date.now();
-    var b = this.bracket(), V = PCMT_PICKEM_VIEWS[b.id] || PCMT_PICKEM_VIEWS['emea-s2'], myPicks = this.state.picksBy[b.id] || {};
+    var b = this.bracket(), V = pcmtPickemView(b), myPicks = this.state.picksBy[b.id] || {};
     // A finished bracket (every series has a score) is shown to everyone as a record of the playoffs, picks or not.
     var games = b.mode === 'games';
     var finished = !games && b.series.every(function (s) { return !!s.score; });
@@ -782,14 +794,28 @@ class Component extends DCLogic {
         when: pcmtPickemWhen(nx.start), meta: (b.region || 'EMEA') + ' · Bo' + (nx.bo || 3), url: nx.url || ''
       };
     }
-    var perGroup = Object.keys(b.seeds).filter(function (k) { return k[0] === 'A'; }).length;
-    var groupRows = Array.apply(null, Array(perGroup)).map(function (_, j) {
-      var i = j + 1;
-      return { cells: ['A', 'B'].map(function (g) {
-        var code = b.seeds[g + i], t = PCMT_PICKEM_TEAMS[code] || {};
-        return { seed: g + i, code: code, full: t.name || code, logo: t.logo || '', logoPad: t.small ? '3px' : '0', seedColor: g === 'A' ? '#ef8f8f' : '#8be4b7' };
-      }) };
-    });
+    // The table top left: Group A / Group B placings for the hand-made brackets, or seeds 1..N (two columns) for one
+    // built from a format.
+    var groupHeadA = 'GROUP A', groupHeadB = 'GROUP B', groupRows;
+    if (V.seeded) {
+      var nSeeds = Object.keys(b.seeds || {}).filter(function (k) { return /^S\d+$/.test(k); }).length, half = Math.ceil(nSeeds / 2);
+      groupHeadA = 'SEEDS 1–' + half; groupHeadB = 'SEEDS ' + (half + 1) + '–' + nSeeds;
+      groupRows = Array.apply(null, Array(half)).map(function (_, j) {
+        return { cells: [j + 1, j + 1 + half].map(function (i, c) {
+          var code = b.seeds['S' + i] || '', t = PCMT_PICKEM_TEAMS[code] || {};
+          return { seed: i <= nSeeds ? String(i) : '', code: code, full: t.name || code, logo: t.logo || PCMT_NO_LOGO, logoPad: t.small ? '3px' : '0', seedColor: c ? '#8be4b7' : '#ef8f8f' };
+        }) };
+      });
+    } else {
+      var perGroup = Object.keys(b.seeds).filter(function (k) { return k[0] === 'A'; }).length;
+      groupRows = Array.apply(null, Array(perGroup)).map(function (_, j) {
+        var i = j + 1;
+        return { cells: ['A', 'B'].map(function (g) {
+          var code = b.seeds[g + i], t = PCMT_PICKEM_TEAMS[code] || {};
+          return { seed: g + i, code: code, full: t.name || code, logo: t.logo || '', logoPad: t.small ? '3px' : '0', seedColor: g === 'A' ? '#ef8f8f' : '#8be4b7' };
+        }) };
+      });
+    }
     // Standings, styled like the Leaderboard: gold #1, silver and bronze ranks, your row pinned when a search hides it.
     var board = b.region === 'EMEA' ? 'EMEA' : 'NA', niche = true;
     var data = (niche ? (live ? (W.PCMT_NICHE || {})[board] || [] : pcmtSampleNiche(board)) : (W.PCMT_PICKEM_STANDINGS || {})[b.id] || []).slice().sort(function (x, y) { return y.points - x.points || String(x.name).localeCompare(String(y.name)); });
@@ -832,7 +858,7 @@ class Component extends DCLogic {
     var gf = b.series.reduce(function (m, s) { return !m || s.n > m.n ? s : m; }, null), champ = gf && R[gf.n] ? R[gf.n].winner : null;
     var champT = champ ? PCMT_PICKEM_TEAMS[champ] : null;
     var tabs = PCMT_PICKEMS_DATA.map(function (x) {
-      var on = x.id === b.id, v = PCMT_PICKEM_VIEWS[x.id] || {};
+      var on = x.id === b.id, v = pcmtPickemView(x) || {};
       return { id: x.id, label: v.tab || x.region, logo: v.logo || '', pressed: on ? 'true' : 'false',
         bg: on ? '#a5dcdd' : 'transparent', fg: on ? '#000' : '#eaf4f4', weight: on ? 700 : 500,
         pick: function () { self.setView(x.id); } };
@@ -864,7 +890,7 @@ class Component extends DCLogic {
       saveColor: !bracketLocked && (left > 0 || dirty) ? '#f5d76e' : '#93a9aa',
       save: function () { self.save(); },
       lines: V.lines.map(function (d) { return { d: d, color: '#3a4f53' }; }),
-      groupRows: groupRows,
+      groupRows: groupRows, groupHeadA: groupHeadA, groupHeadB: groupHeadB,
       boxes: boxes,
       standings: standings, noRows: standings.length === 0,
       boardNote: board === 'NA' ? 'PICK\'EMS SEASON 4' : 'PICK\'EMS SEASON 2',

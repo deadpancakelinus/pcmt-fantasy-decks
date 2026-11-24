@@ -11,6 +11,9 @@
 //     fills in start, url, best-of and, once finished, the score (in the series' own a/b order).
 //   * Pick'ems games (a pickems.js bracket with "mode": "games"): every game PCMT.gg schedules for the event is added
 //     as its own pick, and gets its score once it's played.
+//   * Event labels (Supabase pcmt_event_labels, set on the backend's Schedule tab): an event labelled Groups gets a
+//     game-by-game Pick'ems (above); one labelled Playoffs gets a bracket built from its format (pickem-formats.js) and
+//     seeds, which the playoff matching below then fills from PCMT.gg. A hand-made bracket (no "format") is left as is.
 //   * rankings.js: power rankings for each Pick'ems bracket's event (tools/pcmt-power.js) from every finished game of the event, for the Pick'ems page.
 // The arrays stay strict JSON (the server reads them). Exit code 0 even when nothing changed.
 const fs = require('fs'), path = require('path'), vm = require('vm');
@@ -75,6 +78,57 @@ for (let i = matches.length - 1; i >= 0; i--) {
 }
 matches.sort((x, y) => Date.parse(x.start) - Date.parse(y.start));
 
+// ---- Supabase tables the backend writes (read with the site's publishable key, like the site does) ----
+function sbRead(query) {
+  const lg = fs.readFileSync(path.join(ROOT, 'tools', 'league.js'), 'utf8');
+  const url = (lg.match(/var SB_URL = '([^']+)'/) || [])[1], key = (lg.match(/var SB_KEY = '([^']+)'/) || [])[1];
+  if (!url || !key) throw new Error('no Supabase address in tools/league.js');
+  if (process.env.PCMT_SB_FAKE) return JSON.parse(fs.readFileSync(process.env.PCMT_SB_FAKE, 'utf8'))[query.split('?')[0]] || [];   // tests
+  const { execFileSync } = require('child_process');
+  return JSON.parse(execFileSync('curl', ['-sS', '--fail', '--max-time', '30', '-H', 'apikey: ' + key, '-H', 'Authorization: Bearer ' + key,
+    url + '/rest/v1/' + query], { encoding: 'utf8' }));
+}
+
+// ---- Event labels: Groups or Playoffs (backend, Schedule tab → PCMT.gg events) ----
+let labels = [];
+try { labels = sbRead('pcmt_event_labels?select=event,name,region,season,label,format,seeds,bracket&order=event'); }
+catch (e) { console.warn('Event labels skipped: ' + String(e.message || e).split('\n')[0]); labels = []; }   // not a change, so not in the log
+if (!Array.isArray(labels)) labels = [];
+const labelOf = ev => labels.find(l => l.event === ev) || null;
+(function applyLabels() {
+  const FORMATS = require('../pickem-formats.js');
+  labels.forEach(l => {
+    if (!l.label || !/^[a-z0-9-]{2,40}$/.test(l.bracket || '')) return;
+    const region = l.region === 'EMEA' ? 'EMEA' : 'NA';
+    let B = brackets.find(x => x.id === l.bracket);
+    if (l.label === 'groups') {
+      if (B && B.mode !== 'games') { console.warn("Pick'ems " + l.bracket + ': is a bracket, not game-by-game (label skipped)'); return; }
+      if (!B) {
+        B = { id: l.bracket, name: l.name || l.event, region, mode: 'games', event: l.event, season: +l.season || null, seeds: {}, teams: {}, series: [] };
+        brackets.push(B); log.push("Pick'ems event: " + l.bracket + ' (groups, game by game)');
+      }
+      return;
+    }
+    // playoffs
+    if (B && B.mode === 'games') { console.warn("Pick'ems " + l.bracket + ': is game-by-game, not a bracket (label skipped)'); return; }
+    if (B && !B.format) return;   // a hand-made bracket (EMEA S2): left as it is
+    const f = FORMATS[l.format], seeds = l.seeds || {};
+    if (!f || !f.series) { console.warn("Pick'ems " + l.bracket + ': unknown format ' + l.format); return; }
+    const want = {};
+    for (let i = 1; i <= f.teams; i++) want['S' + i] = seeds['S' + i];
+    if (Object.values(want).some(v => !v)) { if (!B) console.warn("Pick'ems " + l.bracket + ': waiting for every seed'); return; }
+    if (B && B.format === l.format && JSON.stringify(B.seeds) === JSON.stringify(want)) return;
+    const built = FORMATS.build(l.format, want, B);
+    if (!B) {
+      B = { id: l.bracket, name: (l.name || l.event) + ' Playoffs', region, event: l.event, season: +l.season || null, format: l.format, seeds: built.seeds, series: built.series };
+      brackets.push(B); log.push("Pick'ems event: " + l.bracket + ' (playoffs, ' + f.short + ')');
+    } else {
+      Object.assign(B, { format: l.format, seeds: built.seeds, series: built.series });
+      log.push("Pick'ems " + l.bracket + ': bracket rebuilt (' + f.short + ', new seeds)');
+    }
+  });
+})();
+
 // ---- Pick'ems: game-by-game (mode "games", NA Season 4 on) ----
 // Every game PCMT.gg schedules for the event becomes a Pick'ems game: n stays the same for good (picks point at it),
 // a/b are team codes (seeds maps each code to itself), round is PCMT.gg's stage. A game PCMT.gg moves keeps its n
@@ -88,6 +142,8 @@ brackets.filter(B => B.mode === 'games').forEach(B => {
   B.seeds = B.seeds || {}; B.teams = B.teams || {};
   const claimed = new Set(), keep = new Set();
   const pair = (s, M) => (s.a === M.team1 && s.b === M.team2) || (s.a === M.team2 && s.b === M.team1);
+  // Once staff label the event Playoffs, its game-by-game Pick'ems only keeps the games it already has up to date.
+  const frozen = (labelOf(evId) || {}).label === 'playoffs';
   list.forEach(M => {
     const url = A.pageUrl(evId, M.id);
     let s = B.series.find(x => x.url === url) ||
@@ -96,6 +152,7 @@ brackets.filter(B => B.mode === 'games').forEach(B => {
       if (B.seeds[c] !== c) B.seeds[c] = c;
       if (nm && B.teams[c] !== nm) B.teams[c] = nm;
     });
+    if (!s && frozen) return;
     if (!s) {
       s = { n: B.series.reduce((m, x) => Math.max(m, x.n), 0) + 1, round: M.stage || 'Game', a: M.team1, b: M.team2,
             bo: M.bestOf || 3, start: M.date, score: null, url };
@@ -113,7 +170,7 @@ brackets.filter(B => B.mode === 'games').forEach(B => {
   });
   for (let i = B.series.length - 1; i >= 0; i--) {
     const s = B.series[i];
-    if (!keep.has(s.n) && !s.score && s.url) {   // games staff added by hand (no url yet) stay until PCMT.gg lists them
+    if (!frozen && !keep.has(s.n) && !s.score && s.url) {   // games staff added by hand (no url yet) stay until PCMT.gg lists them
     log.push("Pick'ems game " + s.n + ' dropped: ' + s.a + ' vs ' + s.b); B.series.splice(i, 1); }
   }
   B.series.sort((x, y) => x.n - y.n);
@@ -126,14 +183,7 @@ brackets.filter(B => B.mode === 'games').forEach(B => {
 // site's publishable key.
 (function backendGames() {
   let rows;
-  try {
-    const lg = fs.readFileSync(path.join(ROOT, 'tools', 'league.js'), 'utf8');
-    const url = (lg.match(/var SB_URL = '([^']+)'/) || [])[1], key = (lg.match(/var SB_KEY = '([^']+)'/) || [])[1];
-    if (!url || !key) return;
-    const { execFileSync } = require('child_process');
-    rows = JSON.parse(execFileSync('curl', ['-sS', '--fail', '--max-time', '30', '-H', 'apikey: ' + key, '-H', 'Authorization: Bearer ' + key,
-      url + '/rest/v1/schedule_games?select=id,region,start,a,b,bo,round,pickem,removed&order=id'], { encoding: 'utf8' }));
-  } catch (e) { log.push('Backend games skipped: ' + String(e.message || e).split('\n')[0]); return; }
+  try { rows = sbRead('schedule_games?select=id,region,start,a,b,bo,round,pickem,removed&order=id'); } catch (e) { log.push('Backend games skipped: ' + String(e.message || e).split('\n')[0]); return; }
   if (!Array.isArray(rows)) return;
   const iso = t => new Date(t).toISOString().replace('.000', '');
   const near = (x, g) => ((x.a === g.a && x.b === g.b) || (x.a === g.b && x.b === g.a)) && Math.abs(Date.parse(x.start) - Date.parse(g.start)) < 3 * 864e5;
@@ -241,6 +291,8 @@ if (MSG) {   // e.g. "Add result: T1 vs SPG; Add match: NOOT vs SEAL; Pick'ems: 
     else if (l === 'Power rankings updated') parts.push('Power rankings');
     else if ((m = l.match(/^Pick'ems (?:series|game) \d+ result: (\S+) \S+ (\S+)$/))) parts.push("Pick'ems: " + m[1] + ' vs ' + m[2] + ' result');
     else if ((m = l.match(/^Pick'ems game: (\S+ vs \S+)/))) parts.push("Pick'ems: add " + m[1]);
+    else if ((m = l.match(/^Pick'ems event: (\S+)/))) parts.push("Pick'ems: " + m[1]);
+    else if ((m = l.match(/^Pick'ems (\S+): bracket rebuilt/))) parts.push("Pick'ems: " + m[1] + ' bracket');
   });
   const uniq = [...new Set(parts)];
   fs.writeFileSync(MSG, (uniq.length ? uniq.slice(0, 4).join('; ') + (uniq.length > 4 ? '; more' : '') : 'Schedule update') + '\n');
