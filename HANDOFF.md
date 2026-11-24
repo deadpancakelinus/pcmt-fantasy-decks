@@ -13,6 +13,7 @@ The next update is on the branch **`update-2`**, NOT pushed (only when the owner
 | Backend 4Ks & 5Ks tab removed (manual entry gone; saved 4Ks/5Ks still count) | 49 | none |
 | Champions on Home made automatically from each event's grand final on PCMT.gg (the SPG panel look), for 15 days or until the region's next event starts; backend Champions tab removed | 56 | none (new file champions.js, written by the sync) |
 | Backend Cards and Card packs tabs removed (with the View cards window and the Series launch buttons) | 57 | none |
+| The Deck: the "New point rule for NA Stage 1" notice taken down (the rule itself is unchanged) | 58 | none |
 | Backend Dashboard Pick'ems: each team's share of the picks in its team colour | 50 | none |
 | Backend Pick'ems tab: a 1050 x 560 Pick'ems graphic per NA Season 4 game (for the S4 break screen's promo square) with a Download button | 51 | none |
 | Live Pick'ems slide for the S4 break screen: fantasy.pcmt.gg/promo/pickems.html (plus a "Pick'ems slide" type added to the break screen itself) | 52 | `setup/pickem-split.sql` |
@@ -481,4 +482,7 @@ Supabase's Discord login always asks Discord for the email. Triggers drop it bef
 
 ## 57. Backend: Cards and Card packs tabs removed (update-2, not released yet)
 - The Cards tab (catalog, copies, owners), the Card packs tab (pack prices, Open to everyone, test-buying, the Series panels with Launch / Hold back series) and the View cards window are gone from backend.html, with their code, styles and the scripts only they used (trumps-cards.js, variant-art.js, trumps.js no longer load on the backend). Nothing changed in the database: packs, cards, series and prices stay as they are. To change them now: SQL in Supabase (e.g. `update public.card_packs set price = ... where id = '...';`; a held-back series such as Splatty is launched by setting its cards' `released`), or bring the tabs back from git history (commit before this one).
+
+## 58. NA Stage 1 notice taken down (update-2, not released yet)
+- The Main board's "New point rule for NA Stage 1" box (above the deck, NA only) is gone. The 2-best-series rule and the Stage 1 lock still apply; the Guide still explains them. Its values (naLockWord, naLockWhen, naLockStay) are still worked out in the board but not shown.
 
