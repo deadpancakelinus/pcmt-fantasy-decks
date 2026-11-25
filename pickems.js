@@ -142,9 +142,9 @@ var PCMT_PICKEMS = [
         "a": "L4",
         "b": "W8",
         "bo": 3,
-        "start": null,
+        "start": "2026-11-29T20:00:00Z",
         "score": null,
-        "url": null
+        "url": "https://pcmt.gg/events/s2-emea/nats-vs-seal-s2-playoffs-2026-11-29"
       },
       {
         "n": 11,
