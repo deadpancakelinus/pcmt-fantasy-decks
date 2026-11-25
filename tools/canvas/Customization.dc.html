@@ -1507,6 +1507,23 @@ class Component extends DCLogic {
     // Any other deck (Gold, Pride, Retro...) shows 5 players from a random team deck the user has unlocked.
     var roster = {};
     PCMT_PACK_PLAYERS.forEach(function (r) { (roster[r[2]] = roster[r[2]] || []).push(r); });
+    // A season team deck (S4-TANK: tag TANK, NA Season 4) shows that season's roster from players.js (ids ending -s4),
+    // not the NA S3 / EMEA S2 list above (which has no S4-TANK, so the pack used to show a random old team).
+    var seasonOf = {};
+    (window.PCMT_SEASON_TEAMS || []).forEach(function (ev) { (ev.teams || []).forEach(function (t) { seasonOf[t.code] = { n: +ev.season || null, region: ev.region === 'EMEA' ? 'EMEA' : 'NA', label: t.label }; }); });
+    PCMT_ALL_DECK_TEAMS.forEach(function (t) {
+      if (!t.label || t.label === t.code || seasonOf[t.code]) return;
+      var m = /^S(\d+)/.exec(t.code);
+      seasonOf[t.code] = { n: m ? +m[1] : null, region: PCMT_EMEA_DECK_TEAMS.some(function (x) { return x.code === t.code; }) ? 'EMEA' : 'NA', label: t.label };
+    });
+    var sea = seasonOf[code];
+    if (sea && sea.label) {
+      var SP = window.PCMT_SITE_PLAYERS || [], PR = window.PCMT_PRICES || {};
+      var all = SP.filter(function (p) { return p.team === sea.label; });
+      var mine = sea.n ? all.filter(function (p) { return new RegExp('-s' + sea.n + '$').test(p.id); }) : [];
+      var use = mine.length ? mine : all;
+      if (use.length) roster[code] = use.map(function (p) { return [p.id, p.name, code, String(p.role || 'duelist').toLowerCase(), PR[p.id] != null ? +PR[p.id] : +p.price || 0]; });
+    }
     var tc = (roster[code] || []).length ? code : null;
     if (!tc) {
       var unlocked = (this._teamsOpen || []).slice();
@@ -1516,7 +1533,7 @@ class Component extends DCLogic {
       tc = pool[Math.floor(Math.random() * pool.length)];
     }
     var tm = PCMT_ALL_DECK_TEAMS.find(function (x) { return x.code === tc; }) || { code: tc, name: tc, color: '#a5dcdd', logo: '' };
-    var isEu = PCMT_EMEA_DECK_TEAMS.some(function (x) { return x.code === tc; });
+    var isEu = seasonOf[tc] ? seasonOf[tc].region === 'EMEA' : PCMT_EMEA_DECK_TEAMS.some(function (x) { return x.code === tc; });
     var picks = (roster[tc] || []).slice();
     for (var i = picks.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), tmp = picks[i]; picks[i] = picks[j]; picks[j] = tmp; }
     picks = picks.slice(0, 5);
@@ -1526,7 +1543,7 @@ class Component extends DCLogic {
     var deckName = (this._deckNames && this._deckNames[code]) || code;
     var cfg = {
       deckName: deckName,
-      season: isEu ? 'EMEA S2' : 'NA S3',
+      season: seasonOf[tc] && seasonOf[tc].n ? (isEu ? 'EMEA S' : 'NA S') + seasonOf[tc].n : isEu ? 'EMEA S2' : 'NA S3',
       anchorY: this._lastY,
       back: back,
       team: { code: tm.code, name: tm.name, color: tm.color, logo: abs(tm.logo || ''), logoH: PCMT_PACK_LOGO_H[tm.code] || (PCMT_SMALL_LOGOS[tm.code] ? 26 : 30) },

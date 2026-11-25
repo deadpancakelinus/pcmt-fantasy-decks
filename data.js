@@ -78,6 +78,15 @@ var PCMT_MATCHES = [
     "url": "https://pcmt.gg/events/s2-emea/xtc-vs-nip-s2-playoffs-2026-11-29"
   },
   {
+    "region": "EMEA",
+    "start": "2026-11-29T16:00:00Z",
+    "a": "HOT",
+    "b": "ATLC",
+    "bo": 3,
+    "hours": 3,
+    "url": "https://pcmt.gg/events/s2-emea/hot-vs-atlc-s2-playoffs-2026-11-29"
+  },
+  {
     "region": "NA",
     "start": "2026-11-29T22:00:00Z",
     "a": "DRX",
