@@ -461,7 +461,10 @@ var PCMT_PICKEMS = [
         "b": "SRG",
         "bo": 3,
         "start": "2026-11-26T03:00:00Z",
-        "score": null,
+        "score": [
+          0,
+          2
+        ],
         "url": "https://pcmt.gg/events/s4-na/loud-vs-srg-s4-group-a-2026-11-26"
       },
       {
