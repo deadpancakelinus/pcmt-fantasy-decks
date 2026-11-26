@@ -578,6 +578,25 @@
     api: function (path, opts) { return refreshIfNeeded().then(function () { return api(path, opts); }); },
     apiAll: function (path) { return refreshIfNeeded().then(function () { return apiAll(path); }); },
     applySubs: function (rows, results) { return applySubs(rows, results); },   // backend.html, Subs tab
+    // backend.html, Decks tab: a deck's price at time t, and why it breaks a rule ('' = it scores).
+    deckCost: function (slots, t) { var c = 0; deckIds(slots).forEach(function (id) { if (BY_ID[id]) c += priceAt(id, t); }); return c; },
+    deckProblem: function (slots, t) {
+      var keys = Object.keys(slots || {}), seen = {}, teams = {}, cost = 0;
+      if (keys.length !== ROLES.length * 2 + 3) return 'The deck doesn\'t have ' + (ROLES.length * 2 + 3) + ' players.';
+      for (var i = 0; i < keys.length; i++) {
+        var k = keys[i], id = slots[k], p = BY_ID[id];
+        if (!p) return id + ' isn\'t a player on the site.';
+        if (seen[id] || (TWIN[id] && seen[TWIN[id]])) return p.name + ' is in the deck twice.';
+        seen[id] = true;
+        var m = /^(duelist|controller|initiator|sentinel)-(1|2)$/.exec(k);
+        if (m && role(p) !== m[1]) return p.name + ' isn\'t a ' + m[1] + '.';
+        cost += priceAt(id, t);
+        teams[p.team] = (teams[p.team] || 0) + 1;
+        if (teams[p.team] > TEAM_LIMIT) return 'More than ' + TEAM_LIMIT + ' players from ' + p.team + '.';
+      }
+      return cost > BUDGET + 1e-9 ? 'Over budget: ' + (Math.round(cost * 10) / 10) + ' of ' + BUDGET + '.' : '';
+    },
+    budget: BUDGET,
     weekStart: function (t) { return weekStart(t); }, weekEnd: function (b) { return weekEnd(b); },
     // The next weekly (EMEA) deck lock after t: the coming gameweek's lock (backend dashboard).
     nextWeekLock: function (t) {

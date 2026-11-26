@@ -96,6 +96,10 @@
   .sb-list li[aria-selected="true"], .sb-list li:hover { background: rgba(165,220,221,.12); }
   .sb-list li.none { cursor: default; color: var(--dim); background: none; }
   .sb-on { color: var(--good); }
+  .dk-how { border: 0; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; }
+  .dk-how legend { margin-bottom: 4px; }
+  #dk-rows tr.on td { background: rgba(165,220,221,.10); }
+  .dk-igl { margin-left: 8px; padding: 2px 8px; border-radius: 999px; font: 600 11px/1.4 'National Park', system-ui, sans-serif; letter-spacing: .06em; background: #3d2f12; color: #f5d76e; }
   .sb-past summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; gap: 8px; font: 600 13px/1 'National Park', system-ui, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--soft); }
   .sb-past .sheet { margin-top: 8px; }
   .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -253,6 +257,7 @@
       <button type="button" role="tab" id="tab-prices" aria-controls="pane-prices" aria-selected="false" tabindex="-1">Player prices</button>
       <button type="button" role="tab" id="tab-teams" aria-controls="pane-teams" aria-selected="false" tabindex="-1">Teams</button>
       <button type="button" role="tab" id="tab-subs" aria-controls="pane-subs" aria-selected="false" tabindex="-1">Subs <span class="count" id="sb-badge"></span></button>
+      <button type="button" role="tab" id="tab-decks" aria-controls="pane-decks" aria-selected="false" tabindex="-1">Decks</button>
       <button type="button" role="tab" id="tab-riot" aria-controls="pane-riot" aria-selected="false" tabindex="-1">Riot IDs <span class="count" id="ri-badge"></span></button>
       <button type="button" role="tab" id="tab-notes" aria-controls="pane-notes" aria-selected="false" tabindex="-1">Patch notes</button>
       <button type="button" role="tab" id="tab-complaints" aria-controls="pane-complaints" aria-selected="false" tabindex="-1">Complaints <span class="count" id="cx-badge"></span></button>
@@ -502,6 +507,47 @@
       </details>
     </section>
 
+    <!-- ===== Decks ===== -->
+    <section class="pane" role="tabpanel" id="pane-decks" aria-labelledby="tab-decks" hidden>
+      <form class="panel" id="dk-form" autocomplete="off" novalidate>
+        <div class="sb-row">
+          <div class="field sb-combo" style="flex: 1 1 320px">
+            <label class="kicker" for="dk-who" id="dk-who-label">User</label>
+            <input id="dk-who" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="dk-who-list" placeholder="Search a name" spellcheck="false">
+            <ul class="sb-list" id="dk-who-list" role="listbox" aria-labelledby="dk-who-label" hidden></ul>
+          </div>
+          <label class="field" style="flex: 1 1 320px"><span class="kicker">Saved deck</span><select id="dk-deck" disabled><option value="">Pick a user first</option></select></label>
+        </div>
+        <p class="note" id="dk-about"></p>
+        <div class="sheet" id="dk-sheet" hidden><table class="grid">
+          <thead><tr><th class="plain" scope="col">Slot</th><th class="plain" scope="col">Player</th><th class="plain" scope="col">Team</th><th class="plain num" scope="col">Price</th><th class="plain" scope="col"><span class="sr-only">Swap out</span></th></tr></thead>
+          <tbody id="dk-rows"></tbody>
+        </table></div>
+        <div id="dk-swap" hidden>
+          <div class="sb-row" style="margin-top: 16px">
+            <div class="field sb-combo" style="flex: 1 1 320px">
+              <label class="kicker" for="dk-in" id="dk-in-label">Put in</label>
+              <input id="dk-in" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="dk-in-list" placeholder="Search a player" spellcheck="false">
+              <ul class="sb-list" id="dk-in-list" role="listbox" aria-labelledby="dk-in-label" hidden></ul>
+            </div>
+          </div>
+          <fieldset class="dk-how">
+            <legend class="kicker">How</legend>
+            <label class="chk-line"><input type="radio" name="dk-how" value="fix" checked> Change this saved deck. Every gameweek it already counted for changes too.</label>
+            <label class="chk-line"><input type="radio" name="dk-how" value="new"> Save it as a new deck for them. It counts from the next lock, like them saving now.</label>
+          </fieldset>
+          <p class="note" id="dk-preview" aria-live="polite"></p>
+          <div class="bar"><button class="btn" id="dk-go" type="submit" disabled>Swap player</button></div>
+        </div>
+        <p class="msg" id="dk-msg" role="status" aria-live="polite"></p>
+      </form>
+      <h2 class="pn-h" style="margin: 28px 0 12px">Recent swaps</h2>
+      <div class="sheet"><table class="grid">
+        <thead><tr><th class="plain" scope="col">When</th><th class="plain" scope="col">User</th><th class="plain" scope="col">Out</th><th class="plain" scope="col">In</th><th class="plain" scope="col">How</th><th class="plain" scope="col">By</th></tr></thead>
+        <tbody id="dk-log"></tbody>
+      </table></div>
+    </section>
+
     <!-- ===== Patch notes ===== -->
     <section class="pane" role="tabpanel" id="pane-notes" aria-labelledby="tab-notes" hidden>
       <form class="panel" id="ver-form" autocomplete="off" novalidate>
@@ -631,7 +677,7 @@
   var REGION = {}, NAMES = {};
 
   // ---------- tabs ----------
-  var TABS = ['dash', 'pages', 'schedule', 'season', 'pickems', 'prices', 'teams', 'subs', 'riot', 'notes', 'complaints', 'staff'];
+  var TABS = ['dash', 'pages', 'schedule', 'season', 'pickems', 'prices', 'teams', 'subs', 'decks', 'riot', 'notes', 'complaints', 'staff'];
   function openTab(name, focus) {
     TABS.forEach(function (t) {
       var on = t === name, tab = $('tab-' + t);
@@ -1965,7 +2011,6 @@
     if (d.pickems_synced) h.push('<li><span>Pick\'ems synced</span><b>' + esc(ago(d.pickems_synced)) + '</b></li>');
     var lastRes = (window.PCMT_RESULTS || []).map(function (r) { return Date.parse(r.start); }).sort(function (a, b) { return b - a; })[0];
     if (lastRes) h.push('<li><span>Newest result</span><b>' + esc(etWhen(lastRes)) + '</b></li>');
-    if (ls && !ls.ok && ls.message) h.push('<li><span class="bad">' + esc(ls.message) + '</span></li>');
     $('db-health').innerHTML = h.join('') || '<li><span class="who">' + (DASH ? '' : '—') + '</span></li>';
     // Pick'ems: who picked what, per game, for open events, each team's share in its team colour
     // (NA Season 4 from season-teams.js, so S4 FNC isn't S3's; other events from the team list; no colour = the old look)
@@ -2189,6 +2234,127 @@
     }).catch(function (e2) { msg.className = 'msg err'; msg.textContent = 'Couldn\'t save ' + id + ': ' + e2.message; b.disabled = false; });
   });
 
+  // ---------- Decks (setup/deck-swaps.sql): swap one player in a user's saved deck ----------
+  var DK = { users: {}, decks: [], user: null, deck: null, slot: null, pick: null, busy: false, log: [], err: '' };
+  var DK_SLOTS = ['duelist-1', 'duelist-2', 'controller-1', 'controller-2', 'initiator-1', 'initiator-2', 'sentinel-1', 'sentinel-2', 'wild-1', 'wild-2', 'wild-3'];
+  function dkSlotName(k) { var m = /^(\w+)-(\d)$/.exec(k); return m ? (m[1] === 'wild' ? 'Wildcard ' : cap(m[1]) + ' ') + m[2] : k; }
+  function dkName(id) { var u = DK.users[id]; return u ? (u.username || u.name || id) : (NAMES[id] || id); }
+  function dkPlayer(id) { var p = BY_ID[id]; return p ? p.name : id; }
+  function dkPrice(id, t) { var c = L.deckCost({ x: id }, t); return Math.round(c * 10) / 10; }
+  function loadDecks() {
+    return Promise.all([
+      L.apiAll('/rest/v1/profiles?select=id,name,username&order=id').then(function (r) { DK.users = {}; (r || []).forEach(function (u) { DK.users[u.id] = u; }); }).catch(function () {}),
+      L.apiAll('/rest/v1/deck_history?select=id,user_id,region,created_at&order=id').then(function (r) { DK.decks = r || []; }),
+      loadSwaps()
+    ]).catch(function (e) { DK.err = e.message; });
+  }
+  function loadSwaps() {
+    return L.api('/rest/v1/deck_swaps?select=deck_id,user_id,slot,player_out,player_in,as_new,created_at,created_by&order=created_at.desc&limit=50')
+      .then(function (r) { DK.log = r || []; DK.err = ''; }, function (e) { DK.log = []; DK.err = /deck_swaps|404|PGRST/.test(e.message) ? 'Needs setup/deck-swaps.sql in Supabase.' : e.message; });
+  }
+  function dkUserOptions(q) {
+    q = q.trim().toLowerCase();
+    var n = {}; DK.decks.forEach(function (d) { n[d.user_id] = (n[d.user_id] || 0) + 1; });
+    return Object.keys(n).filter(function (id) { var u = DK.users[id] || {}; return !q || [u.username, u.name, NAMES[id]].some(function (x) { return x && String(x).toLowerCase().indexOf(q) >= 0; }); })
+      .sort(function (a, b) { return dkName(a).localeCompare(dkName(b)); }).slice(0, 40)
+      .map(function (id) { var u = DK.users[id] || {}; return { value: id, label: dkName(id), meta: (u.username && u.name && u.name !== u.username ? u.name + ' · ' : '') + n[id] + (n[id] === 1 ? ' save' : ' saves') }; });
+  }
+  function dkPickUser(id) {
+    DK.user = id; DK.saves = null; DK.deck = null; DK.slot = null; DK.pick = null; $('dk-in').value = ''; $('dk-msg').textContent = '';
+    var sel = $('dk-deck');
+    if (!id) { sel.disabled = true; sel.innerHTML = '<option value="">Pick a user first</option>'; return drawDeck(); }
+    sel.disabled = true; sel.innerHTML = '<option value="">Loading…</option>';
+    L.apiAll('/rest/v1/deck_history?select=id,user_id,name,slots,igl,region,created_at&user_id=eq.' + id + '&order=created_at.desc,id.desc').then(function (r) {
+      if (DK.user !== id) return;
+      DK.saves = r || [];
+      var latest = {};
+      sel.innerHTML = DK.saves.map(function (d) {
+        var rg = d.region || 'NA', top = !latest[rg]; latest[rg] = true;
+        return '<option value="' + d.id + '">' + esc(rg + ' · ' + (d.name || 'Unnamed deck') + ' · saved ' + day(d.created_at) + (top ? ' (latest ' + rg + ')' : '')) + '</option>';
+      }).join('') || '<option value="">No saved decks</option>';
+      sel.disabled = !DK.saves.length;
+      DK.deck = DK.saves[0] || null; drawDeck();
+    }, function (e) { sel.innerHTML = '<option value="">Couldn\'t load decks</option>'; $('dk-msg').className = 'msg err'; $('dk-msg').textContent = e.message; });
+  }
+  function dkNewSlots() {
+    if (!DK.deck || !DK.slot || !DK.pick) return null;
+    var s = Object.assign({}, DK.deck.slots); s[DK.slot] = DK.pick; return s;
+  }
+  function dkWhen() { return document.querySelector('input[name="dk-how"]:checked').value === 'new' ? Date.now() : Date.parse(DK.deck.created_at); }
+  function drawDeck() {
+    var d = DK.deck, has = !!d;
+    $('dk-sheet').hidden = !has; $('dk-swap').hidden = !has || !DK.slot;
+    if (!has) { $('dk-about').textContent = ''; $('dk-rows').innerHTML = ''; return drawSwap(); }
+    var t = Date.parse(d.created_at), keys = DK_SLOTS.filter(function (k) { return k in d.slots; }).concat(Object.keys(d.slots).filter(function (k) { return DK_SLOTS.indexOf(k) < 0; }));
+    var cost = L.deckCost(d.slots, t), prob = L.deckProblem(d.slots, t);
+    $('dk-about').innerHTML = esc((d.region || 'NA') + ' deck "' + (d.name || 'Unnamed deck') + '", saved ' + day(d.created_at) + ' · ' + (Math.round(cost * 10) / 10) + ' of ' + L.budget + '. ') +
+      (prob ? '<span style="color: var(--bad)">' + esc('Breaks a rule: ' + prob + ' It doesn\'t score.') + '</span>' : '');
+    $('dk-rows').innerHTML = keys.map(function (k) {
+      var id = d.slots[k], p = BY_ID[id], on = DK.slot === k;
+      return '<tr' + (on ? ' class="on"' : '') + '><td class="who">' + esc(dkSlotName(k)) + '</td><td><b>' + esc(p ? p.name : id) + '</b>' + (d.igl === id ? '<span class="dk-igl">IGL</span>' : '') + '</td>' +
+        '<td class="who">' + esc(p ? p.team : '') + '</td><td class="num">' + dkPrice(id, t) + '</td>' +
+        '<td style="text-align:right"><button class="btn ghost" type="button" data-dk-slot="' + esc(k) + '" aria-pressed="' + on + '">' + (on ? 'Swapping out' : 'Swap out') + '</button></td></tr>';
+    }).join('');
+    drawSwap();
+  }
+  function dkInOptions(q) {
+    if (!DK.deck || !DK.slot) return [];
+    q = q.trim().toLowerCase();
+    var d = DK.deck, rg = d.region || 'NA', m = /^(duelist|controller|initiator|sentinel)-/.exec(DK.slot), inDeck = {};
+    Object.keys(d.slots).forEach(function (k) { inDeck[d.slots[k]] = true; });
+    var t = Date.now();
+    return PLAYERS_NOW().filter(function (p) {
+      return !inDeck[p.id] && regionOf(p) === rg && (!m || role(p) === m[1]) && (!q || p.name.toLowerCase().indexOf(q) >= 0 || String(p.team).toLowerCase() === q);
+    }).sort(function (a, b) { return a.name.localeCompare(b.name); }).slice(0, 40)
+      .map(function (p) { return { value: p.id, label: p.name, meta: p.team + ' · ' + cap(role(p)) + ' · ' + dkPrice(p.id, t) }; });
+  }
+  function drawSwap() {
+    var el = $('dk-preview'), s = dkNewSlots(), ok = false;
+    if (!s) el.textContent = DK.slot ? 'Search the player to put in. Only ' + (DK.deck.region || 'NA') + ' players' + (/^wild/.test(DK.slot) ? '' : ' who play ' + DK.slot.split('-')[0]) + ' are listed.' : '';
+    else {
+      var t = dkWhen(), prob = L.deckProblem(s, t), cost = Math.round(L.deckCost(s, t) * 10) / 10, out = DK.deck.slots[DK.slot];
+      var line = dkPlayer(out) + ' out, ' + dkPlayer(DK.pick) + ' in' + (DK.deck.igl === out ? ' (and IGL)' : '') + '. Deck: ' + cost + ' of ' + L.budget + '.';
+      el.innerHTML = prob ? '<span style="color: var(--bad)">' + esc(line + ' ' + prob + ' A deck that breaks a rule doesn\'t score, so this can\'t be saved.') + '</span>' : '<span class="sb-on">' + esc(line) + '</span>';
+      ok = !prob;
+    }
+    $('dk-go').disabled = DK.busy || !ok;
+  }
+  function drawSwaps() {
+    $('dk-log').innerHTML = DK.log.map(function (r) {
+      return '<tr><td class="who">' + esc(day(r.created_at)) + '</td><td><b>' + esc(dkName(r.user_id)) + '</b></td><td>' + esc(dkPlayer(r.player_out)) + '</td><td>' + esc(dkPlayer(r.player_in)) + '</td>' +
+        '<td class="who">' + (r.as_new ? 'New deck' : 'Changed deck') + '</td><td class="who">' + esc(r.created_by ? dkName(r.created_by) : '') + '</td></tr>';
+    }).join('') || '<tr><td colspan="6" class="who">' + esc(DK.err || 'No swaps yet.') + '</td></tr>';
+  }
+  sbCombo($('dk-who'), $('dk-who-list'), dkUserOptions, function (o) { if (o) dkPickUser(o.value); else if (DK.user) dkPickUser(null); });
+  sbCombo($('dk-in'), $('dk-in-list'), dkInOptions, function (o) { DK.pick = o ? o.value : null; $('dk-msg').textContent = ''; drawSwap(); });
+  $('dk-deck').addEventListener('change', function () {
+    var v = +this.value; DK.deck = (DK.saves || []).filter(function (d) { return d.id === v; })[0] || null;
+    DK.slot = null; DK.pick = null; $('dk-in').value = ''; $('dk-msg').textContent = ''; drawDeck();
+  });
+  $('dk-rows').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-dk-slot]'); if (!b) return;
+    var k = b.getAttribute('data-dk-slot');
+    DK.slot = DK.slot === k ? null : k; DK.pick = null; $('dk-in').value = ''; $('dk-msg').textContent = ''; drawDeck();
+    if (DK.slot) $('dk-in').focus();
+  });
+  document.querySelectorAll('input[name="dk-how"]').forEach(function (r) { r.addEventListener('change', drawSwap); });
+  $('dk-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var s = dkNewSlots(); if (!s || DK.busy || L.deckProblem(s, dkWhen())) return;
+    var asNew = document.querySelector('input[name="dk-how"]:checked').value === 'new', msg = $('dk-msg'), user = DK.user, keep = DK.deck.id;
+    var line = dkPlayer(DK.deck.slots[DK.slot]) + ' out, ' + dkPlayer(DK.pick) + ' in for ' + dkName(user) + '.';
+    DK.busy = true; drawSwap(); msg.className = 'msg'; msg.textContent = 'Saving…';
+    L.api('/rest/v1/rpc/fb_deck_swap', { method: 'POST', body: { p_deck: keep, p_slot: DK.slot, p_in: DK.pick, p_new: asNew } }).then(function (id) {
+      msg.className = 'msg ok'; msg.textContent = 'Done: ' + line + (asNew ? ' Saved as their new deck.' : ' Their saved deck is changed.') + ' The site shows it on the next page load.';
+      return Promise.all([loadSwaps(), L.apiAll('/rest/v1/deck_history?select=id,user_id,region,created_at&order=id').then(function (r) { DK.decks = r || []; })]).then(function () {
+        drawSwaps(); var m2 = msg.textContent, cls = msg.className; dkPickUser(user);
+        var wait = setInterval(function () { if (DK.saves && DK.user === user) { clearInterval(wait); var sel = $('dk-deck'); sel.value = String(id); sel.dispatchEvent(new Event('change')); msg.className = cls; msg.textContent = m2; } }, 100);
+        setTimeout(function () { clearInterval(wait); }, 8000);
+      });
+    }).catch(function (e2) { msg.className = 'msg err'; msg.textContent = 'Couldn\'t swap: ' + e2.message + (/fb_deck_swap|PGRST202/.test(e2.message) ? ' (run setup/deck-swaps.sql in Supabase)' : ''); })
+      .then(function () { DK.busy = false; drawSwap(); });
+  });
+
   // ---------- Staff ----------
   var STAFF = [], staffErr = '', stPick = null, stArmed = null, stBusy = false;
   function loadStaff() {
@@ -2287,14 +2453,14 @@
       return Promise.all([
         L.apiAll('/rest/v1/profiles?select=id,name&order=id').then(function (r) { (r || []).forEach(function (p) { NAMES[p.id] = p.name; }); }).catch(function () {}),
         loadPrices(), loadRemoved(), loadDeck(), loadComplaints(), loadPages(), loadSubs(), loadRiot(), loadNotes(), loadVersion(),
-        loadDash(), loadSchedule(), loadSeason(), loadPickemEvents(), loadStaff()
+        loadDash(), loadSchedule(), loadSeason(), loadPickemEvents(), loadStaff(), loadDecks()
       ]).then(function () {
         show('st-staff');
         var h = (location.hash || '').slice(1);
         openTab(TABS.indexOf(h) >= 0 ? h : 'dash');
         if (h === 'schedule') loadEvents();
         drawDash(); drawGraphic(); syncStatus(); scReset(); drawSchedule(); drawSeason(); drawPickemEvents(); drawStaff();
-        drawPages(); drawPrices(); setupTeams(); drawSubs(); setupRiot(); drawNotes(); drawComplaints();
+        drawPages(); drawPrices(); setupTeams(); drawSubs(); drawSwaps(); setupRiot(); drawNotes(); drawComplaints();
       });
     }).catch(function (e) { show('st-staff'); $('p-msg').textContent = 'Something went wrong loading the backend: ' + e.message; $('p-msg').className = 'msg err'; });
   }

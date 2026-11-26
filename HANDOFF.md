@@ -11,6 +11,7 @@ The next update is on the branch **`update-3`**, NOT pushed (only when the owner
 | Part | Section | Database |
 |---|---|---|
 | Store, Library and the staff Database page deleted, with card packs, Rare cards and Credits; MVP VS keeps only the basic cards; points stay | 59 | `setup/no-credits.sql` |
+| Backend Decks tab: staff swap one player in a user's saved deck | 60 | `setup/deck-swaps.sql` (already run Nov 25 2026) |
 
 **To ship `update-3`:** run `setup/no-credits.sql` in Supabase (stops the Credits payout job, sets Pick'ems Credits to 0, removes the deleted pages from the Pages list), then `git fetch origin && git checkout update-3 && git merge origin/main`, rebuild (`python3 -I tools/build.py tools/canvas assets <out>`, copy the built pages except `data.js`, `pickems.js`, `rankings.js`), smoke test, commit as `deadpancakelinus <sixthneigh@gmail.com>` (short plain message), `git push origin update-3:main`.
 
@@ -483,3 +484,14 @@ Supabase's Discord login always asks Discord for the email. Triggers drop it bef
 - **Kept on purpose:** the tables in Supabase (vp_ledger, cards, card_packs, user_cards, player_database ...), so nothing is lost; setup/cards-setup.sql and setup/database-setup.sql stay as the record of them (backend-setup.sql, pages-setup.sql and their tests build on them). Customization's first-open card pack animation on newly unlocked card backs stays (it's part of the card backs, not the Store). The privacy notice still lists Credits and cards, because that data is still stored.
 - **setup/no-credits.sql** (release day): unschedules `pcmt-vp-payout` (the hourly `vp_sync()`, which only paid Credits; `pcmt-pickems` keeps running for Pick'ems locks and standings), sets `credits_win` / `credits_exact` to 0 on every Pick'ems event, deletes the store / library / database rows from `site_pages`.
 
+## 60. Backend Decks tab (update-3, not released yet)
+
+The backend's **Decks** tab swaps one player in a user's saved deck. Pick the user, pick one of their saved decks (newest first; the latest NA and EMEA ones are marked), press **Swap out** on a player and search the player to put in. Only players from the deck's region are listed, and only the slot's role (any role for a Wildcard). The swap is blocked if the deck would break a rule (budget, more than 2 from one team, the same player twice), because a deck that breaks a rule doesn't score. If the player going out is the IGL, the new player becomes the IGL.
+
+Two ways to save it:
+- **Change this saved deck** (default): edits that deck in place, keeping its save time, so every gameweek it already counted for changes too. Use this to fix a deck that's already locked.
+- **Save it as a new deck**: a copy with the swap is saved for the user now, like them saving, so it counts from the next lock.
+
+`fb_deck_swap(p_deck, p_slot, p_in, p_new)` in `setup/deck-swaps.sql` does the change (staff only, `is_freshbatch()`), and every swap is kept in `deck_swaps` (staff can read it; the tab lists the last 50). The budget check uses `PCMT_LEAGUE.deckProblem` / `deckCost` in league.js, with the prices from when the deck was saved (or now, for a new deck). Test: `node tools/deck-swaps-test.js "psql -h /tmp/pg -p 5499 -U postgres"`.
+
+Also in update-3: the dashboard's site health list lost its Credits run line; a leftover reference to it broke the whole backend and was fixed Nov 25 2026.
