@@ -433,14 +433,14 @@ class Component extends DCLogic {
     // In the design canvas (no league.js) the page always shows, with sample picks; the live site goes by pickem_events.
     var live = !!W.PCMT_LEAGUE;
     var allowed = !!(W.PCMT_IS_ADMIN || W.PCMT_IS_STAFF || this.props.previewOpen || !live);
-    var ev = (W.PCMT_PICKEM_EVENTS || {})[b.id] || { open: false };
+    var ev = (W.PCMT_PICKEM_EVENTS || {})[b.id] || { open: false, credits_win: b.mode === 'games' ? 10 : 20 };
     // open = false in pickem_events closes it again: then only PCMT Team staff and site admins see the page.
     var locked = !ev.open && !allowed && !finished;
     var R = pcmtPickemResolve(b, myPicks, now);
     // The whole bracket locks when the next game starts and stays locked to the end of the playoffs.
     var lockAt = games ? null : pcmtBracketLockAt(b, ev), bracketLocked = finished || (lockAt !== null && now >= lockAt);
     if (!games) Object.keys(R).forEach(function (n) { R[n].locked = R[n].done || bracketLocked; });   // games lock one by one
-    var totals = { points: 0, correct: 0, made: 0, open: 0, left: 0, decided: 0 };
+    var totals = { points: 0, credits: 0, correct: 0, made: 0, open: 0, left: 0, decided: 0 };
     function row(code, real, info, side, first) {
       var t = code ? PCMT_PICKEM_TEAMS[code] : null, ref = side === 'a' ? info.s.a : info.s.b;
       var p = info.pick, picked = !!(p && code && p.winner === code), isWinner = info.done && info.winner === code;
@@ -470,7 +470,7 @@ class Component extends DCLogic {
       var info = R[L.n], p = info.pick;
       if (p) totals.made++;
       if (info.done && p) totals.decided++;
-      if (info.done && p && p.winner === info.winner) { totals.points++; totals.correct++; }
+      if (info.done && p && p.winner === info.winner) { totals.points++; totals.correct++; totals.credits += ev.credits_win; }
       if (!info.locked) {
         totals.open++;
         if (!p) totals.left++;
@@ -490,8 +490,8 @@ class Component extends DCLogic {
         var info = R[s.n], p = info.pick, right = info.done && p && p.winner === info.winner;
         if (p) totals.made++;
         if (info.done && p) totals.decided++;
-        if (right) { totals.points++; totals.correct++; }
-        var pill = info.done ? (p ? (right ? 'Right · +1' : 'Wrong · 0') : 'Final') : info.locked ? 'Live' : self.state.gameSaving === s.n ? 'Saving…' : p ? 'Picked' : 'Pick';
+        if (right) { totals.points++; totals.correct++; totals.credits += ev.credits_win; }
+        var pill = info.done ? (p ? (right ? 'Right · +' + ev.credits_win : 'Wrong · 0') : 'Final') : info.locked ? 'Live' : self.state.gameSaving === s.n ? 'Saving…' : p ? 'Picked' : 'Pick';
         var pillBg = info.done ? (p ? (right ? '#8be4b7' : '#ef8f8f') : '#2a3a3e') : info.locked ? '#f5d76e' : p ? '#a5dcdd' : 'transparent';
         var pillFg = (info.done && !p) ? '#c4d4d4' : (!info.done && !info.locked && !p) ? '#a5dcdd' : '#000';
         return {
@@ -597,7 +597,7 @@ class Component extends DCLogic {
     });
     var openLeft = games ? b.series.filter(function (s) { return !R[s.n].locked && !R[s.n].pick; }).length : 0;
     return {
-      gameWorth: 'A right pick earns 1 point. A wrong pick earns nothing.',
+      gameWorth: 'A right pick earns ' + ev.credits_win + ' points. A wrong pick earns nothing.',
       gamesMode: games, bracketMode: !games, noGames: games && !b.series.length, gameGroups: gameGroups,
       gameNote: !games ? '' : this.state.gameSaving ? 'Saving your pick…' : openLeft ? (openLeft === 1 ? '1 game' : openLeft + ' games') + ' left to pick' : b.series.length ? 'Every open game is picked' : '',
       gameNoteColor: openLeft ? '#f5d76e' : '#93a9aa',
