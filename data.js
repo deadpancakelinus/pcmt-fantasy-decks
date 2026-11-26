@@ -87,6 +87,15 @@ var PCMT_MATCHES = [
     "url": "https://pcmt.gg/events/s2-emea/hot-vs-atlc-s2-playoffs-2026-11-29"
   },
   {
+    "region": "EMEA",
+    "start": "2026-11-29T20:00:00Z",
+    "a": "NATS",
+    "b": "SEAL",
+    "bo": 3,
+    "hours": 3,
+    "url": "https://pcmt.gg/events/s2-emea/nats-vs-seal-s2-playoffs-2026-11-29"
+  },
+  {
     "region": "NA",
     "start": "2026-11-29T22:00:00Z",
     "a": "DRX",
@@ -1641,6 +1650,152 @@ var PCMT_RESULTS = [
           "kaydeg-s4": 17,
           "angus-s4": 17,
           "androobee-s4": 10
+        }
+      }
+    ]
+  },
+  {
+    "region": "NA",
+    "start": "2026-11-26T03:00:00Z",
+    "a": "LOUD",
+    "b": "SRG",
+    "winner": "SRG",
+    "url": "https://pcmt.gg/events/s4-na/loud-vs-srg-s4-group-a-2026-11-26",
+    "stats": {
+      "sizeable-s4": [
+        38,
+        28,
+        13,
+        7,
+        250,
+        79,
+        154.1,
+        1.203
+      ],
+      "avi-s4": [
+        32,
+        33,
+        7,
+        8,
+        224,
+        64,
+        154.4,
+        0.997
+      ],
+      "tenyaku-s4": [
+        25,
+        29,
+        8,
+        5,
+        178,
+        69,
+        120.9,
+        0.883
+      ],
+      "dino-s4": [
+        23,
+        29,
+        13,
+        2,
+        158,
+        60,
+        99.1,
+        0.8
+      ],
+      "roro-s4": [
+        18,
+        32,
+        16,
+        3,
+        127,
+        64,
+        79.8,
+        0.687
+      ],
+      "colt-s4": [
+        53,
+        25,
+        6,
+        8,
+        348,
+        76,
+        227.1,
+        1.567
+      ],
+      "~pieta": [
+        34,
+        35,
+        18,
+        7,
+        250,
+        74,
+        163,
+        1.113
+      ],
+      "pumpkin-s4": [
+        26,
+        24,
+        18,
+        1,
+        174,
+        79,
+        113.2,
+        1.013
+      ],
+      "platinum-s4": [
+        26,
+        23,
+        13,
+        0,
+        168,
+        69,
+        109.7,
+        0.958
+      ],
+      "~paul": [
+        12,
+        29,
+        7,
+        1,
+        82,
+        60,
+        54.8,
+        0.513
+      ]
+    },
+    "maps": [
+      {
+        "map": "Sunset",
+        "a": 8,
+        "b": 13,
+        "k": {
+          "avi-s4": 22,
+          "dino-s4": 15,
+          "sizeable-s4": 13,
+          "tenyaku-s4": 8,
+          "roro-s4": 9,
+          "colt-s4": 26,
+          "~pieta": 19,
+          "platinum-s4": 15,
+          "pumpkin-s4": 10,
+          "~paul": 10
+        }
+      },
+      {
+        "map": "Abyss",
+        "a": 8,
+        "b": 13,
+        "k": {
+          "sizeable-s4": 25,
+          "tenyaku-s4": 17,
+          "roro-s4": 9,
+          "dino-s4": 8,
+          "avi-s4": 10,
+          "colt-s4": 27,
+          "pumpkin-s4": 16,
+          "~pieta": 15,
+          "platinum-s4": 11,
+          "~paul": 2
         }
       }
     ]
