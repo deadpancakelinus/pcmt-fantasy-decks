@@ -13,7 +13,7 @@ The next update is on the branch **`update-3`**, NOT pushed (only when the owner
 | Store, Library and the staff Database page deleted, with card packs, Rare cards and Credits; MVP VS keeps only the basic cards; points stay | 59 | `setup/no-credits.sql` |
 | Backend Decks tab: staff swap one player in a user's saved deck | 60 | `setup/deck-swaps.sql` (already run Nov 25 2026) |
 
-**To ship `update-3`:** run `setup/no-credits.sql` in Supabase (stops the Credits payout job, sets Pick'ems Credits to 0, removes the deleted pages from the Pages list), then `git fetch origin && git checkout update-3 && git merge origin/main`, rebuild (`python3 -I tools/build.py tools/canvas assets <out>`, copy the built pages except `data.js`, `pickems.js`, `rankings.js`), smoke test, commit as `deadpancakelinus <sixthneigh@gmail.com>` (short plain message), `git push origin update-3:main`.
+**To ship `update-3`:** run `setup/no-credits.sql` in Supabase (stops the Credits payout job, switches the NA/EMEA Pick'ems standings to 1 point per right pick, sets Pick'ems Credits to 0, removes the deleted pages from the Pages list), then `git fetch origin && git checkout update-3 && git merge origin/main`, rebuild (`python3 -I tools/build.py tools/canvas assets <out>`, copy the built pages except `data.js`, `pickems.js`, `rankings.js`), smoke test, commit as `deadpancakelinus <sixthneigh@gmail.com>` (short plain message), `git push origin update-3:main`.
 
 A small hotfix is also kept on the local-only branch `hotfix-pics` (a profile picture that won't load shows the first letter instead; Discord avatar links die when a player changes their avatar, until they log in again). The owner chose not to ship it (Nov 23).
 
