@@ -1,6 +1,6 @@
 -- Backend Users page: one row per user, for staff only.
 -- Name, username and picture (profiles); when they joined and last logged in; deck saves and their latest deck;
--- Pick'ems picks; MVP VS wins and games (once setup/trumps-tiers.sql has run). No emails.
+-- Pick'ems picks; MVP VS wins and games (once setup/trumps-tiers.sql and trumps-4p.sql have run). No emails.
 -- Safe to run more than once.
 
 create or replace function public.fb_users()
@@ -35,7 +35,7 @@ begin
     case when has_mvp then 'coalesce(m.wins, 0)::integer' else '0' end,
     case when has_mvp then 'coalesce(m.games, 0)::integer' else '0' end,
     case when has_mvp then 'left join lateral (select count(*) filter (where r.winner = u.id) as wins, count(*) as games
-                                               from public.trumps_results r where r.winner = u.id or r.loser = u.id) m on true'
+                                               from public.trumps_results r where u.id = any (r.players)) m on true'
          else '' end);
 end;
 $$;

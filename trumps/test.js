@@ -54,6 +54,45 @@ const check = (ok, msg) => { if (!ok) { bad++; console.log('FAIL ' + msg); } };
       }
       return out;
     });
+    // 3 and 4 players: even deal, cards never lost, the game always ends, ties go back, players drop out.
+    const multi = await pg.evaluate(() => {
+      const T = window.PCMT_TRUMPS, out = {};
+      for (const n of [3, 4]) {
+        const deck = window.PCMT_TRUMPS_SEASONS[0].id, total = T.cards[deck].length, errors = [];
+        let ended = 0, outs = 0, wins = 0;
+        for (let seed = 1; seed <= 600; seed++) {
+          let s = T.newGame(deck, seed, undefined, 200, n);
+          const sizes = s.hands.map(h => h.length);
+          if (s.hands.length !== n || Math.max(...sizes) - Math.min(...sizes) > 1 || sizes.reduce((a, b) => a + b, 0) !== total) { errors.push('bad deal ' + sizes); break; }
+          if (sizes[s.turn] !== Math.min(...sizes)) { errors.push('first picker got an extra card'); break; }
+          let guard = 0;
+          while (!s.over && guard++ < 400) {
+            if (!s.hands[s.turn].length) { errors.push('picker has no cards'); break; }
+            s = T.play(s, T.botPick(s, s.turn));
+            const ids = [].concat(...s.hands);
+            if (ids.length !== total || new Set(ids).size !== total) { errors.push('cards broke, seed ' + seed); break; }
+            if (s.hands.some(h => !h.length) && !s.over) outs++;
+          }
+          if (!s.over) errors.push('never ended');
+          else { ended++; if (s.over.winner >= 0) { wins++; const c = s.hands.map(h => h.length); if (c.filter(x => x >= c[s.over.winner]).length !== 1) errors.push('winner without the most cards'); } }
+          if (errors.length) break;
+        }
+        // a tie for the best card among 3: every card goes back to its own deck, same picker
+        const cs = T.cards[deck], hi = cs.slice().sort((a, b) => b.acs - a.acs)[0], lo = cs.slice().sort((a, b) => a.acs - b.acs)[0];
+        const t = T.play({ region: deck, seed: 1, limit: 60, hands: [[hi.id, 'x'], [hi.id, 'y'], [lo.id, 'z']].slice(0, 3), turn: 2, round: 1, last: null, over: null }, 'acs');
+        const tieOk = t.last.winner === -1 && t.turn === 2 && t.hands.every((h, i) => h[h.length - 1] === [hi.id, hi.id, lo.id][i]);
+        const one = T.play({ region: deck, seed: 1, limit: 60, hands: [[hi.id], [lo.id], []], turn: 1, round: 1, last: null, over: null }, 'acs');
+        const outOk = one.over && one.over.winner === 0 && one.hands[0].length === 2 && one.last.cards[2] === null;
+        out[n] = { ended, wins, outs, errors: errors.slice(0, 2), tieOk, outOk };
+      }
+      return out;
+    });
+    for (const n of [3, 4]) {
+      const x = multi[n];
+      check(x.ended === 600 && !x.errors.length, `engine ${n} players: ${x.errors.join('; ')}`);
+      check(x.tieOk && x.outOk, `engine ${n} players: ties go back to their own decks and a player with no cards sits out (${x.tieOk}, ${x.outOk})`);
+      console.log(`engine ${n} players: ${x.ended} games ended, ${x.wins} with a winner`);
+    }
     // Several seasons dealt together, and the round count set before the deal.
     const mix = await pg.evaluate(() => {
       const T = window.PCMT_TRUMPS, ids = window.PCMT_TRUMPS_SEASONS.map(x => x.id).slice(0, 3), deck = ids.join('+');
@@ -155,13 +194,15 @@ const check = (ok, msg) => { if (!ok) { bad++; console.log('FAIL ' + msg); } };
     const uid = '11111111-1111-1111-1111-111111111111';
     const tok = 'x.' + Buffer.from(JSON.stringify({ sub: uid })).toString('base64').replace(/=+$/, '') + '.y';
     await pg.addInitScript(t => localStorage.setItem('pcmt-auth', JSON.stringify({ access_token: t, refresh_token: 'r', expires_at: Date.now() + 3600e3 })), tok);
-    let room = null, moves = [];
+    let room = null, moves = [], starts = [], left = 0;
     await pg.route('https://wwrsavqipkxvdsxcemos.supabase.co/**', async r => {
       const u = r.request().url(), body = r.request().postDataJSON ? r.request().postDataJSON() : null;
       const json = x => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(x) });
       if (u.includes('site_pages')) return json([{ id: 'mvp-vs', launched: true }]);
       if (u.includes('/rpc/trumps_is_tester')) return json(true);
-      if (u.includes('/rpc/trumps_create')) { room = { code: 'K7Q2M', region: body.p_region, host: uid, guest: null, host_name: 'Linus', guest_name: null, state: body.p_state, version: 1 }; return json('K7Q2M'); }
+      if (u.includes('/rpc/trumps_create')) { room = { code: 'K7Q2M', region: body.p_region, host: uid, guest: null, host_name: 'Linus', guest_name: null, players: [uid], names: ['Linus'], started: false, state: body.p_state, version: 1 }; return json('K7Q2M'); }
+      if (u.includes('/rpc/trumps_start')) { if (body.p_version !== room.version || body.p_state.hands.length !== room.players.length) return r.fulfill({ status: 400, contentType: 'application/json', body: '{"message":"Someone joined or left just now. Try again."}' }); starts.push(body); room.state = body.p_state; room.started = true; room.version++; return json(room.version); }
+      if (u.includes('/rpc/trumps_leave')) { left++; return json(null); }
       if (u.includes('/rpc/trumps_move')) { if (body.p_version !== room.version) return r.fulfill({ status: 400, contentType: 'application/json', body: '{"message":"The game moved on. Refreshing."}' }); moves.push(body); room.state = body.p_state; room.version++; return json(room.version); }
       if (u.includes('/trumps_rooms')) return json(room ? [room] : []);
       return json([]);
@@ -173,14 +214,36 @@ const check = (ok, msg) => { if (!ok) { bad++; console.log('FAIL ' + msg); } };
     await pg.waitForSelector('.tt-code');
     check((await pg.textContent('.tt-code')) === 'K7Q2M', 'room code not shown');
     await pg.screenshot({ path: `${SHOTS}/online-waiting.png` });
-    // Guest joins; make it the host's turn so we can pick.
-    room.guest = '22222222-2222-2222-2222-222222222222'; room.guest_name = 'Ethan'; room.version++; room.state.turn = 0;
+    check(await pg.isDisabled('[data-act="start"]'), 'Start should wait for a second player');
+    // Three friends join (seen by polling): 4 seats, Start turns on.
+    const ids = ['22222222-2222-2222-2222-222222222222', '33333333-3333-3333-3333-333333333333', '44444444-4444-4444-4444-444444444444'];
+    room.players = [uid, ...ids]; room.names = ['Linus', 'Ethan', 'Mia', 'Zed']; room.guest = ids[0]; room.guest_name = 'Ethan'; room.version++;
+    await pg.waitForFunction(() => document.querySelectorAll('.tt-seats li.in').length === 4, null, { timeout: 5000 });
+    check(!(await pg.isDisabled('[data-act="start"]')) && /4 players/.test(await pg.textContent('[data-act="start"]')), 'Start should turn on with 4 players');
+    await pg.screenshot({ path: `${SHOTS}/online-seats.png` });
+    await pg.click('[data-act="start"]');
+    await pg.waitForSelector('.tt-tabletop.tt-n4', { timeout: 5000 });
+    check(starts.length === 1 && starts[0].p_state.hands.length === 4, 'the host should deal 4 hands');
+    // Make it the host's turn so we can pick.
+    room.state = JSON.parse(JSON.stringify(room.state)); room.state.turn = 0; room.version++;
     await pg.waitForSelector('button.tt-stat', { timeout: 5000 });
-    check((await pg.textContent('.tt-tabletop')).includes('Ethan'), 'guest name not shown');
+    const table = await pg.textContent('.tt-tabletop');
+    check(['Ethan', 'Mia', 'Zed'].every(n => table.includes(n)), 'every player should be at the table');
+    check(await pg.$$eval('.tt-opp', e => e.length) === 3, 'three other players across the top');
+    await pg.screenshot({ path: `${SHOTS}/online-4p-pick.png` });
     await pg.click('button.tt-stat >> nth=1');
     await pg.waitForSelector('[data-act="next"]', { timeout: 5000 });
-    check(moves.length === 1 && moves[0].p_state.last.stat === 'kast', 'move was not sent');
+    check(moves.length === 1 && moves[0].p_state.last.stat === 'kast' && moves[0].p_state.last.cards.length === 4, 'move was not sent');
+    await pg.waitForTimeout(700);
+    check(await pg.$$eval('.tt-slot-them .tt-flip:not(.is-down)', e => e.length) === 3, 'all three other cards should turn face up');
     await pg.screenshot({ path: `${SHOTS}/online-reveal.png` });
+    // the collect: every played card lands somewhere and the counts still add up
+    await pg.click('[data-act="next"]');
+    await pg.waitForSelector('.tt-status .tt-result.neutral', { timeout: 6000 });
+    const total = await pg.evaluate(() => [...document.querySelectorAll('[data-count]')].reduce((t, e) => t + +e.dataset.count, 0) + document.querySelectorAll('.tt-slot .tt-flip').length);
+    check(total === room.state.hands.reduce((t, h) => t + h.length, 0), '4-player counts should add up after the collect: ' + total);
+    await pg.click('[data-act="leave"]');
+    check(left === 1, 'leaving should tell the server');
     check(!errs.length, 'online page errors: ' + errs.join(' | '));
     console.log(`online: room ${room.code}, ${moves.length} move sent, version ${room.version}`);
     await pg.close();

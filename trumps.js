@@ -46,35 +46,55 @@
   function deckSeasons(deck) { return String(deck || '').split('+').filter(function (id) { return CARDS[id]; }); }
   function deckCards(deck) { var out = []; deckSeasons(deck).forEach(function (id) { out = out.concat(CARDS[id]); }); return out; }
   function roundsOk(n) { n = Math.floor(+n); return n >= 1 && n <= MAX_ROUNDS ? n : ROUND_LIMIT; }
-  // firstSeat: 0 or 1 to choose who picks first (vs the bot the player always does); leave it out for a coin flip.
-  // rounds: how many rounds before the most cards wins (60 if left out).
-  function newGame(region, seed, firstSeat, rounds) {
+  // players: 2 to 4 hands (2 if left out). firstSeat: the seat that picks first (vs the bot the player always does);
+  // leave it out for a random seat. rounds: how many rounds before the most cards wins (60 if left out).
+  function newGame(region, seed, firstSeat, rounds, players) {
+    var n = players >= 2 && players <= 4 ? Math.floor(players) : 2;
     var r = rng(seed), ids = deckCards(region).map(function (c) { return c.id; });
     for (var i = ids.length - 1; i > 0; i--) { var j = Math.floor(r() * (i + 1)), t = ids[i]; ids[i] = ids[j]; ids[j] = t; }
-    // Every card is dealt. With an odd number of players, the player who picks second gets the extra card.
-    var flip = r() < 0.5 ? 0 : 1, first = firstSeat === 0 || firstSeat === 1 ? firstSeat : flip, hands = [[], []];
-    for (var k = 0; k < ids.length; k++) hands[(first + 1 + k) % 2].push(ids[k]);
+    // Every card is dealt, one at a time starting with the seat after the first picker, so the first picker never gets
+    // an extra card (with 2 players and an odd deck, the player who picks second gets it).
+    var flip = r() < 0.5 ? 0 : 1, first;
+    if (n === 2) first = firstSeat === 0 || firstSeat === 1 ? firstSeat : flip;
+    else first = firstSeat >= 0 && firstSeat < n ? firstSeat : Math.floor(r() * n);
+    var hands = []; for (var h = 0; h < n; h++) hands.push([]);
+    for (var k = 0; k < ids.length; k++) hands[(first + 1 + k) % n].push(ids[k]);
     return { region: region, seed: seed, limit: roundsOk(rounds), hands: hands, turn: first, round: 1, last: null, over: null };
   }
+  // The seats whose card is best on the stat (one seat, or several on a tie). cards: one id per seat, null if out.
+  function bestSeats(cards, stat) {
+    var best = null, top = [];
+    cards.forEach(function (id, i) {
+      if (!id) return;
+      var v = BY_ID[id][stat]; if (STAT_BY_KEY[stat].low) v = -v;   // Deaths: fewer wins
+      if (best === null || v > best) { best = v; top = [i]; } else if (v === best) top.push(i);
+    });
+    return top;
+  }
+  // One round: everyone still holding cards plays their top card; the best card on the picked stat takes them all and
+  // its player picks next. A tie for the best card: every card goes back to the bottom of its own deck and the same
+  // player picks again. A player with no cards left is out. The game ends when one player holds every card, or at the
+  // round limit (the most cards wins; a tie for the most is a draw).
   function play(s, stat) {
     if (s.over) return s;
     s = JSON.parse(JSON.stringify(s));
-    var a = s.hands[0].shift(), b = s.hands[1].shift(), picker = s.turn;
-    var va = BY_ID[a][stat], vb = BY_ID[b][stat];
-    if (STAT_BY_KEY[stat].low) { va = -va; vb = -vb; } // Deaths: fewer wins
-    var w = va > vb ? 0 : vb > va ? 1 : -1;
-    if (w < 0) {
-      // Tie: each player puts their own card back at the bottom of their deck; the same player picks again.
-      s.hands[0].push(a); s.hands[1].push(b);
-    } else {
-      s.hands[w].push(w === 0 ? a : b, w === 0 ? b : a);
+    var n = s.hands.length, picker = s.turn, cards = s.hands.map(function (h) { return h.length ? h.shift() : null; });
+    var top = bestSeats(cards, stat), w = top.length === 1 ? top[0] : -1;
+    if (w < 0) cards.forEach(function (id, i) { if (id) s.hands[i].push(id); });
+    else {
+      s.hands[w].push(cards[w]);   // the winner's own card first, then the others in seat order
+      cards.forEach(function (id, i) { if (id && i !== w) s.hands[w].push(id); });
       s.turn = w;
     }
-    s.last = { round: s.round, picker: picker, stat: stat, cards: [a, b], winner: w };
+    s.last = { round: s.round, picker: picker, stat: stat, cards: cards, winner: w };
     s.round++;
-    var n0 = s.hands[0].length, n1 = s.hands[1].length;
-    if (!n0 || !n1) s.over = { winner: !n0 && !n1 ? -1 : n0 ? 0 : 1, reason: 'cards' };
-    else if (s.round > (s.limit || ROUND_LIMIT)) s.over = { winner: n0 === n1 ? -1 : n0 > n1 ? 0 : 1, reason: 'limit' };
+    var left = [], most = -1, mostAt = [];
+    s.hands.forEach(function (h, i) {
+      if (h.length) left.push(i);
+      if (h.length > most) { most = h.length; mostAt = [i]; } else if (h.length === most) mostAt.push(i);
+    });
+    if (left.length <= 1) s.over = { winner: left.length ? left[0] : -1, reason: 'cards' };
+    else if (s.round > (s.limit || ROUND_LIMIT)) s.over = { winner: mostAt.length === 1 ? mostAt[0] : -1, reason: 'limit' };
     return s;
   }
   function botPick(s, seat) {
@@ -213,28 +233,46 @@
       if (changed) render();
     }).catch(function () {});
   }
-  function seatId(seat) { return ui.mode === 'online' && ui.room ? (seat === 0 ? ui.room.host : ui.room.guest) : null; }
+  function seatId(seat) { return ui.mode === 'online' && ui.room ? (ui.room.players || [])[seat] || null : null; }
+  function seatsOf(s) { return s && s.hands ? s.hands.length : 2; }
+  // Everyone else at the table, starting with the seat after yours.
+  function others(s) { var n = seatsOf(s), out = []; for (var i = 1; i < n; i++) out.push((ui.me + i) % n); return out; }
+  function nameOf(seat) { return seat === ui.me ? 'You' : (ui.names[seat] || 'Player ' + (seat + 1)); }
 
   function flipHTML(front, seat, down, id) {
     return '<div class="tt-flip' + (down ? ' is-down' : '') + '"' + (id ? ' id="' + id + '"' : '') + '><div class="tt-flip-in">' +
       '<div class="tt-face tt-front">' + front + '</div><div class="tt-face tt-backface">' + backFor(seat) + '</div></div></div>';
   }
-  function deckHTML(seat, n) {
+  function deckHTML(seat, n, out) {
     var layers = '', k = Math.min(n, 5);
     for (var i = k - 1; i >= 0; i--) layers += '<div class="tt-stack-card" style="--k:' + i + '">' + backFor(seat) + '</div>';
     var who = seat === ui.me ? 'me' : 'them';
-    return '<div class="tt-deck tt-deck-' + who + '" id="tt-deck-' + who + '">' +
+    return '<div class="tt-deck tt-deck-' + who + '" id="tt-deck-' + seat + '">' +
       '<div class="tt-stack' + (n ? '' : ' is-empty') + '">' + layers + '</div>' +
-      '<div class="tt-deck-label"><span>' + (seatId(seat) && WINS[seatId(seat)] != null ? tierImg(tierOf(WINS[seatId(seat)]), 20) : '') + esc(ui.names[seat]) + '</span><b data-count="' + n + '">' + n + '</b></div></div>';
+      '<div class="tt-deck-label"><span>' + (seatId(seat) && WINS[seatId(seat)] != null ? tierImg(tierOf(WINS[seatId(seat)]), 20) : '') + esc(nameOf(seat)) + '</span><b data-count="' + n + '">' + n + '</b>' +
+      (out ? '<em class="tt-out">Out</em>' : '') + '</div></div>';
   }
-  function tableHTML(s, deckMe, deckThem, middle) {
-    return '<div class="tt-tabletop">' +
-      '<img class="tt-felt-mark" src="' + deckLogo(s.region) + '" alt="" aria-hidden="true">' +
-      deckHTML(ui.me, deckMe) + deckHTML(1 - ui.me, deckThem) + middle + '</div>';
+  // counts: cards in each seat's deck; slots: each seat's played card (html) for this screen; middle: the game-over panel.
+  // Two players: decks at the ends and the two cards side by side. Three or four: the others across the top, you below.
+  function tableHTML(s, counts, slots, middle) {
+    var n = seatsOf(s), felt = '<img class="tt-felt-mark" src="' + deckLogo(s.region) + '" alt="" aria-hidden="true">';
+    var isOut = function (seat) { return !s.over && !s.hands[seat].length && !(s.last && s.last.cards[seat] && s.last.round > ui.seen); };
+    if (n === 2) {
+      var them = 1 - ui.me;
+      return '<div class="tt-tabletop">' + felt + deckHTML(ui.me, counts[ui.me]) + deckHTML(them, counts[them]) +
+        (middle || (slots[ui.me] + slots[them])) + '</div>';
+    }
+    return '<div class="tt-tabletop tt-multi tt-n' + n + '">' + felt +
+      '<div class="tt-opps">' + others(s).map(function (seat) {
+        return '<div class="tt-opp">' + deckHTML(seat, counts[seat], isOut(seat)) + (middle ? '' : slots[seat]) + '</div>';
+      }).join('') + '</div>' + (middle || '') +
+      '<div class="tt-mine">' + deckHTML(ui.me, counts[ui.me], isOut(ui.me)) + (middle ? '' : slots[ui.me]) + '</div></div>';
   }
-  function slotHTML(who, label, inner) {
-    return '<div class="tt-slot tt-slot-' + who + '" id="tt-slot-' + who + '"><div class="tt-seat">' + esc(label) + '</div>' + inner + '</div>';
+  function slotHTML(seat, inner) {
+    var who = seat === ui.me ? 'me' : 'them';
+    return '<div class="tt-slot tt-slot-' + who + '" id="tt-slot-' + seat + '"><div class="tt-seat">' + esc(nameOf(seat)) + '</div>' + inner + '</div>';
   }
+  function outSlot(seat) { return slotHTML(seat, '<div class="tt-gone">Out of cards</div>'); }
   var REDUCED = (function () { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } })();
   function ms(n) { return REDUCED ? 1 : n; }
 
@@ -251,47 +289,52 @@
       b.disabled = ui.mode !== 'lobby';
     });
     if (ui.mode === 'lobby') return renderLobby(root);
-    var s = ui.state, them = 1 - ui.me, html = '';
-    if (ui.mode === 'online' && !ui.room.guest) {
-      root.innerHTML = '<div class="tt-panel tt-center"><div class="tt-kicker">ROOM CODE</div><div class="tt-code">' + esc(ui.room.code) + '</div>' +
-        '<p>Send this code to the other player. The game starts when they join.</p><p class="tt-dim">' + esc(deckLabel(s.region)) + ' cards · ' + deckCards(s.region).length + ' players · ' + limitOf(s) + ' rounds</p>' +
-        '<button type="button" class="tt-btn ghost" data-act="leave">Leave room</button></div>';
-      return;
-    }
+    var s = ui.state, html = '', n = seatsOf(s);
+    if (ui.mode === 'online' && !ui.room.started) return renderWaiting(root);
     var last = s.last, showReveal = last && last.round > ui.seen, phase;
     var round = '<span class="tt-round">Round ' + Math.min(showReveal ? last.round : s.round, limitOf(s)) + '<small>/' + limitOf(s) + '</small></span>';
+    var slots = [];
     if (showReveal) {
       phase = 'reveal';
-      var mine = last.cards[ui.me], theirs = last.cards[them], st = STAT_BY_KEY[last.stat];
-      var res = last.winner < 0 ? 'tie' : last.winner === ui.me ? 'win' : 'lose';
-      var who = last.picker === ui.me ? 'You' : esc(ui.names[them]);
-      var msg = res === 'tie' ? 'Tie on ' + st.label + '. Both cards go back to their decks.' :
-        res === 'win' ? 'You win the round (+1 card).' : esc(ui.names[them]) + ' wins the round.';
-      // Counts as they look before the cards are collected (the two played cards are still on the table).
-      var d = [s.hands[0].length, s.hands[1].length];
-      if (last.winner < 0) { d[0] -= 1; d[1] -= 1; } else d[last.winner] -= 2;
+      var st = STAT_BY_KEY[last.stat], played = last.cards.filter(Boolean).length, top = bestSeats(last.cards, last.stat);
+      var res = last.winner < 0 ? (top.indexOf(ui.me) >= 0 ? 'tie' : last.cards[ui.me] ? 'lose' : 'tie') : last.winner === ui.me ? 'win' : 'lose';
+      var who = last.picker === ui.me ? 'You' : esc(nameOf(last.picker));
+      var msg = last.winner < 0 ? (n === 2 ? 'Tie on ' + st.label + '. Both cards go back to their decks.' : 'Tie for the best ' + st.label + '. Every card goes back to its deck.') :
+        last.winner === ui.me ? 'You win the round (+' + (played - 1) + (played - 1 === 1 ? ' card).' : ' cards).') : esc(nameOf(last.winner)) + ' wins the round.';
+      // Counts as they look before the cards are collected (the played cards are still on the table).
+      var d = s.hands.map(function (h) { return h.length; });
+      if (last.winner < 0) last.cards.forEach(function (id, i) { if (id) d[i] -= 1; }); else d[last.winner] -= played;
       html += '<div class="tt-status">' + round + '<div class="tt-result ' + res + '"><span>' + who + ' picked <b>' + st.label + '</b></span><strong>' + msg + '</strong></div></div>';
-      html += tableHTML(s, d[ui.me], d[them],
-        slotHTML('me', ui.names[ui.me], flipHTML(cardHTML(mine, { stat: last.stat, result: res === 'tie' ? 'tie' : res }), ui.me, false)) +
-        slotHTML('them', ui.names[them], flipHTML(cardHTML(theirs, { stat: last.stat, result: res === 'tie' ? 'tie' : res === 'win' ? 'lose' : 'win' }), them, ui.revealed !== last.round)));
+      for (var i = 0; i < n; i++) {
+        var id = last.cards[i];
+        if (!id) { slots[i] = outSlot(i); continue; }
+        var r = last.winner < 0 ? (top.indexOf(i) >= 0 ? 'tie' : 'lose') : last.winner === i ? 'win' : 'lose';
+        slots[i] = slotHTML(i, flipHTML(cardHTML(id, { stat: last.stat, result: r }), i, i !== ui.me && ui.revealed !== last.round));
+      }
+      html += tableHTML(s, d, slots);
       html += '<div class="tt-actions"><button type="button" class="tt-btn" data-act="next"' + (ui.collecting ? ' disabled' : '') + '>' + (s.over ? 'See result' : 'Next round') + '</button></div>';
     } else if (s.over) {
       phase = 'over';
-      var w = s.over.winner, title = w < 0 ? 'Draw' : w === ui.me ? 'You win!' : esc(ui.names[them]) + ' wins';
+      var w = s.over.winner, title = w < 0 ? 'Draw' : w === ui.me ? 'You win!' : esc(nameOf(w)) + ' wins';
+      var tally = n === 2 ? s.hands[ui.me].length + ' to ' + s.hands[1 - ui.me].length :
+        [ui.me].concat(others(s)).map(function (x) { return esc(nameOf(x)) + ' ' + s.hands[x].length; }).join(' · ');
       html += '<div class="tt-status">' + round + '<div class="tt-result ' + (w < 0 ? 'tie' : w === ui.me ? 'win' : 'lose') + '"><span>Game over</span><strong>' + title + '</strong></div></div>';
-      html += tableHTML(s, s.hands[ui.me].length, s.hands[them].length,
+      html += tableHTML(s, s.hands.map(function (h) { return h.length; }), [],
         '<div class="tt-over"><div class="tt-kicker">GAME OVER</div><div class="tt-big">' + title + '</div><p>' +
-        (s.over.reason === 'limit' ? 'Round ' + limitOf(s) + ' reached, so the most cards wins: ' + s.hands[ui.me].length + ' to ' + s.hands[them].length + '.' : 'Every card ended up in one deck.') +
+        (s.over.reason === 'limit' ? 'Round ' + limitOf(s) + ' reached, so the most cards wins: ' + tally + '.' : 'Every card ended up in one deck.') +
         '</p>' + overTier(s) + '<div class="tt-actions">' + (ui.mode === 'bot' ? '<button type="button" class="tt-btn" data-act="again">Play again</button>' : '') +
         '<button type="button" class="tt-btn ghost" data-act="leave">Back to lobby</button></div></div>');
     } else {
       phase = 'pick';
-      var myTurn = s.turn === ui.me;
-      html += '<div class="tt-status">' + round + '<div class="tt-result neutral"><span>' + (myTurn ? 'Your pick' : esc(ui.names[them]) + '’s pick') + '</span><strong>' +
-        (myTurn ? 'Choose the stat you think beats their card.' : esc(ui.names[them]) + ' is picking a stat…') + '</strong></div></div>';
-      html += tableHTML(s, s.hands[ui.me].length - 1, s.hands[them].length - 1,
-        slotHTML('me', ui.names[ui.me], flipHTML(cardHTML(s.hands[ui.me][0], { pick: myTurn && !ui.busy }), ui.me, ui.dealt !== s.round)) +
-        slotHTML('them', ui.names[them], flipHTML('<div class="tt-card tt-blank"></div>', them, true)));
+      var myTurn = s.turn === ui.me, picker = esc(nameOf(s.turn));
+      html += '<div class="tt-status">' + round + '<div class="tt-result neutral"><span>' + (myTurn ? 'Your pick' : picker + '’s pick') + '</span><strong>' +
+        (myTurn ? (n === 2 ? 'Choose the stat you think beats their card.' : 'Choose the stat you think beats every other card.') : picker + ' is picking a stat…') + '</strong></div></div>';
+      for (var j = 0; j < n; j++) {
+        if (!s.hands[j].length) { slots[j] = outSlot(j); continue; }
+        slots[j] = j === ui.me ? slotHTML(j, flipHTML(cardHTML(s.hands[j][0], { pick: myTurn && !ui.busy }), j, ui.dealt !== s.round))
+          : slotHTML(j, flipHTML('<div class="tt-card tt-blank"></div>', j, true));
+      }
+      html += tableHTML(s, s.hands.map(function (h) { return h.length ? h.length - 1 : 0; }), slots);
       html += '<div class="tt-actions"><button type="button" class="tt-btn ghost" data-act="leave">' + (ui.mode === 'online' ? 'Leave room' : 'Quit game') + '</button></div>';
     }
     if (ui.error) html += '<p class="tt-error" role="alert">' + esc(ui.error) + '</p>';
@@ -299,8 +342,26 @@
     animateIn(phase, s);
     if (phase === 'pick' && s.turn !== ui.me && ui.mode === 'bot' && !ui.busy) {
       ui.busy = true;
-      setTimeout(function () { ui.busy = false; if (ui.mode !== 'bot') return; ui.state = play(ui.state, botPick(ui.state, 1)); render(); }, ms(1700));
+      setTimeout(function () { ui.busy = false; if (ui.mode !== 'bot') return; ui.state = play(ui.state, botPick(ui.state, ui.state.turn)); render(); }, ms(1700));
     }
+  }
+  // Online, before the deal: the room code, who's in (up to 4), and Start for the host once 2 or more are in.
+  var MAX_PLAYERS = 4;
+  function renderWaiting(root) {
+    var R = ui.room, s = ui.state, players = R.players || [], host = players[0] === myId(), seats = '';
+    for (var i = 0; i < MAX_PLAYERS; i++) {
+      var id = players[i];
+      seats += '<li class="' + (id ? 'in' : 'open') + '">' + (id ? (WINS[id] != null ? tierImg(tierOf(WINS[id]), 24) : '<span class="tt-seat-dot" aria-hidden="true"></span>') +
+        '<span>' + esc(i === ui.me ? 'You' : (R.names || [])[i] || 'Player ' + (i + 1)) + (i === 0 ? ' <small>host</small>' : '') + '</span>' : '<span>Open seat</span>') + '</li>';
+    }
+    root.innerHTML = '<div class="tt-panel tt-center tt-wait"><div class="tt-kicker">ROOM CODE</div><div class="tt-code">' + esc(R.code) + '</div>' +
+      '<p>Send this code to your friends. Up to ' + MAX_PLAYERS + ' players can join.</p>' +
+      '<p class="tt-dim">' + esc(deckLabel(s.region)) + ' cards · ' + deckCards(s.region).length + ' players · ' + limitOf(s) + ' rounds</p>' +
+      '<ul class="tt-seats" aria-label="Players in the room">' + seats + '</ul>' +
+      '<div class="tt-actions">' + (host ? '<button type="button" class="tt-btn" data-act="start"' + (players.length < 2 || ui.busy ? ' disabled' : '') + '>Start game (' + players.length + ' players)</button>' :
+        '<p class="tt-dim tt-wait-host">Waiting for ' + esc((R.names || [])[0] || 'the host') + ' to start the game.</p>') +
+      '<button type="button" class="tt-btn ghost" data-act="leave">Leave room</button></div>' +
+      (ui.error ? '<p class="tt-error" role="alert">' + esc(ui.error) + '</p>' : '') + '</div>';
   }
 
   // ---------- table animations ----------
@@ -326,31 +387,37 @@
   function animateIn(phase, s) {
     if (phase === 'pick' && ui.dealt !== s.round) {
       var round = s.round; ui.dealt = round;
-      var me = $('tt-slot-me'), th = $('tt-slot-them');
-      var cMe = me && me.querySelector('.tt-flip'), cTh = th && th.querySelector('.tt-flip');
-      Promise.all([flyFrom(cMe, topOf($('tt-deck-me')), 560, -10), flyFrom(cTh, topOf($('tt-deck-them')), 560, 10)]).then(function () {
-        if (cMe && document.body.contains(cMe) && ui.state && ui.state.round === round) cMe.classList.remove('is-down');
+      var flies = [], mine = null;
+      for (var i = 0; i < seatsOf(s); i++) {
+        var slot = $('tt-slot-' + i), card = slot && slot.querySelector('.tt-flip'), deck = $('tt-deck-' + i);
+        if (!card || !deck) continue;
+        if (i === ui.me) mine = card;
+        flies.push(flyFrom(card, topOf(deck), 560, i === ui.me ? -10 : 10));
+      }
+      Promise.all(flies).then(function () {
+        if (mine && document.body.contains(mine) && ui.state && ui.state.round === round) mine.classList.remove('is-down');
       });
     }
     if (phase === 'reveal' && ui.revealed !== s.last.round) {
       ui.revealed = s.last.round;
-      var flip = document.querySelector('#tt-slot-them .tt-flip');
-      if (flip) setTimeout(function () { flip.classList.remove('is-down'); }, ms(60));
+      var flips = document.querySelectorAll('.tt-slot-them .tt-flip');
+      if (flips.length) setTimeout(function () { flips.forEach(function (f) { f.classList.remove('is-down'); }); }, ms(60));
     }
   }
   function collect() {
     var s = ui.state, last = s.last;
     ui.collecting = true;
     var nb = document.querySelector('[data-act="next"]'); if (nb) nb.disabled = true;
-    // Winner takes both cards; on a tie each card goes back to its own deck.
-    var deckMe = topOf($('tt-deck-me')) || $('tt-deck-me'), deckThem = topOf($('tt-deck-them')) || $('tt-deck-them');
-    var destMe = last.winner < 0 ? deckMe : last.winner === ui.me ? deckMe : deckThem;
-    var destThem = last.winner < 0 ? deckThem : destMe;
-    var tilt = last.winner === ui.me ? -14 : 14;
+    // The best card takes every played card; on a tie each card goes back to its own deck.
+    var deckOf = function (seat) { var d = $('tt-deck-' + seat); return d ? topOf(d) || d : null; };
     // Turn the played cards face down as they travel, so they land on the deck as card backs.
     document.querySelectorAll('.tt-slot .tt-flip').forEach(function (f) { f.classList.add('is-down'); });
-    var moves = [flyTo(document.querySelector('#tt-slot-me .tt-flip'), destMe, 620, 0, last.winner < 0 ? -14 : tilt),
-                 flyTo(document.querySelector('#tt-slot-them .tt-flip'), destThem, 620, 90, last.winner < 0 ? 14 : tilt)];
+    var moves = [];
+    last.cards.forEach(function (id, i) {
+      if (!id) return;
+      var to = last.winner < 0 ? i : last.winner, tilt = last.winner < 0 ? (i === ui.me ? -14 : 14) : last.winner === ui.me ? -14 : 14;
+      moves.push(flyTo(document.querySelector('#tt-slot-' + i + ' .tt-flip'), deckOf(to), 620, i === ui.me ? 0 : 90, tilt));
+    });
     Promise.all(moves).then(function () {
       ui.collecting = false;
       ui.seen = last.round;
@@ -423,7 +490,7 @@
       '<div class="tt-panel"><div class="tt-kicker">VS THE BOT</div><h2>Practice game</h2><p id="tt-bot-line">Deal the ' + esc(label) + ' cards (' + n + ') between you and the bot, ' + ui.rounds + ' rounds.</p>' +
       '<div class="tt-deal"><button type="button" class="tt-btn" data-act="bot">Deal</button>' +
       '<label class="tt-rounds" for="tt-rounds">Rounds <input id="tt-rounds" type="number" inputmode="numeric" min="1" max="' + MAX_ROUNDS + '" step="1" value="' + ui.rounds + '" title="After this many rounds, whoever holds more cards wins"></label></div></div>' +
-      '<div class="tt-panel"><div class="tt-kicker">ONLINE · 1V1</div><h2>Play a friend</h2><p class="tt-dim">Online wins climb the MVP VS tiers, Iron to Radiant: every ' + WINS_PER_TIER + ' wins is the next tier.</p>' + online + '</div>' +
+      '<div class="tt-panel"><div class="tt-kicker">ONLINE · 2 TO 4 PLAYERS</div><h2>Play friends</h2><p class="tt-dim">Up to 4 players in a room. Online wins climb the MVP VS tiers, Iron to Radiant: every ' + WINS_PER_TIER + ' wins is the next tier.</p>' + online + '</div>' +
       '</div>' + (ui.error ? '<p class="tt-error" role="alert">' + esc(ui.error) + '</p>' : '') +
       '<div class="tt-preview"><div class="tt-kicker">' + esc(deckSeasons(ui.region).map(function (id) { return REGIONS[id].season; }).join(' + ')) + ' · TOP 3 BY TOXIC RATING</div><div class="tt-preview-row">' +
       pool.slice().sort(function (a, b) { return b.toxic - a.toxic; }).slice(0, 3).map(function (c) { return cardHTML(c.id); }).join('') + '</div></div>';
@@ -432,26 +499,30 @@
   // ---------- online rooms ----------
   function stopPoll() { clearInterval(ui.poll); ui.poll = null; }
   function applyRoom(r) {
-    var changed = !ui.room || r.version !== ui.version || (!ui.room.guest && r.guest);
+    var old = ui.room, players = r.players || [];
+    var changed = !old || r.version !== ui.version || (old.players || []).length !== players.length || !!old.started !== !!r.started;
     if (ui.collecting) changed = false; // let the collect animation finish; the next poll catches up
     ui.room = r; ui.version = r.version; ui.state = r.state;
-    ui.me = r.host === myId() ? 0 : 1;
-    ui.names = ui.me === 0 ? ['You', r.guest_name || 'Waiting…'] : ['You', r.host_name || 'Host'];
-    loadWins([r.host, r.guest]);
+    var me = players.indexOf(myId()); ui.me = me < 0 ? 0 : me;
+    ui.names = players.map(function (id, i) { return i === ui.me ? 'You' : ((r.names || [])[i] || 'Player ' + (i + 1)); });
+    loadWins(players);
     // The game just ended: the win is counted by the move that ended it, so read the tiers again.
     var endKey = r.code + ':' + (r.state && r.state.seed);
-    if (r.state && r.state.over && ui.overSeen !== endKey) { ui.overSeen = endKey; setTimeout(function () { loadWins([r.host, r.guest], true); }, 1200); }
+    if (r.state && r.state.over && ui.overSeen !== endKey) { ui.overSeen = endKey; setTimeout(function () { loadWins(players, true); }, 1200); }
     if (changed) render();
   }
   function startPoll() {
     stopPoll();
     ui.poll = setInterval(function () {
       api('/rest/v1/trumps_rooms?code=eq.' + encodeURIComponent(ui.room.code) + '&select=*').then(function (rows) {
-        if (rows && rows[0]) applyRoom(rows[0]);
+        if (rows && rows[0]) return applyRoom(rows[0]);
+        if (ui.mode === 'online' && !ui.room.started) {   // the host left before the deal: the room is gone
+          stopPoll(); ui.mode = 'lobby'; ui.state = null; ui.room = null; ui.error = 'The host closed the room.'; render();
+        }
       }).catch(function () {});
     }, 1500);
   }
-  function enterRoom(r) { ui.mode = 'online'; ui.seen = r.state.last ? r.state.last.round : 0; ui.dealt = 0; ui.revealed = ui.seen; ui.collecting = false; ui.room = null; ui.error = ''; applyRoom(r); startPoll(); render(); }
+  function enterRoom(r) { ui.mode = 'online'; ui.seen = r.state && r.state.last ? r.state.last.round : 0; ui.dealt = 0; ui.revealed = ui.seen; ui.collecting = false; ui.room = null; ui.error = ''; applyRoom(r); startPoll(); render(); }
 
   // ---------- actions ----------
   document.addEventListener('click', function (e) {
@@ -483,13 +554,21 @@
     } else if (a === 'next') {
       if (!ui.collecting) collect();
     } else if (a === 'leave') {
+      // Before the deal, leaving gives the seat back (the host leaving closes the room); after it, the game stays as is.
+      if (ui.mode === 'online' && ui.room) rpc('trumps_leave', { p_code: ui.room.code }).catch(function () {});
       stopPoll(); ui.mode = 'lobby'; ui.state = null; ui.room = null; ui.error = ''; render();
+    } else if (a === 'start') {
+      var R = ui.room; if (!R || ui.busy) return;
+      ui.busy = true; ui.error = ''; render();
+      var dealt = newGame(R.region, (Math.random() * 4294967296) >>> 0, undefined, limitOf(R.state), (R.players || []).length);
+      rpc('trumps_start', { p_code: R.code, p_version: ui.version, p_state: dealt }).then(function (v) {
+        ui.busy = false; ui.version = v; ui.room.started = true; ui.state = dealt; ui.seen = 0; ui.dealt = 0; ui.revealed = 0; render();
+      }).catch(function (err) { ui.busy = false; ui.error = err.message; render(); });
     } else if (a === 'signin') {
       signIn();
     } else if (a === 'create') {
       ui.busy = true; ui.error = ''; render();
-      var g = newGame(ui.region, (Math.random() * 4294967296) >>> 0, undefined, ui.rounds);
-      rpc('trumps_create', { p_region: ui.region, p_state: g })
+      rpc('trumps_create', { p_region: ui.region, p_state: { region: ui.region, limit: ui.rounds, lobby: true } })
         .then(function (code) { return api('/rest/v1/trumps_rooms?code=eq.' + encodeURIComponent(code) + '&select=*'); })
         .then(function (rows) { ui.busy = false; enterRoom(rows[0]); })
         .catch(function (err) { ui.busy = false; ui.error = err.message; render(); });

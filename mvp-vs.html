@@ -210,6 +210,40 @@
   .tt-backface { transform: rotateY(180deg); }
   .tt-blank { visibility: hidden; }
   @media (prefers-reduced-motion: reduce) { .tt-flip-in { transition: none; } }
+  /* 3 or 4 players: the others across the top (deck beside their card), you below; the over panel in between */
+  .tt-tabletop.tt-multi { display: flex; flex-direction: column; align-items: stretch; gap: 22px; padding: 28px 24px; }
+  .tt-opps { display: grid; grid-template-columns: repeat(var(--opp, 2), minmax(0, 1fr)); gap: 16px; }
+  .tt-n3 .tt-opps { --opp: 2; } .tt-n4 .tt-opps { --opp: 3; }
+  .tt-opp, .tt-mine { display: grid; grid-template-columns: minmax(56px, 84px) minmax(0, 1fr); align-items: center; gap: 12px; min-width: 0; }
+  .tt-multi .tt-deck, .tt-multi .tt-slot { grid-area: auto; }
+  .tt-opp .tt-slot { max-width: 230px; }
+  .tt-opp .tt-face > .tt-card:not(.tt-back) { aspect-ratio: auto; }   /* the narrower cards grow to fit every stat */
+  .tt-mine { grid-template-columns: minmax(72px, 120px) minmax(0, 300px); justify-content: center; }
+  .tt-multi .tt-stack { max-width: 84px; }
+  .tt-mine .tt-stack { max-width: 110px; }
+  .tt-multi .tt-deck-label b { font-size: 24px; }
+  .tt-multi .tt-over { grid-column: auto; padding: 8px 0; }
+  .tt-out { font: 600 11px/1 'National Park', system-ui, sans-serif; font-style: normal; letter-spacing: .08em; text-transform: uppercase; color: var(--lose); }
+  .tt-gone { display: grid; place-items: center; min-height: 120px; border: 1.5px dashed rgba(165, 220, 221, .25); border-radius: 12px; color: var(--dim); font-size: 13px; }
+  /* Online waiting room: the seats */
+  .tt-seats { list-style: none; margin: 0 auto 20px; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; max-width: 420px; text-align: left; }
+  .tt-seats li { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; font-size: 14px; }
+  .tt-seats li.open { border-style: dashed; color: var(--dim); }
+  .tt-seats li span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tt-seats small { color: var(--dim); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
+  .tt-seat-dot { width: 10px; height: 10px; flex: none; border-radius: 50%; background: var(--accent); }
+  .tt-wait .tt-actions { justify-content: center; flex-wrap: wrap; }
+  .tt-wait-host { margin: 0 0 4px; flex: 1 0 100%; }
+  @media (max-width: 900px) {
+    .tt-tabletop.tt-multi { padding: 20px 12px; gap: 16px; }
+    .tt-opps { grid-template-columns: 1fr; gap: 10px; }
+    .tt-opp { grid-template-columns: 56px minmax(0, 1fr); }
+    .tt-opp .tt-slot { max-width: none; }
+    .tt-opp .tt-stat:not(.is-picked) { display: none; }   /* phones: the other players' cards show just the picked stat */
+    .tt-opp .tt-face .tt-back { min-height: 0; aspect-ratio: auto; height: 100%; }
+    .tt-opp .tt-face > .tt-card:not(.tt-back) { min-height: 132px; }
+    .tt-gone { min-height: 72px; }
+  }
   @media (max-width: 900px) {
     .tt-tabletop { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-areas: "dm dt" "sm st"; gap: 16px 12px; padding: 24px 14px; border-radius: 22px; }
     .tt-stack { max-width: 72px; }
@@ -325,9 +359,10 @@
     <ul>
       <li>Pick which cards to deal before you start: one season or several (tap each season you want), every NA and EMEA season with that season's stats and teams, subs included. Picked seasons are dealt together as one deck. The current seasons' cards update as the season is played.</li>
       <li>Each card has five stats from the pcmt.gg stats page: <b>ACS</b>, <b>KAST</b>, <b>HS%</b>, <b>Deaths</b> (per map) and <b>Toxic rating</b>. The higher number wins, except Deaths, where the lower number wins.</li>
-      <li>Whoever has the better number (higher, or lower for Deaths) takes both cards to the bottom of their deck and picks the next stat. On a tie, each player puts their own card back at the bottom of their deck and the same player picks again. With an odd number of players, whoever picks second starts with one extra card. Against the bot, you always pick first.</li>
-      <li><b>Tiers</b>: online games against another player count toward your MVP VS tier, from Iron 1 up to Radiant, like Valorant's ranks. Every win is a point, and every 5 wins takes you to the next tier (Iron 1, 2, 3, then Bronze 1, and so on; Radiant at 120 wins). Losses and draws don't take anything away, and games against the bot never count.</li>
-      <li>Set how many rounds the game lasts before you deal (<b>60</b> unless you change it, up to 999). You win by holding every card. If nobody has by the last round, whoever has more cards wins. In an online game, the player who makes the room sets the rounds.</li>
+      <li>Online rooms hold <b>2 to 4 players</b>: share the room code, and the player who made the room starts the game once everyone is in. Against the bot it's always one on one, and you always pick first.</li>
+      <li>Every player still holding cards plays their top card. Whoever has the best number on the picked stat (higher, or lower for Deaths) takes all the played cards to the bottom of their deck and picks the next stat. On a tie for the best card, every card goes back to the bottom of its own deck and the same player picks again. A player with no cards left is out. The cards are dealt as evenly as possible; the first picker never gets an extra one.</li>
+      <li><b>Tiers</b>: online games against another player count toward your MVP VS tier, from Iron 1 up to Radiant, like Valorant's ranks. Every win is a point, and every 5 wins takes you to the next tier (a win in a 3 or 4 player game counts the same as a 1v1 win) (Iron 1, 2, 3, then Bronze 1, and so on; Radiant at 120 wins). Losses and draws don't take anything away, and games against the bot never count.</li>
+      <li>Set how many rounds the game lasts before you deal (<b>60</b> unless you change it, up to 999). You win by holding every card. If nobody has by the last round, whoever has the most cards wins (a tie for the most is a draw). In an online game, the player who makes the room sets the rounds.</li>
     </ul>
   </section>
 </main>
