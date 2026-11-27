@@ -31,11 +31,13 @@ One update is still held, NOT pushed (only when the owner says to send it): the 
 
 `setup/users-page.sql` was updated to count MVP VS games from `trumps_results.players` (added by trumps-4p.sql) and run again Nov 27 2026.
 
-**LoserQ Patch** (branch `losersq-patch`, later):
+**LoserQ Patch** (branch `losersq-patch`, held; main merged in Nov 27 2026):
 
 | Part | Section | Database |
 |---|---|---|
 | LosersQ: current NA and EMEA seasons from PCMT.gg (region toggle), updated by the sync; site-style page, no LosersQ logo, no intro, no "How it works"; first-open warning window | 23 | none |
+| The Deck: Your MVP stays in the MVP panel until someone in the squad scores in the new gameweek; the label says which week ("This gameweek", "Last gameweek", or "Week of Nov 12"); it used to always say "Week 1" | 0 | none |
+| The version at the bottom of every page goes to the Patch Notes section on Home (it no longer opens the patch notes window); Home scrolls to the section once it's drawn (version.js) | 0 | none |
 
 **To ship one:** `git fetch origin && git checkout <branch> && git merge origin/main`, rebuild (`python3 -I tools/build.py tools/canvas assets /tmp/build`, copy the pages in), run the smoke test, `git push origin <branch>:main`. If the MVP VS update ships first, merge `origin/main` into `losersq-patch` before it ships. After the LoserQ Patch ships, the sync refreshes `losersq-data.js` every hour (the first run on GitHub also picks up the backend's player edits).
 

@@ -11,8 +11,7 @@
   var URL0 = 'https://wwrsavqipkxvdsxcemos.supabase.co', KEY = 'sb_publishable_e8v-uyAo4fnvwJCHUVA5FQ_LXR6yYM7';
   var v = null;
   try { v = localStorage.getItem('pcmt-version'); } catch (e) {}
-  // The version is a link to its notes: the patch notes window for the current version (any page), or the patch notes
-  // on Home when there's no note to show.
+  // The version is a link to the Patch Notes section on Home (Nov 27 2026: no longer the patch notes window).
   function apply() {
     var els = document.querySelectorAll('[data-pcmt-version]');
     for (var i = 0; i < els.length; i++) {
@@ -27,13 +26,19 @@
       el.appendChild(a);
     }
   }
-  var lastNote = null;
-  document.addEventListener('click', function (e) {
-    var a = e.target.closest && e.target.closest('[data-pcmt-version-link]');
-    if (!a || !lastNote || !String(lastNote.text || '').trim() || e.ctrlKey || e.metaKey || e.shiftKey) return;
-    e.preventDefault();
-    patchWindow(lastNote, true);
-  });
+  // Home draws its sections after the page loads, so the browser can't jump to #patch-notes by itself: scroll there once
+  // the section exists (and again when the version link is clicked on Home itself).
+  function toNotes() {
+    if (location.hash !== '#patch-notes') return;
+    var tries = 0;
+    (function look() {
+      var el = document.getElementById('patch-notes');
+      if (el) { el.scrollIntoView({ block: 'start' }); return; }
+      if (++tries < 60) setTimeout(look, 100);
+    })();
+  }
+  toNotes();
+  window.addEventListener('hashchange', toNotes);
   window.PCMT_SET_VERSION = function (x) {   // the backend calls this after saving, so its own page updates too
     v = String(x || '').trim() || v; try { localStorage.setItem('pcmt-version', v); } catch (e) {} apply();
   };
@@ -105,7 +110,6 @@
       var note = null;
       try { note = typeof by.version_note === 'string' ? JSON.parse(by.version_note) : by.version_note; } catch (e) {}
       // Wait for the page's own loading screen to finish before showing it.
-      lastNote = note || null;
       if (note) setTimeout(function () { patchWindow(note); }, 1600);
     })
     .catch(function () {});
