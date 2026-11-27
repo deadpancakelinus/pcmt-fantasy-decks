@@ -197,6 +197,33 @@
   function backFor(seat) { return cardHTML(null, { hidden: true }); }
 
   // A card that can lie face down or face up on the table (both faces stacked in one grid cell).
+  // ---------- tiers (setup/trumps-tiers.sql) ----------
+  // Only online wins against another player count: every 5 wins is the next tier, Iron 1 to Radiant (at 120 wins).
+  var WINS_PER_TIER = 5, TIERS = [];
+  ['Iron', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Ascendant', 'Immortal'].forEach(function (t) {
+    for (var d = 1; d <= 3; d++) TIERS.push({ name: t + ' ' + d, img: 'assets/tiers/' + t.toLowerCase() + '-' + d + '.webp' });
+  });
+  TIERS.push({ name: 'Radiant', img: 'assets/tiers/radiant.webp' });
+  function tierOf(wins) {
+    wins = Math.max(0, wins | 0);
+    var i = Math.min(TIERS.length - 1, Math.floor(wins / WINS_PER_TIER)), next = TIERS[i + 1];
+    return { i: i, name: TIERS[i].name, img: TIERS[i].img, wins: wins, next: next ? next.name : '', left: next ? (i + 1) * WINS_PER_TIER - wins : 0 };
+  }
+  function tierImg(t, size) { return '<img class="tt-tier-img" src="' + t.img + '" alt="' + t.name + '" title="' + t.name + '" width="' + size + '" height="' + size + '">'; }
+  // Wins by player id, read from the database when needed (the lobby, a room's two players, after an online game).
+  var WINS = {}, ASKED = {};
+  function loadWins(ids, again) {   // asks once per player unless `again` (after a game ends)
+    ids = (ids || []).filter(function (id) { return id && (again || !ASKED[id]); });
+    if (!ids.length) return Promise.resolve();
+    ids.forEach(function (id) { ASKED[id] = true; });
+    return rpc('trumps_wins', { p_ids: ids }).then(function (rows) {
+      var changed = false;
+      (rows || []).forEach(function (r) { if (WINS[r.user_id] !== r.wins) { WINS[r.user_id] = r.wins; changed = true; } });
+      if (changed) render();
+    }).catch(function () {});
+  }
+  function seatId(seat) { return ui.mode === 'online' && ui.room ? (seat === 0 ? ui.room.host : ui.room.guest) : null; }
+
   function flipHTML(front, seat, down, id) {
     return '<div class="tt-flip' + (down ? ' is-down' : '') + '"' + (id ? ' id="' + id + '"' : '') + '><div class="tt-flip-in">' +
       '<div class="tt-face tt-front">' + front + '</div><div class="tt-face tt-backface">' + backFor(seat) + '</div></div></div>';
@@ -207,7 +234,7 @@
     var who = seat === ui.me ? 'me' : 'them';
     return '<div class="tt-deck tt-deck-' + who + '" id="tt-deck-' + who + '">' +
       '<div class="tt-stack' + (n ? '' : ' is-empty') + '">' + layers + '</div>' +
-      '<div class="tt-deck-label"><span>' + esc(ui.names[seat]) + '</span><b data-count="' + n + '">' + n + '</b></div></div>';
+      '<div class="tt-deck-label"><span>' + (seatId(seat) && WINS[seatId(seat)] != null ? tierImg(tierOf(WINS[seatId(seat)]), 20) : '') + esc(ui.names[seat]) + '</span><b data-count="' + n + '">' + n + '</b></div></div>';
   }
   function tableHTML(s, deckMe, deckThem, middle) {
     return '<div class="tt-tabletop">' +
@@ -264,7 +291,7 @@
       html += tableHTML(s, s.hands[ui.me].length, s.hands[them].length,
         '<div class="tt-over"><div class="tt-kicker">GAME OVER</div><div class="tt-big">' + title + '</div><p>' +
         (s.over.reason === 'limit' ? 'Round ' + limitOf(s) + ' reached, so the most cards wins: ' + s.hands[ui.me].length + ' to ' + s.hands[them].length + '.' : 'Every card ended up in one deck.') +
-        '</p><div class="tt-actions">' + (ui.mode === 'bot' ? '<button type="button" class="tt-btn" data-act="again">Play again</button>' : '') +
+        '</p>' + overTier(s) + '<div class="tt-actions">' + (ui.mode === 'bot' ? '<button type="button" class="tt-btn" data-act="again">Play again</button>' : '') +
         '<button type="button" class="tt-btn ghost" data-act="leave">Back to lobby</button></div></div>');
     } else {
       phase = 'pick';
@@ -340,13 +367,30 @@
     });
   }
 
+  // Under the game-over line: online, your tier (a win counts toward it); against the bot, a reminder that it doesn't.
+  function overTier(s) {
+    if (ui.mode !== 'online') return '<p class="tt-dim">Games against the bot don\'t count toward your MVP VS tier.</p>';
+    var me = myId(); if (WINS[me] == null) return '';
+    var t = tierOf(WINS[me]);
+    return '<div class="tt-tier-line">' + tierImg(t, 40) + '<span><b>' + t.name + '</b> · ' + t.wins + (t.wins === 1 ? ' win' : ' wins') +
+      (t.next ? ' · ' + t.left + ' more to ' + t.next : '') + '</span></div>';
+  }
+  function tierPanel() {
+    var me = myId(), w = WINS[me];
+    if (w == null) { loadWins([me]); return ''; }
+    var t = tierOf(w), into = t.next ? (WINS_PER_TIER - t.left) : WINS_PER_TIER;
+    return '<div class="tt-tier"><div class="tt-tier-badge">' + tierImg(t, 64) + '</div><div class="tt-tier-text"><span class="tt-kicker">YOUR TIER</span><b>' + t.name + '</b>' +
+      '<span>' + t.wins + (t.wins === 1 ? ' online win' : ' online wins') + (t.next ? ' · ' + t.left + ' more to ' + t.next : ' · the top tier') + '</span>' +
+      '<span class="tt-tier-bar" role="img" aria-label="' + into + ' of ' + WINS_PER_TIER + ' wins to the next tier"><i style="width:' + (into / WINS_PER_TIER * 100) + '%"></i></span></div></div>';
+  }
+
   function renderLobby(root) {
     var pool = deckCards(ui.region), n = pool.length, label = deckLabel(ui.region), signedIn = !!session;
     var online = window.PCMT_TRUMPS_PREVIEW
       ? '<p>Online rooms need the site itself (Discord log-in and the game database), so this test copy only has the bot. They work once the page is on a private site preview.</p>'
       : !signedIn
       ? '<p>Online games use your Discord log-in from fantasy.pcmt.gg.</p><button type="button" class="tt-btn discord" data-act="signin">Log in with Discord</button>'
-      : '<div class="tt-actions left"><button type="button" class="tt-btn" data-act="create"' + (ui.busy ? ' disabled' : '') + '>Create a room</button></div>' +
+      : tierPanel() + '<div class="tt-actions left"><button type="button" class="tt-btn" data-act="create"' + (ui.busy ? ' disabled' : '') + '>Create a room</button></div>' +
           '<form class="tt-join" data-act="join"><label for="tt-code">Join with a code</label><div><input id="tt-code" maxlength="5" autocomplete="off" placeholder="ABCDE" value="' + esc(ui.joinCode) + '">' +
           '<button type="submit" class="tt-btn ghost"' + (ui.busy ? ' disabled' : '') + '>Join</button></div></form>';
     root.innerHTML =
@@ -355,7 +399,7 @@
       '<div class="tt-panel"><div class="tt-kicker">VS THE BOT</div><h2>Practice game</h2><p id="tt-bot-line">Deal the ' + esc(label) + ' cards (' + n + ') between you and the bot, ' + ui.rounds + ' rounds.</p>' +
       '<div class="tt-deal"><button type="button" class="tt-btn" data-act="bot">Deal</button>' +
       '<label class="tt-rounds" for="tt-rounds">Rounds <input id="tt-rounds" type="number" inputmode="numeric" min="1" max="' + MAX_ROUNDS + '" step="1" value="' + ui.rounds + '" title="After this many rounds, whoever holds more cards wins"></label></div></div>' +
-      '<div class="tt-panel"><div class="tt-kicker">ONLINE · 1V1</div><h2>Play a friend</h2>' + online + '</div>' +
+      '<div class="tt-panel"><div class="tt-kicker">ONLINE · 1V1</div><h2>Play a friend</h2><p class="tt-dim">Online wins climb the MVP VS tiers, Iron to Radiant: every ' + WINS_PER_TIER + ' wins is the next tier.</p>' + online + '</div>' +
       '</div>' + (ui.error ? '<p class="tt-error" role="alert">' + esc(ui.error) + '</p>' : '') +
       '<div class="tt-preview"><div class="tt-kicker">' + esc(deckSeasons(ui.region).map(function (id) { return REGIONS[id].season; }).join(' + ')) + ' · TOP 3 BY TOXIC RATING</div><div class="tt-preview-row">' +
       pool.slice().sort(function (a, b) { return b.toxic - a.toxic; }).slice(0, 3).map(function (c) { return cardHTML(c.id); }).join('') + '</div></div>';
@@ -369,6 +413,10 @@
     ui.room = r; ui.version = r.version; ui.state = r.state;
     ui.me = r.host === myId() ? 0 : 1;
     ui.names = ui.me === 0 ? ['You', r.guest_name || 'Waiting…'] : ['You', r.host_name || 'Host'];
+    loadWins([r.host, r.guest]);
+    // The game just ended: the win is counted by the move that ended it, so read the tiers again.
+    var endKey = r.code + ':' + (r.state && r.state.seed);
+    if (r.state && r.state.over && ui.overSeen !== endKey) { ui.overSeen = endKey; setTimeout(function () { loadWins([r.host, r.guest], true); }, 1200); }
     if (changed) render();
   }
   function startPoll() {
@@ -449,7 +497,7 @@
 
   // ---------- start ----------
   // cardHTML: the backend's View cards window draws cards exactly as they look here.
-  window.PCMT_TRUMPS = { newGame: newGame, play: play, botPick: botPick, STATS: STATS, ROUND_LIMIT: ROUND_LIMIT, cards: CARDS, cardHTML: cardHTML, deckCards: deckCards };
+  window.PCMT_TRUMPS = { newGame: newGame, play: play, botPick: botPick, STATS: STATS, ROUND_LIMIT: ROUND_LIMIT, cards: CARDS, cardHTML: cardHTML, deckCards: deckCards, tierOf: tierOf, TIERS: TIERS };
   function start() {
     if (!$('tt-app')) return;   // loaded on a page without the game (backend.html, for cardHTML): nothing to start
     takeRedirectTokens();
