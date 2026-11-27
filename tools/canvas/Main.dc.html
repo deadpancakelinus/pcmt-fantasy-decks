@@ -2067,6 +2067,33 @@ class Component extends DCLogic {
     return pcmtWeekPointsAt((this.state && this.state.now) || Date.now())[id] || 0;
   }
 
+  // The MVP held over from an earlier gameweek: the squad's top scorer in the most recent week anyone in it scored
+  // (looks back up to 26 weeks). Kept until the gameweek, the squad or the results change.
+  heldMvp(ids, now) {
+    var b = pcmtMondayStart(now), key = b + '|' + ids.join(',') + '|' + PCMT_RESULTS.length;
+    if (this._heldMvp && this._heldMvp.key === key) return this._heldMvp.val;
+    var val = null;
+    for (var i = 1; i <= 26 && !val; i++) {
+      var wb = pcmtMondayStart(b - 1), e = b, pts = {};
+      PCMT_RESULTS.forEach(function (r) {
+        var st = Date.parse(r.start);
+        if (!(st >= wb && st < e) || pcmtInNaStage(r)) return;
+        var sp = pcmtSeriesPoints(r);
+        Object.keys(sp).forEach(function (k) { pts[k] = (pts[k] || 0) + sp[k]; });
+      });
+      if (PCMT_NA_STAGE) {
+        var s0 = pcmtStageBest(wb), s1 = pcmtStageBest(e);
+        Object.keys(s1).forEach(function (k) { var d = s1[k] - (s0[k] || 0); if (d) pts[k] = (pts[k] || 0) + d; });
+      }
+      var best = 0, id = null;
+      ids.forEach(function (x) { if ((pts[x] || 0) > best) { best = pts[x]; id = x; } });
+      if (id) val = { id: id, when: i === 1 ? 'Last gameweek' : 'Week of ' + new Date(wb).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/New_York' }) };
+      b = wb;
+    }
+    this._heldMvp = { key: key, val: val };
+    return val;
+  }
+
   // NA deck during the stage: a card shows the player's stage total (their two best series so far), not this gameweek's.
   stageCards() {
     var S = PCMT_NA_STAGE, now = (this.state && this.state.now) || Date.now();
@@ -2493,17 +2520,22 @@ class Component extends DCLogic {
     var nowT = (s && s.now) || Date.now(), regWk = pcmtWeekLock(nowT), naStageOn = pcmtNaStageOn(nowT);
     var nextLock = weekLocked ? null : wk.stage ? wk.lockAt : ((this.props.lockPreview ?? 'Live') === 'Live' ? pcmtNextLock(Date.now()) : (wk.lockAt && wk.lockAt > Date.now() ? wk.lockAt : pcmtNextLock(Date.now())));
     this._lockTarget = nextLock;
-    // Your MVP = the player in your squad with the most points this gameweek. Empty until someone has scored
-    // (e.g. before Week 1's first match). The mvpPlayer tweak forces a player for previews.
+    // Your MVP = the player in your squad with the most points this gameweek. Until someone in your squad scores this
+    // gameweek, last gameweek's MVP stays in the panel (or the most recent week anyone in your squad scored), so the
+    // panel is never empty once your squad has scored. The mvpPlayer tweak forces a player for previews.
     var mvpOverride = String(this.props.mvpPlayer ?? '').trim().toLowerCase();
     var topId = String(this.props.topPlayer ?? '').trim().toLowerCase();
     var keys = pcmtSlotKeys();
     var pickedIds = keys.map(function (k) { return s.slots[k]; }).filter(Boolean);
     var picked = pickedIds.map(function (id) { return self.find(id); }).filter(Boolean);
-    var mvpId = mvpOverride;
+    var mvpId = mvpOverride, mvpWhen = 'This gameweek';
     if (!mvpId) {
       var mvpBest = 0;
       pickedIds.forEach(function (id) { var pts = self.weekPoints(id); if (pts > mvpBest) { mvpBest = pts; mvpId = id; } });
+      if (!mvpId && !this.props.samplePoints) {
+        var held = self.heldMvp(pickedIds, (s && s.now) || Date.now());
+        if (held) { mvpId = held.id; mvpWhen = held.when; }
+      }
     }
     var spent = picked.reduce(function (a, p) { return a + p.price; }, 0);
     var left = budget - spent;
@@ -2798,7 +2830,7 @@ class Component extends DCLogic {
       actionOpacity: weekLocked ? 0.4 : 1,
       lockColor: weekLocked ? '#ff7f66' : '#93a9aa',
       lockPath: weekLocked ? 'M8 11V7a4 4 0 0 1 8 0v4' : 'M8 11V7a4 4 0 0 1 7.5-2',
-      mvpLabel: (pickedIds.indexOf(mvpId) >= 0 && self.find(mvpId)) ? 'Your MVP · Week ' + (this.props.mvpWeek ?? 1) : 'Your MVP',
+      mvpLabel: (pickedIds.indexOf(mvpId) >= 0 && self.find(mvpId)) ? 'Your MVP · ' + mvpWhen : 'Your MVP',
       mvpName: (pickedIds.indexOf(mvpId) >= 0 && self.find(mvpId)) ? self.find(mvpId).name : '—',
       mvpHasLogo: !!(pickedIds.indexOf(mvpId) >= 0 && self.find(mvpId) && PCMT_LOGOS[self.find(mvpId).team]),
       mvpLogo: (self.find(mvpId) && PCMT_LOGOS[self.find(mvpId).team]) || '',
