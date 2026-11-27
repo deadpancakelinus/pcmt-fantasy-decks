@@ -56,8 +56,17 @@
   #st-staff:not([hidden]) { display: grid; grid-template-columns: 224px minmax(0, 1fr); gap: 0 28px; align-items: start; }
   #st-staff > .side { grid-column: 1; grid-row: 1 / span 40; position: sticky; top: 16px; display: flex; flex-direction: column; gap: 2px; padding: 10px 8px; border: 1px solid var(--line); border-radius: 12px; background: #111a1c; max-height: calc(100vh - 32px); overflow: auto; }
   #st-staff > .pane { grid-column: 2; min-width: 0; }
-  .side-h { padding: 14px 10px 6px; font: 600 11px/1 'National Park', system-ui, sans-serif; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); }
-  .side-h:first-child { padding-top: 4px; }
+  .side .side-h { display: flex; align-items: center; gap: 8px; min-height: 32px; margin-top: 8px; padding: 0 10px; color: var(--dim); font: 600 11px/1 'National Park', system-ui, sans-serif; letter-spacing: .1em; text-transform: uppercase; }
+  .side .side-h:first-child { margin-top: 0; }
+  .side .side-h:hover { background: none; color: var(--ink); }
+  .side .side-h svg { width: 14px; height: 14px; margin-left: auto; transition: transform .15s; }
+  .side .side-h[aria-expanded="false"] svg { transform: rotate(-90deg); }
+  .side .side-h.has-on[aria-expanded="false"] { color: var(--accent); }
+  .side-hc:empty { display: none; }
+  .side-h[aria-expanded="true"] .side-hc { display: none; }
+  .side-g { display: flex; flex-direction: column; gap: 2px; }
+  .side-g[hidden] { display: none; }
+  @media (prefers-reduced-motion: reduce) { .side .side-h svg { transition: none; } }
   .side button { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 38px; padding: 0 10px; border: 0; border-radius: 8px; background: none; color: var(--soft, #c4d4d4); font: 500 14px/1 'National Park', system-ui, sans-serif; text-align: left; cursor: pointer; }
   .side button svg { width: 18px; height: 18px; flex: none; color: var(--dim); }
   .side button:hover { background: #1a2629; color: var(--ink); }
@@ -67,9 +76,7 @@
   .side button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
   @media (max-width: 900px) {
     #st-staff:not([hidden]) { display: block; }
-    #st-staff > .side { position: static; flex-direction: row; overflow-x: auto; max-height: none; margin-bottom: 18px; }
-    .side-h { display: none; }
-    .side button { width: auto; flex: none; white-space: nowrap; }
+    #st-staff > .side { position: static; max-height: none; margin-bottom: 18px; }
   }
   .tabs { display: flex; flex-wrap: wrap; gap: 6px; border-bottom: 1px solid var(--line); margin-bottom: 20px; }
   .tabs button { min-height: 44px; padding: 0 16px; border: 1px solid transparent; border-bottom: none; border-radius: 8px 8px 0 0; background: none; color: var(--dim); font: 600 13px/1 'National Park', system-ui, sans-serif; letter-spacing: .06em; text-transform: uppercase; cursor: pointer; margin-bottom: -1px; }
@@ -282,25 +289,33 @@
   </section>
 
   <div id="st-staff" hidden>
-    <nav class="side" role="tablist" aria-label="Backend sheets" aria-orientation="vertical">
-      <span class="side-h" aria-hidden="true">Site</span>
-      <button type="button" role="tab" id="tab-dash" aria-controls="pane-dash" aria-selected="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg><span class="side-l">Dashboard</span></button>
-      <button type="button" role="tab" id="tab-pages" aria-controls="pane-pages" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></svg><span class="side-l">Pages</span><span class="count" id="pg-badge"></span></button>
-      <button type="button" role="tab" id="tab-users" aria-controls="pane-users" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span class="side-l">Users</span><span class="count" id="us-badge"></span></button>
-      <span class="side-h" aria-hidden="true">Season</span>
-      <button type="button" role="tab" id="tab-season" aria-controls="pane-season" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3"/><path d="M7 5H4v2a3 3 0 0 0 3 3"/></svg><span class="side-l">Seasons</span></button>
-      <button type="button" role="tab" id="tab-schedule" aria-controls="pane-schedule" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span class="side-l">Schedule</span></button>
-      <button type="button" role="tab" id="tab-pickems" aria-controls="pane-pickems" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span class="side-l">Pick'ems</span></button>
-      <span class="side-h" aria-hidden="true">Players</span>
-      <button type="button" role="tab" id="tab-prices" aria-controls="pane-prices" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><circle cx="7" cy="7" r="1.5"/></svg><span class="side-l">Player prices</span></button>
-      <button type="button" role="tab" id="tab-teams" aria-controls="pane-teams" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span class="side-l">Teams</span></button>
-      <button type="button" role="tab" id="tab-subs" aria-controls="pane-subs" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg><span class="side-l">Subs</span><span class="count" id="sb-badge"></span></button>
-      <button type="button" role="tab" id="tab-decks" aria-controls="pane-decks" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="14" height="16" rx="2"/><path d="M6 2h12a2 2 0 0 1 2 2v14"/></svg><span class="side-l">Decks</span></button>
-      <button type="button" role="tab" id="tab-riot" aria-controls="pane-riot" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="8" cy="12" r="2.5"/><path d="M14 10h5M14 14h3"/></svg><span class="side-l">Riot IDs</span><span class="count" id="ri-badge"></span></button>
-      <span class="side-h" aria-hidden="true">Team</span>
-      <button type="button" role="tab" id="tab-notes" aria-controls="pane-notes" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg><span class="side-l">Patch notes</span></button>
-      <button type="button" role="tab" id="tab-complaints" aria-controls="pane-complaints" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span class="side-l">Complaints</span><span class="count" id="cx-badge"></span></button>
-      <button type="button" role="tab" id="tab-staff" aria-controls="pane-staff" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg><span class="side-l">Staff</span></button>
+    <nav class="side" aria-label="Backend sheets">
+      <button type="button" class="side-h" id="sgh-site" aria-expanded="true" aria-controls="sg-site"><span class="side-hl">Site</span><span class="count side-hc" aria-hidden="true"></span><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
+      <div class="side-g" id="sg-site" role="tablist" aria-labelledby="sgh-site" aria-orientation="vertical">
+        <button type="button" role="tab" id="tab-dash" aria-controls="pane-dash" aria-selected="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg><span class="side-l">Dashboard</span></button>
+        <button type="button" role="tab" id="tab-pages" aria-controls="pane-pages" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></svg><span class="side-l">Pages</span><span class="count" id="pg-badge"></span></button>
+        <button type="button" role="tab" id="tab-users" aria-controls="pane-users" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span class="side-l">Users</span><span class="count" id="us-badge"></span></button>
+      </div>
+      <button type="button" class="side-h" id="sgh-season" aria-expanded="true" aria-controls="sg-season"><span class="side-hl">Season</span><span class="count side-hc" aria-hidden="true"></span><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
+      <div class="side-g" id="sg-season" role="tablist" aria-labelledby="sgh-season" aria-orientation="vertical">
+        <button type="button" role="tab" id="tab-season" aria-controls="pane-season" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3"/><path d="M7 5H4v2a3 3 0 0 0 3 3"/></svg><span class="side-l">Seasons</span></button>
+        <button type="button" role="tab" id="tab-schedule" aria-controls="pane-schedule" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span class="side-l">Schedule</span></button>
+        <button type="button" role="tab" id="tab-pickems" aria-controls="pane-pickems" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span class="side-l">Pick'ems</span></button>
+      </div>
+      <button type="button" class="side-h" id="sgh-players" aria-expanded="true" aria-controls="sg-players"><span class="side-hl">Players</span><span class="count side-hc" aria-hidden="true"></span><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
+      <div class="side-g" id="sg-players" role="tablist" aria-labelledby="sgh-players" aria-orientation="vertical">
+        <button type="button" role="tab" id="tab-prices" aria-controls="pane-prices" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><circle cx="7" cy="7" r="1.5"/></svg><span class="side-l">Player prices</span></button>
+        <button type="button" role="tab" id="tab-teams" aria-controls="pane-teams" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span class="side-l">Teams</span></button>
+        <button type="button" role="tab" id="tab-subs" aria-controls="pane-subs" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg><span class="side-l">Subs</span><span class="count" id="sb-badge"></span></button>
+        <button type="button" role="tab" id="tab-decks" aria-controls="pane-decks" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="14" height="16" rx="2"/><path d="M6 2h12a2 2 0 0 1 2 2v14"/></svg><span class="side-l">Decks</span></button>
+        <button type="button" role="tab" id="tab-riot" aria-controls="pane-riot" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="8" cy="12" r="2.5"/><path d="M14 10h5M14 14h3"/></svg><span class="side-l">Riot IDs</span><span class="count" id="ri-badge"></span></button>
+      </div>
+      <button type="button" class="side-h" id="sgh-team" aria-expanded="true" aria-controls="sg-team"><span class="side-hl">Team</span><span class="count side-hc" aria-hidden="true"></span><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
+      <div class="side-g" id="sg-team" role="tablist" aria-labelledby="sgh-team" aria-orientation="vertical">
+        <button type="button" role="tab" id="tab-notes" aria-controls="pane-notes" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg><span class="side-l">Patch notes</span></button>
+        <button type="button" role="tab" id="tab-complaints" aria-controls="pane-complaints" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span class="side-l">Complaints</span><span class="count" id="cx-badge"></span></button>
+        <button type="button" role="tab" id="tab-staff" aria-controls="pane-staff" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg><span class="side-l">Staff</span></button>
+      </div>
     </nav>
 
     <!-- ===== Pages waiting for launch ===== -->
@@ -746,7 +761,36 @@
 
   // ---------- tabs ----------
   var TABS = ['dash', 'pages', 'users', 'season', 'schedule', 'pickems', 'prices', 'teams', 'subs', 'decks', 'riot', 'notes', 'complaints', 'staff'];   // sidebar order
+  // Sidebar groups (Site, Season, Players, Team) fold open and closed; folded groups are remembered in this browser.
+  // A folded group shows its sheets' badge counts added up, and is tinted when the open sheet is inside it.
+  var SIDE_KEY = 'pcmt-backend-folded', folded = {};
+  try { folded = JSON.parse(localStorage.getItem(SIDE_KEY) || '{}') || {}; } catch (e) {}
+  function groupOf(t) { return $('tab-' + t).parentNode; }
+  function setFold(g, shut) {
+    var h = $(g.getAttribute('aria-labelledby'));
+    g.hidden = shut; h.setAttribute('aria-expanded', shut ? 'false' : 'true');
+    folded[g.id] = shut; try { localStorage.setItem(SIDE_KEY, JSON.stringify(folded)); } catch (e) {}
+    sideMarks();
+  }
+  function sideMarks() {
+    document.querySelectorAll('.side-g').forEach(function (g) {
+      var h = $(g.getAttribute('aria-labelledby')), n = 0;
+      g.querySelectorAll('.count').forEach(function (c) { var v = parseInt(c.textContent, 10); if (v > 0) n += v; });
+      h.querySelector('.side-hc').textContent = n ? n : '';
+      h.classList.toggle('has-on', !!g.querySelector('[aria-selected="true"]'));
+    });
+    // keyboard: when the open sheet's group is folded, the first sheet still showing takes the Tab stop
+    var tabs = [].slice.call(document.querySelectorAll('.side [role="tab"]')), on = tabs.filter(function (b) { return b.getAttribute('aria-selected') === 'true'; })[0];
+    var stop = on && !on.parentNode.hidden ? on : tabs.filter(function (b) { return !b.parentNode.hidden; })[0] || on;
+    tabs.forEach(function (b) { b.tabIndex = b === stop ? 0 : -1; });
+  }
+  document.querySelectorAll('.side-g').forEach(function (g) {
+    if (folded[g.id]) { g.hidden = true; $(g.getAttribute('aria-labelledby')).setAttribute('aria-expanded', 'false'); }
+    $(g.getAttribute('aria-labelledby')).addEventListener('click', function () { setFold(g, !g.hidden); });
+    new MutationObserver(sideMarks).observe(g, { subtree: true, childList: true, characterData: true });
+  });
   function openTab(name, focus) {
+    if (groupOf(name).hidden) setFold(groupOf(name), false);
     TABS.forEach(function (t) {
       var on = t === name, tab = $('tab-' + t);
       tab.setAttribute('aria-selected', on ? 'true' : 'false'); tab.tabIndex = on ? 0 : -1;
@@ -754,13 +798,15 @@
       if (on && focus) tab.focus();
     });
     try { history.replaceState(null, '', '#' + name); } catch (e) {}
+    sideMarks();
   }
   TABS.forEach(function (t, i) {
     var tab = $('tab-' + t);
     tab.addEventListener('click', function () { openTab(t); if (t === 'season' && !EV.loaded && !EV.busy) { loadEvents(); drawActiveSeasons(); } if (t === 'users' && !US.loaded) loadUsers(); });
     tab.addEventListener('keydown', function (e) {
-      var j = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? i + 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? i - 1 : e.key === 'Home' ? 0 : e.key === 'End' ? TABS.length - 1 : null;
-      if (j == null) return; e.preventDefault(); openTab(TABS[(j + TABS.length) % TABS.length], true);
+      var vis = TABS.filter(function (x) { return x === t || !groupOf(x).hidden; }), k = vis.indexOf(t);   // folded groups are skipped
+      var j = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? k + 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? k - 1 : e.key === 'Home' ? 0 : e.key === 'End' ? vis.length - 1 : null;
+      if (j == null) return; e.preventDefault(); openTab(vis[(j + vis.length) % vis.length], true);
     });
   });
 
