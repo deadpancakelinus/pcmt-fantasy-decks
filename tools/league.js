@@ -1452,14 +1452,12 @@
 try { localStorage.removeItem('pcmt-glass'); } catch (e) {}
 
 
-/* Calmer look (Nov 27 2026): plain page titles and a quieter page bar on every built page. Player cards, deck backs,
+/* Calmer look (Nov 27 2026): a quieter page bar on every built page (page titles keep the sketch font). Player cards, deck backs,
    auras and animations keep their own look. */
 (function () {
   'use strict';
   var css = document.createElement('style');
   css.textContent =
-    // page titles: the site's plain font instead of the sketch font, a little smaller
-    "h1[style*='Cabin Sketch']{font-family:'National Park',system-ui,sans-serif!important;font-size:clamp(32px,4.6vw,46px)!important;letter-spacing:-.01em}" +
     // the page bar: normal case, no letter spacing; the current page is a soft tint instead of a solid block
     "nav[aria-label='Main'] a{text-transform:none!important;letter-spacing:0!important;font-size:14px!important;font-weight:500!important}" +
     "nav[aria-label='Main'] a:hover{background:rgba(165,220,221,.08)}" +
