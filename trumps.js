@@ -7,7 +7,7 @@
   var SB_URL = 'https://wwrsavqipkxvdsxcemos.supabase.co';
   var SB_KEY = 'sb_publishable_e8v-uyAo4fnvwJCHUVA5FQ_LXR6yYM7';
   var TOKEN_KEY = 'pcmt-auth'; // same sign-in as the rest of the site
-  var ROUND_LIMIT = 60;
+  var ROUND_LIMIT = 60, MAX_ROUNDS = 999;   // 60 unless the players set another number before dealing
   // One deck per season (PCMT_TRUMPS_SEASONS, current seasons first): label "NA S4", season "S4 NA", the region's logo.
   var REGIONS = {}, SEASON_LIST = (window.PCMT_TRUMPS_SEASONS || []).filter(function (x) { return CARDS[x.id] && CARDS[x.id].length; });
   SEASON_LIST.forEach(function (x) { REGIONS[x.id] = { label: x.label, season: x.season, logo: x.logo, past: !x.current, region: x.region }; });
@@ -42,21 +42,26 @@
       return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
     };
   }
+  // A deck is one or more seasons: their ids joined by "+" (e.g. "nas4+emeas2"), in the order the seasons are listed.
+  function deckSeasons(deck) { return String(deck || '').split('+').filter(function (id) { return CARDS[id]; }); }
+  function deckCards(deck) { var out = []; deckSeasons(deck).forEach(function (id) { out = out.concat(CARDS[id]); }); return out; }
+  function roundsOk(n) { n = Math.floor(+n); return n >= 1 && n <= MAX_ROUNDS ? n : ROUND_LIMIT; }
   // firstSeat: 0 or 1 to choose who picks first (vs the bot the player always does); leave it out for a coin flip.
-  function newGame(region, seed, firstSeat) {
-    var r = rng(seed), ids = CARDS[region].map(function (c) { return c.id; });
+  // rounds: how many rounds before the most cards wins (60 if left out).
+  function newGame(region, seed, firstSeat, rounds) {
+    var r = rng(seed), ids = deckCards(region).map(function (c) { return c.id; });
     for (var i = ids.length - 1; i > 0; i--) { var j = Math.floor(r() * (i + 1)), t = ids[i]; ids[i] = ids[j]; ids[j] = t; }
     // Every card is dealt. With an odd number of players, the player who picks second gets the extra card.
     var flip = r() < 0.5 ? 0 : 1, first = firstSeat === 0 || firstSeat === 1 ? firstSeat : flip, hands = [[], []];
     for (var k = 0; k < ids.length; k++) hands[(first + 1 + k) % 2].push(ids[k]);
-    return { region: region, seed: seed, hands: hands, turn: first, round: 1, last: null, over: null };
+    return { region: region, seed: seed, limit: roundsOk(rounds), hands: hands, turn: first, round: 1, last: null, over: null };
   }
   function play(s, stat) {
     if (s.over) return s;
     s = JSON.parse(JSON.stringify(s));
     var a = s.hands[0].shift(), b = s.hands[1].shift(), picker = s.turn;
     var va = BY_ID[a][stat], vb = BY_ID[b][stat];
-    if (STAT_BY_KEY[stat].low) { va = -va; vb = -vb; } // DPR: fewer deaths wins
+    if (STAT_BY_KEY[stat].low) { va = -va; vb = -vb; } // Deaths: fewer wins
     var w = va > vb ? 0 : vb > va ? 1 : -1;
     if (w < 0) {
       // Tie: each player puts their own card back at the bottom of their deck; the same player picks again.
@@ -69,7 +74,7 @@
     s.round++;
     var n0 = s.hands[0].length, n1 = s.hands[1].length;
     if (!n0 || !n1) s.over = { winner: !n0 && !n1 ? -1 : n0 ? 0 : 1, reason: 'cards' };
-    else if (s.round > ROUND_LIMIT) s.over = { winner: n0 === n1 ? -1 : n0 > n1 ? 0 : 1, reason: 'limit' };
+    else if (s.round > (s.limit || ROUND_LIMIT)) s.over = { winner: n0 === n1 ? -1 : n0 > n1 ? 0 : 1, reason: 'limit' };
     return s;
   }
   function botPick(s, seat) {
@@ -134,10 +139,18 @@
 
   // ---------- page state ----------
   var ui = {
-    region: (SEASON_LIST[0] || {}).id || '', mode: 'lobby', state: null, me: 0, seen: 0, busy: false, error: '',
+    region: (SEASON_LIST[0] || {}).id || '', rounds: ROUND_LIMIT, mode: 'lobby', state: null, me: 0, seen: 0, busy: false, error: '',
     names: ['You', 'Bot'], room: null, version: 0, poll: null, tester: null, joinCode: ''
   };
-  try { var saved = localStorage.getItem('pcmt-trumps-region'); if (REGIONS[saved]) ui.region = saved; } catch (e) {}
+  // The seasons picked last time (one or more) and the round count.
+  try {
+    var picked = deckSeasons(localStorage.getItem('pcmt-trumps-region'));
+    if (picked.length) ui.region = picked.join('+');
+    var savedRounds = localStorage.getItem('pcmt-trumps-rounds'); if (savedRounds) ui.rounds = roundsOk(savedRounds);
+  } catch (e) {}
+  function deckLabel(deck) { return deckSeasons(deck).map(function (id) { return REGIONS[id].label; }).join(' + '); }
+  function deckLogo(deck) { var x = deckSeasons(deck); return x.length ? REGIONS[x[0]].logo : ''; }
+  function limitOf(s) { return (s && s.limit) || ROUND_LIMIT; }
   var $ = function (id) { return document.getElementById(id); };
   function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -198,7 +211,7 @@
   }
   function tableHTML(s, deckMe, deckThem, middle) {
     return '<div class="tt-tabletop">' +
-      '<img class="tt-felt-mark" src="' + REGIONS[s.region].logo + '" alt="" aria-hidden="true">' +
+      '<img class="tt-felt-mark" src="' + deckLogo(s.region) + '" alt="" aria-hidden="true">' +
       deckHTML(ui.me, deckMe) + deckHTML(1 - ui.me, deckThem) + middle + '</div>';
   }
   function slotHTML(who, label, inner) {
@@ -207,30 +220,28 @@
   var REDUCED = (function () { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } })();
   function ms(n) { return REDUCED ? 1 : n; }
 
-  // The deck buttons: this season's NA and EMEA decks, then past seasons, newest first.
+  // The deck buttons, one per season (current NA and EMEA first). Pick one or more: their cards are dealt together.
   function seasonButtons() {
     var box = $('tt-seasons'); if (!box || box.childNodes.length) return;
-    var btn = function (x) { return '<button type="button" data-region="' + x.id + '" aria-pressed="false"><img src="' + x.logo + '" alt="">' + esc(x.label) + '</button>'; };
-    var now = SEASON_LIST.filter(function (x) { return !REGIONS[x.id].past; }), past = SEASON_LIST.filter(function (x) { return REGIONS[x.id].past; });
-    box.innerHTML = '<span>CARDS</span>' + now.map(btn).join('') + (past.length ? '<span class="tt-past">PAST SEASONS</span>' + past.map(btn).join('') : '');
+    box.innerHTML = SEASON_LIST.map(function (x) { return '<button type="button" data-region="' + x.id + '" aria-pressed="false"><img src="' + x.logo + '" alt="">' + esc(x.label) + '</button>'; }).join('');
   }
   function render() {
     var root = $('tt-app'); if (!root) return;
     seasonButtons();
     document.querySelectorAll('[data-region]').forEach(function (b) {
-      b.setAttribute('aria-pressed', String(b.getAttribute('data-region') === ui.region));
+      b.setAttribute('aria-pressed', String(deckSeasons(ui.region).indexOf(b.getAttribute('data-region')) >= 0));
       b.disabled = ui.mode !== 'lobby';
     });
     if (ui.mode === 'lobby') return renderLobby(root);
     var s = ui.state, them = 1 - ui.me, html = '';
     if (ui.mode === 'online' && !ui.room.guest) {
       root.innerHTML = '<div class="tt-panel tt-center"><div class="tt-kicker">ROOM CODE</div><div class="tt-code">' + esc(ui.room.code) + '</div>' +
-        '<p>Send this code to the other player. The game starts when they join.</p><p class="tt-dim">' + REGIONS[s.region].label + ' cards · ' + CARDS[s.region].length + ' players</p>' +
+        '<p>Send this code to the other player. The game starts when they join.</p><p class="tt-dim">' + esc(deckLabel(s.region)) + ' cards · ' + deckCards(s.region).length + ' players · ' + limitOf(s) + ' rounds</p>' +
         '<button type="button" class="tt-btn ghost" data-act="leave">Leave room</button></div>';
       return;
     }
     var last = s.last, showReveal = last && last.round > ui.seen, phase;
-    var round = '<span class="tt-round">Round ' + Math.min(showReveal ? last.round : s.round, ROUND_LIMIT) + '<small>/' + ROUND_LIMIT + '</small></span>';
+    var round = '<span class="tt-round">Round ' + Math.min(showReveal ? last.round : s.round, limitOf(s)) + '<small>/' + limitOf(s) + '</small></span>';
     if (showReveal) {
       phase = 'reveal';
       var mine = last.cards[ui.me], theirs = last.cards[them], st = STAT_BY_KEY[last.stat];
@@ -252,7 +263,7 @@
       html += '<div class="tt-status">' + round + '<div class="tt-result ' + (w < 0 ? 'tie' : w === ui.me ? 'win' : 'lose') + '"><span>Game over</span><strong>' + title + '</strong></div></div>';
       html += tableHTML(s, s.hands[ui.me].length, s.hands[them].length,
         '<div class="tt-over"><div class="tt-kicker">GAME OVER</div><div class="tt-big">' + title + '</div><p>' +
-        (s.over.reason === 'limit' ? 'Round ' + ROUND_LIMIT + ' reached, so the most cards wins: ' + s.hands[ui.me].length + ' to ' + s.hands[them].length + '.' : 'Every card ended up in one deck.') +
+        (s.over.reason === 'limit' ? 'Round ' + limitOf(s) + ' reached, so the most cards wins: ' + s.hands[ui.me].length + ' to ' + s.hands[them].length + '.' : 'Every card ended up in one deck.') +
         '</p><div class="tt-actions">' + (ui.mode === 'bot' ? '<button type="button" class="tt-btn" data-act="again">Play again</button>' : '') +
         '<button type="button" class="tt-btn ghost" data-act="leave">Back to lobby</button></div></div>');
     } else {
@@ -330,7 +341,7 @@
   }
 
   function renderLobby(root) {
-    var n = CARDS[ui.region].length, signedIn = !!session;
+    var pool = deckCards(ui.region), n = pool.length, label = deckLabel(ui.region), signedIn = !!session;
     var online = window.PCMT_TRUMPS_PREVIEW
       ? '<p>Online rooms need the site itself (Discord log-in and the game database), so this test copy only has the bot. They work once the page is on a private site preview.</p>'
       : !signedIn
@@ -339,13 +350,16 @@
           '<form class="tt-join" data-act="join"><label for="tt-code">Join with a code</label><div><input id="tt-code" maxlength="5" autocomplete="off" placeholder="ABCDE" value="' + esc(ui.joinCode) + '">' +
           '<button type="submit" class="tt-btn ghost"' + (ui.busy ? ' disabled' : '') + '>Join</button></div></form>';
     root.innerHTML =
+      '<div class="tt-setup"><span class="tt-setup-deck"><b>' + esc(label) + '</b> · ' + n + ' cards</span>' +
+      '<label class="tt-rounds" for="tt-rounds">Rounds <input id="tt-rounds" type="number" inputmode="numeric" min="1" max="' + MAX_ROUNDS + '" step="1" value="' + ui.rounds + '" aria-describedby="tt-rounds-help"></label>' +
+      '<span id="tt-rounds-help" class="tt-dim">After this many rounds, whoever holds more cards wins.</span></div>' +
       '<div class="tt-lobby">' +
-      '<div class="tt-panel"><div class="tt-kicker">VS THE BOT</div><h2>Practice game</h2><p>Deal the ' + REGIONS[ui.region].label + ' deck (' + n + ' cards) between you and the bot.</p>' +
-      '<button type="button" class="tt-btn" data-act="bot">Deal ' + REGIONS[ui.region].label + ' cards</button></div>' +
+      '<div class="tt-panel"><div class="tt-kicker">VS THE BOT</div><h2>Practice game</h2><p id="tt-bot-line">Deal the ' + esc(label) + ' cards (' + n + ') between you and the bot, ' + ui.rounds + ' rounds.</p>' +
+      '<button type="button" class="tt-btn" data-act="bot">Deal ' + esc(label) + ' cards</button></div>' +
       '<div class="tt-panel"><div class="tt-kicker">ONLINE · 1V1</div><h2>Play a friend</h2>' + online + '</div>' +
       '</div>' + (ui.error ? '<p class="tt-error" role="alert">' + esc(ui.error) + '</p>' : '') +
-      '<div class="tt-preview"><div class="tt-kicker">' + REGIONS[ui.region].season + ' · TOP 3 BY TOXIC RATING</div><div class="tt-preview-row">' +
-      CARDS[ui.region].slice().sort(function (a, b) { return b.toxic - a.toxic; }).slice(0, 3).map(function (c) { return cardHTML(c.id); }).join('') + '</div></div>';
+      '<div class="tt-preview"><div class="tt-kicker">' + esc(deckSeasons(ui.region).map(function (id) { return REGIONS[id].season; }).join(' + ')) + ' · TOP 3 BY TOXIC RATING</div><div class="tt-preview-row">' +
+      pool.slice().sort(function (a, b) { return b.toxic - a.toxic; }).slice(0, 3).map(function (c) { return cardHTML(c.id); }).join('') + '</div></div>';
   }
 
   // ---------- online rooms ----------
@@ -371,7 +385,13 @@
   // ---------- actions ----------
   document.addEventListener('click', function (e) {
     var reg = e.target.closest('[data-region]');
-    if (reg && ui.mode === 'lobby') { ui.region = reg.getAttribute('data-region'); try { localStorage.setItem('pcmt-trumps-region', ui.region); } catch (x) {} ui.error = ''; return render(); }
+    if (reg && ui.mode === 'lobby') {   // toggle a season; at least one stays picked
+      var id = reg.getAttribute('data-region'), on = deckSeasons(ui.region), at = on.indexOf(id);
+      if (at >= 0) { if (on.length > 1) on.splice(at, 1); } else on.push(id);
+      ui.region = SEASON_LIST.map(function (x) { return x.id; }).filter(function (x) { return on.indexOf(x) >= 0; }).join('+');
+      try { localStorage.setItem('pcmt-trumps-region', ui.region); } catch (x) {}
+      ui.error = ''; return render();
+    }
     var stat = e.target.closest('[data-stat]');
     if (stat && ui.state && ui.state.turn === ui.me && !ui.busy) {
       var k = stat.getAttribute('data-stat');
@@ -387,7 +407,7 @@
     if (a === 'bot' || a === 'again') {
       var region = a === 'again' ? ui.state.region : ui.region;
       ui.mode = 'bot'; ui.me = 0; ui.names = ['You', 'Bot']; ui.seen = 0; ui.error = ''; ui.dealt = 0; ui.revealed = 0; ui.collecting = false;
-      ui.state = newGame(region, (Math.random() * 4294967296) >>> 0, 0); render(); // you always pick first against the bot
+      ui.state = newGame(region, (Math.random() * 4294967296) >>> 0, 0, a === 'again' ? limitOf(ui.state) : ui.rounds); render(); // you always pick first against the bot
     } else if (a === 'next') {
       if (!ui.collecting) collect();
     } else if (a === 'leave') {
@@ -396,12 +416,27 @@
       signIn();
     } else if (a === 'create') {
       ui.busy = true; ui.error = ''; render();
-      var g = newGame(ui.region, (Math.random() * 4294967296) >>> 0);
+      var g = newGame(ui.region, (Math.random() * 4294967296) >>> 0, undefined, ui.rounds);
       rpc('trumps_create', { p_region: ui.region, p_state: g })
         .then(function (code) { return api('/rest/v1/trumps_rooms?code=eq.' + encodeURIComponent(code) + '&select=*'); })
         .then(function (rows) { ui.busy = false; enterRoom(rows[0]); })
         .catch(function (err) { ui.busy = false; ui.error = err.message; render(); });
     }
+  });
+  // Rounds: a whole number from 1 to 999 counts as soon as it's typed; anything else goes back to 60 when you leave the box.
+  function setRounds(n) { ui.rounds = n; try { localStorage.setItem('pcmt-trumps-rounds', String(n)); } catch (x) {} }
+  document.addEventListener('input', function (e) {
+    if (e.target.id !== 'tt-rounds') return;
+    var v = e.target.value.trim(), n = +v;
+    if (/^\d+$/.test(v) && n >= 1 && n <= MAX_ROUNDS) {
+      setRounds(n);
+      var line = $('tt-bot-line'); if (line) line.textContent = line.textContent.replace(/\d+ rounds\.$/, n + ' rounds.');
+    }
+  });
+  document.addEventListener('change', function (e) {
+    if (e.target.id !== 'tt-rounds') return;
+    setRounds(roundsOk(e.target.value)); e.target.value = ui.rounds;
+    var line = $('tt-bot-line'); if (line) line.textContent = line.textContent.replace(/\d+ rounds\.$/, ui.rounds + ' rounds.');
   });
   document.addEventListener('submit', function (e) {
     if (!e.target.matches('[data-act="join"]')) return;
@@ -415,7 +450,7 @@
 
   // ---------- start ----------
   // cardHTML: the backend's View cards window draws cards exactly as they look here.
-  window.PCMT_TRUMPS = { newGame: newGame, play: play, botPick: botPick, STATS: STATS, ROUND_LIMIT: ROUND_LIMIT, cards: CARDS, cardHTML: cardHTML };
+  window.PCMT_TRUMPS = { newGame: newGame, play: play, botPick: botPick, STATS: STATS, ROUND_LIMIT: ROUND_LIMIT, cards: CARDS, cardHTML: cardHTML, deckCards: deckCards };
   function start() {
     if (!$('tt-app')) return;   // loaded on a page without the game (backend.html, for cardHTML): nothing to start
     takeRedirectTokens();

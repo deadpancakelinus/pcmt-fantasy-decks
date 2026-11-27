@@ -15,6 +15,7 @@ const check = (ok, msg) => { if (!ok) { bad++; console.log('FAIL ' + msg); } };
   // 1) Engine: play many bot-vs-bot games per region and past season.
   {
     const pg = await b.newPage();
+    await pg.route('https://wwrsavqipkxvdsxcemos.supabase.co/**', r => r.fulfill({ status: 200, contentType: 'application/json', body: r.request().url().includes('site_pages') ? '[{"id":"mvp-vs","launched":true}]' : '[]' }));
     await pg.goto(`${BASE}/mvp-vs.html`);
     const r = await pg.evaluate(() => {
       const T = window.PCMT_TRUMPS, out = {};
@@ -53,6 +54,20 @@ const check = (ok, msg) => { if (!ok) { bad++; console.log('FAIL ' + msg); } };
       }
       return out;
     });
+    // Several seasons dealt together, and the round count set before the deal.
+    const mix = await pg.evaluate(() => {
+      const T = window.PCMT_TRUMPS, ids = window.PCMT_TRUMPS_SEASONS.map(x => x.id).slice(0, 3), deck = ids.join('+');
+      const want = ids.reduce((t, id) => t + T.cards[id].length, 0);
+      let s = T.newGame(deck, 9, 0, 7), guard = 0;
+      const dealt = s.hands[0].length + s.hands[1].length, seasons = new Set(s.hands[0].concat(s.hands[1]).map(i => i.split('-')[0]));
+      while (!s.over && guard++ < 100) s = T.play(s, T.botPick(s, s.turn));
+      return { want, dealt, seasons: seasons.size, ids: ids.length, endRound: s.round, reason: s.over && s.over.reason,
+        defaultLimit: T.newGame(ids[0], 1).limit, badLimit: T.newGame(ids[0], 1, 0, 'x').limit, bigLimit: T.newGame(ids[0], 1, 0, 1e6).limit };
+    });
+    check(mix.dealt === mix.want && mix.seasons === mix.ids, 'a mixed deck should deal every card of every picked season: ' + JSON.stringify(mix));
+    check(mix.reason === 'cards' || (mix.reason === 'limit' && mix.endRound === 8), 'a 7-round game should end after round 7: ' + JSON.stringify(mix));
+    check(mix.defaultLimit === 60 && mix.badLimit === 60 && mix.bigLimit === 60, 'rounds default to 60: ' + JSON.stringify(mix));
+    console.log('mixed deck: ' + mix.dealt + ' cards from ' + mix.seasons + ' seasons, 7-round game ended ' + mix.reason);
     for (const [region, x] of Object.entries(r).filter(([k]) => !k.endsWith('First'))) {
       console.log(`engine ${region}: ${x.total} cards, ${x.games} games, ${x.byCards} won by taking every card, ${x.byLimit} by round limit, ${x.draws} draws`);
       check(x.games === 2000 && !x.errors.length, `engine ${region}: ${x.errors.join('; ')}`);
@@ -86,7 +101,9 @@ const check = (ok, msg) => { if (!ok) { bad++; console.log('FAIL ' + msg); } };
     await pg.screenshot({ path: `${SHOTS}/lobby-${w}.png`, fullPage: true });
     const EM = await pg.evaluate(() => window.PCMT_TRUMPS_SEASONS.filter(x => x.region === 'emea' && x.current)[0].id);
     const NA = await pg.evaluate(() => window.PCMT_TRUMPS_SEASONS.filter(x => x.region === 'na' && x.current)[0].id);
-    await pg.click(`[data-region="${EM}"]`);
+    await pg.click(`[data-region="${EM}"]`);   // seasons toggle: add EMEA, then take NA off
+    await pg.click(`[data-region="${NA}"]`);
+    check(await pg.getAttribute(`[data-region="${NA}"]`, 'aria-pressed') === 'false', 'NA should be off after tapping it again');
     check((await pg.textContent('[data-act="bot"]')).includes('EMEA'), 'region toggle did not switch the deal button');
     await pg.click('[data-act="bot"]');
     await pg.waitForSelector('.tt-status .tt-result', { timeout: 5000 });

@@ -12,7 +12,7 @@ $$;
 -- 2) Rooms. Players only ever see rooms they are seated in.
 create table if not exists public.trumps_rooms (
   code text primary key,
-  region text not null check (region ~ '^(na|emea)(s[0-9]{1,2})?$'),
+  region text not null check (region ~ '^(na|emea)(s[0-9]{1,2})?(\+(na|emea)s[0-9]{1,2}){0,15}$'),
   host uuid not null references auth.users (id) on delete cascade,
   guest uuid references auth.users (id) on delete cascade,
   host_name text not null default 'Player 1',
@@ -24,7 +24,7 @@ create table if not exists public.trumps_rooms (
 );
 -- Past seasons (NA S1, NA S2, EMEA S1) can be dealt too.
 alter table public.trumps_rooms drop constraint if exists trumps_rooms_region_check;
-alter table public.trumps_rooms add constraint trumps_rooms_region_check check (region ~ '^(na|emea)(s[0-9]{1,2})?$');   -- a deck: nas4, emeas2, ... (na / emea: the old NA S3 / EMEA S2 names)
+alter table public.trumps_rooms add constraint trumps_rooms_region_check check (region ~ '^(na|emea)(s[0-9]{1,2})?(\+(na|emea)s[0-9]{1,2}){0,15}$');   -- a deck: nas4, emeas2, ... (na / emea: the old NA S3 / EMEA S2 names)
 alter table public.trumps_rooms enable row level security;
 drop policy if exists "players read their rooms" on public.trumps_rooms;
 create policy "players read their rooms" on public.trumps_rooms for select
@@ -37,7 +37,7 @@ language plpgsql security definer set search_path = public as $$
 declare c text; n int := 0;
 begin
   if not public.trumps_can_play() then raise exception 'Log in with Discord to play online.'; end if;
-  if p_region !~ '^(na|emea)(s[0-9]{1,2})?$' then raise exception 'Unknown deck.'; end if;
+  if p_region !~ '^(na|emea)(s[0-9]{1,2})?(\+(na|emea)s[0-9]{1,2}){0,15}$' then raise exception 'Unknown deck.'; end if;
   -- Tidy up: rooms untouched for a day are removed.
   delete from public.trumps_rooms where updated_at < now() - interval '1 day';
   if (select count(*) from public.trumps_rooms where host = auth.uid()) >= 5 then

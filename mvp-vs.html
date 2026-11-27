@@ -45,6 +45,11 @@
   .tt-panel p { color: var(--dim); margin: 0 0 18px; }
   .tt-center { text-align: center; max-width: 560px; margin: 0 auto; }
   .tt-kicker { font-size: 11px; letter-spacing: .14em; color: var(--accent); }
+  .tt-setup { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px; margin: 0 0 16px; font-size: 14px; }
+  .tt-setup-deck b { color: var(--accent); }
+  .tt-rounds { display: inline-flex; align-items: center; gap: 10px; font: 600 12px/1 'National Park', system-ui, sans-serif; letter-spacing: .12em; text-transform: uppercase; color: var(--dim); }
+  .tt-rounds input { width: 84px; min-height: 40px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); font: 600 16px/1 'National Park', system-ui, sans-serif; letter-spacing: 0; }
+  .tt-rounds input:focus { outline: 2px solid var(--accent); outline-offset: 2px; }
   .tt-lobby { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
   .tt-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 20px; border-radius: 8px; border: 1px solid var(--accent); background: var(--accent); color: #000; font-size: 13px; font-weight: 600; letter-spacing: .04em; cursor: pointer; }
   .tt-btn:hover { filter: brightness(1.08); }
@@ -277,18 +282,18 @@
   <div class="tt-head">
     <div>
       <h1>MVP VS</h1>
-      <p class="tt-sub">Your top card against theirs. Pick the stat you think wins and take both cards. Hold every card, or the most cards after 60 rounds, to win.</p>
+      <p class="tt-sub">Your top card against theirs. Pick the stat you think wins and take both cards. Hold every card, or the most cards when the last round is played, to win.</p>
     </div>
-    <div class="tt-region" id="tt-seasons" role="group" aria-label="Which cards are dealt"></div>
+    <div class="tt-region" id="tt-seasons" role="group" aria-label="Seasons to deal (pick one or more)"></div>
   </div>
   <div id="tt-app" aria-live="polite"></div>
   <section class="tt-rules">
     <h2>How it works</h2>
     <ul>
-      <li>Pick which cards to deal before you start: this season's NA or EMEA deck, or a past season with that season's stats and teams. A game only ever uses one season's cards, subs included. The current seasons' cards update as the season is played.</li>
+      <li>Pick which cards to deal before you start: one season or several (tap each season you want), every NA and EMEA season with that season's stats and teams, subs included. Picked seasons are dealt together as one deck. The current seasons' cards update as the season is played.</li>
       <li>Each card has five stats from the pcmt.gg stats page: <b>ACS</b>, <b>KAST</b>, <b>HS%</b>, <b>Deaths</b> (per map) and <b>Toxic rating</b>. The higher number wins, except Deaths, where the lower number wins.</li>
       <li>Whoever has the better number (higher, or lower for Deaths) takes both cards to the bottom of their deck and picks the next stat. On a tie, each player puts their own card back at the bottom of their deck and the same player picks again. With an odd number of players, whoever picks second starts with one extra card. Against the bot, you always pick first.</li>
-      <li>You win by holding every card. If nobody has after round 60 (most games), whoever has more cards wins.</li>
+      <li>Set how many rounds the game lasts before you deal (<b>60</b> unless you change it, up to 999). You win by holding every card. If nobody has by the last round, whoever has more cards wins. In an online game, the player who makes the room sets the rounds.</li>
     </ul>
   </section>
 </main>

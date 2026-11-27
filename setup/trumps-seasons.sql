@@ -1,14 +1,14 @@
--- MVP VS: one deck per PCMT season (Nov 26 2026). Rooms can use any season's deck: nas4, emeas2, nas3, ... (tools/mvp-vs-cards.js).
+-- MVP VS: one deck per PCMT season (Nov 26 2026). A room deals one or more seasons' decks: nas4, emeas2, or nas4+emeas2+nas3 (tools/mvp-vs-cards.js).
 -- Run once in the Supabase SQL editor. Safe to run again. (setup/trumps-setup.sql has the same since then.)
 alter table public.trumps_rooms drop constraint if exists trumps_rooms_region_check;
-alter table public.trumps_rooms add constraint trumps_rooms_region_check check (region ~ '^(na|emea)(s[0-9]{1,2})?$');
+alter table public.trumps_rooms add constraint trumps_rooms_region_check check (region ~ '^(na|emea)(s[0-9]{1,2})?(\+(na|emea)s[0-9]{1,2}){0,15}$');
 
 create or replace function public.trumps_create(p_region text, p_state jsonb) returns text
 language plpgsql security definer set search_path = public as $$
 declare c text; n int := 0;
 begin
   if not public.trumps_can_play() then raise exception 'Log in with Discord to play online.'; end if;
-  if p_region !~ '^(na|emea)(s[0-9]{1,2})?$' then raise exception 'Unknown deck.'; end if;
+  if p_region !~ '^(na|emea)(s[0-9]{1,2})?(\+(na|emea)s[0-9]{1,2}){0,15}$' then raise exception 'Unknown deck.'; end if;
   -- Tidy up: rooms untouched for a day are removed.
   delete from public.trumps_rooms where updated_at < now() - interval '1 day';
   if (select count(*) from public.trumps_rooms where host = auth.uid()) >= 5 then
