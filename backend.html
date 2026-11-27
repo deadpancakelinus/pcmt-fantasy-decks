@@ -705,7 +705,7 @@
         <div class="db-head" style="justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px">
           <div style="min-width: 0; flex: 1 1 320px"><h2 class="db-h">Ranked games and RR</h2>
             <p class="who" id="cg-sum" style="margin: 4px 0 0"></p></div>
-          <button type="button" class="btn ghost" id="cg-refresh">Check 20 more players now</button>
+          <button type="button" class="btn ghost" id="cg-refresh">Check 4 more players now</button>
         </div>
         <p class="msg" id="cg-msg" role="status" aria-live="polite"></p>
         <div class="toolbar">
@@ -726,7 +726,7 @@
           </tr></thead>
           <tbody id="cg-rows"></tbody>
         </table></div>
-        <p class="who" style="margin: 0">From Riot's ranked history through HenrikDev (the last ~20 ranked games per account). It checks 20 players every 10 minutes, so each player about once an hour; games stay kept here after they drop out of Riot's list. Players need a Riot ID on the Riot IDs page. W–L counts RR won or lost (a loss with derank protection counts as a loss).</p>
+        <p class="who" style="margin: 0">From Riot's ranked history through HenrikDev (the last ~20 ranked games per account). It checks 20 players every 10 minutes, so each player about once an hour (the button checks 4 more straight away, and an opened player can be checked on their own); games stay kept here after they drop out of Riot's list. Players need a Riot ID on the Riot IDs page. W–L counts RR won or lost (a loss with derank protection counts as a loss).</p>
       </section>
     </section>
 
@@ -2540,7 +2540,8 @@
         '<td class="num"><span class="' + cls + '">' + (x.list.length ? cgSigned(x.rr) : '<span class="who">—</span>') + '</span></td>' +
         '<td class="who">' + (x.last ? esc(ago(new Date(x.last).toISOString())) : '—') + '</td></tr>';
       if (open) {
-        row += '<tr class="cg-games" id="cg-g-' + esc(id) + '"><td colspan="7">' + (x.list.length ? '<table><thead><tr><th scope="col">When (ET)</th><th scope="col">Map</th><th scope="col">Result</th><th scope="col" class="n">RR</th><th scope="col">Rank after</th><th scope="col">Notes</th></tr></thead><tbody>' +
+        row += '<tr class="cg-games" id="cg-g-' + esc(id) + '"><td colspan="7"><div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 12px"><span class="who">' +
+          (st ? 'Checked ' + esc(ago(st.fetched_at)) : 'Not checked yet') + '</span><button type="button" class="btn ghost" data-cg-one="' + esc(id) + '">Check this player now</button></div>' + (x.list.length ? '<table><thead><tr><th scope="col">When (ET)</th><th scope="col">Map</th><th scope="col">Result</th><th scope="col" class="n">RR</th><th scope="col">Rank after</th><th scope="col">Notes</th></tr></thead><tbody>' +
           x.list.map(function (g) {
             var res = g.rr_change > 0 ? 'Win' : g.rr_change < 0 || g.derank_protected ? 'Loss' : 'Draw';
             var notes = [g.placement ? 'Placement' : '', g.derank_protected ? 'Derank protected' : '', g.refunded_rr ? '+' + g.refunded_rr + ' RR refunded' : ''].filter(Boolean);
@@ -2556,6 +2557,8 @@
   }
   ['cg-q', 'cg-region', 'cg-period', 'cg-played'].forEach(function (id) { $(id).addEventListener(id === 'cg-q' ? 'input' : 'change', drawComp); });
   $('cg-table').addEventListener('click', function (e) {
+    var one = e.target.closest('[data-cg-one]');
+    if (one) { one.disabled = true; CG.busy = true; $('cg-msg').className = 'msg'; $('cg-msg').textContent = 'Checking ' + one.getAttribute('data-cg-one') + '…'; return cgCheck({ p_limit: 1, p_player: one.getAttribute('data-cg-one') }, one); }
     var o = e.target.closest('[data-cg]');
     if (o) { var id = o.getAttribute('data-cg'); CG.open[id] = !CG.open[id]; drawComp(); var b = document.querySelector('[data-cg="' + id + '"]'); if (b) b.focus(); return; }
     var s = e.target.closest('button.sort'); if (!s) return;
@@ -2565,8 +2568,13 @@
   });
   $('cg-refresh').addEventListener('click', function () {
     var b = this, msg = $('cg-msg');
-    b.disabled = true; CG.busy = true; msg.className = 'msg'; msg.textContent = 'Checking 20 players with HenrikDev… (about half a minute)';
-    L.api('/rest/v1/rpc/fb_comp_fetch', { method: 'POST', body: { p_limit: 20 } }).then(function (r) {
+    b.disabled = true; CG.busy = true; msg.className = 'msg'; msg.textContent = 'Checking 4 players with HenrikDev…';
+    cgCheck({ p_limit: 4 }, b);
+  });
+  // One check (4 players, or one player): the site cuts a request off after 8 seconds, so it stays small.
+  function cgCheck(body, b) {
+    var msg = $('cg-msg');
+    L.api('/rest/v1/rpc/fb_comp_fetch', { method: 'POST', body: body }).then(function (r) {
       CG.busy = false;
       CG.note = 'Checked ' + r.checked + ' players: ' + r.new_games + ' new game' + (r.new_games === 1 ? '' : 's') + (r.errors ? ', ' + r.errors + ' couldn’t be checked' : '') +
         (r.stopped ? '. ' + r.stopped : '') + (r.never_checked ? '. ' + r.never_checked + ' players not checked yet.' : '.');
@@ -2574,8 +2582,8 @@
     }, function (e) {
       CG.busy = false; msg.className = 'msg err';
       msg.textContent = /fb_comp_fetch|PGRST202/.test(e.message) ? 'Run setup/comp-games.sql in Supabase first.' : /no_key/.test(e.message) ? 'No HenrikDev key in Supabase Vault (henrik_api_key).' : 'Couldn’t check: ' + e.message;
-    }).then(function () { b.disabled = false; });
-  });
+    }).then(function () { if (b && document.body.contains(b)) b.disabled = false; });
+  }
 
   // ---------- Users: everyone who has logged in, one row each (setup/users-page.sql: fb_users, staff only) ----------
   // Name, username and picture (profiles); when they joined and last logged in (their Discord sign-ins); deck saves and

@@ -4,8 +4,9 @@
 -- Run after setup/riot-ids.sql. Safe to run again.
 --
 -- fb_comp_fetch(n) checks the n players checked longest ago (at most 25 a call; HenrikDev's Basic key allows 30 calls a
--- minute) and keeps every game it finds. A scheduled job (pg_cron, 'pcmt-comp-games') runs it every 10 minutes for 20
--- players, so each player is checked about once an hour; Refresh on the backend runs it once more straight away.
+-- minute, and more than 5 are spaced 2 seconds apart) and keeps every game it finds; fb_comp_fetch(1, player) checks one. A scheduled job (pg_cron, 'pcmt-comp-games') runs it every 10 minutes for 20
+-- players, so each player is checked about once an hour. The backend checks 4 more at a time, or one player, on request
+-- (the site's requests are cut off after 8 seconds).
 -- The HenrikDev key stays in Supabase Vault as henrik_api_key.
 
 create table if not exists public.riot_comp_games (
@@ -68,6 +69,9 @@ begin
      order by s.fetched_at nulls first, i.player
      limit greatest(1, least(coalesce(p_limit, 20), 25))
   loop
+    -- the scheduled job spaces its calls out (HenrikDev turns away a burst even under 30 a minute); the backend's small
+    -- checks (a few players, inside the site's 8 second request limit) go straight through
+    if checked + errs > 0 and coalesce(p_limit, 20) > 5 then perform pg_sleep(2.2); end if;
     -- by Riot's account id once we know it (it survives renames), else by Riot ID
     url := case when r.puuid is not null
       then 'https://api.henrikdev.xyz/valorant/v2/by-puuid/mmr-history/' || r.region || '/pc/' || r.puuid
