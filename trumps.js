@@ -350,12 +350,11 @@
           '<form class="tt-join" data-act="join"><label for="tt-code">Join with a code</label><div><input id="tt-code" maxlength="5" autocomplete="off" placeholder="ABCDE" value="' + esc(ui.joinCode) + '">' +
           '<button type="submit" class="tt-btn ghost"' + (ui.busy ? ' disabled' : '') + '>Join</button></div></form>';
     root.innerHTML =
-      '<div class="tt-setup"><span class="tt-setup-deck"><b>' + esc(label) + '</b> · ' + n + ' cards</span>' +
-      '<label class="tt-rounds" for="tt-rounds">Rounds <input id="tt-rounds" type="number" inputmode="numeric" min="1" max="' + MAX_ROUNDS + '" step="1" value="' + ui.rounds + '" aria-describedby="tt-rounds-help"></label>' +
-      '<span id="tt-rounds-help" class="tt-dim">After this many rounds, whoever holds more cards wins.</span></div>' +
+      '<div class="tt-setup"><span class="tt-setup-deck"><b>' + esc(label) + '</b> · ' + n + ' cards</span></div>' +
       '<div class="tt-lobby">' +
       '<div class="tt-panel"><div class="tt-kicker">VS THE BOT</div><h2>Practice game</h2><p id="tt-bot-line">Deal the ' + esc(label) + ' cards (' + n + ') between you and the bot, ' + ui.rounds + ' rounds.</p>' +
-      '<button type="button" class="tt-btn" data-act="bot">Deal ' + esc(label) + ' cards</button></div>' +
+      '<div class="tt-deal"><button type="button" class="tt-btn" data-act="bot">Deal</button>' +
+      '<label class="tt-rounds" for="tt-rounds">Rounds <input id="tt-rounds" type="number" inputmode="numeric" min="1" max="' + MAX_ROUNDS + '" step="1" value="' + ui.rounds + '" title="After this many rounds, whoever holds more cards wins"></label></div></div>' +
       '<div class="tt-panel"><div class="tt-kicker">ONLINE · 1V1</div><h2>Play a friend</h2>' + online + '</div>' +
       '</div>' + (ui.error ? '<p class="tt-error" role="alert">' + esc(ui.error) + '</p>' : '') +
       '<div class="tt-preview"><div class="tt-kicker">' + esc(deckSeasons(ui.region).map(function (id) { return REGIONS[id].season; }).join(' + ')) + ' · TOP 3 BY TOXIC RATING</div><div class="tt-preview-row">' +

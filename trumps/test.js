@@ -104,7 +104,7 @@ const check = (ok, msg) => { if (!ok) { bad++; console.log('FAIL ' + msg); } };
     await pg.click(`[data-region="${EM}"]`);   // seasons toggle: add EMEA, then take NA off
     await pg.click(`[data-region="${NA}"]`);
     check(await pg.getAttribute(`[data-region="${NA}"]`, 'aria-pressed') === 'false', 'NA should be off after tapping it again');
-    check((await pg.textContent('[data-act="bot"]')).includes('EMEA'), 'region toggle did not switch the deal button');
+    check((await pg.textContent('#tt-bot-line')).includes('EMEA') && (await pg.textContent('[data-act="bot"]')).trim() === 'Deal', 'the season toggle should switch the deal line, and the button should say Deal');
     await pg.click('[data-act="bot"]');
     await pg.waitForSelector('.tt-status .tt-result', { timeout: 5000 });
     check(/Your pick/.test(await pg.textContent('.tt-status .tt-result')) && /Round 1\b/.test(await pg.textContent('.tt-round')), `${w}px: round 1 against the bot should be the player's pick`);
