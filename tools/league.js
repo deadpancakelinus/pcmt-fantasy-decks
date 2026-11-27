@@ -579,6 +579,14 @@
     api: function (path, opts) { return refreshIfNeeded().then(function () { return api(path, opts); }); },
     apiAll: function (path) { return refreshIfNeeded().then(function () { return apiAll(path); }); },
     applySubs: function (rows, results) { return applySubs(rows, results); },   // backend.html, Subs tab
+    // Deck Breakdown page: the scoring, the scoring event by event, and the NA stage
+    seriesPoints: function (r) { return seriesPoints(r); },
+    seriesBreakdown: function (r, id) { return seriesBreakdown(r, id); },
+    get events() { return BD_EVENTS; },
+    inNaStage: function (r) { return inNaStage(r); },
+    stageBest: function (upTo) { return stageBest(upTo); },
+    player: function (id) { return BY_ID[id] || null; },
+    get players() { return PLAYERS; },
     // backend.html, Decks tab: a deck's price at time t, and why it breaks a rule ('' = it scores).
     deckCost: function (slots, t) { var c = 0; deckIds(slots).forEach(function (id) { if (BY_ID[id]) c += priceAt(id, t); }); return c; },
     deckProblem: function (slots, t) {
@@ -747,6 +755,76 @@
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') { retry(); sendDeck(true); } });
 
   // ---------- dates for messages ----------
+  // The same scoring, event by event, for the Deck Breakdown page: one player in one series.
+  // Returns { maps: [{ map, us, them, pts, rows: { <event>: count } }], game: { <event>: count }, pts, mapStats }, where
+  // `game` counts every event for the whole series (the points add up to seriesPoints(r)[id]). Kills, assists and first
+  // bloods are series totals in r.stats; the maps hold each map's kills (m.k) and, from Nov 27 2026, assists and first
+  // bloods (m.s), so a map's own rows can show them. Toxic placing, top ACS/KAST, ADR, the series score bonus and
+  // 4Ks/5Ks are only known for the whole series.
+  var BD_EVENTS = [
+    { key: 'kill', label: 'Kill', per: 'each', pts: function (S) { return S.kill; }, map: true },
+    { key: 'per5', label: 'Every 5 kills on one map', per: 'map', pts: function (S) { return S.per5MapKills; }, map: true },
+    { key: 'assist', label: 'Assist', per: 'each', pts: function (S) { return S.assist; }, map: true },
+    { key: 'fb', label: 'First blood', per: 'each', pts: function (S) { return S.firstBlood; }, map: true },
+    { key: 'toxic1', label: '#1 Toxic rating in the series', per: 'series', pts: function (S) { return S.toxic[0]; } },
+    { key: 'toxic2', label: '#2 Toxic rating in the series', per: 'series', pts: function (S) { return S.toxic[1]; } },
+    { key: 'toxic3', label: '#3 Toxic rating in the series', per: 'series', pts: function (S) { return S.toxic[2]; } },
+    { key: 'topAcs', label: 'Top ACS in the series', per: 'series', pts: function (S) { return S.topAcs; } },
+    { key: 'topKast', label: 'Top KAST in the series', per: 'series', pts: function (S) { return S.topKast; } },
+    { key: 'adr', label: 'Every 50 ADR in the series', per: 'series', pts: function (S) { return S.per50Adr; } },
+    { key: 'mapWin', label: 'Map win', per: 'map', pts: function (S) { return S.mapWin; }, map: true },
+    { key: 'by4', label: 'Map won by 4–9 rounds', per: 'map', pts: function (S) { return S.winBy4; }, map: true },
+    { key: 'by10', label: 'Map won by 10–12 rounds', per: 'map', pts: function (S) { return S.winBy10; }, map: true },
+    { key: 'flawless', label: 'Map won 13-0', per: 'map', pts: function (S) { return S.flawless; }, map: true },
+    { key: 'shutout', label: 'Map lost 0-13', per: 'map', pts: function (S) { return S.shutout; }, map: true },
+    { key: 'zero', label: '0 kills on a map', per: 'map', pts: function (S) { return S.zeroKillMap; }, map: true },
+    { key: 's20', label: 'Series won 2-0 (Bo3)', per: 'series', pts: function (S) { return S.seriesScore['2-0'] || 0; } },
+    { key: 's30', label: 'Series won 3-0 (Bo5)', per: 'series', pts: function (S) { return S.seriesScore['3-0'] || 0; } },
+    { key: 's31', label: 'Series won 3-1 (Bo5)', per: 'series', pts: function (S) { return S.seriesScore['3-1'] || 0; } },
+    { key: 'k4', label: '4K', per: 'each', pts: function (S) { return S.fourK; } },
+    { key: 'k5', label: '5K (ace)', per: 'each', pts: function (S) { return S.fiveK; } }
+  ];
+  function seriesBreakdown(r, id) {
+    var S = SCORING, st = r.stats || {}, x = st[id], p = BY_ID[id], ids = Object.keys(st), maps = r.maps || [];
+    if (!x || !p) return null;
+    var num = function (v) { return +v || 0; }, has = function (v) { return v != null && v !== ''; };
+    var mk = (Date.parse(r.start) >= MULTI_FROM && r.multi) || {};
+    var top = function (i) { return Math.max.apply(null, ids.map(function (k) { return num(st[k][i]); })); };
+    var rts = ids.filter(function (k) { return has(st[k][7]); }).map(function (k) { return +st[k][7]; });
+    var side = p.team === r.a ? 'a' : p.team === r.b ? 'b' : null;
+    var game = {}, add = function (o, k, n) { if (n) o[k] = (o[k] || 0) + n; };
+    add(game, 'kill', num(x[0])); add(game, 'assist', num(x[2])); add(game, 'fb', num(x[3]));
+    add(game, 'adr', Math.floor(num(x[6]) / 50));
+    if (has(x[7])) { var place = rts.filter(function (v) { return v > +x[7]; }).length; if (place < 3) add(game, 'toxic' + (place + 1), 1); }
+    if (num(x[4]) === top(4)) add(game, 'topAcs', 1);
+    if (num(x[5]) === top(5)) add(game, 'topKast', 1);
+    var won = { a: 0, b: 0 }, mapStats = maps.length > 0;
+    var outMaps = maps.map(function (m) {
+      var rows = {}, mk2 = m.k ? m.k[id] : null, ms = m.s ? m.s[id] : null;
+      if (num(m.a) > num(m.b)) won.a++; else if (num(m.b) > num(m.a)) won.b++;
+      if (has(mk2)) { add(rows, 'kill', num(mk2)); add(rows, 'per5', Math.floor(num(mk2) / 5)); if (num(mk2) === 0) add(rows, 'zero', 1); }
+      if (ms) { add(rows, 'assist', num(ms[0])); add(rows, 'fb', num(ms[1])); } else mapStats = false;
+      var us = side ? num(m[side]) : null, them = side ? num(m[side === 'a' ? 'b' : 'a']) : null;
+      if (side) {
+        var diff = us - them;
+        if (diff > 0) { add(rows, 'mapWin', 1); if (them === 0) add(rows, 'flawless', 1); else if (diff >= 10) add(rows, 'by10', 1); else if (diff >= 4) add(rows, 'by4', 1); }
+        else if (diff < 0 && us === 0) add(rows, 'shutout', 1);
+      }
+      ['per5', 'zero', 'mapWin', 'by4', 'by10', 'flawless', 'shutout'].forEach(function (k) { add(game, k, rows[k] || 0); });
+      return { map: m.map, us: us, them: them, rows: rows };
+    });
+    var ws = r.winner === r.a ? 'a' : r.winner === r.b ? 'b' : null;
+    if (ws && side && p.team === r.winner) {
+      var sc = won[ws] + '-' + won[ws === 'a' ? 'b' : 'a'];
+      if (S.seriesScore[sc]) add(game, sc === '2-0' ? 's20' : sc === '3-0' ? 's30' : 's31', 1);
+    }
+    var c = mk[id]; if (c) { add(game, 'k4', num(c[0])); add(game, 'k5', num(c[1])); }
+    var val = {}; BD_EVENTS.forEach(function (e) { val[e.key] = e.pts(S); });
+    var sum = function (rows) { var t = 0; Object.keys(rows).forEach(function (k) { t += rows[k] * val[k]; }); return Math.round(t * 10) / 10; };
+    outMaps.forEach(function (m) { m.pts = sum(m.rows); });
+    return { maps: outMaps, game: game, pts: sum(game), mapStats: mapStats, side: side, opp: side ? (side === 'a' ? r.b : r.a) : null, values: val };
+  }
+
   function fmtWhen(t) {
     try { return new Date(t).toLocaleString('en-US', { timeZone: 'America/New_York', weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' }); }
     catch (e) { return new Date(t).toUTCString(); }
@@ -780,7 +858,10 @@
         if (!p || !(k in st) || (id in st) || (p.team !== r.a && p.team !== r.b)) return;
         if (!row.week || weekStart(Date.parse(r.start)) !== Date.parse(row.week)) return;   // its own gameweek only
         st[id] = st[k]; delete st[k];
-        (r.maps || []).forEach(function (m) { if (m.k && k in m.k) { m.k[id] = m.k[k]; delete m.k[k]; } });
+        (r.maps || []).forEach(function (m) {
+          if (m.k && k in m.k) { m.k[id] = m.k[k]; delete m.k[k]; }
+          if (m.s && k in m.s) { m.s[id] = m.s[k]; delete m.s[k]; }
+        });
         (r.subs = r.subs || {})[id] = String(row.sub).toLowerCase();
         changed.push(r);
       });
@@ -831,7 +912,7 @@
         .catch(function () { return api('/rest/v1/profiles?select=username,username_changed_at&id=eq.' + me.id); }).catch(function () { return []; }) : Promise.resolve([]);
       var unlocks = me ? api('/rest/v1/user_unlocks?select=unlock').catch(function () { return []; }) : Promise.resolve([]);
       // 4Ks and 5Ks per series (public; empty until setup/vp-setup.sql has been run)
-      var multi = !needDecks ? Promise.resolve([]) : apiAll('/rest/v1/multikills?select=series,player,k4,k5&order=series,player').catch(function () { return []; });
+      var multi = !needDecks && !/(^|\/)deck-breakdown(\.html)?$/.test(location.pathname) ? Promise.resolve([]) : apiAll('/rest/v1/multikills?select=series,player,k4,k5&order=series,player').catch(function () { return []; });
       var prices = apiAll('/rest/v1/player_price_changes?select=player,price,changed_at&order=changed_at.asc,id.asc').catch(function () { return []; });
       var admin = me ? api('/rest/v1/pcmt_admins?select=user_id&user_id=eq.' + me.id).catch(function () { return []; }) : Promise.resolve([]);
       // Pick'ems page: who may see it while it's closed, your picks, the standings and each bracket's settings

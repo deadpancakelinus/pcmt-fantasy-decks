@@ -26,7 +26,8 @@ const regionOf = event => (/-emea$/.test(event) ? 'EMEA' : /-na$/.test(event) ? 
 const pageUrl = (event, id) => BASE + '/events/' + event + '/' + id;
 
 // One finished match -> one PCMT_RESULTS entry (same format the site and the server score).
-// stats: { <player id>: [K, D, A, FK, ACS, KAST %, ADR, rating] }, maps: [{ map, a, b, k: { <player id>: kills } }].
+// stats: { <player id>: [K, D, A, FK, ACS, KAST %, ADR, rating] }, maps: [{ map, a, b, k: { <player id>: kills },
+// s: { <player id>: [assists, first bloods] } }] (s from Nov 27 2026, for the Deck Breakdown page).
 // PCMT.gg names map to player ids on the same team (name or id, any case, or NAME_ALIASES); anyone else is kept as "~" + name.
 // PCMT.gg names that differ from the site's (lowercase PCMT.gg name -> player id). Add one when a sync log says
 // "not in the store: ~<name>" for a rostered player (not a sub; subs go on the backend's Subs tab).
@@ -45,9 +46,9 @@ function toResult(M, event, players) {
     stats[key(p.Player, t.team)] = [p.K, p.D, p.A, p.FK, Math.round(p.ACS), Math.round(p.KAST * 100), r1(p.ADR), p['R1.0']];
   }));
   const maps = (M.mapDetails || []).map(md => {
-    const k = {};
-    (md.stats || []).forEach(t => (t.players || []).forEach(p => { k[key(p.Player, t.team)] = p.K; }));
-    return { map: md.name, a: md.score1, b: md.score2, k };
+    const k = {}, s = {};
+    (md.stats || []).forEach(t => (t.players || []).forEach(p => { const id = key(p.Player, t.team); k[id] = p.K; s[id] = [p.A || 0, p.FK || 0]; }));
+    return { map: md.name, a: md.score1, b: md.score2, k, s };
   });
   return { region: regionOf(event), start: M.date, a: M.team1, b: M.team2, winner: M.score1 > M.score2 ? M.team1 : M.team2,
            url: pageUrl(event, M.id), stats, maps };

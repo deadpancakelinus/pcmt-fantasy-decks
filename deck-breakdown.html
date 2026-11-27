@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>fantasy.pcmt.gg Deck Breakdown</title>
+<meta name="description" content="Pickems, Fantasy League and more. Built by PCMT Team">
+<meta property="og:title" content="fantasy.pcmt.gg">
+<meta property="og:description" content="Pickems, Fantasy League and more. Built by PCMT Team">
+<meta property="og:type" content="website">
+<meta name="twitter:title" content="fantasy.pcmt.gg">
+<meta name="twitter:description" content="Pickems, Fantasy League and more. Built by PCMT Team">
+<link rel="icon" href="assets/3bf9d529cabff94109b561693539029f.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cabin+Sketch:wght@400;700&family=National+Park:wght@200..800&display=swap" rel="stylesheet">
+<style>
+  :root { color-scheme: dark; --bg: #0d1416; --panel: #111a1c; --panel2: #172124; --line: #2a3a3e; --ink: #eaf4f4; --soft: #c4d4d4; --dim: #93a9aa; --accent: #a5dcdd; --win: #55ff8f; --lose: #ff8a80; --gold: #f5d76e; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); }
+  body { font: 400 15px/1.5 'National Park', system-ui, sans-serif; min-height: 100vh; }
+  body.bd-modal { overflow: hidden; }
+  button, input { font: inherit; color: inherit; }
+  a { color: var(--accent); }
+  .bd-top-in, .bd-foot-in, .bd-foot-note, .bd-main { padding-left: max(24px, env(safe-area-inset-left, 0px)); padding-right: max(24px, env(safe-area-inset-right, 0px)); }
+  .bd-top-in { box-sizing: content-box; padding-top: 14px; padding-bottom: 14px; }
+  .bd-foot-in { padding-top: 22px; padding-bottom: 12px; }
+  .bd-foot-note { padding-bottom: 24px; }
+  nav[aria-label="Main"] a { text-transform: none !important; letter-spacing: 0 !important; font-size: 14px !important; font-weight: 500 !important; }
+  nav[aria-label="Main"] a:hover { background: rgba(165, 220, 221, .08); }
+  nav[aria-label="Main"] a[aria-current] { background: rgba(165, 220, 221, .14) !important; color: #a5dcdd !important; font-weight: 600 !important; }
+  .bd-main { max-width: 1280px; margin: 0 auto; padding-top: 36px; padding-bottom: 72px; box-sizing: content-box; }
+  .bd-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 18px 32px; margin-bottom: 22px; }
+  h1 { margin: 0; font: 700 clamp(40px, 6vw, 60px)/1 'Cabin Sketch', cursive; }
+  .bd-sub { margin: 10px 0 0; max-width: 640px; color: var(--soft); }
+  .bd-tools { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 14px; }
+  .bd-regions { display: inline-flex; gap: 6px; padding: 4px; border: 1px solid var(--line); border-radius: 999px; }
+  .bd-regions button { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 16px; border: 0; border-radius: 999px; background: none; cursor: pointer; font-weight: 600; font-size: 14px; color: var(--soft); }
+  .bd-regions button img { width: 20px; height: 20px; object-fit: contain; }
+  .bd-regions button[aria-pressed="true"] { background: var(--panel2); color: var(--ink); box-shadow: inset 0 0 0 1px rgba(165, 220, 221, .45); }
+  .bd-search { display: flex; flex-direction: column; gap: 6px; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--dim); }
+  .bd-search input { width: 260px; max-width: 100%; height: 44px; padding: 0 14px; border-radius: 8px; border: 1px solid var(--line); background: #0b1213; text-transform: none; letter-spacing: 0; font-size: 15px; }
+  .bd-search input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .bd-meta { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin: 0 0 10px; font-size: 13px; color: var(--dim); }
+  .bd-list { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--panel); }
+  .bd-cols, .bd-row { display: grid; grid-template-columns: 52px minmax(180px, 1.1fr) 88px minmax(0, 3fr); gap: 16px; align-items: center; padding: 12px 18px; }
+  .bd-cols { padding-top: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--line); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--dim); background: var(--panel2); }
+  .bd-cols span:nth-child(3) { text-align: right; }
+  .bd-row + .bd-row { border-top: 1px solid rgba(42, 58, 62, .6); }
+  .bd-rank { font: 700 18px/1 'Cabin Sketch', cursive; color: var(--dim); text-align: center; }
+  .bd-row:nth-child(-n+3) .bd-rank { color: var(--gold); }
+  .bd-who { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .bd-logo { width: 30px; height: 30px; object-fit: contain; flex: none; }
+  .bd-nologo { display: grid; place-items: center; border-radius: 50%; background: var(--panel2); color: var(--accent); font-size: 12px; font-weight: 700; }
+  .bd-name { display: flex; flex-direction: column; min-width: 0; }
+  .bd-name b { font: 700 20px/1.15 'Cabin Sketch', cursive; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bd-name small { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--dim); text-transform: capitalize; }
+  .bd-name small img { opacity: .85; }
+  .bd-pts { display: flex; align-items: baseline; justify-content: flex-end; gap: 4px; }
+  .bd-pts b { font: 700 28px/1 'Cabin Sketch', cursive; color: var(--accent); }
+  .bd-pts small { font-size: 12px; color: var(--dim); }
+  .bd-best { display: flex; flex-wrap: wrap; gap: 8px 18px; min-width: 0; }
+  .bd-game { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  .bd-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel2); cursor: pointer; font-size: 13px; white-space: nowrap; }
+  .bd-chip:hover { border-color: rgba(165, 220, 221, .55); }
+  .bd-chip:focus-visible, .bd-btn:focus-visible, .bd-regions button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .bd-chip b { margin-left: 2px; padding: 2px 7px; border-radius: 6px; background: rgba(165, 220, 221, .14); color: var(--accent); font-weight: 700; }
+  .bd-chip-game { font-weight: 600; }
+  .bd-chip-game .bd-logo { width: 18px; height: 18px; }
+  .bd-vs { color: var(--dim); font-weight: 400; }
+  .bd-when { color: var(--dim); font-weight: 400; }
+  .bd-chip-map { background: transparent; }
+  .bd-chip-map small { color: var(--dim); }
+  .bd-chip-map.w small { color: var(--win); }
+  .bd-chip-map.l small { color: var(--lose); }
+  .bd-none, .bd-empty { color: var(--dim); font-size: 14px; }
+  .bd-empty { padding: 28px 18px; text-align: center; }
+  #bd-loading { padding: 40px 0; text-align: center; color: var(--dim); }
+  /* the scoring window */
+  .bd-win { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(5, 9, 10, .72); }
+  .bd-win[hidden] { display: none; }
+  .bd-box { width: 100%; max-width: 860px; max-height: calc(100vh - 32px); overflow: auto; padding: 24px 24px 20px; border-radius: 14px; border: 1px solid #3a4f53; background: var(--panel); box-shadow: 0 24px 70px rgba(0, 0, 0, .55); }
+  .bd-box-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
+  .bd-box h2 { margin: 0; font: 700 30px/1.1 'Cabin Sketch', cursive; }
+  .bd-box-head p { margin: 6px 0 0; color: var(--dim); font-size: 14px; }
+  .bd-x { flex: none; width: 44px; height: 44px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel2); cursor: pointer; font-size: 20px; line-height: 1; }
+  .bd-tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
+  .bd-tablewrap:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .bd-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .bd-table th, .bd-table td { padding: 8px 12px; border-bottom: 1px solid rgba(42, 58, 62, .7); text-align: left; white-space: nowrap; }
+  .bd-table thead th { position: sticky; top: 0; background: var(--panel2); font-size: 12px; font-weight: 600; color: var(--dim); vertical-align: bottom; }
+  .bd-table thead th small { display: block; font-weight: 400; font-size: 11px; }
+  .bd-table tbody th { font-weight: 500; }
+  .bd-table .n { text-align: right; }
+  .bd-table tbody tr:not(.on) { color: var(--dim); }
+  .bd-table tbody tr.on th, .bd-table tbody tr.on td:last-child { color: var(--ink); }
+  .bd-table tbody tr.on td:last-child { font-weight: 700; color: var(--accent); }
+  .bd-table .bd-whole td:nth-child(3) { font-size: 12px; font-style: italic; }
+  .bd-dim { color: #5e7273; }
+  .bd-total th, .bd-total td { border-bottom: 0; background: var(--panel2); font-weight: 700; color: var(--ink); }
+  .bd-total td:last-child { color: var(--accent); font-size: 16px; }
+  .bd-foot { margin: 12px 0 0; font-size: 13px; color: var(--dim); }
+  .bd-win-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+  .bd-btn { min-height: 44px; padding: 0 18px; border-radius: 10px; border: 0; background: var(--accent); color: #000; font-weight: 700; font-size: 14px; cursor: pointer; }
+  .bd-btn.ghost { border: 1px solid var(--line); background: var(--panel2); color: var(--ink); }
+  @media (max-width: 900px) {
+    .bd-cols { display: none; }
+    .bd-row { grid-template-columns: 34px minmax(0, 1fr) auto; gap: 8px 12px; padding: 14px; }
+    .bd-best { grid-column: 1 / -1; }
+    .bd-search input { width: 100%; }
+    .bd-tools, .bd-search { width: 100%; }
+    .bd-box { padding: 18px 14px 16px; }
+    .bd-table tbody th, .bd-table thead th:first-child, .bd-table tfoot th { position: sticky; left: 0; z-index: 1; background: var(--panel); box-shadow: 1px 0 0 var(--line); }
+    .bd-table thead th:first-child, .bd-table tfoot th { background: var(--panel2); z-index: 2; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+  /* light mode (Settings) */
+  html.pcmt-light { --bg: #eef3f3; --panel: #ffffff; --panel2: #f2f6f6; --line: #d5dfdf; --ink: #142122; --soft: #34474a; --dim: #5a6b6d; --accent: #136a6e; --win: #18794e; --lose: #b3261e; --gold: #8a6100; }
+  html.pcmt-light .bd-dim { color: #8a9a9b; }
+  html.pcmt-light .bd-btn { color: #fff; }
+  html.pcmt-light .bd-search input { background: #fff; }
+  html.pcmt-light .bd-box { border-color: var(--line); box-shadow: 0 24px 70px rgba(20, 33, 34, .2); }
+  html.pcmt-light .bd-win { background: rgba(20, 33, 34, .4); }
+</style>
+</head>
+<body>
+<header style="border-bottom: 1px solid #2a3a3e; background: #111a1c">
+<div class="bd-top-in" style="max-width: 1280px; margin: 0 auto; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 32px">
+<a href="index.html" style="display: flex; align-items: baseline; gap: 10px; text-decoration: none">
+<span style="font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 32px; color: #a5dcdd; line-height: 1">fantasy.pcmt.gg</span>
+</a>
+<nav aria-label="Main" style="display: flex; flex-wrap: wrap; gap: 4px; flex: 1 0 100%; order: 3">
+<a href="home.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Home</a>
+<a href="pickems.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Pick'ems</a>
+<a href="leaderboard.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">The Deck Leaderboard</a>
+<a href="index.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">The Deck</a>
+<a href="deck-breakdown.html" aria-current="page" style="padding: 12px 14px; border-radius: 6px; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #000; background: #a5dcdd; font-weight: 600">Deck Breakdown</a>
+<a href="customization.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Customization</a>
+<a href="guide.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">Guide</a>
+<a href="mvp-vs.html" style="padding: 12px 14px; border-radius: 6px; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: #eaf4f4">MVP VS</a>
+<a id="bd-auth" href="login.html" style="margin-left: auto; order: 2; min-height: 44px; display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; border-radius: 8px; background: #4752C4; color: #fff; font-family: 'National Park', system-ui, sans-serif; font-size: 13px; font-weight: 600; text-decoration: none"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><path d="M10 17l5-5-5-5"></path><path d="M15 12H3"></path></svg><span id="bd-auth-label">Log in with Discord</span></a>
+<span style="order: -1; flex: 1 0 100%; margin-bottom: -4px; text-align: right; line-height: normal; font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa; letter-spacing: 0.08em; white-space: nowrap">NA S4 · EMEA S2</span>
+</div>
+</header>
+<main class="bd-main">
+  <div class="bd-head">
+    <div>
+      <h1>Deck Breakdown</h1>
+      <p class="bd-sub">Every player in The Deck's store, ranked by the points they've scored for decks, with their two best games. Pick a game or a map to see where every point came from.</p>
+    </div>
+    <div class="bd-tools">
+      <div class="bd-regions" role="group" aria-label="Region">
+        <button type="button" data-region="NA" aria-pressed="true"><img src="assets/c265e976f8968e60e4a2bdd32542b499.png" alt="">NA</button>
+        <button type="button" data-region="EMEA" aria-pressed="false"><img src="assets/3c7e7374dceead68d5c58818d0bcfe8a.png" alt="">EMEA</button>
+      </div>
+      <label class="bd-search">Find a player<input id="bd-q" type="search" placeholder="Player or team" autocomplete="off"></label>
+    </div>
+  </div>
+  <p class="bd-meta"><span id="bd-note"></span><span id="bd-count" role="status" aria-live="polite"></span></p>
+  <div class="bd-list" role="region" aria-label="Players ranked by points">
+    <div class="bd-cols" aria-hidden="true"><span>#</span><span>Player</span><span>Points</span><span>Best games</span></div>
+    <ol class="bd-list-in" id="bd-rows" style="list-style: none; margin: 0; padding: 0"></ol>
+    <p id="bd-loading">Loading the breakdown…</p>
+  </div>
+</main>
+<div class="bd-win" id="bd-win" hidden>
+  <div class="bd-box" role="dialog" aria-modal="true" aria-labelledby="bd-win-title">
+    <div class="bd-box-head"><div><h2 id="bd-win-title"></h2><p id="bd-win-sub"></p></div><button type="button" class="bd-x" id="bd-win-close" data-close aria-label="Close">×</button></div>
+    <div id="bd-win-body"></div>
+  </div>
+</div>
+<footer style="border-top: 1px solid #2a3a3e">
+<div class="bd-foot-in" style="max-width: 1280px; margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa">
+<span>fantasy.pcmt.gg · Plat Chat Members Tourney</span>
+<span data-pcmt-version>Version 1.3</span>
+<span style="display: flex; flex-wrap: wrap; gap: 6px 18px"><a href="#privacy" data-pcmt-privacy style="color: #a5dcdd">Privacy notice</a><a href="#account" data-pcmt-account style="color: #a5dcdd">Account</a><a href="#settings" data-pcmt-settings style="color: #a5dcdd">Settings</a><a href="https://pcmt.gg" target="_blank" rel="noopener" style="color: #a5dcdd">Stats on PCMT.gg</a></span>
+</div>
+<p class="bd-foot-note" style="max-width: 1280px; margin: 0 auto; font-family: 'National Park', system-ui, sans-serif; font-size: 11px; line-height: 1.6; color: #93a9aa"><span style="display: block; margin-bottom: 6px; font-size: 12px; color: #c4d4d4">A <b style="font-weight: 700; color: #eaf4f4">PCMT</b> product</span>fantasy.pcmt.gg was created under Riot Games' <a href="https://www.riotgames.com/en/legal" target="_blank" rel="noopener" style="color: #a5dcdd">&quot;Legal Jibber Jabber&quot;</a> policy using assets owned by Riot Games. Riot Games does not endorse or sponsor this project.</p>
+</footer>
+<script src="season-teams.js"></script>
+<script src="data.js"></script>
+<script src="players.js"></script>
+<script src="tiers.js"></script>
+<script src="league.js"></script>
+<script src="version.js"></script>
+<script src="breakdown.js"></script>
+</body>
+</html>

@@ -110,7 +110,7 @@ for f in os.listdir(ASSETS):
 # Pages that are hand-written instead of compiled from a board; nav links to their board still point here.
 # MVP VS (mvp-vs.html) is the game itself (mvp-vs.html + trumps.js + trumps-cards.js); its canvas board
 # MvpVs.dc.html is only the old "Coming soon" design, so it is not built.
-LINKS = {'MvpVs.dc.html': 'mvp-vs.html'}
+LINKS = {'MvpVs.dc.html': 'mvp-vs.html', 'DeckBreakdown.dc.html': 'deck-breakdown.html'}   # hand-written pages
 
 
 def fix_refs(s):

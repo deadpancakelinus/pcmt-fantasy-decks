@@ -74,6 +74,26 @@ events.forEach(ev => byEvent[ev.id].forEach(M => {
   const strangers = Object.keys(res.stats).filter(k => k[0] === '~');
   log.push('Add result: ' + res.a + ' vs ' + res.b + ', ' + res.winner + ' won' + (strangers.length ? ' (not in the store: ' + strangers.join(', ') + ')' : ''));
 }));
+// Results added before Nov 27 2026 have per-map kills but not per-map assists and first bloods (maps[].s): fill them in
+// from PCMT.gg once, matching the maps by name (a series' a/b order doesn't change them).
+events.forEach(ev => byEvent[ev.id].forEach(M => {
+  if (!M.completed) return;
+  const url = A.pageUrl(ev.id, M.id), r = results.find(x => x.url === url);
+  if (!r || !(r.maps || []).length || r.maps.every(m => m.s)) return;
+  let fresh; try { fresh = A.toResult(M, ev.id, players); } catch (e) { return; }
+  let n = 0;
+  r.maps.forEach((m, i) => {
+    const f = fresh.maps[i];
+    if (m.s || !f || f.map !== m.map) return;
+    // the same players as the map's kills: a player added to the store since the game was saved is "~name" there
+    const base = id => id[0] === '~' ? id.slice(1) : String((players.find(p => p.id === id) || {}).name || id).toLowerCase();
+    const here = {}; Object.keys(m.k || {}).forEach(id => { here[base(id)] = id; });
+    m.s = {};
+    Object.keys(f.s).forEach(id => { const to = here[base(id)]; if (to) m.s[to] = f.s[id]; });
+    n++;
+  });
+  if (n) log.push('Add map stats: ' + r.a + ' vs ' + r.b + ' (' + n + ' map' + (n > 1 ? 's' : '') + ')');
+}));
 for (let i = matches.length - 1; i >= 0; i--) {
   if (Date.parse(matches[i].start) < now - WINDOW) { log.push('Drop old match: ' + matches[i].a + ' vs ' + matches[i].b); matches.splice(i, 1); }
 }
