@@ -262,6 +262,14 @@
 
   .tt-rules { margin-top: 48px; border-top: 1px solid var(--line); padding-top: 24px; color: var(--dim); }
   .tt-rules h2 { font: 700 24px/1 'Cabin Sketch', cursive; color: var(--ink); margin: 0 0 12px; }
+  /* Calmer look (Nov 27 2026), same as the other pages: plain titles and headings, a quieter page bar.
+     The cards, the table and the animations keep their own look. */
+  h1 { font-family: 'National Park', system-ui, sans-serif; font-size: clamp(32px, 4.6vw, 46px); letter-spacing: -.01em; }
+  .tt-panel h2, .tt-rules h2 { font-family: 'National Park', system-ui, sans-serif; font-size: 20px; font-weight: 700; line-height: 1.2; }
+  .tt-tier-text b { font-family: 'National Park', system-ui, sans-serif; font-size: 18px; }
+  nav[aria-label="Main"] a { text-transform: none !important; letter-spacing: 0 !important; font-size: 14px !important; font-weight: 500 !important; }
+  nav[aria-label="Main"] a:hover { background: rgba(165, 220, 221, .08); }
+  nav[aria-label="Main"] a[aria-current] { background: rgba(165, 220, 221, .14) !important; color: #a5dcdd !important; font-weight: 600 !important; }
   .tt-rules ul { margin: 0; padding-left: 18px; max-width: 760px; }
   .tt-rules li { margin: 4px 0; }
 

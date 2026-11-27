@@ -267,7 +267,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <h2 id="squad-h" style="margin: 0; font-family: 'Cabin Sketch', cursive; font-size: 30px; font-weight: 700; line-height: 1.1; color: #a5dcdd; word-break: break-word; min-width: 0">{{squadName}}</h2>
 </sc-if>
 <sc-if value="{{noSquadName}}" hint-placeholder-val="{{ true }}">
-<h2 id="squad-h" style="margin: 0; font-family: 'National Park', system-ui, sans-serif; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">[ MY_DECK ]</h2>
+<h2 id="squad-h" style="margin: 0; font-family: 'National Park', system-ui, sans-serif; font-size: 15px; font-weight: 600; color: #a5dcdd">My deck</h2>
 </sc-if>
 <button onClick="{{crownClick}}" aria-pressed="{{crownArmed}}" aria-label="{{crownLabel}}" title="{{crownLabel}}" style="width: 44px; height: 44px; flex: none; display: grid; place-items: center; border-radius: 10px; border: 1px solid {{crownBorder}}; background: {{crownBg}}; color: #f5d76e; touch-action: manipulation; cursor: pointer">
 <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="#f5d76e" stroke="#f5d76e" stroke-width="1.6" stroke-linejoin="round"><path d="M3 18h18L19 7l-4.5 4L12 5l-2.5 6L5 7z"></path></svg>
@@ -538,7 +538,7 @@ AUTHENTIC
 <section aria-labelledby="market-h" style="flex: 1 1 480px; min-width: 0; background: #172124; border: 1px solid #2a3a3e; border-radius: 12px; overflow: hidden">
 <div style="padding: 18px 18px 14px; display: flex; flex-direction: column; gap: 14px; border-bottom: 1px solid #2a3a3e">
 <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px">
-<h2 id="market-h" style="margin: 0; font-family: 'National Park', system-ui, sans-serif; font-size: 15px; font-weight: 600; color: #a5dcdd; letter-spacing: 0.08em">STORE // {{tabCode}}</h2>
+<h2 id="market-h" style="margin: 0; font-family: 'National Park', system-ui, sans-serif; font-size: 15px; font-weight: 600; color: #a5dcdd">Store · {{tabCode}}</h2>
 <span style="display: inline-flex; align-items: center; gap: 10px"><span style="font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa">{{poolCount}} {{poolWord}}</span><button onClick="{{toggleStore}}" aria-expanded="true" aria-label="Collapse the player store" title="Collapse the player store" style="width: 36px; height: 36px; flex: none; border-radius: 8px; border: 1px solid #3a4f53; background: transparent; color: #a5dcdd; display: grid; place-items: center; padding: 0"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"></path></svg></button></span>
 </div>
 <div role="group" aria-label="Store by role" style="display: flex; flex-wrap: wrap; gap: 8px">
@@ -2722,7 +2722,7 @@ class Component extends DCLogic {
 
     return {
       pool: pool, groups: groups, tabs: tabs, teamOptions: teamOptions,
-      tabCode: allTab ? 'ALL PLAYERS' : tabRole.label.toUpperCase(),
+      tabCode: allTab ? 'all players' : tabRole.label.toLowerCase(),
       deck: pcmtDeckTheme(s.deckCode),
       ethanOn: !!s.saved && s.auraKind === 'ethan',
       haloOn: !!s.saved && s.auraKind === 'halo',

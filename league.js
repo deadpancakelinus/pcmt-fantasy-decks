@@ -1309,7 +1309,7 @@
     });
   }
 
-  // Settings: a window with per-device options. Glass mode is saved in this browser only (localStorage 'pcmt-glass').
+  // Settings: a window with per-device options (light mode), saved in this browser only.
   function showSettings(from) {
     var looks = window.PCMT_LOOKS || [];   // [{ id, name, note, on(), set(on) }] registered by the look blocks below
     var w = show('<div class="pcmt-set"><h2 id="pcmt-set-t">Settings</h2>' + looks.map(function (k) {
@@ -1322,7 +1322,7 @@
       var pick = null; looks.forEach(function (k) { if (k.id === b.getAttribute('data-look')) pick = k; });
       if (!pick) return;
       var turnOn = !pick.on();
-      // looks in the same group (light and glass) can't be on together: switching one on switches the others off
+      // looks in the same group can't be on together: switching one on switches the others off
       if (turnOn && pick.group) looks.forEach(function (k) { if (k !== pick && k.group === pick.group && k.on()) k.set(false); });
       pick.set(turnOn);
       draw();
@@ -1445,112 +1445,30 @@
 })();
 
 
-/* Glass mode (Settings): html.pcmt-glass turns the dark panels into frosted glass over a soft coloured backdrop.
-   The pages keep their colours inline, so the rules below match those inline backgrounds. Card backs, buttons and
-   logos aren't touched. Turned on early so the page doesn't flash dark first. */
+/* Glass mode was removed (Nov 27 2026). Browsers that had it on drop the saved setting. */
+try { localStorage.removeItem('pcmt-glass'); } catch (e) {}
+
+
+/* Calmer look (Nov 27 2026): plain page titles and a quieter page bar on every built page. Player cards, deck backs,
+   auras and animations keep their own look. */
 (function () {
   'use strict';
-  var KEY = 'pcmt-glass', d = document.documentElement;
-
-  // ---- Glass mode page bar (Nov 5 2026) ----
-  // The page links (nav[aria-label="Main"]) become one glass bar, like a phone dock: a light rim, a handle line at the
-  // bottom, and the current page on a teal pill raised over the bar's top edge. Clicking another page lifts that one
-  // and drops the old one, then the page changes. The bar is nav::before (rim) and nav::after (fill); its width comes
-  // from --pcmt-dock-w, set below from the last link's position. One row; on a narrow screen it scrolls sideways. Only in glass mode.
-  var N = 'html.pcmt-glass nav[aria-label="Main"]';
-  var DOCK_CSS =
-    N + '{position:relative;flex-wrap:nowrap!important;gap:2px!important;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;padding:44px 18px 24px!important;margin:-14px 0 -4px}' +
-    N + '::-webkit-scrollbar{display:none}' +
-    N + '::before,' + N + '::after{content:"";position:absolute;left:0;top:30px;height:66px;width:var(--pcmt-dock-w,100%);border-radius:33px;pointer-events:none;z-index:0}' +
-    N + '::before{background:linear-gradient(180deg,rgba(255,255,255,.32),rgba(255,255,255,.08) 45%,rgba(255,255,255,.2))}' +   // the rim
-    N + '::after{left:1px;top:31px;height:64px;width:calc(var(--pcmt-dock-w,100%) - 2px);border-radius:32px;' +
-      'background:linear-gradient(rgba(255,255,255,.34),rgba(255,255,255,.34)) center bottom 9px/84px 3px no-repeat,' +   // the handle line
-      'radial-gradient(120% 140% at 50% 120%,rgba(165,220,221,.16),transparent 60%),linear-gradient(180deg,rgba(18,30,33,.86),rgba(9,16,18,.9));' +
-      'box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}' +
-    N + ' a{position:relative;z-index:1;flex:none;background:transparent!important;color:#eaf4f4!important;font-weight:500!important;border-radius:999px!important;white-space:nowrap;' +
-      'transition:transform .34s cubic-bezier(.3,.7,.2,1),background-color .2s,box-shadow .34s,color .2s}' +
-    N + ' a:hover{background:rgba(255,255,255,.07)!important}' +
-    // the current page: a teal pill raised to sit over the bar's top edge (and, while moving, the page you picked)
-    N + ':not([data-pcmt-moving]) a[aria-current],' + N + ' a[data-pcmt-next]{transform:translateY(-30px);color:#fff!important;font-weight:600!important;' +
-      'background:linear-gradient(180deg,#2c8a83,#17544f)!important;box-shadow:0 0 0 1px rgba(255,255,255,.22),0 8px 18px rgba(0,0,0,.5),0 0 18px rgba(44,138,131,.35),inset 0 1px 0 rgba(255,255,255,.25)}' +
-    '@media (prefers-reduced-motion:reduce){' + N + ',' + N + ' a{transition:none!important}}';
-  var dockRaf = 0;
-  function dockMeasure(target) {
-    var nav = document.querySelector('nav[aria-label="Main"]');
-    if (!nav || !d.classList.contains('pcmt-glass')) return;
-    var links = Array.prototype.filter.call(nav.querySelectorAll('a[href]'), function (a) { return a.offsetParent !== null; });
-    if (!links.length) return;
-    var last = links[links.length - 1], cur = target || nav.querySelector('a[aria-current]');
-    nav.style.setProperty('--pcmt-dock-w', (last.offsetLeft + last.offsetWidth + 18) + 'px');
-    if (cur && cur.offsetParent !== null) {
-      if (!target && nav.scrollWidth > nav.clientWidth && !nav.getAttribute('data-pcmt-scrolled')) {   // phones: bring the current page into view
-        nav.setAttribute('data-pcmt-scrolled', '1');
-        nav.scrollLeft = Math.max(0, cur.offsetLeft + cur.offsetWidth / 2 - nav.clientWidth / 2);
-      }
-    }
-  }
-  function dockSoon() { cancelAnimationFrame(dockRaf); dockRaf = requestAnimationFrame(function () { dockMeasure(); }); }
-  // Pages draw (and redraw) their header after league.js loads, and launched pages show up later: measure again then.
-  new MutationObserver(function (list) {
-    if (!d.classList.contains('pcmt-glass')) return;
-    if (list.some(function (m) { return m.target.nodeType === 1 && (m.target.matches('nav[aria-label="Main"], nav[aria-label="Main"] *') || m.target.querySelector && m.target.querySelector('nav[aria-label="Main"]')); }) ||
-        list.some(function (m) { return m.target === d; })) dockSoon();
-  }).observe(d, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'aria-current'] });
-  window.addEventListener('resize', dockSoon);
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(dockSoon);
-  // Picking a page: the pill moves over to it, then the page changes.
-  document.addEventListener('click', function (e) {
-    if (!d.classList.contains('pcmt-glass') || e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-    var a = e.target && e.target.closest ? e.target.closest('nav[aria-label="Main"] a[href]') : null;
-    if (!a || a.target === '_blank' || a.getAttribute('aria-current')) return;
-    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    var nav = a.closest('nav'), href = a.href;
-    e.preventDefault();
-    nav.setAttribute('data-pcmt-moving', '');
-    a.setAttribute('data-pcmt-next', '');
-    dockMeasure(a);
-    setTimeout(function () { location.href = href; }, 360);
-  });
-  window.addEventListener('pageshow', function (e) {   // back button: the page comes back from memory, so put the pill back
-    if (!e.persisted) return;
-    var nav = document.querySelector('nav[aria-label="Main"]');
-    if (nav) { nav.removeAttribute('data-pcmt-moving'); Array.prototype.forEach.call(nav.querySelectorAll('[data-pcmt-next]'), function (x) { x.removeAttribute('data-pcmt-next'); }); dockMeasure(); }
-  });
-  function read() { try { return localStorage.getItem(KEY) === '1'; } catch (e) { return false; } }
   var css = document.createElement('style');
-  var P = 'html.pcmt-glass ';
-  var glassy = 'background-color:rgba(255,255,255,.06)!important;background-image:linear-gradient(145deg,rgba(255,255,255,.07),rgba(255,255,255,.02))!important;border-color:rgba(255,255,255,.14)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 8px 24px rgba(0,0,0,.25)';
   css.textContent =
-    P + '{color-scheme:dark}' +
-    P + 'body{background:#071012!important;background-image:radial-gradient(900px 600px at 8% 0%,rgba(68,170,175,.38),transparent 65%),radial-gradient(800px 700px at 100% 30%,rgba(118,82,196,.32),transparent 60%),radial-gradient(900px 700px at 30% 100%,rgba(40,120,160,.30),transparent 60%),linear-gradient(160deg,#081417,#0b1020)!important;background-attachment:fixed!important}' +
-    P + '[data-pcmt-root]{background:transparent!important}' +
-    P + 'header[style*="background: #111a1c"],' + P + '[style*="background: #111a1c"]{background:rgba(10,18,20,.42)!important;-webkit-backdrop-filter:blur(18px) saturate(150%);backdrop-filter:blur(18px) saturate(150%);border-color:rgba(255,255,255,.12)!important}' +
-    P + '[style*="background: #172124"]:not([style*="backface-visibility"]),' + P + '.hm-panel,' + P + '.hm-tile{' + glassy + ';-webkit-backdrop-filter:blur(14px) saturate(140%);backdrop-filter:blur(14px) saturate(140%)}' +
-    P + '[style*="background: #172124"][style*="backface-visibility"],' + P + '.pk-front{background-color:rgba(20,32,36,.72)!important;border-color:rgba(255,255,255,.16)!important}' +
-    P + '[style*="background: #0d1416"]:not(.pcmt-loading):not([data-pcmt-root]){background:rgba(0,0,0,.22)!important;border-color:rgba(255,255,255,.16)!important}' +
-    P + '[style*="background: #080b0c"]{background:rgba(0,0,0,.24)!important}' +
-    P + '[style*="background: #13292b"]{background:rgba(165,220,221,.12)!important}' +
-    P + '[style*="background: #111819"]{background:rgba(0,0,0,.2)!important}' +
-    P + '.hm-cc textarea,' + P + 'input[type=text],' + P + 'input[type=search],' + P + 'select{background-color:rgba(0,0,0,.22)!important;border-color:rgba(255,255,255,.18)!important}' +
-    P + 'footer{background:rgba(6,12,14,.35);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}' +
-    P + 'table.grid,' + P + '.sheet{background:rgba(255,255,255,.04)!important}' +
-    '@media (prefers-reduced-transparency:reduce){html.pcmt-glass [style]{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}}' +
-    DOCK_CSS;
-  (document.head || d).appendChild(css);
-  function apply(on) { d.classList.toggle('pcmt-glass', !!on); if (on) dockSoon(); }
-  apply(read());
-  window.PCMT_GLASS = {
-    on: function () { return d.classList.contains('pcmt-glass'); },
-    set: function (on) { apply(on); try { if (on) localStorage.setItem(KEY, '1'); else localStorage.removeItem(KEY); } catch (e) {} }
-  };
-  (window.PCMT_LOOKS = window.PCMT_LOOKS || []).push({ id: 'glass', group: 'theme', name: 'Glass mode', note: 'A see-through, frosted look for the whole site.', on: window.PCMT_GLASS.on, set: window.PCMT_GLASS.set });
-  window.addEventListener('storage', function (e) { if (e.key === KEY) apply(e.newValue === '1'); });   // other open tabs follow
+    // page titles: the site's plain font instead of the sketch font, a little smaller
+    "h1[style*='Cabin Sketch']{font-family:'National Park',system-ui,sans-serif!important;font-size:clamp(32px,4.6vw,46px)!important;letter-spacing:-.01em}" +
+    // the page bar: normal case, no letter spacing; the current page is a soft tint instead of a solid block
+    "nav[aria-label='Main'] a{text-transform:none!important;letter-spacing:0!important;font-size:14px!important;font-weight:500!important}" +
+    "nav[aria-label='Main'] a:hover{background:rgba(165,220,221,.08)}" +
+    "nav[aria-label='Main'] a[aria-current]{background:rgba(165,220,221,.14)!important;color:#a5dcdd!important;font-weight:600!important}" +
+    "html.pcmt-light nav[aria-label='Main'] a[aria-current]{background:#dff1f1!important;color:#17767a!important}";
+  (document.head || document.documentElement).appendChild(css);
 })();
 
 
 /* Light mode (Settings): html.pcmt-light swaps the dark palette for a light one. The pages keep their colours inline,
    so each dark colour the site uses is mapped to a light one below (backgrounds, text, borders). Card backs, team
-   colours, logos and buttons keep their own colours. Light and Glass can't be on together (same 'theme' group).
+   colours, logos and buttons keep their own colours.
    Saved per device ('pcmt-light'). A new inline colour added to the boards needs a line here to follow. */
 (function () {
   'use strict';
@@ -1590,7 +1508,6 @@
   (document.head || d).appendChild(css);
   function apply(on) { d.classList.toggle('pcmt-light', !!on); }
   apply(read());
-  if (read() && window.PCMT_GLASS && window.PCMT_GLASS.on()) window.PCMT_GLASS.set(false);   // only one of the two
   // Text in a team's own colour (yellows, lime, near-white) can be too pale on white. While light mode is on, any inline
   // text colour with less than 3.5:1 contrast on a light background is darkened just enough (the original is kept in
   // data-pcmt-c and put back when light mode goes off). Text sitting on a dark or pictured background is left alone.

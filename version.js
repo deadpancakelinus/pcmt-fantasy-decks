@@ -16,7 +16,9 @@
   function apply() {
     var els = document.querySelectorAll('[data-pcmt-version]');
     for (var i = 0; i < els.length; i++) {
-      var el = els[i], t = v ? 'Version ' + v : el.textContent.trim(), a = el.firstElementChild;
+      var el = els[i], raw = el.textContent.trim(), m = raw.match(/Version \d+(?:\.\d+)*/), a = el.firstElementChild;
+      // the page can redraw its own text next to the link: read only the first version, never both run together
+      var t = v ? 'Version ' + v : m ? m[0] : raw;
       if (a && a.hasAttribute('data-pcmt-version-link') && a.textContent === t && el.childNodes.length === 1) continue;
       el.innerHTML = '';
       a = document.createElement('a');
