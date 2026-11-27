@@ -821,7 +821,9 @@
       var tree = (document.getElementById('dc-tree') || {}).textContent || '';
       var needDecks = /"data-pcmt-root":"(Main|Leaderboard|Customization)"/.test(tree);
       var decks = !needDecks ? Promise.resolve([]) : apiAll('/rest/v1/deck_history?select=user_id,name,slots,igl,region,created_at&order=created_at.asc,id.asc').catch(function () { return apiAll('/rest/v1/deck_history?select=user_id,name,slots,igl,created_at&order=created_at.asc,id.asc'); }).catch(function () { return []; });
-      var profiles = !needDecks ? Promise.resolve([]) : apiAll('/rest/v1/profiles?select=id,name,username,avatar_url,picture_at&order=id')
+      // Pick'ems needs the profiles too, for the pictures in its standings (Nov 26 2026).
+      var onPickemsPage = /"data-pcmt-root":"Pickems"/.test(tree);
+      var profiles = !needDecks && !onPickemsPage ? Promise.resolve([]) : apiAll('/rest/v1/profiles?select=id,name,username,avatar_url,picture_at&order=id')
         .catch(function () { return apiAll('/rest/v1/profiles?select=id,name,username,avatar_url&order=id'); })
         .catch(function () { return apiAll('/rest/v1/profiles?select=id,name&order=id'); }).catch(function () { return []; });
       var myProfile = me ? api('/rest/v1/profiles?select=username,username_changed_at,picture_at&id=eq.' + me.id)
@@ -851,6 +853,9 @@
       var niche = onPickems ? Promise.all(['NA', 'EMEA'].map(function (rg) {
         return api('/rest/v1/rpc/pickem_region_standings', { method: 'POST', body: { p_region: rg } }).then(function (r) { return [rg, r || []]; }, function () { return [rg, []]; });
       })) : Promise.resolve([]);
+      // MVP VS tiers (setup/trumps-tiers.sql): online wins per player, for the tier logos by names on the Deck Leaderboard and
+      // in the Pick'ems standings. Empty until that file has been run.
+      var ladder = /"data-pcmt-root":"(Leaderboard|Pickems)"/.test(tree) ? api('/rest/v1/rpc/trumps_ladder', { method: 'POST', body: {} }).catch(function () { return []; }) : Promise.resolve([]);
       // Teams and players edited or added on the backend (empty until setup/deck-edits-setup.sql has been run)
       var dTeams = apiAll('/rest/v1/deck_teams?select=code,name,color,region,season,logo,retired&order=code').catch(function () { return []; });
       var dPlayers = apiAll('/rest/v1/deck_players?select=id,name,team,region,role,price,champ&order=id').catch(function () { return apiAll('/rest/v1/deck_players?select=id,name,team,region,role,price&order=id'); }).catch(function () { return []; });
@@ -860,7 +865,7 @@
       // New users' own NA locks (setup/new-users.sql; empty until it's run)
       var late = !needDecks ? Promise.resolve([]) : api('/rest/v1/rpc/pcmt_late_locks', { method: 'POST', body: {} }).catch(function () { return []; });
       return Promise.all([decks, profiles, unlocks, null, multi, admin, null, null, null, prices, null, staff,   // (3, 6-8, 10: Credits and cards, removed Nov 23 2026)
-        picks, pkEvents, pkBoard, removed, subs, note, niche, dTeams, dPlayers, myProfile, season, extraGames, late]);
+        picks, pkEvents, pkBoard, removed, subs, note, niche, dTeams, dPlayers, myProfile, season, extraGames, late, ladder]);
     }).then(function (res) {
       applyDeckEdits(res[19], res[20]);
       useUsername((res[21] || [])[0]);
@@ -871,8 +876,13 @@
       applyExtraGames(res[23]);
       window.PCMT_SUBS = res[16] || [];
       window.PCMT_PATCH_NOTE = res[17] || null;
+      // MVP VS: { <user id>: { wins, games } } for everyone with a counted online game (their tier logo shows by their name)
+      window.PCMT_MVP = {};
+      (res[25] || []).forEach(function (r) { window.PCMT_MVP[r.user_id] = { wins: r.wins, games: r.games }; });
+      var pk = {};
+      (res[1] || []).forEach(function (p) { pk[p.id] = pictureUrl(p.id, p.picture_at) || p.avatar_url || ''; });
       window.PCMT_NICHE = {};
-      (res[18] || []).forEach(function (x) { window.PCMT_NICHE[x[0]] = x[1].map(function (r) { return { id: r.user_id, name: r.name, points: r.points, picked: r.picked, me: !!me && r.user_id === me.id }; }); });
+      (res[18] || []).forEach(function (x) { window.PCMT_NICHE[x[0]] = x[1].map(function (r) { return { id: r.user_id, name: r.name, avatar: pk[r.user_id] || '', points: r.points, picked: r.picked, me: !!me && r.user_id === me.id }; }); });
       applySubs(window.PCMT_SUBS);
       attachMulti(res[4] || []);
       PRICE_LOG = (res[9] || []).map(function (c) { return { player: c.player, price: c.price == null ? null : +c.price, t: Date.parse(c.changed_at) }; });

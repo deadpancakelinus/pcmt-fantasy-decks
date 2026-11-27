@@ -166,7 +166,7 @@ for board, outname in PAGES.items():
             '// Entry formats are explained next to these names in index.html.\n\n' + '\n\n'.join(data) + '\n')
     logic = wire.logic(board, logic)
     assert '</script' not in logic.lower()
-    data_tag = '<script src="data.js"></script>\n<script src="players.js"></script>\n<script src="league.js"></script>\n'
+    data_tag = '<script src="data.js"></script>\n<script src="players.js"></script>\n<script src="tiers.js"></script>\n<script src="league.js"></script>\n'
     if board in ('Customization.dc.html', 'Main.dc.html'):  # team card backs from PCMT.gg (tools/pcmt-teams.js)
         data_tag = '<script src="season-teams.js"></script>\n' + data_tag
     if board == 'Home.dc.html':  # grand final champions (tools/pcmt-sync.js) with PCMT.gg team logos and colours

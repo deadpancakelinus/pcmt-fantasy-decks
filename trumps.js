@@ -199,16 +199,7 @@
   // A card that can lie face down or face up on the table (both faces stacked in one grid cell).
   // ---------- tiers (setup/trumps-tiers.sql) ----------
   // Only online wins against another player count: every 5 wins is the next tier, Iron 1 to Radiant (at 120 wins).
-  var WINS_PER_TIER = 5, TIERS = [];
-  ['Iron', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Ascendant', 'Immortal'].forEach(function (t) {
-    for (var d = 1; d <= 3; d++) TIERS.push({ name: t + ' ' + d, img: 'assets/tiers/' + t.toLowerCase() + '-' + d + '.webp' });
-  });
-  TIERS.push({ name: 'Radiant', img: 'assets/tiers/radiant.webp' });
-  function tierOf(wins) {
-    wins = Math.max(0, wins | 0);
-    var i = Math.min(TIERS.length - 1, Math.floor(wins / WINS_PER_TIER)), next = TIERS[i + 1];
-    return { i: i, name: TIERS[i].name, img: TIERS[i].img, wins: wins, next: next ? next.name : '', left: next ? (i + 1) * WINS_PER_TIER - wins : 0 };
-  }
+  var T_ = window.PCMT_TIERS, WINS_PER_TIER = T_.perTier, TIERS = T_.list, tierOf = T_.of;   // tiers.js
   function tierImg(t, size) { return '<img class="tt-tier-img" src="' + t.img + '" alt="' + t.name + '" title="' + t.name + '" width="' + size + '" height="' + size + '">'; }
   // Wins by player id, read from the database when needed (the lobby, a room's two players, after an online game).
   var WINS = {}, ASKED = {};
@@ -384,6 +375,39 @@
       '<span class="tt-tier-bar" role="img" aria-label="' + into + ' of ' + WINS_PER_TIER + ' wins to the next tier"><i style="width:' + (into / WINS_PER_TIER * 100) + '%"></i></span></div></div>';
   }
 
+  // ---------- MVP VS leaderboard (a window over the page) ----------
+  // Everyone who has finished a counted online game, most wins first (then fewest games), with their tier.
+  function pictureUrl(uid, at) { var t = at ? Date.parse(at) : NaN; return uid && !isNaN(t) ? SB_URL + '/storage/v1/object/public/avatars/' + uid + '.webp?v=' + t : ''; }
+  function openLadder() {
+    if ($('tt-ladder')) return;
+    var back = document.createElement('div'), prev = document.activeElement, me = session ? myId() : null;
+    back.className = 'tt-ladder-back'; back.id = 'tt-ladder';
+    back.innerHTML = '<div class="tt-ladder" role="dialog" aria-modal="true" aria-labelledby="tt-ladder-h"><div class="tt-ladder-head"><div><span class="tt-kicker">ONLINE WINS</span>' +
+      '<h2 id="tt-ladder-h">MVP VS leaderboard</h2><p>Every ' + WINS_PER_TIER + ' online wins is the next tier, Iron 1 to Radiant.</p></div>' +
+      '<button type="button" class="tt-ladder-x" data-ladder-close aria-label="Close">×</button></div><div class="tt-ladder-body" id="tt-ladder-body"><p class="tt-ladder-empty">Loading…</p></div></div>';
+    function close() { back.remove(); document.removeEventListener('keydown', key, true); try { if (prev && prev.focus) prev.focus(); } catch (e) {} }
+    function key(e) { if (e.key === 'Escape') { e.preventDefault(); close(); } }
+    back.addEventListener('click', function (e) { if (e.target === back || e.target.closest('[data-ladder-close]')) close(); });
+    document.addEventListener('keydown', key, true);
+    document.body.appendChild(back);
+    back.querySelector('[data-ladder-close]').focus();
+    rpc('trumps_ladder', {}).then(function (rows) {
+      rows = (rows || []).slice().sort(function (a, b) { return b.wins - a.wins || a.games - b.games || String(a.name).localeCompare(String(b.name)); });
+      var rank = 0, prev2 = null;
+      var html = rows.map(function (r, i) {
+        if (prev2 === null || r.wins !== prev2) { rank = i + 1; prev2 = r.wins; }
+        var t = tierOf(r.wins), pic = pictureUrl(r.user_id, r.picture_at) || r.avatar_url || '';
+        return '<tr' + (r.user_id === me ? ' class="me"' : '') + '><td class="' + (rank <= 3 ? 'rank' + rank : '') + '">' + rank + '</td>' +
+          '<td><span class="who">' + (pic ? '<img src="' + esc(pic) + '" alt="" loading="lazy">' : '<span class="ini" aria-hidden="true">' + esc(String(r.name || '?').charAt(0).toUpperCase()) + '</span>') +
+          '<span>' + esc(r.name || 'Manager') + (r.user_id === me ? ' (you)' : '') + '</span></span></td>' +
+          '<td><span class="tier">' + tierImg(t, 28) + t.name + '</span></td><td class="num"><b>' + r.wins + '</b></td><td class="num">' + r.games + '</td></tr>';
+      }).join('');
+      $('tt-ladder-body').innerHTML = rows.length
+        ? '<table><thead><tr><th scope="col">#</th><th scope="col">Player</th><th scope="col">Tier</th><th scope="col" class="num">Wins</th><th scope="col" class="num">Games</th></tr></thead><tbody>' + html + '</tbody></table>'
+        : '<p class="tt-ladder-empty">No online games have been played yet. Win one to get on the board.</p>';
+    }).catch(function () { var b = $('tt-ladder-body'); if (b) b.innerHTML = '<p class="tt-ladder-empty">The leaderboard couldn\'t load. Try again in a bit.</p>'; });
+  }
+
   function renderLobby(root) {
     var pool = deckCards(ui.region), n = pool.length, label = deckLabel(ui.region), signedIn = !!session;
     var online = window.PCMT_TRUMPS_PREVIEW
@@ -451,6 +475,7 @@
     }
     var act = e.target.closest('[data-act]'); if (!act || act.tagName === 'FORM') return;
     var a = act.getAttribute('data-act');
+    if (a === 'ladder') return openLadder();
     if (a === 'bot' || a === 'again') {
       var region = a === 'again' ? ui.state.region : ui.region;
       ui.mode = 'bot'; ui.me = 0; ui.names = ['You', 'Bot']; ui.seen = 0; ui.error = ''; ui.dealt = 0; ui.revealed = 0; ui.collecting = false;

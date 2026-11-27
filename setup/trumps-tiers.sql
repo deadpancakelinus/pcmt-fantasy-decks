@@ -55,6 +55,17 @@ language sql stable security definer set search_path = public as $$
   select u, (select count(*)::int from public.trumps_results where winner = u) from unnest(p_ids) u;
 $$;
 
+-- The MVP VS leaderboard and the tier logos on the other leaderboards: everyone who has finished a counted online game
+-- (won or lost), with their wins, games, name and picture.
+create or replace function public.trumps_ladder() returns table (user_id uuid, name text, avatar_url text, picture_at timestamptz, wins int, games int)
+language sql stable security definer set search_path = public as $$
+  with g as (select winner as u, 1 as w from public.trumps_results union all select loser, 0 from public.trumps_results)
+  select g.u, coalesce(nullif(p.username, ''), p.name, 'Manager'), p.avatar_url, p.picture_at, sum(g.w)::int, count(*)::int
+  from g left join public.profiles p on p.id = g.u
+  group by g.u, p.username, p.name, p.avatar_url, p.picture_at;
+$$;
+
 revoke all on function public.trumps_move(text, int, jsonb) from public, anon;
 grant execute on function public.trumps_move(text, int, jsonb) to authenticated;
 grant execute on function public.trumps_wins(uuid[]) to anon, authenticated;
+grant execute on function public.trumps_ladder() to anon, authenticated;

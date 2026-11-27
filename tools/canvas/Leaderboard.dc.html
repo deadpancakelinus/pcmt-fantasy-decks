@@ -111,7 +111,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <sc-for list="{{rows}}" as="r" hint-placeholder-count="6">
 <tr class="{{r.cls}}" style="background: {{r.bg}}">
 <td style="padding: 16px 18px; border-bottom: 1px solid #2a3a3e; font-family: {{r.rankFont}}; font-weight: 700; font-size: {{r.rankSize}}; color: {{r.rankColor}}; text-shadow: {{r.rankShadow}}">{{r.rank}}</td>
-<td style="padding: 16px 18px; border-bottom: 1px solid #2a3a3e; font-weight: 600; color: {{r.nameColor}}"><span style="display: flex; align-items: center; gap: 10px; min-width: 0"><sc-if value="{{r.hasPic}}" hint-placeholder-val="{{ false }}"><img src="{{r.pic}}" alt="" loading="lazy" width="28" height="28" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex: none; background: #13292b"></sc-if><sc-if value="{{r.noPic}}" hint-placeholder-val="{{ true }}"><span aria-hidden="true" style="width: 28px; height: 28px; border-radius: 50%; flex: none; display: grid; place-items: center; background: #13292b; color: #a5dcdd; font-size: 13px; font-weight: 700">{{r.initial}}</span></sc-if><span style="min-width: 0; overflow-wrap: anywhere">{{r.manager}}</span></span></td>
+<td style="padding: 16px 18px; border-bottom: 1px solid #2a3a3e; font-weight: 600; color: {{r.nameColor}}"><span style="display: flex; align-items: center; gap: 10px; min-width: 0"><sc-if value="{{r.hasPic}}" hint-placeholder-val="{{ false }}"><img src="{{r.pic}}" alt="" loading="lazy" width="28" height="28" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex: none; background: #13292b"></sc-if><sc-if value="{{r.noPic}}" hint-placeholder-val="{{ true }}"><span aria-hidden="true" style="width: 28px; height: 28px; border-radius: 50%; flex: none; display: grid; place-items: center; background: #13292b; color: #a5dcdd; font-size: 13px; font-weight: 700">{{r.initial}}</span></sc-if><span style="min-width: 0; overflow-wrap: anywhere">{{r.manager}}</span><sc-if value="{{r.hasTier}}" hint-placeholder-val="{{ false }}"><img src="{{r.tierImg}}" alt="{{r.tierName}}" title="MVP VS: {{r.tierName}}" loading="lazy" width="24" height="24" style="width: 24px; height: 24px; object-fit: contain; flex: none"></sc-if></span></td>
 <td style="padding: 16px 18px; border-bottom: 1px solid #2a3a3e; color: #93a9aa">{{r.squad}}</td>
 <td style="padding: 16px 18px; border-bottom: 1px solid #2a3a3e;">{{r.igl}}</td>
 <td style="padding: 16px 18px; border-bottom: 1px solid #2a3a3e; text-align: right; font-family: 'National Park', system-ui, sans-serif; font-weight: {{r.gwWeight}}">{{r.gw}}</td>
@@ -169,6 +169,11 @@ function pcmtWeekKey(t) {
     if (b > t) b -= 7 * 86400000;
   }
   return new Date(b).toISOString().slice(0, 10);
+}
+// A manager's MVP VS tier (league.js PCMT_MVP + tiers.js), or null if they haven't finished a counted online game.
+function pcmtMvpTier(id) {
+  var W = typeof window !== 'undefined' ? window : {}, x = id && (W.PCMT_MVP || {})[id];
+  return x && x.games && W.PCMT_TIERS ? W.PCMT_TIERS.of(x.wins) : null;
 }
 function pcmtStandingRow(m, now) {
   if (!m.weeks) return m; // already has gw / total
@@ -286,6 +291,8 @@ class Component extends DCLogic {
         rank: r, manager: x.m.manager, squad: x.m.squad, igl: x.m.igl, gw: num(x.m.gw), total: num(x.m.total),
         // Profile pictures (update): the uploaded picture, else the Discord avatar, else the first letter of the name
         pic: x.m.avatar || '', hasPic: !!x.m.avatar, noPic: !x.m.avatar, initial: String(x.m.manager || '?').charAt(0).toUpperCase(),
+        // MVP VS tier logo (tiers.js), for anyone who has finished a counted online game
+        hasTier: !!pcmtMvpTier(x.m.id), tierImg: (pcmtMvpTier(x.m.id) || {}).img || '', tierName: (pcmtMvpTier(x.m.id) || {}).name || '',
         cls: r === 1 ? 'lb-gold' : '',
         bg: x.m.me ? '#0f1d1e' : 'transparent',
         nameColor: x.m.me ? '#a5dcdd' : '#eaf4f4',
