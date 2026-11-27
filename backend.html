@@ -322,6 +322,14 @@
     #st-staff:not([hidden]) { height: calc(100vh - 48px); min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
     main:has(#st-staff:not([hidden])) { overflow: hidden; }
     #st-staff > .side { top: 0; height: calc(100vh - 48px); }
+    /* Save bars sit below their table as a normal row (not floating over it); the table scrolls inside itself and is
+       sized so the table and its Save bar both fit on screen */
+    .pane .bar.sticky { position: static; padding: 2px 0 0; border-top: 0; background: none; }
+    #pane-prices > .sheet, #pane-riot > .sheet { max-height: max(260px, calc(100vh - 330px)); }
+  }
+  /* Phones: the Save bar stays at the bottom of the screen as its own box, clear of the table edges */
+  @media (max-width: 900px) {
+    .pane .bar.sticky { bottom: 8px; margin-top: 4px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; background: #1a1a1a; box-shadow: 0 -8px 24px rgba(0,0,0,.45); }
   }
   @media (max-width: 900px) {
     #st-staff:not([hidden]) { min-height: 0; }
