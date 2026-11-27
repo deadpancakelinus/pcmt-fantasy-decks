@@ -215,6 +215,13 @@ const check = (ok, msg) => { if (!ok) { bad++; console.log('FAIL ' + msg); } };
     check((await pg.textContent('.tt-code')) === 'K7Q2M', 'room code not shown');
     await pg.screenshot({ path: `${SHOTS}/online-waiting.png` });
     check(await pg.isDisabled('[data-act="start"]'), 'Start should wait for a second player');
+    await pg.context().grantPermissions(['clipboard-read', 'clipboard-write'], { origin: BASE });
+    await pg.click('[data-act="copy-code"]');
+    await pg.waitForFunction(() => /copied/i.test(document.getElementById('tt-copied').textContent), null, { timeout: 3000 });
+    check((await pg.evaluate(() => navigator.clipboard.readText())) === 'K7Q2M', 'Copy code should put the room code on the clipboard');
+    await pg.click('[data-act="copy-link"]');
+    await pg.waitForTimeout(200);
+    check(/#join=K7Q2M$/.test(await pg.evaluate(() => navigator.clipboard.readText())), 'Copy invite link should copy a link that joins the room');
     // Three friends join (seen by polling): 4 seats, Start turns on.
     const ids = ['22222222-2222-2222-2222-222222222222', '33333333-3333-3333-3333-333333333333', '44444444-4444-4444-4444-444444444444'];
     room.players = [uid, ...ids]; room.names = ['Linus', 'Ethan', 'Mia', 'Zed']; room.guest = ids[0]; room.guest_name = 'Ethan'; room.version++;
@@ -246,6 +253,30 @@ const check = (ok, msg) => { if (!ok) { bad++; console.log('FAIL ' + msg); } };
     check(left === 1, 'leaving should tell the server');
     check(!errs.length, 'online page errors: ' + errs.join(' | '));
     console.log(`online: room ${room.code}, ${moves.length} move sent, version ${room.version}`);
+    await pg.close();
+  }
+
+  // 4) An invite link (#join=CODE) joins the room straight away.
+  {
+    const pg = await b.newPage({ viewport: { width: 1280, height: 900 } });
+    const uid = '22222222-2222-2222-2222-222222222222';
+    const tok = 'x.' + Buffer.from(JSON.stringify({ sub: uid })).toString('base64').replace(/=+$/, '') + '.y';
+    await pg.addInitScript(t => localStorage.setItem('pcmt-auth', JSON.stringify({ access_token: t, refresh_token: 'r', expires_at: Date.now() + 3600e3 })), tok);
+    let joined = null;
+    const room = { code: 'K7Q2M', region: 'nas4', host: 'h', guest: uid, host_name: 'Linus', guest_name: 'Ethan', players: ['h', uid], names: ['Linus', 'Ethan'], started: false, state: { region: 'nas4', limit: 60, lobby: true }, version: 2 };
+    await pg.route('https://wwrsavqipkxvdsxcemos.supabase.co/**', async r => {
+      const u = r.request().url(), json = x => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(x) });
+      if (u.includes('site_pages')) return json([{ id: 'mvp-vs', launched: true }]);
+      if (u.includes('/rpc/trumps_join')) { joined = r.request().postDataJSON().p_code; return json(room); }
+      if (u.includes('/trumps_rooms')) return json([room]);
+      return json([]);
+    });
+    await pg.goto(`${BASE}/mvp-vs.html#join=k7q2m`);
+    await pg.waitForSelector('.tt-seats', { timeout: 5000 });
+    check(joined === 'K7Q2M', 'the invite link should join room K7Q2M, got ' + joined);
+    check(/Waiting for Linus/.test(await pg.textContent('#tt-app')), 'a player who joined should wait for the host');
+    check(!/join=/.test(await pg.evaluate(() => location.hash)), 'the join code should leave the address bar');
+    console.log('invite link: joined ' + joined);
     await pg.close();
   }
 

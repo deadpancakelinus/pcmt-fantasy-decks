@@ -21,6 +21,7 @@
     var rules = [], d = document.documentElement;
     Object.keys(LAUNCH_PAGES).forEach(function (id) {
       LAUNCH_PAGES[id].forEach(function (f) { rules.push('html.pcmt-hide-' + id + ' a[href^="' + f + '.html"]:not([data-pcmt-keep])'); });
+      rules.push('html.pcmt-hide-' + id + ':not(.pcmt-staff-view) [data-pcmt-launch="' + id + '"]');   // e.g. the MVP VS rules in the rule book
       d.classList.add('pcmt-hide-' + id);
     });
     var css = document.createElement('style');
@@ -894,6 +895,8 @@
       (res[15] || []).forEach(function (r) { window.PCMT_REMOVED_PLAYERS[r.player] = true; });
       window.PCMT_IS_ADMIN = !!(res[5] && res[5].length);
       window.PCMT_IS_STAFF = res[11] === true;
+      // staff and site admins see rule book sections for pages that aren't launched yet (to check them before launch)
+      if (window.PCMT_IS_STAFF || window.PCMT_IS_ADMIN) document.documentElement.classList.add('pcmt-staff-view');
       window.PCMT_MY_PICKS = {};
       (res[12] || []).forEach(function (p) { (window.PCMT_MY_PICKS[p.event] = window.PCMT_MY_PICKS[p.event] || {})[p.series] = { winner: p.winner, win: p.win_maps, lose: p.lose_maps }; });
       window.PCMT_PICKEM_EVENTS = {};

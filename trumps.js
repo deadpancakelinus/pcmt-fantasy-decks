@@ -355,7 +355,9 @@
         '<span>' + esc(i === ui.me ? 'You' : (R.names || [])[i] || 'Player ' + (i + 1)) + (i === 0 ? ' <small>host</small>' : '') + '</span>' : '<span>Open seat</span>') + '</li>';
     }
     root.innerHTML = '<div class="tt-panel tt-center tt-wait"><div class="tt-kicker">ROOM CODE</div><div class="tt-code">' + esc(R.code) + '</div>' +
-      '<p>Send this code to your friends. Up to ' + MAX_PLAYERS + ' players can join.</p>' +
+      '<div class="tt-copy"><button type="button" class="tt-btn" data-act="copy-code">Copy code</button><button type="button" class="tt-btn ghost" data-act="copy-link">Copy invite link</button></div>' +
+      '<p class="tt-copied" id="tt-copied" role="status" aria-live="polite"></p>' +
+      '<p>Send the code or the invite link to your friends. Up to ' + MAX_PLAYERS + ' players can join.</p>' +
       '<p class="tt-dim">' + esc(deckLabel(s.region)) + ' cards · ' + deckCards(s.region).length + ' players · ' + limitOf(s) + ' rounds</p>' +
       '<ul class="tt-seats" aria-label="Players in the room">' + seats + '</ul>' +
       '<div class="tt-actions">' + (host ? '<button type="button" class="tt-btn" data-act="start"' + (players.length < 2 || ui.busy ? ' disabled' : '') + '>Start game (' + players.length + ' players)</button>' :
@@ -496,6 +498,28 @@
       pool.slice().sort(function (a, b) { return b.toxic - a.toxic; }).slice(0, 3).map(function (c) { return cardHTML(c.id); }).join('') + '</div></div>';
   }
 
+  // Copy to the clipboard (with a fallback for browsers without the clipboard API).
+  function copyText(t) {
+    if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(t).then(function () { return true; }, function () { return fallback(); });
+    return Promise.resolve(fallback());
+    function fallback() {
+      var ta = document.createElement('textarea'); ta.value = t; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;left:-9999px;top:0';
+      document.body.appendChild(ta); ta.select(); var ok = false; try { ok = document.execCommand('copy'); } catch (e) {} ta.remove(); return ok;
+    }
+  }
+  // An invite link (mvp-vs.html#join=CODE) joins the room when opened (after logging in, if needed).
+  function joinFromLink() {
+    var m = (location.hash || '').match(/join=([A-Za-z0-9]{5})/), code = m ? m[1].toUpperCase() : null;
+    if (!code) { try { code = sessionStorage.getItem('pcmt-trumps-join'); } catch (e) {} }
+    if (!code) return;
+    if (m) history.replaceState(null, '', location.pathname + location.search);
+    if (!session) { ui.joinCode = code; try { sessionStorage.setItem('pcmt-trumps-join', code); } catch (e) {} ui.error = 'Log in with Discord to join room ' + code + '.'; return render(); }
+    try { sessionStorage.removeItem('pcmt-trumps-join'); } catch (e) {}
+    ui.joinCode = code; ui.busy = true; ui.error = ''; render();
+    rpc('trumps_join', { p_code: code }).then(function (r) { ui.busy = false; enterRoom(r); })
+      .catch(function (err) { ui.busy = false; ui.error = err.message; render(); });
+  }
+
   // ---------- online rooms ----------
   function stopPoll() { clearInterval(ui.poll); ui.poll = null; }
   function applyRoom(r) {
@@ -547,6 +571,14 @@
     var act = e.target.closest('[data-act]'); if (!act || act.tagName === 'FORM') return;
     var a = act.getAttribute('data-act');
     if (a === 'ladder') return openLadder();
+    if ((a === 'copy-code' || a === 'copy-link') && ui.room) {
+      var link = location.origin + location.pathname + '#join=' + ui.room.code;
+      var text = a === 'copy-code' ? ui.room.code : 'Join my MVP VS room on fantasy.pcmt.gg: ' + link;
+      return copyText(text).then(function (ok) {
+        var say = $('tt-copied'); if (!say) return;
+        say.textContent = ok ? (a === 'copy-code' ? 'Room code copied. Paste it to your friends.' : 'Invite link copied. Opening it joins the room.') : 'Couldn\u2019t copy. Select the code and copy it yourself.';
+      });
+    }
     if (a === 'bot' || a === 'again') {
       var region = a === 'again' ? ui.state.region : ui.region;
       ui.mode = 'bot'; ui.me = 0; ui.names = ['You', 'Bot']; ui.seen = 0; ui.error = ''; ui.dealt = 0; ui.revealed = 0; ui.collecting = false;
@@ -607,8 +639,10 @@
     takeRedirectTokens();
     session = readSession();
     render();
+    if (!session) joinFromLink();
     if (session) refreshIfNeeded().then(function () {
       if (!session) return render();
+      joinFromLink();
       // Same as the other pages: show the Discord name in the header and keep the profile name fresh
       // (rooms show each player's profile name).
       return api('/auth/v1/user').then(function (user) {

@@ -218,7 +218,8 @@
   .tt-multi .tt-deck, .tt-multi .tt-slot { grid-area: auto; }
   .tt-opp .tt-slot { max-width: 230px; }
   .tt-opp .tt-face > .tt-card:not(.tt-back) { aspect-ratio: auto; }   /* the narrower cards grow to fit every stat */
-  .tt-mine { grid-template-columns: minmax(72px, 120px) minmax(0, 300px); justify-content: center; }
+  .tt-mine { grid-template-columns: minmax(0, 1fr) minmax(0, 300px) minmax(0, 1fr); justify-content: center; }
+  .tt-mine > .tt-deck { justify-self: end; width: min(120px, 100%); }
   .tt-multi .tt-stack { max-width: 84px; }
   .tt-mine .tt-stack { max-width: 110px; }
   .tt-multi .tt-deck-label b { font-size: 24px; }
@@ -233,12 +234,16 @@
   .tt-seats small { color: var(--dim); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
   .tt-seat-dot { width: 10px; height: 10px; flex: none; border-radius: 50%; background: var(--accent); }
   .tt-wait .tt-actions { justify-content: center; flex-wrap: wrap; }
+  .tt-copy { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 4px 0 6px; }
+  .tt-copied { min-height: 1.5em; margin: 0 0 6px !important; color: var(--accent) !important; font-size: 13px; }
   .tt-wait-host { margin: 0 0 4px; flex: 1 0 100%; }
   @media (max-width: 900px) {
     .tt-tabletop.tt-multi { padding: 20px 12px; gap: 16px; }
     .tt-opps { grid-template-columns: 1fr; gap: 10px; }
     .tt-opp { grid-template-columns: 56px minmax(0, 1fr); }
     .tt-opp .tt-slot { max-width: none; }
+    .tt-mine { grid-template-columns: minmax(0, 1fr) minmax(0, 220px) minmax(0, 1fr); gap: 10px; }
+    .tt-mine > .tt-deck { width: min(72px, 100%); }
     .tt-opp .tt-stat:not(.is-picked) { display: none; }   /* phones: the other players' cards show just the picked stat */
     .tt-opp .tt-face .tt-back { min-height: 0; aspect-ratio: auto; height: 100%; }
     .tt-opp .tt-face > .tt-card:not(.tt-back) { min-height: 132px; }
@@ -270,8 +275,8 @@
   nav[aria-label="Main"] a { text-transform: none !important; letter-spacing: 0 !important; font-size: 14px !important; font-weight: 500 !important; }
   nav[aria-label="Main"] a:hover { background: rgba(165, 220, 221, .08); }
   nav[aria-label="Main"] a[aria-current] { background: rgba(165, 220, 221, .14) !important; color: #a5dcdd !important; font-weight: 600 !important; }
-  .tt-rules ul { margin: 0; padding-left: 18px; max-width: 760px; }
-  .tt-rules li { margin: 4px 0; }
+  .tt-rules { font-size: 15px; }
+  .tt-rules a { color: var(--accent); font-weight: 600; }
 
   @media (max-width: 640px) {
     .tt-top-in { gap: 12px 32px; }
@@ -356,23 +361,13 @@
   <div class="tt-head">
     <div>
       <h1>MVP VS</h1>
-      <p class="tt-sub">Your top card against theirs. Pick the stat you think wins and take both cards. Hold every card, or the most cards when the last round is played, to win.</p>
+      <p class="tt-sub">Your top card against everyone else's. Pick the stat you think wins and take every card played. Hold every card, or the most cards when the last round is played, to win.</p>
       <button type="button" class="tt-btn ghost tt-ladder-btn" data-act="ladder" aria-haspopup="dialog">MVP VS leaderboard</button>
     </div>
     <div class="tt-region" id="tt-seasons" role="group" aria-label="Seasons to deal (pick one or more)"></div>
   </div>
   <div id="tt-app" aria-live="polite"></div>
-  <section class="tt-rules">
-    <h2>How it works</h2>
-    <ul>
-      <li>Pick which cards to deal before you start: one season or several (tap each season you want), every NA and EMEA season with that season's stats and teams, subs included. Picked seasons are dealt together as one deck. The current seasons' cards update as the season is played.</li>
-      <li>Each card has five stats from the pcmt.gg stats page: <b>ACS</b>, <b>KAST</b>, <b>HS%</b>, <b>Deaths</b> (per map) and <b>Toxic rating</b>. The higher number wins, except Deaths, where the lower number wins.</li>
-      <li>Online rooms hold <b>2 to 4 players</b>: share the room code, and the player who made the room starts the game once everyone is in. Against the bot it's always one on one, and you always pick first.</li>
-      <li>Every player still holding cards plays their top card. Whoever has the best number on the picked stat (higher, or lower for Deaths) takes all the played cards to the bottom of their deck and picks the next stat. On a tie for the best card, every card goes back to the bottom of its own deck and the same player picks again. A player with no cards left is out. The cards are dealt as evenly as possible; the first picker never gets an extra one.</li>
-      <li><b>Tiers</b>: online games against another player count toward your MVP VS tier, from Iron 1 up to Radiant, like Valorant's ranks. Every win is a point, and every 5 wins takes you to the next tier (a win in a 3 or 4 player game counts the same as a 1v1 win) (Iron 1, 2, 3, then Bronze 1, and so on; Radiant at 120 wins). Losses and draws don't take anything away, and games against the bot never count.</li>
-      <li>Set how many rounds the game lasts before you deal (<b>60</b> unless you change it, up to 999). You win by holding every card. If nobody has by the last round, whoever has the most cards wins (a tie for the most is a draw). In an online game, the player who makes the room sets the rounds.</li>
-    </ul>
-  </section>
+  <p class="tt-rules"><a href="guide.html#mvp-vs" data-pcmt-keep>Rules</a><span> · the full MVP VS rules in the rule book</span></p>
 </main>
 <footer style="border-top: 1px solid #2a3a3e">
 <div class="tt-foot-in" style="max-width: 1280px; margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; font-family: 'National Park', system-ui, sans-serif; font-size: 12px; color: #93a9aa">
