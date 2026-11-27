@@ -11,16 +11,32 @@
   var URL0 = 'https://wwrsavqipkxvdsxcemos.supabase.co', KEY = 'sb_publishable_e8v-uyAo4fnvwJCHUVA5FQ_LXR6yYM7';
   var v = null;
   try { v = localStorage.getItem('pcmt-version'); } catch (e) {}
+  // The version is a link to its notes: the patch notes window for the current version (any page), or the patch notes
+  // on Home when there's no note to show.
   function apply() {
-    if (!v) return;
-    var t = 'Version ' + v, els = document.querySelectorAll('[data-pcmt-version]');
-    for (var i = 0; i < els.length; i++) if (els[i].textContent !== t) els[i].textContent = t;
+    var els = document.querySelectorAll('[data-pcmt-version]');
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i], t = v ? 'Version ' + v : el.textContent.trim(), a = el.firstElementChild;
+      if (a && a.hasAttribute('data-pcmt-version-link') && a.textContent === t && el.childNodes.length === 1) continue;
+      el.innerHTML = '';
+      a = document.createElement('a');
+      a.href = 'home.html#patch-notes'; a.setAttribute('data-pcmt-version-link', ''); a.title = 'Patch notes';
+      a.textContent = t;
+      el.appendChild(a);
+    }
   }
+  var lastNote = null;
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('[data-pcmt-version-link]');
+    if (!a || !lastNote || !String(lastNote.text || '').trim() || e.ctrlKey || e.metaKey || e.shiftKey) return;
+    e.preventDefault();
+    patchWindow(lastNote, true);
+  });
   window.PCMT_SET_VERSION = function (x) {   // the backend calls this after saving, so its own page updates too
     v = String(x || '').trim() || v; try { localStorage.setItem('pcmt-version', v); } catch (e) {} apply();
   };
   // The built pages draw their footer after this runs, and can redraw it: put the version back whenever they do.
-  if (window.MutationObserver) new MutationObserver(function () { if (v) apply(); }).observe(document.documentElement, { childList: true, subtree: true });
+  if (window.MutationObserver) new MutationObserver(function () { apply(); }).observe(document.documentElement, { childList: true, subtree: true });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', apply); else apply();
 
   // ---------- patch notes window ----------
@@ -87,6 +103,7 @@
       var note = null;
       try { note = typeof by.version_note === 'string' ? JSON.parse(by.version_note) : by.version_note; } catch (e) {}
       // Wait for the page's own loading screen to finish before showing it.
+      lastNote = note || null;
       if (note) setTimeout(function () { patchWindow(note); }, 1600);
     })
     .catch(function () {});

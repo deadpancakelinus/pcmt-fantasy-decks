@@ -2,18 +2,25 @@
 
 Start here. It covers what exists, how changes are made and shipped, and what's next.
 
-## 0. Held update (Nov 23 2026): read this first
+## 0. Held updates (Nov 26 2026): read this first
 
-`update-2` (event labels, champions on Home, patch notes window, Riot IDs, Pick'ems graphic and slide, backend clean-up) **shipped Nov 23 2026**, with its SQL; later hotfixes (TANK red, S4 favourites) are on `main` too.
+`update-3` (Store, Library, Database pages and Credits removed; backend Decks tab) **shipped Nov 26 2026**, with `setup/no-credits.sql`.
 
-The next update is on the branch **`update-3`**, NOT pushed (only when the owner says to send it). `main` on GitHub is the live site (the PCMT.gg sync adds data commits there).
+Two updates are held, NOT pushed (only when the owner says to send each one). `main` on GitHub is the live site (the PCMT.gg sync adds data commits there).
+
+**MVP VS update** (branch `mvp-vs-update`, to be released first):
 
 | Part | Section | Database |
 |---|---|---|
-| Store, Library and the staff Database page deleted, with card packs, Rare cards and Credits; MVP VS keeps only the basic cards; points stay exactly as they are (Pick'ems still 10 / 20 points per right pick; `pickem_events.credits_win` is that number, shown as points) | 59 | `setup/no-credits.sql` |
-| Backend Decks tab: staff swap one player in a user's saved deck | 60 | `setup/deck-swaps.sql` (already run Nov 25 2026) |
+| The version at the bottom of every page is a link to its notes: it opens the patch notes window for the current version, or goes to the patch notes on Home when there's no note (version.js) | 0 | none |
 
-**To ship `update-3`:** run `setup/no-credits.sql` in Supabase (stops the Credits payout job, removes the deleted pages from the Pages list), then `git fetch origin && git checkout update-3 && git merge origin/main`, rebuild (`python3 -I tools/build.py tools/canvas assets <out>`, copy the built pages except `data.js`, `pickems.js`, `rankings.js`), smoke test, commit as `deadpancakelinus <sixthneigh@gmail.com>` (short plain message), `git push origin update-3:main`.
+**LoserQ Patch** (branch `losersq-patch`, later):
+
+| Part | Section | Database |
+|---|---|---|
+| LosersQ: current NA and EMEA seasons from PCMT.gg (region toggle), updated by the sync; site-style page, no LosersQ logo, no intro, no "How it works"; first-open warning window | 23 | none |
+
+**To ship one:** `git fetch origin && git checkout <branch> && git merge origin/main`, rebuild (`python3 -I tools/build.py tools/canvas assets /tmp/build`, copy the pages in), run the smoke test, `git push origin <branch>:main`. If the MVP VS update ships first, merge `origin/main` into `losersq-patch` before it ships. After the LoserQ Patch ships, the sync refreshes `losersq-data.js` every hour (the first run on GitHub also picks up the backend's player edits).
 
 A small hotfix is also kept on the local-only branch `hotfix-pics` (a profile picture that won't load shows the first letter instead; Discord avatar links die when a player changes their avatar, until they log in again). The owner chose not to ship it (Nov 23).
 
