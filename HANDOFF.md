@@ -4,18 +4,18 @@ Start here. It covers what exists, how changes are made and shipped, and what's 
 
 ## 0. Held updates (Nov 26 2026): read this first
 
-`update-3` (Store, Library, Database pages and Credits removed; backend Decks tab) **shipped Nov 26 2026**, with `setup/no-credits.sql`.
+`update-3` (Store, Library, Database pages and Credits removed; backend Decks tab) **shipped Nov 26 2026**, with `setup/no-credits.sql`. The **MVP VS update** below **shipped Nov 27 2026** with both of its database scripts.
 
-Two updates are held, NOT pushed (only when the owner says to send each one). `main` on GitHub is the live site (the PCMT.gg sync adds data commits there).
+One update is still held, NOT pushed (only when the owner says to send it): the LoserQ Patch. Before it ships, merge `main` into `losersq-patch`. `main` on GitHub is the live site (the PCMT.gg sync adds data commits there).
 
-**MVP VS update** (branch `mvp-vs-update`, to be released first):
+**MVP VS update** (branch `mvp-vs-update`, shipped Nov 27 2026):
 
 | Part | Section | Database |
 |---|---|---|
 | The version at the bottom of every page is a link to its notes: it opens the patch notes window for the current version, or goes to the patch notes on Home when there's no note (version.js) | 0 | none |
 | MVP VS: one deck per PCMT season, built from PCMT.gg by the sync (current seasons update as they're played); pick one or more seasons to deal together; set the rounds (60 by default); Deaths (per map) instead of DPR; every role played that season on the card; region logo top left, team logo as the watermark | 9 | `setup/trumps-seasons.sql` (already run Nov 26 2026, with mixed decks) |
-| MVP VS tiers: Iron 1 to Radiant from online wins (every 5 wins is the next tier); tier logos by names on the Deck Leaderboard and Pick'ems; MVP VS leaderboard window; Pick'ems standings with pictures like the Deck Leaderboard | 9 | **`setup/trumps-tiers.sql` (NOT run yet: run it before or on release day)** |
-| Backend: plain admin look (Nov 27 2026): grey theme, one system font, compact buttons, inputs and tables, a thin top bar with the page path (fantasy.pcmt.gg / Backend / page) and a page title; on phones the sidebar is a Menu button in the top bar. Sheets in a full-height sidebar on the left, like Supabase's, grouped Site / Season / Players / Team; each group folds open and closed (remembered per browser; a folded group shows its badge counts added up and is tinted when the open sheet is in it; opening a sheet unfolds its group; arrow keys skip folded groups); Dashboard has the PCMT.gg sync panel where "Coming up" was; new Users page (everyone who's logged in: name, picture, joined, last log-in, deck saves and latest deck, Pick'ems picks, MVP VS tier; search and sort; no emails); Seasons page lists every active NA and EMEA season live from PCMT.gg (teams, games played, first/next/last game, each stage's dates), and the NA Stage 1 start can be left empty to use PCMT.gg's first NA game | 47 | **`setup/users-page.sql` (NOT run yet: the Users page asks for it until it runs; MVP VS columns fill once trumps-tiers.sql has run too)** |
+| MVP VS tiers: Iron 1 to Radiant from online wins (every 5 wins is the next tier); tier logos by names on the Deck Leaderboard and Pick'ems; MVP VS leaderboard window; Pick'ems standings with pictures like the Deck Leaderboard | 9 | `setup/trumps-tiers.sql` (run Nov 27 2026) |
+| Backend: plain admin look (Nov 27 2026): grey theme, one system font, compact buttons, inputs and tables, a thin top bar with the page path (fantasy.pcmt.gg / Backend / page) and a page title; on phones the sidebar is a Menu button in the top bar. Sheets in a full-height sidebar on the left, like Supabase's, grouped Site / Season / Players / Team; each group folds open and closed (remembered per browser; a folded group shows its badge counts added up and is tinted when the open sheet is in it; opening a sheet unfolds its group; arrow keys skip folded groups); Dashboard has the PCMT.gg sync panel where "Coming up" was; new Users page (everyone who's logged in: name, picture, joined, last log-in, deck saves and latest deck, Pick'ems picks, MVP VS tier; search and sort; no emails); Seasons page lists every active NA and EMEA season live from PCMT.gg (teams, games played, first/next/last game, each stage's dates), and the NA Stage 1 start can be left empty to use PCMT.gg's first NA game | 47 | `setup/users-page.sql` (run Nov 27 2026) |
 
 **LoserQ Patch** (branch `losersq-patch`, later):
 
