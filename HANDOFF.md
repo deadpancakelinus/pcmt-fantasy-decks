@@ -40,6 +40,7 @@ One update is still held, NOT pushed (only when the owner says to send it): the 
 | Per-map assists and first bloods: the sync now keeps them (maps[].s = { id: [assists, first bloods] }, tools/pcmt-api.js) and fills them in once for games added before (tools/pcmt-sync.js, matched by map name and player name). Subs move them too. Until the first sync after release, a map's table shows assists and first bloods as n/a. PCMT.gg's per-map numbers can differ by one from its series totals (NATS vs NIP); points always use the series totals, like decks | 0 | none |
 | The Deck: Your MVP stays in the MVP panel until someone in the squad scores in the new gameweek; the label says which week ("This gameweek", "Last gameweek", or "Week of Nov 12"); it used to always say "Week 1" | 0 | none |
 | The version at the bottom of every page goes to the Patch Notes section on Home (it no longer opens the patch notes window); Home scrolls to the section once it's drawn (version.js) | 0 | none |
+| Delete account moved from Home to the bottom of the Account window (header person icon / footer Account); it opens the same confirm window (type DELETE) | 0 | none |
 
 The LoserQ Patch doesn't have the page bar link to Deck Breakdown: whichever of the two ships second, merge main in and check losersq.html's page bar.
 

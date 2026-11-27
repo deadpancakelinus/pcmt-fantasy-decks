@@ -1206,6 +1206,13 @@
     '.pcmt-acct input:focus{border-color:#a5dcdd;box-shadow:0 0 0 3px rgba(165,220,221,.3)}' +
     '.pcmt-acct .hint{margin:8px 0 0;font-size:13px;line-height:1.5;color:#93a9aa}' +
     '.pcmt-acct .pcmt-del-yes{border-color:#a5dcdd;background:#a5dcdd;color:#000}' +
+    '.pcmt-acct-danger{margin-top:24px;padding-top:18px;border-top:1px solid rgba(255,138,128,.3)}' +
+    '.pcmt-acct-danger h3{margin:0 0 6px;font:600 13px "National Park",system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#ff8a80}' +
+    '.pcmt-acct-danger p{margin:0 0 12px;font-size:14px}' +
+    '.pcmt-acct-danger button{min-height:44px;padding:0 18px;border-radius:10px;border:1px solid #ff8a80;background:transparent;color:#ff8a80;font:600 13px "National Park",system-ui,sans-serif;letter-spacing:.06em;cursor:pointer}' +
+    '.pcmt-acct-danger button:hover{background:rgba(255,138,128,.1)}' +
+    '.pcmt-acct-danger button:focus-visible{outline:2px solid #fff;outline-offset:2px}' +
+    'html.pcmt-light .pcmt-acct-danger h3,html.pcmt-light .pcmt-acct-danger button{color:#b3261e;border-color:#b3261e}' +
     '.pcmt-acct-login{display:inline-flex;align-items:center;min-height:46px;padding:0 20px;border-radius:10px;background:#4752C4;color:#fff;font:700 13px "National Park",system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;text-decoration:none}' +
     '.pcmt-set-row{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:16px 0;border-top:1px solid rgba(255,255,255,.12)}' +
     '.pcmt-set-name{display:block;font-size:17px;font-weight:700;color:#fff}' +
@@ -1441,7 +1448,11 @@
       (wait ? '<p class="hint" id="pcmt-acct-h">You can change your username again on ' + when + '.</p>' : '') +
       '<p class="pcmt-del-msg" role="status" aria-live="polite"></p>' +
       '<div class="pcmt-del-row"><button type="button" class="pcmt-del-no" data-close>Close</button>' +
-      (wait ? '' : '<button type="button" class="pcmt-del-yes" data-acct-save>Save username</button>') + '</div></div>', from, 'pcmt-acct-t', wait ? '.pcmt-del-no' : '#pcmt-acct-u');
+      (wait ? '' : '<button type="button" class="pcmt-del-yes" data-acct-save>Save username</button>') + '</div>' +
+      // Delete account (moved here from Home, Nov 27 2026): opens the confirm window (type DELETE)
+      '<section class="pcmt-acct-danger" aria-labelledby="pcmt-acct-dh"><h3 id="pcmt-acct-dh">Delete account</h3>' +
+      '<p>Remove your account and everything saved with it. See the <a href="#privacy" data-pcmt-privacy>privacy notice</a> for what we keep.</p>' +
+      '<button type="button" data-pcmt-delete>Delete account</button></section></div>', from, 'pcmt-acct-t', wait ? '.pcmt-del-no' : '#pcmt-acct-u');
     var input = w.querySelector('#pcmt-acct-u'), msg = w.querySelector('.pcmt-del-msg'), save = w.querySelector('[data-acct-save]');
     function say(t, ok) { msg.textContent = t; msg.classList.toggle('ok', !!ok); }
     // Profile picture: cropped to the middle square and shrunk to 256 x 256 here, then uploaded
