@@ -1733,7 +1733,9 @@
   }
   function roleOf(name) {
     var C = window.PCMT_TRUMPS_CARDS || {}, k = String(name).toLowerCase(), r = '';
-    ['na', 'emea'].some(function (g) { return (C[g] || []).some(function (c) { if (String(c.name).toLowerCase() === k) { r = c.role; return true; } }); });
+    // The current seasons' decks first (PCMT_TRUMPS_SEASONS lists them first), then past seasons.
+    var order = (window.PCMT_TRUMPS_SEASONS || []).map(function (x) { return x.id; });
+    order.some(function (g) { return (C[g] || []).some(function (c) { if (String(c.name).toLowerCase() === k) { r = c.role; return true; } }); });
     return r;
   }
   function place(el) {

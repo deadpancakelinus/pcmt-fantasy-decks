@@ -1,8 +1,9 @@
 name: PCMT.gg sync
 
 # Every hour (and on demand from the Actions tab): pull matches, results and Pick'ems from PCMT.gg's API,
-# refresh the MVP VS stats and the Pick'ems team rosters from pcmt.gg/stats, make team card backs for each new season's teams
-# (logos from their PCMT.gg team pages), and push any changes to main (Cloudflare Pages redeploys the site).
+# refresh the Pick'ems team rosters from pcmt.gg/stats, make team card backs for each new season's teams (logos from their
+# PCMT.gg team pages), rebuild the MVP VS decks (one per season) from pcmt.gg/stats and each season's matches, and push any
+# changes to main (Cloudflare Pages redeploys the site).
 on:
   schedule:
     - cron: '17 * * * *'
@@ -31,18 +32,6 @@ jobs:
         continue-on-error: true
         run: node tools/pcmt-sync.js --message "$RUNNER_TEMP/msg-matches.txt"
 
-      - name: MVP VS stats
-        id: stats
-        continue-on-error: true
-        run: |
-          curl -sS --fail --max-time 60 --retry 4 --retry-delay 10 --retry-all-errors https://pcmt.gg/stats -o "$RUNNER_TEMP/stats.html"
-          node tools/pcmt-stats.js "$RUNNER_TEMP/stats.html" trumps/data/pcmt-stats.tsv
-          if ! git diff --quiet -- trumps/data/pcmt-stats.tsv; then
-            python3 -I trumps/build_cards.py
-            node --check trumps-cards.js
-            echo "MVP VS stats refresh" > "$RUNNER_TEMP/msg-stats.txt"
-          fi
-
       - name: Pick'ems team rosters
         id: rosters
         continue-on-error: true
@@ -65,9 +54,20 @@ jobs:
           node --check season-teams.js
           if ! git diff --quiet -- season-teams.js || [ -n "$(git status --porcelain -- assets/teams)" ]; then echo "Team card backs" > "$RUNNER_TEMP/msg-teams.txt"; fi
 
+      - name: MVP VS decks
+        id: stats
+        continue-on-error: true
+        run: |
+          if [ ! -s "$RUNNER_TEMP/stats.html" ]; then
+            curl -sS --fail --max-time 60 --retry 4 --retry-delay 10 --retry-all-errors https://pcmt.gg/stats -o "$RUNNER_TEMP/stats.html"
+          fi
+          node tools/mvp-vs-cards.js "$RUNNER_TEMP/stats.html"
+          node --check trumps-cards.js
+          if ! git diff --quiet -- trumps-cards.js; then echo "MVP VS decks" > "$RUNNER_TEMP/msg-stats.txt"; fi
+
       - name: Commit and push
         run: |
-          git add data.js pickems.js rankings.js champions.js trumps/data/pcmt-stats.tsv trumps-cards.js rosters.js series-stats.js season-teams.js
+          git add data.js pickems.js rankings.js champions.js trumps-cards.js rosters.js series-stats.js season-teams.js
           git add -A assets/teams 2>/dev/null || true
           if git diff --cached --quiet; then echo "Nothing new."; exit 0; fi
           msg=$(cat "$RUNNER_TEMP"/msg-*.txt 2>/dev/null | paste -sd ';' - | sed 's/;/; /g')

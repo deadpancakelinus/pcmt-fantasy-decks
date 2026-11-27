@@ -4,14 +4,14 @@
 //   node tools/pcmt-rosters.js /tmp/stats.html rosters.js
 //
 // Reads every season on the page (not just the current ones), so a new season and its new teams show up on
-// their own once PCMT.gg lists them. A .tsv in the trumps/data/pcmt-stats.tsv format works as input too.
+// their own once PCMT.gg lists them. A .tsv of the stats rows (name, team, season, the 22 numbers, link, logo) works as input too.
 // Writes the file only when something changed. Exits with an error, leaving the file alone, if the page looks wrong.
 const fs = require('fs');
 
-const NUMS = 22; // toxic .. kmax, as in tools/pcmt-stats.js
+const NUMS = 22; // toxic .. kmax, the stats page columns
 const [inPath, outPath] = process.argv.slice(2);
 if (!inPath || !outPath) {
-  console.error('usage: node tools/pcmt-rosters.js <stats.html | pcmt-stats.tsv> <rosters.js>');
+  console.error('usage: node tools/pcmt-rosters.js <stats.html | stats.tsv> <rosters.js>');
   process.exit(2);
 }
 

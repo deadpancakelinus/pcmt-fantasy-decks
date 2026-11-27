@@ -1,39 +1,25 @@
 // PCMT MVP VS (Top Trumps-style card game). Rules engine, bot, online rooms (Supabase) and the page UI.
-// Cards come from trumps-cards.js (built by trumps/build_cards.py). Database setup: setup/trumps-setup.sql.
+// Decks come from trumps-cards.js: one per PCMT season, built from PCMT.gg by tools/mvp-vs-cards.js in the hourly sync.
+// Database setup: setup/trumps-setup.sql (and setup/trumps-seasons.sql).
 (function () {
   'use strict';
-  var CARDS = window.PCMT_TRUMPS_CARDS || { na: [], emea: [], nas1: [], nas2: [], emeas1: [] };
+  var CARDS = window.PCMT_TRUMPS_CARDS || {};
   var SB_URL = 'https://wwrsavqipkxvdsxcemos.supabase.co';
   var SB_KEY = 'sb_publishable_e8v-uyAo4fnvwJCHUVA5FQ_LXR6yYM7';
   var TOKEN_KEY = 'pcmt-auth'; // same sign-in as the rest of the site
   var ROUND_LIMIT = 60;
-  var REGIONS = { na: { label: 'NA', season: 'S3 NA', logo: 'assets/c265e976f8968e60e4a2bdd32542b499.png' },
-                  emea: { label: 'EMEA', season: 'S2 EMEA', logo: 'assets/3c7e7374dceead68d5c58818d0bcfe8a.png' },
-                  // Past seasons: their cards carry their own team logo (old team codes can repeat today's).
-                  nas1: { label: 'NA S1', season: 'S1 NA', logo: 'assets/c265e976f8968e60e4a2bdd32542b499.png', past: true },
-                  nas2: { label: 'NA S2', season: 'S2 NA', logo: 'assets/c265e976f8968e60e4a2bdd32542b499.png', past: true },
-                  emeas1: { label: 'EMEA S1', season: 'S1 EMEA', logo: 'assets/3c7e7374dceead68d5c58818d0bcfe8a.png', past: true } };
+  // One deck per season (PCMT_TRUMPS_SEASONS, current seasons first): label "NA S4", season "S4 NA", the region's logo.
+  var REGIONS = {}, SEASON_LIST = (window.PCMT_TRUMPS_SEASONS || []).filter(function (x) { return CARDS[x.id] && CARDS[x.id].length; });
+  SEASON_LIST.forEach(function (x) { REGIONS[x.id] = { label: x.label, season: x.season, logo: x.logo, past: !x.current, region: x.region }; });
   var STATS = [
     { k: 'acs', label: 'ACS', fmt: String },
     { k: 'kast', label: 'KAST', fmt: function (v) { return v + '%'; } },
     { k: 'hs', label: 'HS%', fmt: function (v) { return v + '%'; } },
-    { k: 'dpr', label: 'DPR', low: true, fmt: function (v) { return v.toFixed(2); } },
+    { k: 'deaths', label: 'Deaths', low: true, fmt: function (v) { return v.toFixed(1); }, tip: 'Deaths per map' },
     { k: 'toxic', label: 'Toxic rating', fmt: function (v) { return v.toFixed(2); } }
   ];
   var STAT_BY_KEY = {};
   STATS.forEach(function (s) { STAT_BY_KEY[s.k] = s; });
-  var LOGOS = {
-    '100T': '2afecaefb84157c171a79e0bae8932b5.png', ATLC: '086abe908c829ddcb51bee4b1db16b83.png', BAKA: '09e5595acee6eb70652c84027ef2e6d6.png',
-    C9: '46ec4a1f510710db9670e64c202b0cee.png', DFM: 'a59455af931db22aaf5f61e2da9f3686.png', EPY: '2b237feaf70d67ef58a84efbab9a3e51.png',
-    FNC: '8a102a19e71060bb2dacb6d6b5263457.png', FSG: 'ad1fa170a11534a10c9a953f0a092175.png', FaZe: '9da6e0491a922186cad6bc5daf699626.png',
-    HOT: 'e078dfeeea5c9d916197f71d8b7ea80a.jpg', IHOP: '209d81a7df0d79fc71d99063600358ef.png', LARP: 'f06cf372e21c32dbf3754b8bd506e0b5.jpg',
-    NATS: '8ff9c895c338d07216b1110d3b73fd8e.png', NAVI: 'f6b846609af48437299bc42d13d5dad0.png', NIP: 'f953d56be563808b39dbb961891fae8e.png',
-    NOOT: '195da1efa2549707b6737764479c066c.png', RRQ: '2c8df8598d3c163942e4d347ee4d7e8e.png', SEAL: '7f2055fcc7e78ae7d1510fe56608fd83.png',
-    SOG: '85e0857300495ee3133b6acf79e286c0.png', SPG: 'fb1551434b59a200d90d2e9ed6a51e8b.png', SRB: '24ce287349ef3d8ae3c603e22142a375.png',
-    SSG: '1e20352a30572a577222d14b6a2389ce.png', T1: 'ce2bf22e2df8751703c00f132b854650.png', TL: '18b0eb4cbe217fc77dda8f01e3ff4c16.png',
-    TS: 'beb0681ed7f4d195bc88376b306a1d3b.png', XTC: '570eadcaf88a4d369017946bff2b0356.png'
-  };
-
   // ---------- rules engine (pure; both online players run the same code) ----------
   var BY_ID = {}, RANK = {};
   Object.keys(CARDS).forEach(function (r) {
@@ -148,42 +134,47 @@
 
   // ---------- page state ----------
   var ui = {
-    region: 'na', mode: 'lobby', state: null, me: 0, seen: 0, busy: false, error: '',
+    region: (SEASON_LIST[0] || {}).id || '', mode: 'lobby', state: null, me: 0, seen: 0, busy: false, error: '',
     names: ['You', 'Bot'], room: null, version: 0, poll: null, tester: null, joinCode: ''
   };
   try { var saved = localStorage.getItem('pcmt-trumps-region'); if (REGIONS[saved]) ui.region = saved; } catch (e) {}
   var $ = function (id) { return document.getElementById(id); };
+  function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
   var ROLE_ICONS = { duelist: '3911a104cbddaf481d7a7bf070a2e696.png', initiator: '8f7fb7ffa93c48ba09a00fcd223c7f7c.png',
                     sentinel: '006daf34642009c6f6749139f80a613e.png', controller: '783fdcc50fe04d2622938ee185d4ed32.png' };
   var CHAMP_ICON = 'assets/7dd283457b69773e4aa58012ed89ad9a.png', EMBLEM = 'assets/3bf9d529cabff94109b561693539029f.png';
 
-  // Same build as the player cards in The Deck: team-colour edges, team logo, name, full team name,
-  // role icon, and the region logo as a faint watermark behind everything.
+  // Team-colour edges, the region logo (top left), name, full team name, an icon for every role the player played that
+  // season (most played first), and the team logo as a faint watermark behind everything (a sub: the region's).
   function cardHTML(id, o) {
     o = o || {};
     if (o.hidden) return '<div class="tt-card tt-back" aria-label="Face-down card"><i class="tt-back-in1"></i><i class="tt-back-in2"></i>' +
       '<i class="tt-gem t"></i><i class="tt-gem b"></i><i class="tt-gem l"></i><i class="tt-gem r"></i>' +
       '<span class="tt-back-emblem"><img src="' + EMBLEM + '" alt=""></span></div>';
-    var c = BY_ID[id], region = id.split('-')[0], logo = c.logo || (REGIONS[region].past ? '' : LOGOS[c.team]);
+    var c = BY_ID[id], region = id.split('-')[0], R = REGIONS[region], logo = c.logo || '';
     var rows = STATS.map(function (s) {
       var cls = 'tt-stat' + (o.stat === s.k ? ' is-picked ' + (o.result || '') : '');
       var star = s.low ? '<i title="Lower wins on this stat">lower wins</i>' : '';
+      if (s.tip) star = '<span class="tt-sr"> (' + s.tip.toLowerCase() + ')</span>' + star;
       var inner = '<span class="tt-stat-l">' + s.label + star + '</span><span class="tt-stat-v">' + s.fmt(c[s.k]) + '</span>';
       return o.pick ? '<button type="button" class="' + cls + '" data-stat="' + s.k + '">' + inner + '</button>' : '<div class="' + cls + '">' + inner + '</div>';
     }).join('');
     var nameSize = Math.max(18, Math.min(34, Math.floor(230 / Math.max(4, c.name.length * 0.62))));
     return '<div class="tt-card' + (o.result ? ' ' + o.result : '') + '" style="--team:' + c.color + '">' +
-      '<span class="tt-wm" aria-hidden="true"><img src="' + REGIONS[region].logo + '" alt=""></span>' +
+      '<span class="tt-wm' + (logo ? ' tt-team-wm' : '') + '" aria-hidden="true"><img src="' + esc(logo || R.logo) + '" alt=""></span>' +
       '<span class="tt-edge"></span><div class="tt-card-body">' +
-      '<div class="tt-card-top">' + (logo ? '<img class="tt-team" src="assets/' + logo + '" alt="' + esc(c.teamName) + '" title="' + esc(c.teamName) + '">' : '<img class="tt-team tt-sub" src="' + REGIONS[region].logo + '" alt="' + REGIONS[region].label.split(' ')[0] + ' sub" title="Sub (' + REGIONS[region].label.split(' ')[0] + ')">') +   // subs: the logo of the region they sub for
-      '<span class="tt-maps" title="' + c.maps + ' maps played in ' + REGIONS[region].season + '">' + c.maps + '<small>MAPS</small></span></div>' +
+      '<div class="tt-card-top"><img class="tt-region-logo" src="' + R.logo + '" alt="' + R.label.split(' ')[0] + '" title="' + esc(R.season) + (c.sub ? ' sub' : '') + '">' +
+      '<span class="tt-maps" title="' + c.maps + ' maps played in ' + R.season + '">' + c.maps + '<small>MAPS</small></span></div>' +
       '<div class="tt-name" style="font-size:' + nameSize + 'px"><span>' + esc(c.name) + '</span>' +
       (c.champ ? '<img src="' + CHAMP_ICON + '" alt="PCMT champion" title="PCMT champion">' : '') + '</div>' +
-      '<div class="tt-teamname">' + esc(c.teamName) + ' · ' + REGIONS[region].season + '</div>' +
+      '<div class="tt-teamname">' + esc(c.teamName) + ' · ' + R.season + '</div>' +
       '<div class="tt-stats">' + rows + '</div>' +
-      '<div class="tt-card-foot">' + (c.role ? '<img src="assets/' + ROLE_ICONS[c.role] + '" alt="' + c.role + '" title="' + c.role.charAt(0).toUpperCase() + c.role.slice(1) + '">' : '<span></span>') +
+      '<div class="tt-card-foot"><span class="tt-roles">' + (c.roles && c.roles.length ? c.roles : (c.role ? [{ role: c.role, maps: 0 }] : [])).map(function (x) {
+        var t = cap(x.role) + (x.maps ? ' · ' + x.maps + (x.maps === 1 ? ' map' : ' maps') : '');
+        return '<img src="assets/' + ROLE_ICONS[x.role] + '" alt="' + t + '" title="' + t + '">';
+      }).join('') + '</span>' +
       (o.pick ? '<span class="tt-hint">Pick a stat</span>' : '') + '</div>' +
       '</div><span class="tt-edge"></span></div>';
   }
@@ -216,8 +207,16 @@
   var REDUCED = (function () { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } })();
   function ms(n) { return REDUCED ? 1 : n; }
 
+  // The deck buttons: this season's NA and EMEA decks, then past seasons, newest first.
+  function seasonButtons() {
+    var box = $('tt-seasons'); if (!box || box.childNodes.length) return;
+    var btn = function (x) { return '<button type="button" data-region="' + x.id + '" aria-pressed="false"><img src="' + x.logo + '" alt="">' + esc(x.label) + '</button>'; };
+    var now = SEASON_LIST.filter(function (x) { return !REGIONS[x.id].past; }), past = SEASON_LIST.filter(function (x) { return REGIONS[x.id].past; });
+    box.innerHTML = '<span>CARDS</span>' + now.map(btn).join('') + (past.length ? '<span class="tt-past">PAST SEASONS</span>' + past.map(btn).join('') : '');
+  }
   function render() {
     var root = $('tt-app'); if (!root) return;
+    seasonButtons();
     document.querySelectorAll('[data-region]').forEach(function (b) {
       b.setAttribute('aria-pressed', String(b.getAttribute('data-region') === ui.region));
       b.disabled = ui.mode !== 'lobby';

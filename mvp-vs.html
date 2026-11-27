@@ -89,11 +89,15 @@
   .tt-card.tie { box-shadow: 0 0 0 2px var(--tie); }
   .tt-wm { position: absolute; inset: 0; z-index: 0; pointer-events: none; display: grid; place-items: center; }
   .tt-wm img { width: 78%; max-width: 230px; aspect-ratio: 1; object-fit: contain; opacity: .12; transform: translateY(10px); }
-  .tt-team-wm img { opacity: .38; }
+  .tt-team-wm img { opacity: .16; }
   .tt-edge { display: block; height: 5px; background: var(--team); flex: none; position: relative; z-index: 1; }
   .tt-card-body { position: relative; z-index: 1; flex: 1; padding: 14px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
   .tt-card-top { display: flex; justify-content: space-between; align-items: center; height: 30px; flex: none; }
   .tt-team { height: 30px; width: auto; max-width: 70px; object-fit: contain; display: block; }
+  .tt-region-logo { height: 28px; width: 28px; object-fit: contain; display: block; }
+  .tt-roles { display: flex; align-items: center; gap: 6px; min-width: 0; }
+  .tt-roles img:not(:first-child) { opacity: .7; }
+  .tt-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .tt-team.tt-sub { opacity: .9; }   /* subs carry their region's logo (NA or EMEA) */
   .tt-maps { font: 700 30px/1 'Cabin Sketch', cursive; color: var(--team); font-variant-numeric: tabular-nums; display: inline-flex; align-items: baseline; gap: 4px; }
   .tt-maps small { font: 600 9px/1 'National Park', system-ui, sans-serif; letter-spacing: .1em; opacity: .8; }
@@ -201,6 +205,9 @@
     .tt-card-body { padding: 10px; gap: 6px; }
     .tt-card-top { height: 24px; }
     .tt-team { height: 24px; max-width: 52px; }
+    .tt-region-logo { height: 22px; width: 22px; }
+    .tt-roles { gap: 4px; }
+    .tt-roles img { width: 20px; height: 20px; }
     .tt-maps { font-size: 22px; }
     .tt-maps small { display: none; }
     .tt-name { height: 30px; font-size: 20px !important; }
@@ -272,23 +279,15 @@
       <h1>MVP VS</h1>
       <p class="tt-sub">Your top card against theirs. Pick the stat you think wins and take both cards. Hold every card, or the most cards after 60 rounds, to win.</p>
     </div>
-    <div class="tt-region" role="group" aria-label="Which cards are dealt">
-      <span>CARDS</span>
-      <button type="button" data-region="na" aria-pressed="true"><img src="assets/c265e976f8968e60e4a2bdd32542b499.png" alt="">NA S3</button>
-      <button type="button" data-region="emea" aria-pressed="false"><img src="assets/3c7e7374dceead68d5c58818d0bcfe8a.png" alt="">EMEA S2</button>
-      <span class="tt-past">PAST SEASONS</span>
-      <button type="button" data-region="nas1" aria-pressed="false"><img src="assets/c265e976f8968e60e4a2bdd32542b499.png" alt="">NA S1</button>
-      <button type="button" data-region="nas2" aria-pressed="false"><img src="assets/c265e976f8968e60e4a2bdd32542b499.png" alt="">NA S2</button>
-      <button type="button" data-region="emeas1" aria-pressed="false"><img src="assets/3c7e7374dceead68d5c58818d0bcfe8a.png" alt="">EMEA S1</button>
-    </div>
+    <div class="tt-region" id="tt-seasons" role="group" aria-label="Which cards are dealt"></div>
   </div>
   <div id="tt-app" aria-live="polite"></div>
   <section class="tt-rules">
     <h2>How it works</h2>
     <ul>
-      <li>Pick which cards to deal before you start: <b>NA S3</b> or <b>EMEA S2</b>, or a past season (<b>NA S1</b>, <b>NA S2</b>, <b>EMEA S1</b>) with that season's stats and teams. A game only ever uses one season's cards, subs included.</li>
-      <li>Each card has five stats from the pcmt.gg stats page: <b>ACS</b>, <b>KAST</b>, <b>HS%</b>, <b>DPR</b> (deaths per round) and <b>Toxic rating</b>. The higher number wins, except DPR, where the lower number wins.</li>
-      <li>Whoever has the better number (higher, or lower for DPR) takes both cards to the bottom of their deck and picks the next stat. On a tie, each player puts their own card back at the bottom of their deck and the same player picks again. With an odd number of players, whoever picks second starts with one extra card. Against the bot, you always pick first.</li>
+      <li>Pick which cards to deal before you start: this season's NA or EMEA deck, or a past season with that season's stats and teams. A game only ever uses one season's cards, subs included. The current seasons' cards update as the season is played.</li>
+      <li>Each card has five stats from the pcmt.gg stats page: <b>ACS</b>, <b>KAST</b>, <b>HS%</b>, <b>Deaths</b> (per map) and <b>Toxic rating</b>. The higher number wins, except Deaths, where the lower number wins.</li>
+      <li>Whoever has the better number (higher, or lower for Deaths) takes both cards to the bottom of their deck and picks the next stat. On a tie, each player puts their own card back at the bottom of their deck and the same player picks again. With an odd number of players, whoever picks second starts with one extra card. Against the bot, you always pick first.</li>
       <li>You win by holding every card. If nobody has after round 60 (most games), whoever has more cards wins.</li>
     </ul>
   </section>

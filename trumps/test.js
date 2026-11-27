@@ -18,7 +18,7 @@ const check = (ok, msg) => { if (!ok) { bad++; console.log('FAIL ' + msg); } };
     await pg.goto(`${BASE}/mvp-vs.html`);
     const r = await pg.evaluate(() => {
       const T = window.PCMT_TRUMPS, out = {};
-      for (const region of ['na', 'emea', 'nas1', 'nas2', 'emeas1']) {
+      for (const region of (window.PCMT_TRUMPS_SEASONS || []).map(x => x.id)) {   // every season's deck
         const total = T.cards[region].length, all = new Set(T.cards[region].map(c => c.id));
         let games = 0, byCards = 0, byLimit = 0, draws = 0, errors = [];
         for (let seed = 1; seed <= 2000; seed++) {
@@ -42,13 +42,13 @@ const check = (ok, msg) => { if (!ok) { bad++; console.log('FAIL ' + msg); } };
         out[region + 'First'] = firstOk;
         // Same seed must give the same game (both online players run the engine).
         const a = JSON.stringify(T.play(T.newGame(region, 42), 'acs')), c = JSON.stringify(T.play(T.newGame(region, 42), 'acs'));
-        // DPR: the lower number must win; every other stat: the higher number.
-        const cs = T.cards[region], sorted = cs.slice().sort((x, y) => x.dpr - y.dpr), lo = sorted[0], hi = sorted[sorted.length - 1];
+        // Deaths: the lower number must win; every other stat: the higher number.
+        const cs = T.cards[region], sorted = cs.slice().sort((x, y) => x.deaths - y.deaths), lo = sorted[0], hi = sorted[sorted.length - 1];
         const base = { region, seed: 1, hands: [[hi.id, lo.id], [lo.id, hi.id]], turn: 0, round: 1, last: null, over: null };
         // Tie: both cards go back to their own decks and the same player picks again.
         const tie = T.play({ region, seed: 1, hands: [[hi.id, lo.id], [hi.id, lo.id]], turn: 1, round: 1, last: null, over: null }, 'acs');
         const tieOk = tie.last.winner === -1 && tie.turn === 1 && tie.hands[0].join() === [lo.id, hi.id].join() && tie.hands[1].join() === [lo.id, hi.id].join();
-        const dprOk = tieOk && T.play(base, 'dpr').last.winner === 1 && T.play(base, 'acs').last.winner === (hi.acs > lo.acs ? 0 : hi.acs < lo.acs ? 1 : -1);
+        const dprOk = tieOk && (hi.deaths === lo.deaths || T.play(base, 'deaths').last.winner === 1) && T.play(base, 'acs').last.winner === (hi.acs > lo.acs ? 0 : hi.acs < lo.acs ? 1 : -1);
         out[region] = { total, games, byCards, byLimit, draws, errors: errors.slice(0, 3), deterministic: a === c, dprOk };
       }
       return out;
@@ -57,7 +57,7 @@ const check = (ok, msg) => { if (!ok) { bad++; console.log('FAIL ' + msg); } };
       console.log(`engine ${region}: ${x.total} cards, ${x.games} games, ${x.byCards} won by taking every card, ${x.byLimit} by round limit, ${x.draws} draws`);
       check(x.games === 2000 && !x.errors.length, `engine ${region}: ${x.errors.join('; ')}`);
       check(x.deterministic, `engine ${region} not deterministic`);
-      check(x.dprOk, `engine ${region}: lower DPR should win, and ties go back to their own decks`);
+      check(x.dprOk, `engine ${region}: lower Deaths should win, and ties go back to their own decks`);
       check(r[region + 'First'], `engine ${region}: player should always pick first against the bot`);
     }
     await pg.close();
@@ -69,8 +69,10 @@ const check = (ok, msg) => { if (!ok) { bad++; console.log('FAIL ' + msg); } };
     const errs = [];
     pg.on('pageerror', e => errs.push(e.message));
     pg.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });
-    await pg.route('https://wwrsavqipkxvdsxcemos.supabase.co/**', r => r.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
+    // MVP VS may still be staff-only (site_pages): open it as launched.
+    await pg.route('https://wwrsavqipkxvdsxcemos.supabase.co/**', r => r.fulfill({ status: 200, contentType: 'application/json', body: r.request().url().includes('site_pages') ? '[{"id":"mvp-vs","launched":true}]' : '[]' }));
     await pg.goto(`${BASE}/mvp-vs.html`);
+    await pg.waitForSelector('#tt-app', { timeout: 5000 });
     await pg.waitForTimeout(400);
     await pg.evaluate(() => {
       window.__ttSeen = [];
@@ -82,12 +84,14 @@ const check = (ok, msg) => { if (!ok) { bad++; console.log('FAIL ' + msg); } };
       }).observe(document.getElementById('tt-app'), { childList: true });
     });
     await pg.screenshot({ path: `${SHOTS}/lobby-${w}.png`, fullPage: true });
-    await pg.click('[data-region="emea"]');
+    const EM = await pg.evaluate(() => window.PCMT_TRUMPS_SEASONS.filter(x => x.region === 'emea' && x.current)[0].id);
+    const NA = await pg.evaluate(() => window.PCMT_TRUMPS_SEASONS.filter(x => x.region === 'na' && x.current)[0].id);
+    await pg.click(`[data-region="${EM}"]`);
     check((await pg.textContent('[data-act="bot"]')).includes('EMEA'), 'region toggle did not switch the deal button');
     await pg.click('[data-act="bot"]');
     await pg.waitForSelector('.tt-status .tt-result', { timeout: 5000 });
     check(/Your pick/.test(await pg.textContent('.tt-status .tt-result')) && /Round 1\b/.test(await pg.textContent('.tt-round')), `${w}px: round 1 against the bot should be the player's pick`);
-    check(await pg.isDisabled('[data-region="na"]'), 'region toggle should lock during a game');
+    check(await pg.isDisabled(`[data-region="${NA}"]`), 'region toggle should lock during a game');
     const names = new Set();
     for (let i = 0; i < 6; i++) {
       // Wait for either our pick, the reveal, or the end.
@@ -102,13 +106,15 @@ const check = (ok, msg) => { if (!ok) { bad++; console.log('FAIL ' + msg); } };
 
       if (i === 0) await pg.screenshot({ path: `${SHOTS}/reveal-${w}.png`, fullPage: true });
       const region = await pg.evaluate(() => [...document.querySelectorAll('.tt-teamname')].map(e => e.textContent).join(' | '));
-      check(/EMEA/.test(region) && !/S3 NA/.test(region), 'EMEA game showed a non-EMEA card: ' + region);
-      const wm = await pg.$$eval('.tt-wm img', els => els.map(e => e.getAttribute('src')));
-      check(wm.length === 2 && wm.every(x => x.includes('3c7e7374')), 'EMEA cards should carry the EMEA watermark: ' + wm);
+      check(/EMEA/.test(region) && !/ NA/.test(region), 'EMEA game showed a non-EMEA card: ' + region);
+      const rl = await pg.$$eval('.tt-region-logo', els => els.map(e => e.getAttribute('src')));
+      check(rl.length === 2 && rl.every(x => x.includes('3c7e7374')), 'EMEA cards should carry the EMEA logo top left: ' + rl);
+      const roles = await pg.$$eval('.tt-roles', els => els.map(e => e.querySelectorAll('img').length));
+      check(roles.length === 2 && roles.every(n => n >= 1), 'every card should show its roles: ' + roles);
       await pg.click('[data-act="next"]');
     }
     const counts = await pg.evaluate(() => [...document.querySelectorAll('[data-count]')].map(e => +e.dataset.count).concat(document.querySelectorAll('.tt-slot .tt-flip').length));
-    const emeaN = await pg.evaluate(() => window.PCMT_TRUMPS.cards.emea.length);   // from trumps-cards.js (the stats sync can add players)
+    const emeaN = await pg.evaluate(id => window.PCMT_TRUMPS.cards[id].length, EM);   // from trumps-cards.js (the stats sync can add players)
     check(counts.length === 3 && counts.reduce((a, b) => a + b, 0) === emeaN, 'decks + table should total ' + emeaN + ' EMEA cards, got ' + counts);
     check(!(await pg.$('.tt-pot, #tt-pot')), 'there should be no pot on the table');
     const over = await pg.evaluate(() => document.documentElement.scrollWidth - innerWidth);
@@ -136,6 +142,7 @@ const check = (ok, msg) => { if (!ok) { bad++; console.log('FAIL ' + msg); } };
     await pg.route('https://wwrsavqipkxvdsxcemos.supabase.co/**', async r => {
       const u = r.request().url(), body = r.request().postDataJSON ? r.request().postDataJSON() : null;
       const json = x => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(x) });
+      if (u.includes('site_pages')) return json([{ id: 'mvp-vs', launched: true }]);
       if (u.includes('/rpc/trumps_is_tester')) return json(true);
       if (u.includes('/rpc/trumps_create')) { room = { code: 'K7Q2M', region: body.p_region, host: uid, guest: null, host_name: 'Linus', guest_name: null, state: body.p_state, version: 1 }; return json('K7Q2M'); }
       if (u.includes('/rpc/trumps_move')) { if (body.p_version !== room.version) return r.fulfill({ status: 400, contentType: 'application/json', body: '{"message":"The game moved on. Refreshing."}' }); moves.push(body); room.state = body.p_state; room.version++; return json(room.version); }
