@@ -17,6 +17,18 @@ One update is still held, NOT pushed (only when the owner says to send it): the 
 | MVP VS tiers: Iron 1 to Radiant from online wins (every 5 wins is the next tier); tier logos by names on the Deck Leaderboard and Pick'ems; MVP VS leaderboard window; Pick'ems standings with pictures like the Deck Leaderboard | 9 | `setup/trumps-tiers.sql` (run Nov 27 2026) |
 | Backend: plain admin look (Nov 27 2026): grey theme, one system font, compact buttons, inputs and tables, a thin top bar with the page path (fantasy.pcmt.gg / Backend / page) and a page title; on phones the sidebar is a Menu button in the top bar. Sheets in a full-height sidebar on the left, like Supabase's, grouped Site / Season / Players / Team; each group folds open and closed (remembered per browser; a folded group shows its badge counts added up and is tinted when the open sheet is in it; opening a sheet unfolds its group; arrow keys skip folded groups); Dashboard has the PCMT.gg sync panel where "Coming up" was; new Users page (everyone who's logged in: name, picture, joined, last log-in, deck saves and latest deck, Pick'ems picks, MVP VS tier; search and sort; no emails); Seasons page lists every active NA and EMEA season live from PCMT.gg (teams, games played, first/next/last game, each stage's dates), and the NA Stage 1 start can be left empty to use PCMT.gg's first NA game | 47 | `setup/users-page.sql` (run Nov 27 2026) |
 
+**Simple + 4P update** (branch `simple-4p`, held; made Nov 27 2026):
+
+| Part | Section | Database |
+|---|---|---|
+| MVP VS online rooms hold 2 to 4 players: share the code, the host presses Start once 2+ are in (the cards are dealt then, one hand per seat). Every player still holding cards plays their top card; the best card on the picked stat takes them all; a tie for the best sends every card back to its own deck (same picker); a player with no cards is out; most cards at the round limit wins (a tie for most is a draw). 2-player games play exactly as before. 3-4 players: the others across the top (deck beside their card), you below; on phones their cards show just the picked stat. Leaving before the deal gives the seat back (the host leaving closes the room). A win in a 3-4 player game counts once toward the tier, like a 1v1 | 9 | **`setup/trumps-4p.sql` (NOT run yet: run it on release day, before the push)** |
+| Glass mode removed (Settings only has Light mode; browsers that had glass on drop it) | 0 | none |
+| Calmer site: page titles in the plain font, the page bar in normal case with a soft tint for the current page, "My deck" / "Store · all players" labels (league.js "Calmer look" block; mvp-vs.html has the same rules). Player cards, deck backs, auras and animations are untouched | 0 | none |
+| Footer version no longer shows twice ("Version 1.3Version 1.3") when the page redraws before the saved version loads (version.js) | 0 | none |
+| Backend light mode: every backend colour is a variable, with a full light palette under html.pcmt-light (checked: all text on every backend page passes contrast in light and dark) | 47 | none |
+
+`setup/users-page.sql` was updated to count MVP VS games from `trumps_results.players` (added by trumps-4p.sql): run it again right after trumps-4p.sql.
+
 **LoserQ Patch** (branch `losersq-patch`, later):
 
 | Part | Section | Database |
