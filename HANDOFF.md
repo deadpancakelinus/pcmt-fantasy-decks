@@ -31,6 +31,12 @@ One update is still held, NOT pushed (only when the owner says to send it): the 
 
 `setup/users-page.sql` was updated to count MVP VS games from `trumps_results.players` (added by trumps-4p.sql) and run again Nov 27 2026.
 
+**Comp games** (shipped on its own Nov 27 2026, branch `comp-games`; also in the held Deck Breakdown branch):
+
+| Part | Section | Database |
+|---|---|---|
+| Backend **Comp games** page (Players group, after Riot IDs): every player with a Riot ID, their rank now, ranked games, W–L and RR won or lost in the last 24 hours / 7 days / 30 days / everything kept (search, region, sort); open a player for each game (when, map, result, RR, rank after, placement / derank protected / RR refunded) and "Check this player now". From HenrikDev's MMR history (v2, the last ~20 ranked games per account; by Riot's account id once known, which also saves a renamed account's new Riot ID). The pg_cron job pcmt-comp-games checks the 20 players checked longest ago every 10 minutes, 2.2 s apart (about once an hour each); "Check 4 more players now" checks straight away (staff requests are cut off after 8 s). Games stay kept after they drop out of Riot's list. A Riot ID HenrikDev can't find shows in red: fix it on the Riot IDs page. Linking straight to #users, #season or #comp now loads that page's data too | 47 | `setup/comp-games.sql` (run Nov 27 2026) |
+
 **LoserQ Patch** (branch `losersq-patch`, later):
 
 | Part | Section | Database |

@@ -105,6 +105,21 @@
   .db-split .bar span + span { background: var(--line2); color: var(--ink); }
   .db-split .bar span:last-child { flex: 1 1 auto; }
   .ev-list { display: flex; flex-direction: column; gap: 14px; }
+  .cg-up { color: var(--good); font-weight: 600; }
+  .cg-down { color: var(--bad); font-weight: 600; }
+  .cg-even { color: var(--dim); }
+  .cg-open { display: inline-flex; align-items: center; gap: 8px; min-height: 32px; padding: 0; border: 0; background: none; color: var(--ink); font: inherit; font-weight: 600; text-align: left; cursor: pointer; }
+  .cg-open::before { content: ''; width: 0; height: 0; border-left: 5px solid var(--dim); border-top: 4px solid transparent; border-bottom: 4px solid transparent; transition: transform .15s; }
+  .cg-open[aria-expanded="true"]::before { transform: rotate(90deg); }
+  .cg-open:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .cg-games td { padding: 0 !important; background: var(--chrome); }
+  .cg-games table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .cg-games th, .cg-games td td, .cg-games td th { padding: 6px 12px !important; border-bottom: 1px solid var(--line); text-align: left; font-weight: 400; }
+  .cg-games thead th { color: var(--dim); font-size: 12px; }
+  .cg-games .n { text-align: right; }
+  .cg-err { display: block; font-size: 12px; color: var(--bad); font-weight: 400; }
+  .cg-tag { display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 4px; background: var(--hover); color: var(--dim); font-size: 11px; }
+  @media (prefers-reduced-motion: reduce) { .cg-open::before { transition: none; } }
   .ss-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 16px; }
   .ss-card { border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; background: var(--chrome); display: flex; flex-direction: column; gap: 12px; min-width: 0; }
   .ss-top { display: flex; align-items: center; gap: 12px; }
@@ -437,6 +452,7 @@
         <button type="button" role="tab" id="tab-subs" aria-controls="pane-subs" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg><span class="side-l">Subs</span><span class="count" id="sb-badge"></span></button>
         <button type="button" role="tab" id="tab-decks" aria-controls="pane-decks" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="14" height="16" rx="2"/><path d="M6 2h12a2 2 0 0 1 2 2v14"/></svg><span class="side-l">Decks</span></button>
         <button type="button" role="tab" id="tab-riot" aria-controls="pane-riot" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="8" cy="12" r="2.5"/><path d="M14 10h5M14 14h3"/></svg><span class="side-l">Riot IDs</span><span class="count" id="ri-badge"></span></button>
+        <button type="button" role="tab" id="tab-comp" aria-controls="pane-comp" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg><span class="side-l">Comp games</span></button>
       </div>
       <button type="button" class="side-h" id="sgh-team" aria-expanded="true" aria-controls="sg-team"><span class="side-hl">Team</span><span class="count side-hc" aria-hidden="true"></span><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
       <div class="side-g" id="sg-team" role="tablist" aria-labelledby="sgh-team" aria-orientation="vertical">
@@ -683,6 +699,37 @@
       </div>
     </section>
 
+    <!-- ===== Comp games (setup/comp-games.sql) ===== -->
+    <section class="pane" role="tabpanel" id="pane-comp" aria-labelledby="tab-comp" hidden>
+      <section class="panel">
+        <div class="db-head" style="justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px">
+          <div style="min-width: 0; flex: 1 1 320px"><h2 class="db-h">Ranked games and RR</h2>
+            <p class="who" id="cg-sum" style="margin: 4px 0 0"></p></div>
+          <button type="button" class="btn ghost" id="cg-refresh">Check 4 more players now</button>
+        </div>
+        <p class="msg" id="cg-msg" role="status" aria-live="polite"></p>
+        <div class="toolbar">
+          <label class="field"><span class="kicker">Search</span><input type="search" id="cg-q" placeholder="Player, team or Riot ID" autocomplete="off"></label>
+          <label class="field"><span class="kicker">Region</span><select id="cg-region"><option value="">All</option><option value="na">NA</option><option value="eu">EMEA</option></select></label>
+          <label class="field"><span class="kicker">Games from</span><select id="cg-period"><option value="1">Last 24 hours</option><option value="7" selected>Last 7 days</option><option value="30">Last 30 days</option><option value="0">Everything kept</option></select></label>
+          <label class="check"><input type="checkbox" id="cg-played" checked> Only players with games</label>
+        </div>
+        <div class="sheet"><table class="grid" id="cg-table">
+          <thead><tr>
+            <th scope="col"><button type="button" class="sort" data-k="name">Player</button></th>
+            <th scope="col"><button type="button" class="sort" data-k="team">Team</button></th>
+            <th scope="col"><button type="button" class="sort" data-k="rank">Rank now</button></th>
+            <th scope="col" class="num"><button type="button" class="sort" data-k="games">Games</button></th>
+            <th scope="col" class="num"><button type="button" class="sort" data-k="wins">W–L</button></th>
+            <th scope="col" class="num"><button type="button" class="sort" data-k="rr">RR</button></th>
+            <th scope="col"><button type="button" class="sort" data-k="last">Last game</button></th>
+          </tr></thead>
+          <tbody id="cg-rows"></tbody>
+        </table></div>
+        <p class="who" style="margin: 0">From Riot's ranked history through HenrikDev (the last ~20 ranked games per account). It checks 20 players every 10 minutes, so each player about once an hour (the button checks 4 more straight away, and an opened player can be checked on their own); games stay kept here after they drop out of Riot's list. Players need a Riot ID on the Riot IDs page. W–L counts RR won or lost (a loss with derank protection counts as a loss).</p>
+      </section>
+    </section>
+
     <!-- ===== Subs ===== -->
     <section class="pane" role="tabpanel" id="pane-subs" aria-labelledby="tab-subs" hidden>
       <form class="panel" id="sb-form" autocomplete="off" novalidate>
@@ -888,7 +935,7 @@
   var REGION = {}, NAMES = {};
 
   // ---------- tabs ----------
-  var TABS = ['dash', 'pages', 'users', 'season', 'schedule', 'pickems', 'prices', 'teams', 'subs', 'decks', 'riot', 'notes', 'complaints', 'staff'];   // sidebar order
+  var TABS = ['dash', 'pages', 'users', 'season', 'schedule', 'pickems', 'prices', 'teams', 'subs', 'decks', 'riot', 'comp', 'notes', 'complaints', 'staff'];   // sidebar order
   // Sidebar groups (Site, Season, Players, Team) fold open and closed; folded groups are remembered in this browser.
   // A folded group shows its sheets' badge counts added up, and is tinted when the open sheet is inside it.
   var SIDE_KEY = 'pcmt-backend-folded', folded = {};
@@ -942,7 +989,7 @@
   }
   TABS.forEach(function (t, i) {
     var tab = $('tab-' + t);
-    tab.addEventListener('click', function () { openTab(t); if (phone.matches) setMenu(false); window.scrollTo(0, 0); $('st-staff').scrollTop = 0; if (t === 'season' && !EV.loaded && !EV.busy) { loadEvents(); drawActiveSeasons(); } if (t === 'users' && !US.loaded) loadUsers(); });
+    tab.addEventListener('click', function () { openTab(t); if (phone.matches) setMenu(false); window.scrollTo(0, 0); $('st-staff').scrollTop = 0; if (t === 'season' && !EV.loaded && !EV.busy) { loadEvents(); drawActiveSeasons(); } if (t === 'users' && !US.loaded) loadUsers(); if (t === 'comp' && !CG.loaded) loadComp(); });
     tab.addEventListener('keydown', function (e) {
       var vis = TABS.filter(function (x) { return x === t || !groupOf(x).hidden; }), k = vis.indexOf(t);   // folded groups are skipped
       var j = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? k + 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? k - 1 : e.key === 'Home' ? 0 : e.key === 'End' ? vis.length - 1 : null;
@@ -2427,6 +2474,117 @@
       .then(function () { scBusy = false; drawSchedule(); drawDash(); });
   });
 
+  // ---------- Comp games: ranked games and RR from HenrikDev (setup/comp-games.sql; staff only) ----------
+  var CG = { ids: [], status: {}, games: {}, loaded: false, err: '', sort: { key: 'rr', dir: -1 }, open: {} };
+  function loadComp() {
+    $('cg-msg').className = 'msg'; $('cg-msg').textContent = 'Loading ranked games…';
+    var since = new Date(Date.now() - 60 * 864e5).toISOString();
+    return Promise.all([
+      L.apiAll('/rest/v1/riot_ids?select=player,pcmt_name,team,region,riot_name,riot_tag&order=player'),
+      L.apiAll('/rest/v1/riot_comp_status?select=player,fetched_at,ok,error,tier,rr,elo&order=player'),
+      L.apiAll('/rest/v1/riot_comp_games?select=player,match_id,played_at,map,tier,rr,rr_change,refunded_rr,derank_protected,placement,match_ms&played_at=gte.' + encodeURIComponent(since) + '&order=played_at.desc')
+    ]).then(function (x) {
+      CG.ids = x[0] || []; CG.status = {}; CG.games = {};
+      (x[1] || []).forEach(function (r) { CG.status[r.player] = r; });
+      (x[2] || []).forEach(function (g) { (CG.games[g.player] = CG.games[g.player] || []).push(g); });
+      CG.err = ''; CG.loaded = true;
+    }, function (e) {
+      CG.loaded = true;
+      CG.err = /riot_comp|42P01|PGRST20/.test(e.message) ? 'Run setup/comp-games.sql in Supabase to start tracking ranked games.' : 'Couldn’t load ranked games: ' + e.message;
+    }).then(drawComp);
+  }
+  function cgRows() {
+    var days = +$('cg-period').value, from = days ? Date.now() - days * 864e5 : 0;
+    return CG.ids.filter(function (r) { return r.riot_name; }).map(function (r) {
+      var all = CG.games[r.player] || [], list = all.filter(function (g) { return Date.parse(g.played_at) >= from; });
+      var w = 0, l = 0, d = 0, rr = 0;
+      list.forEach(function (g) { rr += g.rr_change; if (g.rr_change > 0) w++; else if (g.rr_change < 0 || g.derank_protected) l++; else d++; });
+      var st = CG.status[r.player] || null, last = all[0] ? Date.parse(all[0].played_at) : 0;
+      return { r: r, list: list, w: w, l: l, d: d, rr: rr, st: st, last: last, name: (window.PCMT_LEAGUE && L.player && L.player(r.player) || {}).name || r.pcmt_name };
+    });
+  }
+  var CG_TIERS = ['Iron', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Ascendant', 'Immortal', 'Radiant'];
+  function cgRankVal(st) {
+    if (!st || !st.tier) return -1;
+    var m = /^(\w+)\s*(\d)?/.exec(st.tier), i = m ? CG_TIERS.indexOf(m[1]) : -1;
+    return i < 0 ? -1 : i * 300 + ((+(m[2] || 1)) - 1) * 100 + (st.rr || 0);
+  }
+  function cgSigned(n) { return n > 0 ? '+' + n : n < 0 ? '−' + Math.abs(n) : '0'; }
+  function drawComp() {
+    var msg = $('cg-msg');
+    if (!CG.busy) { msg.className = 'msg' + (CG.err ? ' err' : CG.note ? ' ok' : ''); msg.textContent = CG.err || CG.note || ''; }
+    var q = ($('cg-q').value || '').trim().toLowerCase(), rg = $('cg-region').value, only = $('cg-played').checked;
+    var rows = cgRows(), checked = rows.filter(function (x) { return x.st; });
+    var newest = checked.reduce(function (t, x) { return Math.max(t, Date.parse(x.st.fetched_at) || 0); }, 0);
+    var played = rows.filter(function (x) { return x.list.length; });
+    $('cg-sum').textContent = CG.err ? '' : (checked.length + ' of ' + rows.length + ' players with a Riot ID checked' + (newest ? ' · last check ' + ago(new Date(newest).toISOString()) : '') +
+      ' · ' + played.length + ' played ranked in this period, ' + played.reduce(function (t, x) { return t + x.list.length; }, 0) + ' games');
+    var k = CG.sort.key, d = CG.sort.dir;
+    var val = function (x) { return k === 'name' ? x.name.toLowerCase() : k === 'team' ? String(x.r.team || '').toLowerCase() : k === 'rank' ? cgRankVal(x.st) :
+      k === 'games' ? x.list.length : k === 'wins' ? x.w - x.l : k === 'rr' ? (x.list.length ? x.rr : -1e9) : x.last; };
+    var shown = rows.filter(function (x) {
+      if (rg && x.r.region !== rg) return false;
+      if (only && !x.list.length) return false;
+      return !q || [x.name, x.r.team, x.r.riot_name + '#' + x.r.riot_tag].some(function (v) { return v && String(v).toLowerCase().indexOf(q) >= 0; });
+    }).sort(function (a, b) { var x = val(a), y = val(b); return (x < y ? -1 : x > y ? 1 : 0) * d || a.name.localeCompare(b.name); });
+    $('cg-rows').innerHTML = shown.map(function (x) {
+      var id = x.r.player, open = !!CG.open[id], st = x.st;
+      var cls = x.rr > 0 ? 'cg-up' : x.rr < 0 ? 'cg-down' : 'cg-even';
+      var row = '<tr><td><button type="button" class="cg-open" data-cg="' + esc(id) + '" aria-expanded="' + open + '" aria-controls="cg-g-' + esc(id) + '">' + esc(x.name) + '</button>' +
+        '<span class="who" style="display: block; font-size: 12px">' + esc(x.r.riot_name + '#' + x.r.riot_tag) + '</span>' +
+        (st && !st.ok ? '<span class="cg-err">' + esc(st.error || 'Couldn’t check') + '</span>' : !st ? '<span class="who" style="font-size: 12px">Not checked yet</span>' : '') + '</td>' +
+        '<td>' + esc(x.r.team || '') + ' <span class="who">' + (x.r.region === 'eu' ? 'EMEA' : 'NA') + '</span></td>' +
+        '<td>' + (st && st.tier ? esc(st.tier) + ' <span class="who">' + (st.rr != null ? st.rr + ' RR' : '') + '</span>' : '<span class="who">—</span>') + '</td>' +
+        '<td class="num">' + x.list.length + '</td>' +
+        '<td class="num">' + (x.list.length ? x.w + '–' + x.l + (x.d ? '–' + x.d : '') : '<span class="who">—</span>') + '</td>' +
+        '<td class="num"><span class="' + cls + '">' + (x.list.length ? cgSigned(x.rr) : '<span class="who">—</span>') + '</span></td>' +
+        '<td class="who">' + (x.last ? esc(ago(new Date(x.last).toISOString())) : '—') + '</td></tr>';
+      if (open) {
+        row += '<tr class="cg-games" id="cg-g-' + esc(id) + '"><td colspan="7"><div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 12px"><span class="who">' +
+          (st ? 'Checked ' + esc(ago(st.fetched_at)) : 'Not checked yet') + '</span><button type="button" class="btn ghost" data-cg-one="' + esc(id) + '">Check this player now</button></div>' + (x.list.length ? '<table><thead><tr><th scope="col">When (ET)</th><th scope="col">Map</th><th scope="col">Result</th><th scope="col" class="n">RR</th><th scope="col">Rank after</th><th scope="col">Notes</th></tr></thead><tbody>' +
+          x.list.map(function (g) {
+            var res = g.rr_change > 0 ? 'Win' : g.rr_change < 0 || g.derank_protected ? 'Loss' : 'Draw';
+            var notes = [g.placement ? 'Placement' : '', g.derank_protected ? 'Derank protected' : '', g.refunded_rr ? '+' + g.refunded_rr + ' RR refunded' : ''].filter(Boolean);
+            return '<tr><td>' + esc(etWhen(Date.parse(g.played_at))) + '</td><td>' + esc(g.map || '') + '</td><td>' + res + '</td>' +
+              '<td class="n"><span class="' + (g.rr_change > 0 ? 'cg-up' : g.rr_change < 0 ? 'cg-down' : 'cg-even') + '">' + cgSigned(g.rr_change) + '</span></td>' +
+              '<td>' + esc(g.tier || '') + (g.rr != null ? ' <span class="who">' + g.rr + ' RR</span>' : '') + '</td>' +
+              '<td>' + notes.map(function (n) { return '<span class="cg-tag">' + esc(n) + '</span>'; }).join('') + '</td></tr>';
+          }).join('') + '</tbody></table>' : '<p class="who" style="margin: 0; padding: 10px 12px">No ranked games in this period.</p>') + '</td></tr>';
+      }
+      return row;
+    }).join('') || '<tr><td colspan="7" class="who">' + (CG.err ? '' : !CG.loaded ? 'Loading…' : q ? 'No players match that search.' : only ? 'Nobody has played ranked in this period yet.' : 'No players with a Riot ID.') + '</td></tr>';
+    markSort($('cg-table'), CG.sort);
+  }
+  ['cg-q', 'cg-region', 'cg-period', 'cg-played'].forEach(function (id) { $(id).addEventListener(id === 'cg-q' ? 'input' : 'change', drawComp); });
+  $('cg-table').addEventListener('click', function (e) {
+    var one = e.target.closest('[data-cg-one]');
+    if (one) { one.disabled = true; CG.busy = true; $('cg-msg').className = 'msg'; $('cg-msg').textContent = 'Checking ' + one.getAttribute('data-cg-one') + '…'; return cgCheck({ p_limit: 1, p_player: one.getAttribute('data-cg-one') }, one); }
+    var o = e.target.closest('[data-cg]');
+    if (o) { var id = o.getAttribute('data-cg'); CG.open[id] = !CG.open[id]; drawComp(); var b = document.querySelector('[data-cg="' + id + '"]'); if (b) b.focus(); return; }
+    var s = e.target.closest('button.sort'); if (!s) return;
+    var k = s.getAttribute('data-k');
+    CG.sort = { key: k, dir: CG.sort.key === k ? -CG.sort.dir : (k === 'name' || k === 'team' ? 1 : -1) };
+    drawComp();
+  });
+  $('cg-refresh').addEventListener('click', function () {
+    var b = this, msg = $('cg-msg');
+    b.disabled = true; CG.busy = true; msg.className = 'msg'; msg.textContent = 'Checking 4 players with HenrikDev…';
+    cgCheck({ p_limit: 4 }, b);
+  });
+  // One check (4 players, or one player): the site cuts a request off after 8 seconds, so it stays small.
+  function cgCheck(body, b) {
+    var msg = $('cg-msg');
+    L.api('/rest/v1/rpc/fb_comp_fetch', { method: 'POST', body: body }).then(function (r) {
+      CG.busy = false;
+      CG.note = 'Checked ' + r.checked + ' players: ' + r.new_games + ' new game' + (r.new_games === 1 ? '' : 's') + (r.errors ? ', ' + r.errors + ' couldn’t be checked' : '') +
+        (r.stopped ? '. ' + r.stopped : '') + (r.never_checked ? '. ' + r.never_checked + ' players not checked yet.' : '.');
+      return loadComp();
+    }, function (e) {
+      CG.busy = false; msg.className = 'msg err';
+      msg.textContent = /fb_comp_fetch|PGRST202/.test(e.message) ? 'Run setup/comp-games.sql in Supabase first.' : /no_key/.test(e.message) ? 'No HenrikDev key in Supabase Vault (henrik_api_key).' : 'Couldn’t check: ' + e.message;
+    }).then(function () { if (b && document.body.contains(b)) b.disabled = false; });
+  }
+
   // ---------- Users: everyone who has logged in, one row each (setup/users-page.sql: fb_users, staff only) ----------
   // Name, username and picture (profiles); when they joined and last logged in (their Discord sign-ins); deck saves and
   // their latest deck; Pick'ems picks; MVP VS wins and tier. No emails.
@@ -2796,7 +2954,9 @@
         show('st-staff');
         var h = (location.hash || '').slice(1);
         openTab(TABS.indexOf(h) >= 0 ? h : 'dash');
-        if (h === 'schedule') loadEvents();
+        if (h === 'schedule' || h === 'season') { loadEvents(); drawActiveSeasons(); }
+        if (h === 'users') loadUsers();
+        if (h === 'comp') loadComp();
         drawDash(); drawGraphic(); syncStatus(); scReset(); drawSchedule(); drawSeason(); drawPickemEvents(); drawStaff();
         drawPages(); drawPrices(); setupTeams(); drawSubs(); drawSwaps(); setupRiot(); drawNotes(); drawComplaints();
       });
