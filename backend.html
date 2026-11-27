@@ -45,8 +45,6 @@
   .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; }
   .note { margin: 0; font-size: 14px; color: var(--dim); }
   [hidden] { display: none !important; }
-  footer { border-top: 1px solid var(--line); }
-  footer div { max-width: 1280px; margin: 0 auto; padding: 22px 24px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; font: 400 12px/1.4 var(--ui); color: var(--dim); }
   @media (max-width: 520px) { .top, main { padding-left: 16px; padding-right: 16px; } .panel { padding: 16px; } th.n, td.n { width: 64px; } input[type=number] { width: 54px; } }
   .badge { font: 600 12px/1 var(--ui); letter-spacing: .1em; text-transform: uppercase; color: #000; background: var(--accent); padding: 7px 10px; border-radius: 6px; }
   .spacer { flex: 1 1 auto; }
@@ -314,8 +312,17 @@
   .gate-body input[type=password] { min-height: 36px; border-radius: 5px; font-size: 14px; }
   code { border-radius: 5px; font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; }
   .menu-btn { display: none; }
-  footer { margin-left: 220px; }
-  footer div { max-width: 1240px; margin: 0; padding: 14px 28px; }
+  .top-link { display: inline-flex; align-items: center; min-height: 32px; padding: 0 10px; border: 1px solid #383838; border-radius: 5px; background: #1f1f1f; color: var(--ink); font-size: 13px; text-decoration: none; white-space: nowrap; }
+  .top-link:hover { background: #262626; color: var(--ink); }
+  .top-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  /* Desktop: the page itself never scrolls. The top bar and sidebar stay put; only the sheet area scrolls. */
+  @media (min-width: 901px) {
+    html, body { height: 100%; overflow: hidden; }
+    main, main.bk-wide { height: calc(100vh - 48px); overflow-y: auto; }
+    #st-staff:not([hidden]) { height: calc(100vh - 48px); min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+    main:has(#st-staff:not([hidden])) { overflow: hidden; }
+    #st-staff > .side { top: 0; height: calc(100vh - 48px); }
+  }
   @media (max-width: 900px) {
     #st-staff:not([hidden]) { min-height: 0; }
     #st-staff > .side { position: fixed; z-index: 15; top: 48px; left: 0; bottom: 0; width: min(280px, 85vw); height: auto; border-right: 1px solid var(--line); box-shadow: 12px 0 40px rgba(0,0,0,.5); display: none; }
@@ -326,7 +333,6 @@
     .menu-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
     .brand { font-size: 0; } .brand img { width: 22px; height: 22px; }
     #st-staff > .bk-title, #st-staff > .pane { padding-left: 16px; padding-right: 16px; }
-    footer { margin-left: 0; }
     .btn { min-height: 40px; }
     .side button { min-height: 40px; }
   }
@@ -363,6 +369,7 @@
   <span class="badge">PCMT Team</span>
   <span class="spacer"></span>
   <span class="who mono" id="who" hidden></span>
+  <a class="top-link" href="#settings" data-pcmt-settings>Settings</a>
 </div>
 </header>
 
@@ -779,7 +786,6 @@
   </div>
 </main>
 
-<footer><div><span>fantasy.pcmt.gg · Plat Chat Members Tourney</span><span style="display: flex; flex-wrap: wrap; gap: 6px 18px"><a href="#privacy" data-pcmt-privacy>Privacy notice</a><a href="#settings" data-pcmt-settings>Settings</a><span>PCMT Team backend</span></span></div><p style="max-width: 1280px; margin: 0 auto; padding: 0 24px 22px; font-family: 'National Park', system-ui, sans-serif; font-size: 11px; line-height: 1.6; color: #93a9aa"><span style="display: block; margin-bottom: 6px; font-size: 12px; color: #c4d4d4">A <b style="font-weight: 700; color: #eaf4f4">PCMT</b> product</span>fantasy.pcmt.gg was created under Riot Games' <a href="https://www.riotgames.com/en/legal" target="_blank" rel="noopener" style="color: #a5dcdd">&quot;Legal Jibber Jabber&quot;</a> policy using assets owned by Riot Games. Riot Games does not endorse or sponsor this project.</p></footer>
 
 <script src="data.js"></script>
 <script src="pickems.js"></script>
@@ -904,7 +910,7 @@
   }
   TABS.forEach(function (t, i) {
     var tab = $('tab-' + t);
-    tab.addEventListener('click', function () { openTab(t); if (phone.matches) setMenu(false); window.scrollTo(0, 0); if (t === 'season' && !EV.loaded && !EV.busy) { loadEvents(); drawActiveSeasons(); } if (t === 'users' && !US.loaded) loadUsers(); });
+    tab.addEventListener('click', function () { openTab(t); if (phone.matches) setMenu(false); window.scrollTo(0, 0); $('st-staff').scrollTop = 0; if (t === 'season' && !EV.loaded && !EV.busy) { loadEvents(); drawActiveSeasons(); } if (t === 'users' && !US.loaded) loadUsers(); });
     tab.addEventListener('keydown', function (e) {
       var vis = TABS.filter(function (x) { return x === t || !groupOf(x).hidden; }), k = vis.indexOf(t);   // folded groups are skipped
       var j = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? k + 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? k - 1 : e.key === 'Home' ? 0 : e.key === 'End' ? vis.length - 1 : null;
