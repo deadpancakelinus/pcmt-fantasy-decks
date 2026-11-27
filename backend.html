@@ -51,6 +51,26 @@
   .badge { font: 600 12px/1 'National Park', system-ui, sans-serif; letter-spacing: .1em; text-transform: uppercase; color: #000; background: var(--accent); padding: 7px 10px; border-radius: 6px; }
   .spacer { flex: 1 1 auto; }
   .who { font-size: 13px; color: var(--dim); }
+  /* Sheets: a sidebar on the left, like Supabase's (Nov 26 2026); a scrolling row on small screens */
+  main.bk-wide { max-width: 1480px; }
+  #st-staff:not([hidden]) { display: grid; grid-template-columns: 224px minmax(0, 1fr); gap: 0 28px; align-items: start; }
+  #st-staff > .side { grid-column: 1; grid-row: 1 / span 40; position: sticky; top: 16px; display: flex; flex-direction: column; gap: 2px; padding: 10px 8px; border: 1px solid var(--line); border-radius: 12px; background: #111a1c; max-height: calc(100vh - 32px); overflow: auto; }
+  #st-staff > .pane { grid-column: 2; min-width: 0; }
+  .side-h { padding: 14px 10px 6px; font: 600 11px/1 'National Park', system-ui, sans-serif; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); }
+  .side-h:first-child { padding-top: 4px; }
+  .side button { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 38px; padding: 0 10px; border: 0; border-radius: 8px; background: none; color: var(--soft, #c4d4d4); font: 500 14px/1 'National Park', system-ui, sans-serif; text-align: left; cursor: pointer; }
+  .side button svg { width: 18px; height: 18px; flex: none; color: var(--dim); }
+  .side button:hover { background: #1a2629; color: var(--ink); }
+  .side button[aria-selected="true"] { background: #1f2e31; color: var(--ink); box-shadow: inset 2px 0 0 var(--accent); }
+  .side button[aria-selected="true"] svg { color: var(--accent); }
+  .side button .side-l { flex: 1; min-width: 0; }
+  .side button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  @media (max-width: 900px) {
+    #st-staff:not([hidden]) { display: block; }
+    #st-staff > .side { position: static; flex-direction: row; overflow-x: auto; max-height: none; margin-bottom: 18px; }
+    .side-h { display: none; }
+    .side button { width: auto; flex: none; white-space: nowrap; }
+  }
   .tabs { display: flex; flex-wrap: wrap; gap: 6px; border-bottom: 1px solid var(--line); margin-bottom: 20px; }
   .tabs button { min-height: 44px; padding: 0 16px; border: 1px solid transparent; border-bottom: none; border-radius: 8px 8px 0 0; background: none; color: var(--dim); font: 600 13px/1 'National Park', system-ui, sans-serif; letter-spacing: .06em; text-transform: uppercase; cursor: pointer; margin-bottom: -1px; }
   .tabs button[aria-selected="true"] { color: var(--ink); background: var(--panel); border-color: var(--line); }
@@ -73,6 +93,20 @@
   .db-split .bar span + span { background: #3a4f53; color: var(--ink); }
   .db-split .bar span:last-child { flex: 1 1 auto; }
   .ev-list { display: flex; flex-direction: column; gap: 14px; }
+  .ss-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 16px; }
+  .ss-card { border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; background: #111a1c; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .ss-top { display: flex; align-items: center; gap: 12px; }
+  .ss-top img { width: 34px; height: 34px; object-fit: contain; flex: none; }
+  .ss-top h3 { margin: 0; font: 700 24px/1.1 'Cabin Sketch', cursive; }
+  .ss-top .ss-live { margin-left: auto; padding: 4px 10px; border-radius: 999px; font: 600 11px/1 'National Park', system-ui, sans-serif; letter-spacing: .08em; text-transform: uppercase; background: rgba(85, 255, 143, .12); color: var(--good, #55ff8f); }
+  .ss-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px 16px; margin: 0; }
+  .ss-facts div { display: flex; flex-direction: column; gap: 2px; }
+  .ss-facts dt { font: 400 11px/1.2 'National Park', system-ui, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); }
+  .ss-facts dd { margin: 0; font-weight: 600; }
+  .ss-stages { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .ss-stages th, .ss-stages td { padding: 7px 8px; border-top: 1px solid var(--line); text-align: left; }
+  .ss-stages th { font: 400 11px/1 'National Park', system-ui, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); }
+  .ss-stages .n { text-align: right; white-space: nowrap; }
   .ev { border: 1px solid var(--line); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 14px; background: #111a1c; }
   .ev-top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; }
   .ev-name { margin: 0; font: 700 20px/1.2 'National Park', system-ui, sans-serif; color: var(--ink); }
@@ -232,7 +266,7 @@
 </div>
 </header>
 
-<main>
+<main class="bk-wide">
   <div>
     <h1>Backend</h1>
     
@@ -248,21 +282,26 @@
   </section>
 
   <div id="st-staff" hidden>
-    <div class="tabs" role="tablist" aria-label="Backend sheets">
-      <button type="button" role="tab" id="tab-dash" aria-controls="pane-dash" aria-selected="true">Dashboard</button>
-      <button type="button" role="tab" id="tab-pages" aria-controls="pane-pages" aria-selected="false" tabindex="-1">Pages <span class="count" id="pg-badge"></span></button>
-      <button type="button" role="tab" id="tab-schedule" aria-controls="pane-schedule" aria-selected="false" tabindex="-1">Schedule</button>
-      <button type="button" role="tab" id="tab-season" aria-controls="pane-season" aria-selected="false" tabindex="-1">Season</button>
-      <button type="button" role="tab" id="tab-pickems" aria-controls="pane-pickems" aria-selected="false" tabindex="-1">Pick'ems</button>
-      <button type="button" role="tab" id="tab-prices" aria-controls="pane-prices" aria-selected="false" tabindex="-1">Player prices</button>
-      <button type="button" role="tab" id="tab-teams" aria-controls="pane-teams" aria-selected="false" tabindex="-1">Teams</button>
-      <button type="button" role="tab" id="tab-subs" aria-controls="pane-subs" aria-selected="false" tabindex="-1">Subs <span class="count" id="sb-badge"></span></button>
-      <button type="button" role="tab" id="tab-decks" aria-controls="pane-decks" aria-selected="false" tabindex="-1">Decks</button>
-      <button type="button" role="tab" id="tab-riot" aria-controls="pane-riot" aria-selected="false" tabindex="-1">Riot IDs <span class="count" id="ri-badge"></span></button>
-      <button type="button" role="tab" id="tab-notes" aria-controls="pane-notes" aria-selected="false" tabindex="-1">Patch notes</button>
-      <button type="button" role="tab" id="tab-complaints" aria-controls="pane-complaints" aria-selected="false" tabindex="-1">Complaints <span class="count" id="cx-badge"></span></button>
-      <button type="button" role="tab" id="tab-staff" aria-controls="pane-staff" aria-selected="false" tabindex="-1">Staff</button>
-    </div>
+    <nav class="side" role="tablist" aria-label="Backend sheets" aria-orientation="vertical">
+      <span class="side-h" aria-hidden="true">Site</span>
+      <button type="button" role="tab" id="tab-dash" aria-controls="pane-dash" aria-selected="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg><span class="side-l">Dashboard</span></button>
+      <button type="button" role="tab" id="tab-pages" aria-controls="pane-pages" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></svg><span class="side-l">Pages</span><span class="count" id="pg-badge"></span></button>
+      <button type="button" role="tab" id="tab-users" aria-controls="pane-users" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span class="side-l">Users</span><span class="count" id="us-badge"></span></button>
+      <span class="side-h" aria-hidden="true">Season</span>
+      <button type="button" role="tab" id="tab-season" aria-controls="pane-season" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3"/><path d="M7 5H4v2a3 3 0 0 0 3 3"/></svg><span class="side-l">Seasons</span></button>
+      <button type="button" role="tab" id="tab-schedule" aria-controls="pane-schedule" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span class="side-l">Schedule</span></button>
+      <button type="button" role="tab" id="tab-pickems" aria-controls="pane-pickems" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span class="side-l">Pick'ems</span></button>
+      <span class="side-h" aria-hidden="true">Players</span>
+      <button type="button" role="tab" id="tab-prices" aria-controls="pane-prices" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><circle cx="7" cy="7" r="1.5"/></svg><span class="side-l">Player prices</span></button>
+      <button type="button" role="tab" id="tab-teams" aria-controls="pane-teams" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span class="side-l">Teams</span></button>
+      <button type="button" role="tab" id="tab-subs" aria-controls="pane-subs" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg><span class="side-l">Subs</span><span class="count" id="sb-badge"></span></button>
+      <button type="button" role="tab" id="tab-decks" aria-controls="pane-decks" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="14" height="16" rx="2"/><path d="M6 2h12a2 2 0 0 1 2 2v14"/></svg><span class="side-l">Decks</span></button>
+      <button type="button" role="tab" id="tab-riot" aria-controls="pane-riot" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="8" cy="12" r="2.5"/><path d="M14 10h5M14 14h3"/></svg><span class="side-l">Riot IDs</span><span class="count" id="ri-badge"></span></button>
+      <span class="side-h" aria-hidden="true">Team</span>
+      <button type="button" role="tab" id="tab-notes" aria-controls="pane-notes" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg><span class="side-l">Patch notes</span></button>
+      <button type="button" role="tab" id="tab-complaints" aria-controls="pane-complaints" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span class="side-l">Complaints</span><span class="count" id="cx-badge"></span></button>
+      <button type="button" role="tab" id="tab-staff" aria-controls="pane-staff" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg><span class="side-l">Staff</span></button>
+    </nav>
 
     <!-- ===== Pages waiting for launch ===== -->
     <!-- ===== Dashboard ===== -->
@@ -270,14 +309,36 @@
       <div class="db-head"><span class="who" id="db-when"></span><button type="button" class="btn ghost" id="db-refresh">Refresh</button></div>
       <p class="msg" id="db-msg" role="status" aria-live="polite"></p>
       <div class="db-two">
-        <section class="panel"><h2 class="db-h">Coming up · EST</h2><ul class="db-list" id="db-next"></ul></section>
+        <section class="panel" aria-labelledby="sy-h"><h2 class="db-h" id="sy-h">PCMT.gg sync</h2>
+          <ul class="db-list" id="sy-last"></ul>
+          <div class="sb-row"><button type="button" class="btn" id="sy-run">Run PCMT.gg sync</button></div>
+          <p class="msg" id="sy-msg" role="status" aria-live="polite"></p>
+        </section>
         <section class="panel"><h2 class="db-h">Site health</h2><ul class="db-list" id="db-health"></ul></section>
       </div>
       <section class="panel"><h2 class="db-h">Pick'ems</h2><div id="db-pickems"></div></section>
-      <section class="panel" aria-labelledby="sy-h"><h2 class="db-h" id="sy-h">PCMT.gg sync</h2>
-        <ul class="db-list" id="sy-last"></ul>
-        <div class="sb-row"><button type="button" class="btn" id="sy-run">Run PCMT.gg sync</button></div>
-        <p class="msg" id="sy-msg" role="status" aria-live="polite"></p>
+    </section>
+
+    <!-- ===== Users (setup/users-page.sql) ===== -->
+    <section class="pane" role="tabpanel" id="pane-users" aria-labelledby="tab-users" hidden>
+      <section class="panel">
+        <div class="db-head" style="justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 12px">
+          <div><h2 class="db-h">Users</h2><p class="who" id="us-sum"></p></div>
+          <label class="field" style="flex: 0 1 300px"><span class="kicker">Search</span><input id="us-q" type="search" placeholder="Name or username" autocomplete="off"></label>
+        </div>
+        <p class="msg" id="us-msg" role="status" aria-live="polite"></p>
+        <div class="sheet"><table class="grid" id="us-table">
+          <thead><tr>
+            <th scope="col"><button type="button" class="sort" data-k="name">User</button></th>
+            <th scope="col"><button type="button" class="sort" data-k="joined">Joined</button></th>
+            <th scope="col"><button type="button" class="sort" data-k="seen">Last log-in</button></th>
+            <th scope="col" class="num"><button type="button" class="sort" data-k="decks">Deck saves</button></th>
+            <th scope="col"><button type="button" class="sort" data-k="deck">Latest deck</button></th>
+            <th scope="col" class="num"><button type="button" class="sort" data-k="picks">Pick'ems picks</button></th>
+            <th scope="col"><button type="button" class="sort" data-k="mvp">MVP VS</button></th>
+          </tr></thead>
+          <tbody id="us-rows"></tbody>
+        </table></div>
       </section>
     </section>
 
@@ -311,8 +372,14 @@
 
     <!-- ===== Season ===== -->
     <section class="pane" role="tabpanel" id="pane-season" aria-labelledby="tab-season" hidden>
+      <section class="panel" aria-labelledby="ss-h">
+        <div class="db-head" style="justify-content: space-between; align-items: center"><h2 class="db-h" id="ss-h">Active seasons · from PCMT.gg</h2><button type="button" class="btn ghost" id="ss-refresh">Refresh</button></div>
+        <p class="msg" id="ss-msg" role="status" aria-live="polite"></p>
+        <div class="ss-list" id="ss-list"></div>
+      </section>
       <form class="panel" id="se-form" autocomplete="off" novalidate>
-        <h2 class="db-h">NA Stage 1</h2>
+        <h2 class="db-h">NA Stage 1 · decks</h2>
+        <p class="who" id="se-pcmt"></p>
         <div class="sb-row">
           <label class="field"><span class="kicker">Starts (first game that counts, EST)</span><input id="se-start" type="datetime-local"></label>
           <label class="field"><span class="kicker">NA decks lock (EST)</span><input id="se-lock" type="datetime-local"></label>
@@ -615,6 +682,7 @@
 <script src="season-teams.js"></script>
 <script src="pickems-graphic.js"></script>
 <script src="players.js"></script>
+<script src="tiers.js"></script>
 <script src="league.js"></script>
 <script>
 (function () {
@@ -677,7 +745,7 @@
   var REGION = {}, NAMES = {};
 
   // ---------- tabs ----------
-  var TABS = ['dash', 'pages', 'schedule', 'season', 'pickems', 'prices', 'teams', 'subs', 'decks', 'riot', 'notes', 'complaints', 'staff'];
+  var TABS = ['dash', 'pages', 'users', 'season', 'schedule', 'pickems', 'prices', 'teams', 'subs', 'decks', 'riot', 'notes', 'complaints', 'staff'];   // sidebar order
   function openTab(name, focus) {
     TABS.forEach(function (t) {
       var on = t === name, tab = $('tab-' + t);
@@ -689,9 +757,9 @@
   }
   TABS.forEach(function (t, i) {
     var tab = $('tab-' + t);
-    tab.addEventListener('click', function () { openTab(t); });
+    tab.addEventListener('click', function () { openTab(t); if (t === 'season' && !EV.loaded && !EV.busy) { loadEvents(); drawActiveSeasons(); } if (t === 'users' && !US.loaded) loadUsers(); });
     tab.addEventListener('keydown', function (e) {
-      var j = e.key === 'ArrowRight' ? i + 1 : e.key === 'ArrowLeft' ? i - 1 : e.key === 'Home' ? 0 : e.key === 'End' ? TABS.length - 1 : null;
+      var j = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? i + 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? i - 1 : e.key === 'Home' ? 0 : e.key === 'End' ? TABS.length - 1 : null;
       if (j == null) return; e.preventDefault(); openTab(TABS[(j + TABS.length) % TABS.length], true);
     });
   });
@@ -1727,7 +1795,7 @@
       return Promise.all(live.map(function (e) {
         return pcmt('/api/matches/' + e.id + '.json').then(evParse).then(function (g) { EV.games[e.id] = g || []; }, function () { EV.games[e.id] = null; });
       })).then(function () { EV.list = live; });
-    }).then(function () { EV.busy = false; EV.loaded = true; evSay(EV.err, EV.err ? 'err' : ''); drawEvents(); },
+    }).then(function () { EV.busy = false; EV.loaded = true; evSay(EV.err, EV.err ? 'err' : ''); drawEvents(); drawActiveSeasons(); },
             function (e) { EV.busy = false; evSay('Couldn\'t load PCMT.gg events: ' + e.message, 'err'); });
   }
   function evRegion(e) { return /emea/i.test(e.region) ? 'EMEA' : 'NA'; }
@@ -2005,7 +2073,7 @@
     else if (S && (!S.end || now < S.end)) lines.push('<li><span>NA decks</span><b>Locked for Stage 1' + (S.end ? ' until ' + esc(etWhen(S.end)) : '') + '</b></li>');
     if (emea) lines.push('<li><span>EMEA decks lock</span><b>' + esc(etWhen(emea)) + '</b></li>');
     games.forEach(function (m) { lines.push('<li><span>' + esc(m.a + ' vs ' + m.b) + ' <span class="who">' + esc(m.region || '') + ' · Bo' + esc(m.bo || 3) + (m.extra ? ' · added here' : '') + '</span></span><b>' + esc(etWhen(Date.parse(m.start))) + '</b></li>'); });
-    $('db-next').innerHTML = lines.join('') || '<li><span class="who">No games on the schedule.</span></li>';
+    if ($('db-next')) $('db-next').innerHTML = lines.join('') || '<li><span class="who">No games on the schedule.</span></li>';   // (panel replaced by PCMT.gg sync, Nov 26 2026)
     // Site health
     var h = [];
     if (d.pickems_synced) h.push('<li><span>Pick\'ems synced</span><b>' + esc(ago(d.pickems_synced)) + '</b></li>');
@@ -2173,12 +2241,89 @@
       .then(function () { scBusy = false; drawSchedule(); drawDash(); });
   });
 
+  // ---------- Users: everyone who has logged in, one row each (setup/users-page.sql: fb_users, staff only) ----------
+  // Name, username and picture (profiles); when they joined and last logged in (their Discord sign-ins); deck saves and
+  // their latest deck; Pick'ems picks; MVP VS wins and tier. No emails.
+  var US = { rows: [], loaded: false, err: '', sort: { key: 'joined', dir: -1 } };
+  function loadUsers() {
+    $('us-msg').className = 'msg'; $('us-msg').textContent = 'Loading users…';
+    return L.api('/rest/v1/rpc/fb_users', { method: 'POST', body: {} }).then(function (r) { US.rows = r || []; US.err = ''; US.loaded = true; },
+      function (e) { US.rows = []; US.loaded = true; US.err = /fb_users|PGRST202|404/.test(e.message) ? 'Run setup/users-page.sql in Supabase to fill this page.' : 'Couldn\'t load users: ' + e.message; })
+      .then(drawUsers);
+  }
+  function usPic(u) { var t = u.picture_at ? Date.parse(u.picture_at) : NaN; return !isNaN(t) ? 'https://wwrsavqipkxvdsxcemos.supabase.co/storage/v1/object/public/avatars/' + u.id + '.webp?v=' + t : (u.avatar_url || ''); }
+  function drawUsers() {
+    var q = ($('us-q').value || '').trim().toLowerCase(), k = US.sort.key, d = US.sort.dir, T = window.PCMT_TIERS;
+    $('us-msg').className = 'msg' + (US.err ? ' err' : ''); $('us-msg').textContent = US.err;
+    var val = function (u) { return k === 'name' ? String(u.username || u.name || '').toLowerCase() : k === 'joined' ? Date.parse(u.joined) || 0 : k === 'seen' ? Date.parse(u.last_seen) || 0 : k === 'decks' ? u.deck_saves : k === 'deck' ? String(u.latest_deck || '').toLowerCase() : k === 'picks' ? u.pickem_picks : (u.mvp_wins || 0) * 1000 + (u.mvp_games || 0); };
+    var list = US.rows.filter(function (u) { return !q || [u.name, u.username, u.latest_deck].some(function (x) { return x && String(x).toLowerCase().indexOf(q) >= 0; }); })
+      .sort(function (a, b) { var x = val(a), y = val(b); return (x < y ? -1 : x > y ? 1 : 0) * d || String(a.name).localeCompare(String(b.name)); });
+    var week = Date.now() - 7 * 864e5;
+    $('us-sum').textContent = US.rows.length ? US.rows.length + ' users · ' + US.rows.filter(function (u) { return Date.parse(u.last_seen) > week; }).length + ' logged in this week · ' +
+      US.rows.filter(function (u) { return u.deck_saves > 0; }).length + ' with a deck' : '';
+    $('us-rows').innerHTML = list.map(function (u) {
+      var pic = usPic(u), t = T && u.mvp_games ? T.of(u.mvp_wins) : null;
+      return '<tr><td><span style="display: flex; align-items: center; gap: 10px; min-width: 0">' +
+        (pic ? '<img src="' + esc(pic) + '" alt="" loading="lazy" width="28" height="28" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex: none">' : '<span aria-hidden="true" style="width: 28px; height: 28px; border-radius: 50%; flex: none; display: grid; place-items: center; background: #13292b; color: var(--accent); font-size: 13px; font-weight: 700">' + esc(String(u.username || u.name || '?').charAt(0).toUpperCase()) + '</span>') +
+        '<span style="min-width: 0"><b>' + esc(u.username || u.name || 'Manager') + '</b>' + (u.username && u.name && u.name !== u.username ? '<br><span class="who">' + esc(u.name) + '</span>' : '') + (u.staff ? ' <span class="who">· staff</span>' : '') + '</span></span></td>' +
+        '<td class="who">' + (u.joined ? esc(etWhen(Date.parse(u.joined))) : '—') + '</td><td class="who">' + (u.last_seen ? esc(ago(u.last_seen)) : '—') + '</td>' +
+        '<td class="num">' + (u.deck_saves || 0) + '</td><td>' + esc(u.latest_deck || '—') + (u.latest_region ? ' <span class="who">' + esc(u.latest_region) + '</span>' : '') + '</td>' +
+        '<td class="num">' + (u.pickem_picks || 0) + '</td>' +
+        '<td>' + (t ? '<span style="display: inline-flex; align-items: center; gap: 6px; white-space: nowrap"><img src="' + t.img + '" alt="" width="22" height="22" style="width: 22px; height: 22px; object-fit: contain">' + esc(t.name) + ' <span class="who">' + u.mvp_wins + 'W / ' + u.mvp_games + '</span></span>' : '<span class="who">—</span>') + '</td></tr>';
+    }).join('') || '<tr><td colspan="7" class="who">' + (US.err ? '' : q ? 'No users match that search.' : 'No users yet.') + '</td></tr>';
+    markSort($('us-table'), US.sort);
+  }
+  $('us-q').addEventListener('input', drawUsers);
+  $('us-table').addEventListener('click', function (e) {
+    var b = e.target.closest('button.sort'); if (!b) return;
+    var k = b.getAttribute('data-k');
+    US.sort = { key: k, dir: US.sort.key === k ? -US.sort.dir : (k === 'name' || k === 'deck' ? 1 : -1) };
+    drawUsers();
+  });
+
   // ---------- Season (NA stage dates, site_settings 'na_stage') ----------
   var seasonRow = null, seasonErr = '';
   function loadSeason() {
     return L.api('/rest/v1/site_settings?select=value,updated_at,updated_by&key=eq.na_stage').then(function (r) { seasonRow = (r || [])[0] || null; seasonErr = ''; })
       .catch(function (e) { seasonRow = null; seasonErr = e.message; });
   }
+  // Every active (not finished) NA and EMEA season on PCMT.gg, read live with the Schedule tab's PCMT.gg events: dates,
+  // teams, games played, and each stage (Group A, Swiss, Playoffs ...) with its first and last game.
+  var REGION_LOGO = { NA: 'assets/c265e976f8968e60e4a2bdd32542b499.png', EMEA: 'assets/3c7e7374dceead68d5c58818d0bcfe8a.png' };
+  function drawActiveSeasons() {
+    var box = $('ss-list'); if (!box) return;
+    if (!EV.list) { box.innerHTML = '<p class="who">' + (EV.busy ? 'Loading PCMT.gg…' : '') + '</p>'; return; }
+    if (!EV.list.length) { box.innerHTML = '<p class="who">No active seasons on PCMT.gg right now.</p>'; return; }
+    var now = Date.now();
+    box.innerHTML = EV.list.slice().sort(function (a, b) { return evRegion(a).localeCompare(evRegion(b)) || b.season - a.season; }).map(function (e) {
+      var g = (EV.games[e.id] || []).slice().sort(function (a, b) { return Date.parse(a.date) - Date.parse(b.date); });
+      var played = g.filter(function (m) { return m.completed; }), next = g.filter(function (m) { return !m.completed && Date.parse(m.date) > now - 3 * 3600e3; })[0];
+      var stages = [], by = {};
+      g.forEach(function (m) {
+        var k = m.stage || 'Games';
+        if (!by[k]) { by[k] = { name: k, games: 0, done: 0, first: Infinity, last: 0 }; stages.push(by[k]); }
+        var t = Date.parse(m.date), x = by[k]; x.games++; if (m.completed) x.done++; if (t < x.first) x.first = t; if (t > x.last) x.last = t;
+      });
+      var rg = evRegion(e), teams = evTeams(e).length;
+      var fact = function (k, v) { return '<div><dt>' + k + '</dt><dd>' + v + '</dd></div>'; };
+      return '<article class="ss-card"><div class="ss-top"><img src="' + REGION_LOGO[rg] + '" alt=""><div><h3>' + esc(e.name || e.id) + '</h3><span class="who">' + esc(e.id) + '</span></div>' +
+        '<span class="ss-live">' + esc(e.status || 'live') + '</span></div>' +
+        '<dl class="ss-facts">' + fact('Teams', teams || '—') + fact('Games played', played.length + ' of ' + g.length) +
+        fact('First game', g.length ? esc(etWhen(Date.parse(g[0].date))) : '—') + fact('Last scheduled', g.length ? esc(etWhen(Date.parse(g[g.length - 1].date))) : '—') +
+        fact('Next game', next ? esc(next.team1 + ' vs ' + next.team2) + ' · ' + esc(etWhen(Date.parse(next.date))) : 'None scheduled') +
+        fact('Pick\'ems', esc((EV.labels[e.id] || {}).label ? (EV.labels[e.id].label === 'groups' ? 'Groups (game by game)' : 'Playoffs (bracket)') : 'Not labelled (Schedule tab)')) + '</dl>' +
+        (stages.length ? '<table class="ss-stages"><thead><tr><th scope="col">Stage</th><th scope="col" class="n">Games</th><th scope="col" class="n">First</th><th scope="col" class="n">Last</th></tr></thead><tbody>' +
+          stages.map(function (x) { return '<tr><td>' + esc(x.name) + '</td><td class="n">' + x.done + ' / ' + x.games + '</td><td class="n">' + esc(etWhen(x.first)) + '</td><td class="n">' + esc(etWhen(x.last)) + '</td></tr>'; }).join('') +
+          '</tbody></table>' : '<p class="who">No games on PCMT.gg yet.</p>') +
+        '<a href="https://pcmt.gg/events/' + encodeURIComponent(e.id) + '" target="_blank" rel="noopener">Open on PCMT.gg</a></article>';
+    }).join('');
+    // NA Stage 1: what PCMT.gg says, next to the dates the site uses
+    var na = EV.list.filter(function (e) { return evRegion(e) === 'NA'; }).sort(function (a, b) { return b.season - a.season; })[0];
+    var ng = na ? (EV.games[na.id] || []).slice().sort(function (a, b) { return Date.parse(a.date) - Date.parse(b.date); }) : [];
+    if ($('se-pcmt')) $('se-pcmt').textContent = ng.length ? 'PCMT.gg: ' + (na.name || na.id) + '\'s first game is ' + etWhen(Date.parse(ng[0].date)) + ' EST' +
+      (ng[ng.length - 1] ? ', last one scheduled ' + etWhen(Date.parse(ng[ng.length - 1].date)) + ' EST' : '') + '. Leave Starts empty to use the first game.' : '';
+  }
+  $('ss-refresh').addEventListener('click', function () { EV.loaded = false; loadEvents().then(drawActiveSeasons); drawActiveSeasons(); });
   function drawSeason() {
     var S = (window.PCMT_SEASON && window.PCMT_SEASON.naStage) || {};
     $('se-start').value = toEtInput(S.start); $('se-lock').value = toEtInput(S.lock); $('se-end').value = S.end ? toEtInput(S.end) : '';
@@ -2189,7 +2334,12 @@
     e.preventDefault();
     var msg = $('se-msg'), st = fromEtInput($('se-start').value), lk = fromEtInput($('se-lock').value), en = $('se-end').value ? fromEtInput($('se-end').value) : null;
     msg.className = 'msg err';
-    if (!st || !lk) { msg.textContent = 'Fill in the start and the lock.'; return; }
+    if (!st && !$('se-start').value) {   // empty: the active NA season's first game on PCMT.gg
+      var na = (EV.list || []).filter(function (x) { return evRegion(x) === 'NA'; }).sort(function (a, b) { return b.season - a.season; })[0];
+      var first = na ? (EV.games[na.id] || []).map(function (m) { return Date.parse(m.date); }).filter(function (t) { return !isNaN(t); }).sort(function (a, b) { return a - b; })[0] : null;
+      if (first) st = first;
+    }
+    if (!st || !lk) { msg.textContent = 'Fill in the lock (and the start, if PCMT.gg has no NA games yet).'; return; }
     if ($('se-end').value && !en) { msg.textContent = 'The end date isn\'t a date.'; return; }
     if (en && en <= lk) { msg.textContent = 'The end has to be after the lock.'; return; }
     var value = JSON.stringify({ start: new Date(st).toISOString(), lock: new Date(lk).toISOString(), end: en ? new Date(en).toISOString() : null });
