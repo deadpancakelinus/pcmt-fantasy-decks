@@ -705,7 +705,7 @@
         <div class="db-head" style="justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px">
           <div style="min-width: 0; flex: 1 1 320px"><h2 class="db-h">Ranked games and RR</h2>
             <p class="who" id="cg-sum" style="margin: 4px 0 0"></p></div>
-          <button type="button" class="btn ghost" id="cg-refresh">Check 4 more players now</button>
+          <button type="button" class="btn ghost" id="cg-refresh">Check 3 more players now</button>
         </div>
         <p class="msg" id="cg-msg" role="status" aria-live="polite"></p>
         <div class="toolbar">
@@ -722,11 +722,12 @@
             <th scope="col" class="num"><button type="button" class="sort" data-k="games">Games</button></th>
             <th scope="col" class="num"><button type="button" class="sort" data-k="wins">W–L</button></th>
             <th scope="col" class="num"><button type="button" class="sort" data-k="rr">RR</button></th>
+            <th scope="col" class="num"><button type="button" class="sort" data-k="kda">K/D/A</button></th>
             <th scope="col"><button type="button" class="sort" data-k="last">Last game</button></th>
           </tr></thead>
           <tbody id="cg-rows"></tbody>
         </table></div>
-        <p class="who" style="margin: 0">From Riot's ranked history through HenrikDev (the last ~20 ranked games per account). It checks 20 players every 10 minutes, so each player about once an hour (the button checks 4 more straight away, and an opened player can be checked on their own); games stay kept here after they drop out of Riot's list. Players need a Riot ID on the Riot IDs page. W–L counts RR won or lost (a loss with derank protection counts as a loss).</p>
+        <p class="who" style="margin: 0">From Riot's ranked history and match stats through HenrikDev (the last ~20 ranked games per account). It checks 15 players every 10 minutes, so each player about every 1.5 hours (the button checks 3 more straight away, and an opened player can be checked on their own); games stay kept here after they drop out of Riot's list. Players need a Riot ID on the Riot IDs page. W–L counts RR won or lost (a loss with derank protection counts as a loss). K/D/A, agent, score and ACS (combat score per round) come from each game's match stats and fill in the next time a player is checked; games without them show —, and a player's K/D/A adds up only the games that have one.</p>
       </section>
     </section>
 
@@ -2482,7 +2483,7 @@
     return Promise.all([
       L.apiAll('/rest/v1/riot_ids?select=player,pcmt_name,team,region,riot_name,riot_tag&order=player'),
       L.apiAll('/rest/v1/riot_comp_status?select=player,fetched_at,ok,error,tier,rr,elo&order=player'),
-      L.apiAll('/rest/v1/riot_comp_games?select=player,match_id,played_at,map,tier,rr,rr_change,refunded_rr,derank_protected,placement,match_ms&played_at=gte.' + encodeURIComponent(since) + '&order=played_at.desc')
+      L.apiAll('/rest/v1/riot_comp_games?select=player,match_id,played_at,map,tier,rr,rr_change,refunded_rr,derank_protected,placement,match_ms,kills,deaths,assists,agent,combat_score,rounds_won,rounds_lost&played_at=gte.' + encodeURIComponent(since) + '&order=played_at.desc')
     ]).then(function (x) {
       CG.ids = x[0] || []; CG.status = {}; CG.games = {};
       (x[1] || []).forEach(function (r) { CG.status[r.player] = r; });
@@ -2497,10 +2498,13 @@
     var days = +$('cg-period').value, from = days ? Date.now() - days * 864e5 : 0;
     return CG.ids.filter(function (r) { return r.riot_name; }).map(function (r) {
       var all = CG.games[r.player] || [], list = all.filter(function (g) { return Date.parse(g.played_at) >= from; });
-      var w = 0, l = 0, d = 0, rr = 0;
-      list.forEach(function (g) { rr += g.rr_change; if (g.rr_change > 0) w++; else if (g.rr_change < 0 || g.derank_protected) l++; else d++; });
+      var w = 0, l = 0, d = 0, rr = 0, ks = { n: 0, k: 0, d: 0, a: 0 };
+      list.forEach(function (g) {
+        rr += g.rr_change; if (g.rr_change > 0) w++; else if (g.rr_change < 0 || g.derank_protected) l++; else d++;
+        if (g.kills != null) { ks.n++; ks.k += g.kills; ks.d += g.deaths || 0; ks.a += g.assists || 0; }
+      });
       var st = CG.status[r.player] || null, last = all[0] ? Date.parse(all[0].played_at) : 0;
-      return { r: r, list: list, w: w, l: l, d: d, rr: rr, st: st, last: last, name: (window.PCMT_LEAGUE && L.player && L.player(r.player) || {}).name || r.pcmt_name };
+      return { r: r, list: list, w: w, l: l, d: d, rr: rr, ks: ks, st: st, last: last, name: (window.PCMT_LEAGUE && L.player && L.player(r.player) || {}).name || r.pcmt_name };
     });
   }
   var CG_TIERS = ['Iron', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Ascendant', 'Immortal', 'Radiant'];
@@ -2509,6 +2513,7 @@
     var m = /^(\w+)\s*(\d)?/.exec(st.tier), i = m ? CG_TIERS.indexOf(m[1]) : -1;
     return i < 0 ? -1 : i * 300 + ((+(m[2] || 1)) - 1) * 100 + (st.rr || 0);
   }
+  function cgKd(k, d) { return (k / Math.max(1, d)).toFixed(2); }
   function cgSigned(n) { return n > 0 ? '+' + n : n < 0 ? '−' + Math.abs(n) : '0'; }
   function drawComp() {
     var msg = $('cg-msg');
@@ -2521,7 +2526,7 @@
       ' · ' + played.length + ' played ranked in this period, ' + played.reduce(function (t, x) { return t + x.list.length; }, 0) + ' games');
     var k = CG.sort.key, d = CG.sort.dir;
     var val = function (x) { return k === 'name' ? x.name.toLowerCase() : k === 'team' ? String(x.r.team || '').toLowerCase() : k === 'rank' ? cgRankVal(x.st) :
-      k === 'games' ? x.list.length : k === 'wins' ? x.w - x.l : k === 'rr' ? (x.list.length ? x.rr : -1e9) : x.last; };
+      k === 'games' ? x.list.length : k === 'wins' ? x.w - x.l : k === 'rr' ? (x.list.length ? x.rr : -1e9) : k === 'kda' ? (x.ks.n ? x.ks.k / Math.max(1, x.ks.d) : -1) : x.last; };
     var shown = rows.filter(function (x) {
       if (rg && x.r.region !== rg) return false;
       if (only && !x.list.length) return false;
@@ -2538,21 +2543,26 @@
         '<td class="num">' + x.list.length + '</td>' +
         '<td class="num">' + (x.list.length ? x.w + '–' + x.l + (x.d ? '–' + x.d : '') : '<span class="who">—</span>') + '</td>' +
         '<td class="num"><span class="' + cls + '">' + (x.list.length ? cgSigned(x.rr) : '<span class="who">—</span>') + '</span></td>' +
+        '<td class="num">' + (x.ks.n ? x.ks.k + '/' + x.ks.d + '/' + x.ks.a + '<span class="who" style="display: block; font-size: 12px">' + cgKd(x.ks.k, x.ks.d) + ' K/D</span>' : '<span class="who">—</span>') + '</td>' +
         '<td class="who">' + (x.last ? esc(ago(new Date(x.last).toISOString())) : '—') + '</td></tr>';
       if (open) {
-        row += '<tr class="cg-games" id="cg-g-' + esc(id) + '"><td colspan="7"><div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 12px"><span class="who">' +
-          (st ? 'Checked ' + esc(ago(st.fetched_at)) : 'Not checked yet') + '</span><button type="button" class="btn ghost" data-cg-one="' + esc(id) + '">Check this player now</button></div>' + (x.list.length ? '<table><thead><tr><th scope="col">When (ET)</th><th scope="col">Map</th><th scope="col">Result</th><th scope="col" class="n">RR</th><th scope="col">Rank after</th><th scope="col">Notes</th></tr></thead><tbody>' +
+        row += '<tr class="cg-games" id="cg-g-' + esc(id) + '"><td colspan="8"><div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 12px"><span class="who">' +
+          (st ? 'Checked ' + esc(ago(st.fetched_at)) : 'Not checked yet') + '</span><button type="button" class="btn ghost" data-cg-one="' + esc(id) + '">Check this player now</button></div>' + (x.list.length ? '<table><thead><tr><th scope="col">When (ET)</th><th scope="col">Map</th><th scope="col">Agent</th><th scope="col">Result</th><th scope="col" class="n">Score</th><th scope="col" class="n">RR</th><th scope="col" class="n">K/D/A</th><th scope="col" class="n">ACS</th><th scope="col">Rank after</th><th scope="col">Notes</th></tr></thead><tbody>' +
           x.list.map(function (g) {
             var res = g.rr_change > 0 ? 'Win' : g.rr_change < 0 || g.derank_protected ? 'Loss' : 'Draw';
             var notes = [g.placement ? 'Placement' : '', g.derank_protected ? 'Derank protected' : '', g.refunded_rr ? '+' + g.refunded_rr + ' RR refunded' : ''].filter(Boolean);
-            return '<tr><td>' + esc(etWhen(Date.parse(g.played_at))) + '</td><td>' + esc(g.map || '') + '</td><td>' + res + '</td>' +
+            var dash = '<span class="who">—</span>', rounds = (g.rounds_won || 0) + (g.rounds_lost || 0);
+            return '<tr><td>' + esc(etWhen(Date.parse(g.played_at))) + '</td><td>' + esc(g.map || '') + '</td><td>' + (g.agent ? esc(g.agent) : dash) + '</td><td>' + res + '</td>' +
+              '<td class="n">' + (g.rounds_won != null ? g.rounds_won + '–' + g.rounds_lost : dash) + '</td>' +
               '<td class="n"><span class="' + (g.rr_change > 0 ? 'cg-up' : g.rr_change < 0 ? 'cg-down' : 'cg-even') + '">' + cgSigned(g.rr_change) + '</span></td>' +
+              '<td class="n">' + (g.kills != null ? g.kills + '/' + g.deaths + '/' + g.assists : dash) + '</td>' +
+              '<td class="n">' + (g.combat_score != null && rounds ? Math.round(g.combat_score / rounds) : dash) + '</td>' +
               '<td>' + esc(g.tier || '') + (g.rr != null ? ' <span class="who">' + g.rr + ' RR</span>' : '') + '</td>' +
               '<td>' + notes.map(function (n) { return '<span class="cg-tag">' + esc(n) + '</span>'; }).join('') + '</td></tr>';
           }).join('') + '</tbody></table>' : '<p class="who" style="margin: 0; padding: 10px 12px">No ranked games in this period.</p>') + '</td></tr>';
       }
       return row;
-    }).join('') || '<tr><td colspan="7" class="who">' + (CG.err ? '' : !CG.loaded ? 'Loading…' : q ? 'No players match that search.' : only ? 'Nobody has played ranked in this period yet.' : 'No players with a Riot ID.') + '</td></tr>';
+    }).join('') || '<tr><td colspan="8" class="who">' + (CG.err ? '' : !CG.loaded ? 'Loading…' : q ? 'No players match that search.' : only ? 'Nobody has played ranked in this period yet.' : 'No players with a Riot ID.') + '</td></tr>';
     markSort($('cg-table'), CG.sort);
   }
   ['cg-q', 'cg-region', 'cg-period', 'cg-played'].forEach(function (id) { $(id).addEventListener(id === 'cg-q' ? 'input' : 'change', drawComp); });
@@ -2568,10 +2578,10 @@
   });
   $('cg-refresh').addEventListener('click', function () {
     var b = this, msg = $('cg-msg');
-    b.disabled = true; CG.busy = true; msg.className = 'msg'; msg.textContent = 'Checking 4 players with HenrikDev…';
-    cgCheck({ p_limit: 4 }, b);
+    b.disabled = true; CG.busy = true; msg.className = 'msg'; msg.textContent = 'Checking 3 players with HenrikDev…';
+    cgCheck({ p_limit: 3 }, b);
   });
-  // One check (4 players, or one player): the site cuts a request off after 8 seconds, so it stays small.
+  // One check (3 players, or one player): the site cuts a request off after 8 seconds, so it stays small.
   function cgCheck(body, b) {
     var msg = $('cg-msg');
     L.api('/rest/v1/rpc/fb_comp_fetch', { method: 'POST', body: body }).then(function (r) {

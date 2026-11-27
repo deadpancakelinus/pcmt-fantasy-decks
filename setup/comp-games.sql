@@ -3,9 +3,11 @@
 -- Riot ID in riot_ids (setup/riot-ids.sql). Staff and site admins only; nothing on the site reads it.
 -- Run after setup/riot-ids.sql. Safe to run again.
 --
+-- Each player check is two HenrikDev calls: the ranked history (RR) and, for games without one yet, the stat lines (K/D/A).
 -- fb_comp_fetch(n) checks the n players checked longest ago (at most 25 a call; HenrikDev's Basic key allows 30 calls a
--- minute, and more than 5 are spaced 2 seconds apart) and keeps every game it finds; fb_comp_fetch(1, player) checks one. A scheduled job (pg_cron, 'pcmt-comp-games') runs it every 10 minutes for 20
--- players, so each player is checked about once an hour. The backend checks 4 more at a time, or one player, on request
+-- minute, and more than 5 are spaced 3 seconds apart) and keeps every game it finds; fb_comp_fetch(1, player) checks one.
+-- A scheduled job (pg_cron, 'pcmt-comp-games') runs it every 10 minutes for 15 players, so each player is checked about
+-- every 1.5 hours. The backend checks 4 more at a time, or one player, on request
 -- (the site's requests are cut off after 8 seconds).
 -- The HenrikDev key stays in Supabase Vault as henrik_api_key.
 
@@ -29,6 +31,14 @@ create table if not exists public.riot_comp_games (
   primary key (player, match_id)
 );
 create index if not exists riot_comp_games_when on public.riot_comp_games (played_at desc);
+-- Each game's stat line (Nov 27 2026), from HenrikDev's stored matches (/valorant/v1/by-puuid/stored-matches, same match id)
+alter table public.riot_comp_games add column if not exists kills int;
+alter table public.riot_comp_games add column if not exists deaths int;
+alter table public.riot_comp_games add column if not exists assists int;
+alter table public.riot_comp_games add column if not exists agent text;
+alter table public.riot_comp_games add column if not exists combat_score int;   -- total; ACS = combat_score / rounds
+alter table public.riot_comp_games add column if not exists rounds_won int;
+alter table public.riot_comp_games add column if not exists rounds_lost int;
 
 create table if not exists public.riot_comp_status (
   player     text primary key references public.riot_ids (player) on delete cascade,
@@ -52,7 +62,7 @@ create policy "staff read comp status" on public.riot_comp_status for select
 create or replace function public.fb_comp_fetch(p_limit int default 20, p_player text default null) returns jsonb
 language plpgsql security definer set search_path = public, extensions as $$
 declare
-  k text; r record; res extensions.http_response; j jsonb; h jsonb; url text; acct jsonb;
+  k text; r record; res extensions.http_response; j jsonb; h jsonb; url text; acct jsonb; v_puuid text; m jsonb; mine text;
   checked int := 0; added int := 0; errs int := 0; stopped text := null; latest jsonb; before int;
 begin
   -- staff and site admins; the scheduled job runs without a user
@@ -71,7 +81,7 @@ begin
   loop
     -- the scheduled job spaces its calls out (HenrikDev turns away a burst even under 30 a minute); the backend's small
     -- checks (a few players, inside the site's 8 second request limit) go straight through
-    if checked + errs > 0 and coalesce(p_limit, 20) > 5 then perform pg_sleep(2.2); end if;
+    if checked + errs > 0 and coalesce(p_limit, 20) > 5 then perform pg_sleep(3); end if;
     -- by Riot's account id once we know it (it survives renames), else by Riot ID
     url := case when r.puuid is not null
       then 'https://api.henrikdev.xyz/valorant/v2/by-puuid/mmr-history/' || r.region || '/pc/' || r.puuid
@@ -116,11 +126,34 @@ begin
             refunded_rr = excluded.refunded_rr, derank_protected = excluded.derank_protected, fetched_at = now();
     end loop;
     added := added + (select count(*) from public.riot_comp_games where player = r.player) - before;
+    -- the same games' stat lines (kills, deaths, assists, agent, score): one more call, matched by match id
+    v_puuid := coalesce(r.puuid, acct ->> 'puuid');
+    if v_puuid is not null and exists (select 1 from public.riot_comp_games g where g.player = r.player and g.kills is null) then
+      if coalesce(p_limit, 20) > 5 then perform pg_sleep(3); end if;
+      begin
+        res := extensions.http(('GET', 'https://api.henrikdev.xyz/valorant/v1/by-puuid/stored-matches/' || r.region || '/' || v_puuid || '?mode=competitive&size=20',
+                                array[extensions.http_header('Authorization', k)], null, null)::extensions.http_request);
+      exception when others then res := null;
+      end;
+      if res.status = 429 then stopped := 'HenrikDev rate limit: try again in a minute'; end if;
+      if res.status = 200 then
+        for m in select * from jsonb_array_elements(coalesce(res.content::jsonb -> 'data', '[]'::jsonb)) loop
+          mine := lower(m -> 'stats' ->> 'team');
+          update public.riot_comp_games g
+             set kills = (m -> 'stats' ->> 'kills')::int, deaths = (m -> 'stats' ->> 'deaths')::int, assists = (m -> 'stats' ->> 'assists')::int,
+                 agent = m -> 'stats' -> 'character' ->> 'name', combat_score = (m -> 'stats' ->> 'score')::int,
+                 rounds_won = (m -> 'teams' ->> mine)::int,
+                 rounds_lost = (m -> 'teams' ->> case when mine = 'red' then 'blue' else 'red' end)::int
+           where g.player = r.player and g.match_id = m -> 'meta' ->> 'id';
+        end loop;
+      end if;
+    end if;
     latest := (select x from jsonb_array_elements(coalesce(j -> 'history', '[]'::jsonb)) x order by (x ->> 'date')::timestamptz desc limit 1);
     insert into public.riot_comp_status (player, fetched_at, ok, error, tier, rr, elo)
       values (r.player, now(), true, null, latest -> 'tier' ->> 'name', (latest ->> 'rr')::int, (latest ->> 'elo')::int)
       on conflict (player) do update set fetched_at = now(), ok = true, error = null,
         tier = coalesce(excluded.tier, riot_comp_status.tier), rr = coalesce(excluded.rr, riot_comp_status.rr), elo = coalesce(excluded.elo, riot_comp_status.elo);
+    exit when stopped is not null;
   end loop;
   return jsonb_build_object('checked', checked, 'new_games', added, 'errors', errs, 'stopped', stopped,
     'never_checked', (select count(*) from public.riot_ids i where i.riot_name is not null and not exists (select 1 from public.riot_comp_status s where s.player = i.player)));
@@ -128,6 +161,7 @@ end $$;
 revoke all on function public.fb_comp_fetch(int, text) from public, anon;
 grant execute on function public.fb_comp_fetch(int, text) to authenticated;
 
--- Every 10 minutes, the 20 players checked longest ago (about once an hour each).
+-- Every 10 minutes, the 15 players checked longest ago (about every 1.5 hours each), calls 3 s apart: up to 30 calls,
+-- about 20 a minute, which leaves room for the backend's checks inside HenrikDev's limit.
 select cron.unschedule(jobid) from cron.job where jobname = 'pcmt-comp-games';
-select cron.schedule('pcmt-comp-games', '*/10 * * * *', 'select public.fb_comp_fetch(20)');
+select cron.schedule('pcmt-comp-games', '*/10 * * * *', 'select public.fb_comp_fetch(15)');
