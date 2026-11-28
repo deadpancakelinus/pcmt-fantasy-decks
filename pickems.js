@@ -474,7 +474,10 @@ var PCMT_PICKEMS = [
         "b": "EDG",
         "bo": 3,
         "start": "2026-11-28T00:00:00Z",
-        "score": null,
+        "score": [
+          2,
+          0
+        ],
         "url": "https://pcmt.gg/events/s4-na/dei-vs-edg-s4-group-b-2026-11-28"
       },
       {

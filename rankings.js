@@ -326,7 +326,7 @@ var PCMT_POWER = {
   },
   "s4-na": {
     "event": "s4-na",
-    "updated": "2026-11-26T03:00:00Z",
+    "updated": "2026-11-28T00:00:00Z",
     "teams": [
       {
         "rank": 1,
@@ -346,7 +346,7 @@ var PCMT_POWER = {
         "name": "Everybody Dance Meow",
         "rating": 1520,
         "change": 0,
-        "last": null,
+        "last": 2,
         "w": 1,
         "l": 0,
         "streak": "1W",
@@ -378,6 +378,18 @@ var PCMT_POWER = {
       },
       {
         "rank": 5,
+        "code": "DEI",
+        "name": "Doofenshmirtz Evil Inc.",
+        "rating": 1520,
+        "change": 0,
+        "last": null,
+        "w": 1,
+        "l": 0,
+        "streak": "1W",
+        "lastPlayed": "2026-11-28T00:00:00Z"
+      },
+      {
+        "rank": 6,
         "code": "NBR",
         "name": "Namebrand Ramyeon",
         "rating": 1516,
@@ -389,7 +401,7 @@ var PCMT_POWER = {
         "lastPlayed": "2026-11-22T02:00:00Z"
       },
       {
-        "rank": 6,
+        "rank": 7,
         "code": "PRX",
         "name": "Perfect RetaXe",
         "rating": 1484,
@@ -401,31 +413,31 @@ var PCMT_POWER = {
         "lastPlayed": "2026-11-22T02:00:00Z"
       },
       {
-        "rank": 7,
+        "rank": 8,
         "code": "WBG",
         "name": "We Been Gaming",
         "rating": 1480,
         "change": 0,
-        "last": 2,
+        "last": 3,
         "w": 0,
         "l": 1,
         "streak": "1L",
         "lastPlayed": "2026-11-18T03:00:00Z"
       },
       {
-        "rank": 8,
+        "rank": 9,
         "code": "CR",
         "name": "CRazy Zigzagoon",
         "rating": 1480,
         "change": 0,
-        "last": null,
+        "last": 4,
         "w": 0,
         "l": 1,
         "streak": "1L",
         "lastPlayed": "2026-11-20T01:00:00Z"
       },
       {
-        "rank": 9,
+        "rank": 10,
         "code": "BLG",
         "name": "Bartho Lomew Gaming",
         "rating": 1480,
@@ -437,7 +449,7 @@ var PCMT_POWER = {
         "lastPlayed": "2026-11-23T02:00:00Z"
       },
       {
-        "rank": 10,
+        "rank": 11,
         "code": "LOUD",
         "name": "Leading Ourselves Under Delusion",
         "rating": 1480,
@@ -447,6 +459,18 @@ var PCMT_POWER = {
         "l": 1,
         "streak": "1L",
         "lastPlayed": "2026-11-26T03:00:00Z"
+      },
+      {
+        "rank": 12,
+        "code": "EDG",
+        "name": "EggheaD Gaming",
+        "rating": 1480,
+        "change": 0,
+        "last": null,
+        "w": 0,
+        "l": 1,
+        "streak": "1L",
+        "lastPlayed": "2026-11-28T00:00:00Z"
       }
     ]
   }
