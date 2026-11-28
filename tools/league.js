@@ -1819,8 +1819,8 @@ try { localStorage.removeItem('pcmt-glass'); } catch (e) {}
 
 /* The Deck Leaderboard as a window on The Deck (Nov 27 2026). The leaderboard page on its own forwards to
    The Deck with the window open (index.html#leaderboard), so links to it (PCMT.gg's included) keep working. Inside the
-   window it's leaderboard.html?window=1, shown without its header and footer. "The Deck Leaderboard" in the page bar
-   opens the window. */
+   window it's leaderboard.html?window=1, shown without its header and footer. The Leaderboard button on The Deck's
+   Total points card opens the window (it's no longer in the page bar). */
 (function () {
   if (!document.createElement) return;
   var file = (location.pathname.split('/').pop() || '').replace(/\.html$/, '');
@@ -1888,7 +1888,7 @@ try { localStorage.removeItem('pcmt-glass'); } catch (e) {}
   function check() { if (location.hash === '#leaderboard') show(); }
   window.addEventListener('hashchange', check);
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', check); else check();
-  // the page bar's link on The Deck itself: open the window without reloading
+  // the Leaderboard button (any #leaderboard link) on The Deck: open the window without reloading
   document.addEventListener('click', function (e) {
     if (e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
     var a = e.target && e.target.closest ? e.target.closest('a[href$="#leaderboard"]') : null;
