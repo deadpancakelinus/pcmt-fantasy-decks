@@ -241,6 +241,44 @@ var PCMT_RESULTS = [
           "stingray": 18,
           "linus": 15,
           "cassie": 13
+        },
+        "s": {
+          "crocman": [
+            5,
+            5
+          ],
+          "roro": [
+            14,
+            2
+          ],
+          "pi": [
+            13,
+            2
+          ],
+          "ceiliuir": [
+            6,
+            1
+          ],
+          "radical": [
+            12,
+            4
+          ],
+          "kennys": [
+            13,
+            1
+          ],
+          "kaydeg": [
+            4,
+            5
+          ],
+          "linus": [
+            12,
+            1
+          ],
+          "cassie": [
+            8,
+            1
+          ]
         }
       },
       {
@@ -258,6 +296,44 @@ var PCMT_RESULTS = [
           "cassie": 18,
           "kennys": 17,
           "kaydeg": 18
+        },
+        "s": {
+          "crocman": [
+            10,
+            7
+          ],
+          "ceiliuir": [
+            5,
+            1
+          ],
+          "roro": [
+            15,
+            0
+          ],
+          "pi": [
+            13,
+            2
+          ],
+          "radical": [
+            6,
+            4
+          ],
+          "linus": [
+            12,
+            2
+          ],
+          "cassie": [
+            2,
+            2
+          ],
+          "kennys": [
+            7,
+            4
+          ],
+          "kaydeg": [
+            2,
+            3
+          ]
         }
       },
       {
@@ -275,6 +351,44 @@ var PCMT_RESULTS = [
           "kennys": 13,
           "kaydeg": 9,
           "cassie": 6
+        },
+        "s": {
+          "crocman": [
+            6,
+            3
+          ],
+          "radical": [
+            6,
+            0
+          ],
+          "pi": [
+            6,
+            4
+          ],
+          "ceiliuir": [
+            7,
+            1
+          ],
+          "roro": [
+            10,
+            1
+          ],
+          "linus": [
+            3,
+            0
+          ],
+          "kennys": [
+            7,
+            2
+          ],
+          "kaydeg": [
+            5,
+            2
+          ],
+          "cassie": [
+            6,
+            0
+          ]
         }
       }
     ]
@@ -404,6 +518,48 @@ var PCMT_RESULTS = [
           "optimus": 21,
           "~angel": 10,
           "sky": 13
+        },
+        "s": {
+          "~heef": [
+            12,
+            0
+          ],
+          "~denial": [
+            11,
+            4
+          ],
+          "~syim": [
+            6,
+            3
+          ],
+          "reoken": [
+            9,
+            4
+          ],
+          "spolen": [
+            5,
+            0
+          ],
+          "night-emea": [
+            4,
+            3
+          ],
+          "~taylorgzz": [
+            8,
+            4
+          ],
+          "optimus": [
+            4,
+            3
+          ],
+          "~angel": [
+            19,
+            1
+          ],
+          "sky": [
+            2,
+            2
+          ]
         }
       },
       {
@@ -421,6 +577,48 @@ var PCMT_RESULTS = [
           "sky": 16,
           "night-emea": 19,
           "~angel": 11
+        },
+        "s": {
+          "~heef": [
+            15,
+            1
+          ],
+          "~denial": [
+            10,
+            1
+          ],
+          "~syim": [
+            4,
+            2
+          ],
+          "reoken": [
+            4,
+            6
+          ],
+          "spolen": [
+            5,
+            5
+          ],
+          "optimus": [
+            11,
+            3
+          ],
+          "~taylorgzz": [
+            3,
+            1
+          ],
+          "sky": [
+            7,
+            2
+          ],
+          "night-emea": [
+            2,
+            3
+          ],
+          "~angel": [
+            3,
+            0
+          ]
         }
       }
     ]
@@ -550,6 +748,48 @@ var PCMT_RESULTS = [
           "dunkn": 14,
           "cooleo": 16,
           "derpina": 8
+        },
+        "s": {
+          "crocman": [
+            2,
+            2
+          ],
+          "roro": [
+            5,
+            1
+          ],
+          "ceiliuir": [
+            5,
+            2
+          ],
+          "pi": [
+            8,
+            0
+          ],
+          "radical": [
+            3,
+            1
+          ],
+          "phuzzy": [
+            8,
+            4
+          ],
+          "thighs": [
+            5,
+            3
+          ],
+          "dunkn": [
+            8,
+            0
+          ],
+          "cooleo": [
+            4,
+            0
+          ],
+          "derpina": [
+            4,
+            3
+          ]
         }
       },
       {
@@ -567,6 +807,48 @@ var PCMT_RESULTS = [
           "derpina": 17,
           "dunkn": 11,
           "thighs": 8
+        },
+        "s": {
+          "crocman": [
+            3,
+            1
+          ],
+          "pi": [
+            5,
+            4
+          ],
+          "ceiliuir": [
+            5,
+            0
+          ],
+          "roro": [
+            3,
+            1
+          ],
+          "radical": [
+            2,
+            1
+          ],
+          "cooleo": [
+            7,
+            2
+          ],
+          "phuzzy": [
+            4,
+            0
+          ],
+          "derpina": [
+            4,
+            6
+          ],
+          "dunkn": [
+            7,
+            1
+          ],
+          "thighs": [
+            3,
+            2
+          ]
         }
       },
       {
@@ -584,6 +866,48 @@ var PCMT_RESULTS = [
           "phuzzy": 21,
           "dunkn": 15,
           "derpina": 15
+        },
+        "s": {
+          "crocman": [
+            7,
+            2
+          ],
+          "roro": [
+            13,
+            1
+          ],
+          "radical": [
+            4,
+            4
+          ],
+          "ceiliuir": [
+            12,
+            4
+          ],
+          "pi": [
+            6,
+            3
+          ],
+          "cooleo": [
+            5,
+            3
+          ],
+          "thighs": [
+            3,
+            1
+          ],
+          "phuzzy": [
+            5,
+            4
+          ],
+          "dunkn": [
+            16,
+            2
+          ],
+          "derpina": [
+            2,
+            6
+          ]
         }
       }
     ]
@@ -713,6 +1037,48 @@ var PCMT_RESULTS = [
           "hmmmdead": 13,
           "eva": 12,
           "otaka": 11
+        },
+        "s": {
+          "haike": [
+            9,
+            1
+          ],
+          "jamit": [
+            2,
+            2
+          ],
+          "taylorgzz": [
+            1,
+            1
+          ],
+          "king": [
+            2,
+            2
+          ],
+          "pengu": [
+            0,
+            0
+          ],
+          "ghrf6": [
+            3,
+            3
+          ],
+          "~nana": [
+            11,
+            4
+          ],
+          "hmmmdead": [
+            5,
+            3
+          ],
+          "eva": [
+            6,
+            0
+          ],
+          "otaka": [
+            5,
+            2
+          ]
         }
       },
       {
@@ -730,6 +1096,48 @@ var PCMT_RESULTS = [
           "ghrf6": 16,
           "otaka": 12,
           "~nana": 11
+        },
+        "s": {
+          "jamit": [
+            9,
+            1
+          ],
+          "king": [
+            2,
+            4
+          ],
+          "taylorgzz": [
+            13,
+            2
+          ],
+          "haike": [
+            14,
+            3
+          ],
+          "pengu": [
+            8,
+            0
+          ],
+          "hmmmdead": [
+            4,
+            4
+          ],
+          "eva": [
+            13,
+            3
+          ],
+          "ghrf6": [
+            4,
+            3
+          ],
+          "otaka": [
+            8,
+            1
+          ],
+          "~nana": [
+            10,
+            1
+          ]
         }
       },
       {
@@ -747,6 +1155,48 @@ var PCMT_RESULTS = [
           "eva": 11,
           "ghrf6": 12,
           "otaka": 6
+        },
+        "s": {
+          "taylorgzz": [
+            2,
+            1
+          ],
+          "haike": [
+            2,
+            2
+          ],
+          "king": [
+            2,
+            2
+          ],
+          "jamit": [
+            4,
+            1
+          ],
+          "pengu": [
+            3,
+            0
+          ],
+          "~nana": [
+            3,
+            2
+          ],
+          "hmmmdead": [
+            3,
+            3
+          ],
+          "eva": [
+            12,
+            1
+          ],
+          "ghrf6": [
+            6,
+            2
+          ],
+          "otaka": [
+            5,
+            1
+          ]
         }
       }
     ]
@@ -876,6 +1326,48 @@ var PCMT_RESULTS = [
           "goofy": 12,
           "sb": 11,
           "jinno": 5
+        },
+        "s": {
+          "asra": [
+            0,
+            3
+          ],
+          "denial": [
+            10,
+            5
+          ],
+          "~syim": [
+            9,
+            1
+          ],
+          "reoken": [
+            7,
+            3
+          ],
+          "spolen": [
+            16,
+            0
+          ],
+          "kai": [
+            2,
+            8
+          ],
+          "pandyro": [
+            8,
+            3
+          ],
+          "goofy": [
+            2,
+            2
+          ],
+          "sb": [
+            7,
+            0
+          ],
+          "jinno": [
+            13,
+            1
+          ]
         }
       },
       {
@@ -893,6 +1385,48 @@ var PCMT_RESULTS = [
           "pandyro": 17,
           "jinno": 9,
           "goofy": 6
+        },
+        "s": {
+          "asra": [
+            3,
+            0
+          ],
+          "reoken": [
+            6,
+            2
+          ],
+          "~syim": [
+            8,
+            1
+          ],
+          "denial": [
+            3,
+            1
+          ],
+          "spolen": [
+            7,
+            3
+          ],
+          "kai": [
+            6,
+            7
+          ],
+          "sb": [
+            6,
+            5
+          ],
+          "pandyro": [
+            7,
+            3
+          ],
+          "jinno": [
+            10,
+            0
+          ],
+          "goofy": [
+            6,
+            0
+          ]
         }
       }
     ]
@@ -1022,6 +1556,48 @@ var PCMT_RESULTS = [
           "~kaiser": 16,
           "riyako": 12,
           "yessi": 13
+        },
+        "s": {
+          "faye": [
+            5,
+            3
+          ],
+          "~k 9": [
+            3,
+            5
+          ],
+          "alet": [
+            6,
+            4
+          ],
+          "magmoz": [
+            6,
+            2
+          ],
+          "charlotte": [
+            4,
+            0
+          ],
+          "sinderinho": [
+            6,
+            3
+          ],
+          "alexx": [
+            4,
+            3
+          ],
+          "~kaiser": [
+            13,
+            2
+          ],
+          "riyako": [
+            10,
+            0
+          ],
+          "yessi": [
+            6,
+            1
+          ]
         }
       },
       {
@@ -1039,6 +1615,48 @@ var PCMT_RESULTS = [
           "~kaiser": 15,
           "alexx": 11,
           "sinderinho": 10
+        },
+        "s": {
+          "~k 9": [
+            4,
+            0
+          ],
+          "magmoz": [
+            3,
+            1
+          ],
+          "alet": [
+            2,
+            2
+          ],
+          "faye": [
+            3,
+            0
+          ],
+          "charlotte": [
+            0,
+            0
+          ],
+          "riyako": [
+            7,
+            1
+          ],
+          "yessi": [
+            4,
+            2
+          ],
+          "~kaiser": [
+            8,
+            3
+          ],
+          "alexx": [
+            16,
+            3
+          ],
+          "sinderinho": [
+            1,
+            2
+          ]
         }
       }
     ]
@@ -1168,6 +1786,48 @@ var PCMT_RESULTS = [
           "tery-s4": 9,
           "caleb-s4": 10,
           "lucas-s4": 5
+        },
+        "s": {
+          "claps-s4": [
+            5,
+            7
+          ],
+          "radical-s4": [
+            4,
+            2
+          ],
+          "~caesparz": [
+            6,
+            2
+          ],
+          "nameless-s4": [
+            5,
+            2
+          ],
+          "psyclone-s4": [
+            11,
+            1
+          ],
+          "pavel-s4": [
+            5,
+            1
+          ],
+          "igneous-s4": [
+            4,
+            1
+          ],
+          "tery-s4": [
+            4,
+            0
+          ],
+          "caleb-s4": [
+            3,
+            0
+          ],
+          "lucas-s4": [
+            2,
+            1
+          ]
         }
       },
       {
@@ -1185,6 +1845,48 @@ var PCMT_RESULTS = [
           "lucas-s4": 13,
           "igneous-s4": 9,
           "tery-s4": 2
+        },
+        "s": {
+          "claps-s4": [
+            5,
+            8
+          ],
+          "nameless-s4": [
+            4,
+            1
+          ],
+          "psyclone-s4": [
+            10,
+            2
+          ],
+          "~caesparz": [
+            6,
+            2
+          ],
+          "radical-s4": [
+            6,
+            1
+          ],
+          "pavel-s4": [
+            3,
+            6
+          ],
+          "caleb-s4": [
+            5,
+            0
+          ],
+          "lucas-s4": [
+            4,
+            0
+          ],
+          "igneous-s4": [
+            6,
+            1
+          ],
+          "tery-s4": [
+            10,
+            0
+          ]
         }
       }
     ]
@@ -1324,6 +2026,48 @@ var PCMT_RESULTS = [
           "apple-s4": 22,
           "nut-s4": 20,
           "ceiliuir-s4": 14
+        },
+        "s": {
+          "jaypee-s4": [
+            7,
+            3
+          ],
+          "james-s4": [
+            10,
+            6
+          ],
+          "hascan-s4": [
+            4,
+            3
+          ],
+          "li-s4": [
+            13,
+            0
+          ],
+          "~caesparz": [
+            14,
+            1
+          ],
+          "nolan-s4": [
+            14,
+            4
+          ],
+          "jooah-s4": [
+            16,
+            3
+          ],
+          "apple-s4": [
+            4,
+            6
+          ],
+          "nut-s4": [
+            11,
+            1
+          ],
+          "ceiliuir-s4": [
+            10,
+            3
+          ]
         }
       },
       {
@@ -1341,6 +2085,48 @@ var PCMT_RESULTS = [
           "jooah-s4": 12,
           "nut-s4": 8,
           "ceiliuir-s4": 2
+        },
+        "s": {
+          "james-s4": [
+            11,
+            1
+          ],
+          "jaypee-s4": [
+            4,
+            7
+          ],
+          "li-s4": [
+            3,
+            6
+          ],
+          "corina-s4": [
+            5,
+            1
+          ],
+          "hascan-s4": [
+            6,
+            0
+          ],
+          "apple-s4": [
+            3,
+            0
+          ],
+          "nolan-s4": [
+            3,
+            1
+          ],
+          "jooah-s4": [
+            2,
+            3
+          ],
+          "nut-s4": [
+            5,
+            0
+          ],
+          "ceiliuir-s4": [
+            9,
+            0
+          ]
         }
       }
     ]
@@ -1470,6 +2256,48 @@ var PCMT_RESULTS = [
           "jaden-s4": 21,
           "tawn-s4": 15,
           "hankyjanky-s4": 7
+        },
+        "s": {
+          "josh-s4": [
+            5,
+            0
+          ],
+          "platy-s4": [
+            7,
+            2
+          ],
+          "art-s4": [
+            5,
+            1
+          ],
+          "makya-s4": [
+            4,
+            1
+          ],
+          "lore-s4": [
+            7,
+            0
+          ],
+          "crocman-s4": [
+            5,
+            3
+          ],
+          "toastemup-s4": [
+            7,
+            4
+          ],
+          "jaden-s4": [
+            4,
+            6
+          ],
+          "tawn-s4": [
+            11,
+            2
+          ],
+          "hankyjanky-s4": [
+            14,
+            2
+          ]
         }
       },
       {
@@ -1487,6 +2315,48 @@ var PCMT_RESULTS = [
           "jaden-s4": 14,
           "tawn-s4": 7,
           "hankyjanky-s4": 5
+        },
+        "s": {
+          "josh-s4": [
+            8,
+            3
+          ],
+          "platy-s4": [
+            10,
+            3
+          ],
+          "art-s4": [
+            0,
+            0
+          ],
+          "makya-s4": [
+            5,
+            2
+          ],
+          "lore-s4": [
+            9,
+            1
+          ],
+          "crocman-s4": [
+            6,
+            3
+          ],
+          "toastemup-s4": [
+            12,
+            0
+          ],
+          "jaden-s4": [
+            4,
+            3
+          ],
+          "tawn-s4": [
+            7,
+            1
+          ],
+          "hankyjanky-s4": [
+            8,
+            2
+          ]
         }
       },
       {
@@ -1504,6 +2374,48 @@ var PCMT_RESULTS = [
           "toastemup-s4": 12,
           "tawn-s4": 11,
           "hankyjanky-s4": 10
+        },
+        "s": {
+          "platy-s4": [
+            6,
+            4
+          ],
+          "josh-s4": [
+            8,
+            1
+          ],
+          "art-s4": [
+            6,
+            1
+          ],
+          "makya-s4": [
+            10,
+            2
+          ],
+          "lore-s4": [
+            11,
+            0
+          ],
+          "jaden-s4": [
+            2,
+            7
+          ],
+          "crocman-s4": [
+            1,
+            5
+          ],
+          "toastemup-s4": [
+            8,
+            1
+          ],
+          "tawn-s4": [
+            7,
+            2
+          ],
+          "hankyjanky-s4": [
+            4,
+            1
+          ]
         }
       }
     ]
@@ -1633,6 +2545,48 @@ var PCMT_RESULTS = [
           "linus-s4": 25,
           "androobee-s4": 19,
           "ahsum-s4": 21
+        },
+        "s": {
+          "stingray-s4": [
+            8,
+            3
+          ],
+          "phuzzy-s4": [
+            9,
+            3
+          ],
+          "asher-s4": [
+            9,
+            4
+          ],
+          "caesparz-s4": [
+            14,
+            0
+          ],
+          "amara-s4": [
+            12,
+            4
+          ],
+          "angus-s4": [
+            13,
+            5
+          ],
+          "kaydeg-s4": [
+            10,
+            7
+          ],
+          "linus-s4": [
+            7,
+            0
+          ],
+          "androobee-s4": [
+            23,
+            3
+          ],
+          "ahsum-s4": [
+            4,
+            5
+          ]
         }
       },
       {
@@ -1650,6 +2604,48 @@ var PCMT_RESULTS = [
           "kaydeg-s4": 17,
           "angus-s4": 17,
           "androobee-s4": 10
+        },
+        "s": {
+          "phuzzy-s4": [
+            3,
+            2
+          ],
+          "amara-s4": [
+            8,
+            2
+          ],
+          "stingray-s4": [
+            3,
+            2
+          ],
+          "asher-s4": [
+            12,
+            2
+          ],
+          "caesparz-s4": [
+            12,
+            3
+          ],
+          "linus-s4": [
+            13,
+            2
+          ],
+          "ahsum-s4": [
+            0,
+            3
+          ],
+          "kaydeg-s4": [
+            7,
+            4
+          ],
+          "angus-s4": [
+            8,
+            3
+          ],
+          "androobee-s4": [
+            9,
+            0
+          ]
         }
       }
     ]
@@ -1779,6 +2775,48 @@ var PCMT_RESULTS = [
           "platinum-s4": 15,
           "pumpkin-s4": 10,
           "paul-s4": 10
+        },
+        "s": {
+          "avi-s4": [
+            3,
+            7
+          ],
+          "dino-s4": [
+            5,
+            1
+          ],
+          "sizeable-s4": [
+            6,
+            2
+          ],
+          "tenyaku-s4": [
+            3,
+            2
+          ],
+          "roro-s4": [
+            8,
+            0
+          ],
+          "colt-s4": [
+            5,
+            4
+          ],
+          "~pieta": [
+            11,
+            4
+          ],
+          "platinum-s4": [
+            8,
+            0
+          ],
+          "pumpkin-s4": [
+            11,
+            0
+          ],
+          "paul-s4": [
+            5,
+            1
+          ]
         }
       },
       {
@@ -1796,6 +2834,48 @@ var PCMT_RESULTS = [
           "~pieta": 15,
           "platinum-s4": 11,
           "paul-s4": 2
+        },
+        "s": {
+          "sizeable-s4": [
+            7,
+            5
+          ],
+          "tenyaku-s4": [
+            5,
+            3
+          ],
+          "roro-s4": [
+            8,
+            3
+          ],
+          "dino-s4": [
+            8,
+            1
+          ],
+          "avi-s4": [
+            4,
+            1
+          ],
+          "colt-s4": [
+            1,
+            4
+          ],
+          "pumpkin-s4": [
+            7,
+            1
+          ],
+          "~pieta": [
+            7,
+            3
+          ],
+          "platinum-s4": [
+            5,
+            0
+          ],
+          "paul-s4": [
+            2,
+            0
+          ]
         }
       }
     ]
@@ -1925,6 +3005,48 @@ var PCMT_RESULTS = [
           "xyn-s4": 7,
           "neckolas-s4": 6,
           "dunkn-s4": 3
+        },
+        "s": {
+          "snowfall-s4": [
+            8,
+            3
+          ],
+          "haych-s4": [
+            8,
+            4
+          ],
+          "teklo-s4": [
+            5,
+            2
+          ],
+          "slow-s4": [
+            7,
+            0
+          ],
+          "~caleb": [
+            5,
+            0
+          ],
+          "izz-s4": [
+            6,
+            6
+          ],
+          "~night": [
+            2,
+            2
+          ],
+          "xyn-s4": [
+            4,
+            0
+          ],
+          "neckolas-s4": [
+            3,
+            0
+          ],
+          "dunkn-s4": [
+            5,
+            0
+          ]
         }
       },
       {
@@ -1942,6 +3064,48 @@ var PCMT_RESULTS = [
           "dunkn-s4": 13,
           "xyn-s4": 10,
           "neckolas-s4": 10
+        },
+        "s": {
+          "haych-s4": [
+            8,
+            3
+          ],
+          "snowfall-s4": [
+            10,
+            1
+          ],
+          "teklo-s4": [
+            3,
+            3
+          ],
+          "~caleb": [
+            8,
+            3
+          ],
+          "slow-s4": [
+            14,
+            0
+          ],
+          "izz-s4": [
+            1,
+            5
+          ],
+          "~night": [
+            8,
+            1
+          ],
+          "dunkn-s4": [
+            15,
+            2
+          ],
+          "xyn-s4": [
+            9,
+            1
+          ],
+          "neckolas-s4": [
+            2,
+            1
+          ]
         }
       }
     ]
