@@ -1075,7 +1075,7 @@
   // New users: a small window, once per account, while their own NA deck lock is still ahead.
   function newUserHello() {
     var at = window.PCMT_MY_STAGE_LOCK, key = me && ('pcmt-new-user-hi-' + me.id);
-    if (!at || !key || Date.now() >= at) return;
+    if (!at || !key || Date.now() >= at || window.PCMT_IN_WINDOW) return;
     try { if (localStorage.getItem(key)) return; localStorage.setItem(key, '1'); } catch (e) {}
     if (!document.body) return;
     var el = document.createElement('div');
@@ -1169,7 +1169,7 @@
 
 
 /* Privacy notice window (footer link "Privacy notice", or #privacy in the address) and the Delete my account window
-   (button at the bottom of Home). Both use the glass panel style of the Thank You window above. */
+   (in the Account window). Both use the glass panel style of the Thank You window above. */
 (function () {
   'use strict';
   var css = document.createElement('style');
@@ -1305,7 +1305,7 @@
     '<li><b>PCMT Team staff:</b> comments and complaints, and the account details above when needed to run the site.</li>' +
     '<li>We never sell your information, show ads, or share it with anyone else.</li></ul>' +
     '<h3>Services we use</h3><p>Discord (login), Supabase (database), Cloudflare (hosting) and Google Fonts (lettering). Like any website, they can see your IP address when your browser contacts them.</p>' +
-    '<h3>How long we keep it</h3><p>For as long as you have an account. Delete it any time with <b>Delete my account</b> at the bottom of Home: your account, decks, picks, Credits, cards and comments are removed straight away. Login records are removed with the account.</p>' +
+    '<h3>How long we keep it</h3><p>For as long as you have an account. Delete it any time with <b>Delete my account</b> in the Account window: your account, decks, picks, Credits, cards and comments are removed straight away. Login records are removed with the account.</p>' +
     '<h3>Your choices</h3><p>You can ask what we hold about you, ask us to fix it, or delete your account. Use the comments and complaints box on Home or message the PCMT Team on Discord.</p>' +
     '<h3>Age</h3><p>You need a Discord account to log in, so you must meet Discord’s minimum age (13 in most countries).</p>' +
     '<h3>Changes</h3><p>If this notice changes, the date at the top changes too.</p></div>';
@@ -1815,4 +1815,86 @@ try { localStorage.removeItem('pcmt-glass'); } catch (e) {}
   if (window.PCMT_VERSION_JS || !document.createElement) return;
   var s = document.createElement('script'); s.src = 'version.js'; s.async = true;
   (document.head || document.documentElement).appendChild(s);
+})();
+
+/* The Deck Leaderboard as a window on The Deck (Nov 27 2026). The leaderboard page on its own forwards to
+   The Deck with the window open (index.html#leaderboard), so links to it (PCMT.gg's included) keep working. Inside the
+   window it's leaderboard.html?window=1, shown without its header and footer. "The Deck Leaderboard" in the page bar
+   opens the window. */
+(function () {
+  if (!document.createElement) return;
+  var file = (location.pathname.split('/').pop() || '').replace(/\.html$/, '');
+  var inWin = /[?&]window=1(&|$)/.test(location.search);
+  if (file === 'leaderboard') {
+    if (!inWin) { location.replace('./' + (location.search || '') + '#leaderboard'); return; }
+    window.PCMT_IN_WINDOW = true;
+    var st = document.createElement('style');
+    st.textContent = '[data-pcmt-root="Leaderboard"]>header,[data-pcmt-root="Leaderboard"]>footer,[data-pcmt-root="Leaderboard"]>.pcmt-loading{display:none!important}' +
+      '[data-pcmt-root="Leaderboard"]{min-height:0!important}[data-pcmt-root="Leaderboard"]>main{padding:26px 24px 30px!important}' +
+      '[data-pcmt-root="Leaderboard"]>main>div:first-child{padding-right:58px}[data-pcmt-root="Leaderboard"] h1{font-size:46px!important}html,body{background:#0d1416}';
+    (document.head || document.documentElement).appendChild(st);
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') { try { window.parent.postMessage({ pcmt: 'lb-close' }, location.origin); } catch (x) {} }
+    });
+    return;
+  }
+  if (file !== '' && file !== 'index') return;
+  var css = document.createElement('style');
+  css.textContent = '.pcmt-lb-back{position:fixed;inset:0;z-index:9998;display:flex;align-items:center;justify-content:center;padding:24px;' +
+    'background:rgba(6,10,12,.6);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);opacity:0;transition:opacity .2s}' +
+    '.pcmt-lb-back.on{opacity:1}' +
+    '.pcmt-lb{position:relative;width:100%;max-width:1180px;height:min(88vh,900px);box-sizing:border-box;border-radius:16px;overflow:hidden;' +
+    'background:#0d1416;border:1px solid #2a3a3e;box-shadow:0 24px 60px rgba(0,0,0,.55);transform:translateY(10px) scale(.98);transition:transform .2s}' +
+    '.pcmt-lb-back.on .pcmt-lb{transform:none}' +
+    '.pcmt-lb iframe{display:block;width:100%;height:100%;border:0;background:#0d1416}' +
+    '.pcmt-lb-x{position:absolute;top:14px;right:14px;z-index:1;width:44px;height:44px;border-radius:50%;border:1px solid #3a4f53;' +
+    'background:#172124;color:#eaf4f4;font-size:22px;line-height:1;cursor:pointer}' +
+    '.pcmt-lb-x:hover,.pcmt-lb-x:focus-visible{background:#13292b;border-color:#a5dcdd;outline:none}' +
+    '@media (max-width:640px){.pcmt-lb-back{padding:0}.pcmt-lb{height:100%;max-width:none;border-radius:0;border:0}}' +
+    '@media (prefers-reduced-motion:reduce){.pcmt-lb-back,.pcmt-lb{transition:none}}';
+  (document.head || document.documentElement).appendChild(css);
+  var open = null, back = null, scrollY = '';
+  function onKey(e) {
+    if (!open) return;
+    if (e.key === 'Escape') { e.preventDefault(); close(); }
+    else if (e.key === 'Tab' && document.activeElement === open.querySelector('.pcmt-lb-x')) { e.preventDefault(); open.querySelector('iframe').focus(); }
+  }
+  function show() {
+    if (open) return;
+    back = document.activeElement;
+    try { window.sessionStorage.setItem('pcmt-nav', String(Date.now())); } catch (e) {}
+    var wrap = document.createElement('div');
+    wrap.className = 'pcmt-lb-back';
+    wrap.innerHTML = '<div class="pcmt-lb" role="dialog" aria-modal="true" aria-label="The Deck Leaderboard">' +
+      '<button type="button" class="pcmt-lb-x" aria-label="Close the leaderboard">&times;</button>' +
+      '<iframe src="leaderboard.html?window=1" title="The Deck Leaderboard"></iframe></div>';
+    wrap.addEventListener('click', function (e) { if (e.target === wrap || e.target.closest('.pcmt-lb-x')) close(); });
+    document.body.appendChild(wrap);
+    open = wrap;
+    scrollY = document.documentElement.style.overflow; document.documentElement.style.overflow = 'hidden';
+    document.addEventListener('keydown', onKey, true);
+    requestAnimationFrame(function () { wrap.classList.add('on'); wrap.querySelector('.pcmt-lb-x').focus(); });
+  }
+  function close() {
+    if (!open) return;
+    var el = open; open = null;
+    el.classList.remove('on'); setTimeout(function () { el.remove(); }, 200);
+    document.documentElement.style.overflow = scrollY;
+    document.removeEventListener('keydown', onKey, true);
+    if (location.hash === '#leaderboard') { try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {} }
+    if (back && back.focus && document.contains(back)) back.focus();
+  }
+  window.addEventListener('message', function (e) { if (e.origin === location.origin && e.data && e.data.pcmt === 'lb-close') close(); });
+  function check() { if (location.hash === '#leaderboard') show(); }
+  window.addEventListener('hashchange', check);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', check); else check();
+  // the page bar's link on The Deck itself: open the window without reloading
+  document.addEventListener('click', function (e) {
+    if (e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    var a = e.target && e.target.closest ? e.target.closest('a[href$="#leaderboard"]') : null;
+    if (!a) return;
+    e.preventDefault(); e.stopPropagation();
+    show();
+  }, true);
+  window.PCMT_LEADERBOARD_WINDOW = { open: show, close: close };
 })();

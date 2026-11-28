@@ -52,7 +52,7 @@
   function markSeen(at) { try { localStorage.setItem('pcmt-patch-seen', at); } catch (e) {} }
   function patchWindow(note, preview) {
     if (!note || !String(note.text || '').trim()) return;
-    if (!preview && (onBackend || !note.at || seen(note.at))) return;
+    if (!preview && (onBackend || window.PCMT_IN_WINDOW || !note.at || seen(note.at))) return;   // not inside The Deck's leaderboard window
     if (!document.body) { document.addEventListener('DOMContentLoaded', function () { patchWindow(note, preview); }); return; }
     if (document.getElementById('pcmt-patch')) return;
     var back = document.createElement('div'), prev = document.activeElement;
