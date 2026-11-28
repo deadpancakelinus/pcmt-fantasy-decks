@@ -43,6 +43,21 @@ const same = (x, y) => x.start === y.start && ((x.a === y.a && x.b === y.b) || (
 const dataPath = path.join(ROOT, 'data.js'), pkPath = path.join(ROOT, 'pickems.js');
 let dataJs = fs.readFileSync(dataPath, 'utf8'), pkJs = fs.readFileSync(pkPath, 'utf8');
 const players = A.loadPlayers(fs.readFileSync(path.join(ROOT, 'players.js'), 'utf8'));
+// Player edits from the backend (Player prices, deck_players): a changed name is matched as well as the store's own name
+// (so a player can be given their PCMT.gg name there), a changed team is used, and players added there are matched too.
+(function backendPlayers() {
+  let rows;
+  try { rows = sbRead('deck_players?select=id,name,team&order=id'); }
+  catch (e) { console.warn('Backend player names skipped: ' + String(e.message || e).split('\n')[0]); return; }
+  (Array.isArray(rows) ? rows : []).forEach(d => {
+    if (!d || !d.id) return;
+    let p = players.find(q => q.id === d.id);
+    if (!p) { p = { id: d.id, name: d.name || d.id, team: d.team }; players.push(p); }
+    const n = String(d.name || '').trim().toLowerCase();
+    if (n && n !== String(p.name).toLowerCase()) (p.aka = p.aka || []).push(n);
+    if (d.team) p.team = d.team;
+  });
+})();
 const matches = readArr(dataJs, 'PCMT_MATCHES').arr, results = readArr(dataJs, 'PCMT_RESULTS').arr;
 const brackets = readArr(pkJs, 'PCMT_PICKEMS').arr;
 const log = [];
@@ -74,6 +89,20 @@ events.forEach(ev => byEvent[ev.id].forEach(M => {
   const strangers = Object.keys(res.stats).filter(k => k[0] === '~');
   log.push('Add result: ' + res.a + ' vs ' + res.b + ', ' + res.winner + ' won' + (strangers.length ? ' (not in the store: ' + strangers.join(', ') + ')' : ''));
 }));
+// Players the sync didn't know when their game was saved ("~name", e.g. PCMT.gg's name differs from the site's): once
+// they match a player on that team (a backend name or NAME_ALIASES), their games from the last 14 days (the sync's
+// window) move over to that player. Older games stay as they are, so weeks already paid out don't change.
+results.forEach(r => {
+  if (!(Date.parse(r.start) >= since)) return;
+  Object.keys(r.stats || {}).forEach(k => {
+    if (k[0] !== '~') return;
+    const n = k.slice(1), p = players.find(q => (q.team === r.a || q.team === r.b) && A.matches(q, n));
+    if (!p || p.id in r.stats) return;
+    r.stats[p.id] = r.stats[k]; delete r.stats[k];
+    (r.maps || []).forEach(m => ['k', 's'].forEach(f => { if (m[f] && k in m[f]) { m[f][p.id] = m[f][k]; delete m[f][k]; } }));
+    log.push('Match player: ' + n + ' is ' + p.id + ' (' + r.a + ' vs ' + r.b + ')');
+  });
+});
 // Results added before Nov 27 2026 have per-map kills but not per-map assists and first bloods (maps[].s): fill them in
 // from PCMT.gg once, matching the maps by name (a series' a/b order doesn't change them).
 events.forEach(ev => byEvent[ev.id].forEach(M => {

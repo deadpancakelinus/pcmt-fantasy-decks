@@ -45,6 +45,8 @@ One update is still held, NOT pushed (only when the owner says to send it): the 
 
 The LoserQ Patch doesn't have the page bar link to Deck Breakdown: whichever of the two ships second, merge main in and check losersq.html's page bar.
 
+**Player names from the backend** (hotfix, Nov 28 2026): the PCMT.gg sync (tools/pcmt-sync.js) reads deck_players and matches a player by their backend name (Player prices) as well as their players.js name, id or NAME_ALIASES (tools/pcmt-api.js). Games from the last 14 days saved as "~name" move over to the player once the name matches ("Match player: ..." in the sync log); older games are left alone. Fixed pants (PCMT.gg "paul") and teklologik ("teklo"), whose S4 games had been saved as ~paul and ~teklo.
+
 **Comp games** (shipped on its own Nov 27 2026, branch `comp-games`; also in the held Deck Breakdown branch):
 
 | Part | Section | Database |

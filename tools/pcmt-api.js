@@ -28,16 +28,23 @@ const pageUrl = (event, id) => BASE + '/events/' + event + '/' + id;
 // One finished match -> one PCMT_RESULTS entry (same format the site and the server score).
 // stats: { <player id>: [K, D, A, FK, ACS, KAST %, ADR, rating] }, maps: [{ map, a, b, k: { <player id>: kills },
 // s: { <player id>: [assists, first bloods] } }] (s from Nov 27 2026, for the Deck Breakdown page).
-// PCMT.gg names map to player ids on the same team (name or id, any case, or NAME_ALIASES); anyone else is kept as "~" + name.
-// PCMT.gg names that differ from the site's (lowercase PCMT.gg name -> player id). Add one when a sync log says
-// "not in the store: ~<name>" for a rostered player (not a sub; subs go on the backend's Subs tab).
+// PCMT.gg names map to player ids on the same team (name or id, any case, the backend's name, or NAME_ALIASES); anyone else
+// is kept as "~" + name.
+// PCMT.gg names that differ from the site's (lowercase PCMT.gg name -> player id). Easier: give the player their PCMT.gg
+// name on the backend (Player prices) when a sync log says "not in the store: ~<name>" for a rostered player (not a sub;
+// subs go on the backend's Subs tab). Both work, and the next sync moves that player's earlier games over too.
 const NAME_ALIASES = { tawngay: 'tawn-s4', sting: 'stingray-s4', teklo: 'teklo-s4', paul: 'paul-s4' };
+// Does PCMT.gg name n (lowercase) belong to player q? Its name, its id, a name it has on the backend (q.aka, Player
+// prices: tools/pcmt-sync.js reads deck_players) or NAME_ALIASES.
+function matches(q, n) {
+  return String(q.name).toLowerCase() === n || q.id === n || q.id === NAME_ALIASES[n] || (q.aka || []).indexOf(n) >= 0;
+}
 function toResult(M, event, players) {
   if (!M.completed) throw new Error('Series is not finished yet.');
   if (!M.combinedStats || M.combinedStats.length < 2 || M.combinedStats.some(t => !t.players || t.players.length < 5)) throw new Error('Stats are missing for a team.');
   const key = (name, team) => {
     const n = String(name).toLowerCase();
-    const p = players.find(q => q.team === team && (q.name.toLowerCase() === n || q.id === n || q.id === NAME_ALIASES[n]));
+    const p = players.find(q => q.team === team && matches(q, n));
     return p ? p.id : '~' + n;
   };
   const r1 = x => Math.round(x * 10) / 10;
@@ -54,4 +61,4 @@ function toResult(M, event, players) {
            url: pageUrl(event, M.id), stats, maps };
 }
 
-module.exports = { BASE, getJson, loadPlayers, regionOf, pageUrl, toResult };
+module.exports = { BASE, getJson, loadPlayers, regionOf, pageUrl, toResult, matches };
