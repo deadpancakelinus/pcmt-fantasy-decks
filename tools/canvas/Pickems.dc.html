@@ -39,6 +39,9 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 @keyframes lb-aura{0%,100%{box-shadow:0 0 22px rgba(245,215,110,.18),inset 0 0 0 1px rgba(245,215,110,.5)}50%{box-shadow:0 0 34px rgba(245,215,110,.32),inset 0 0 0 1px rgba(245,215,110,.7)}}
 .lb-gold{animation:lb-aura 3.2s ease-in-out infinite}
 @media (prefers-reduced-motion: reduce){.lb-gold{animation:none}}
+.pk-lb-back{position:fixed;inset:0;z-index:9000;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;background:rgba(6,10,12,.6);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.pk-lb{position:relative;width:100%;max-width:980px;max-height:min(88vh,900px);overflow:auto;box-sizing:border-box;padding:26px 24px 28px;border-radius:16px;background:#0d1416;border:1px solid #2a3a3e;box-shadow:0 24px 60px rgba(0,0,0,.55);display:flex;flex-direction:column;gap:18px}
+@media (max-width:640px){.pk-lb-back{padding:0}.pk-lb{max-height:none;height:100%;border-radius:0;border:0}}
 </style>
 </helmet>
 <div data-pcmt-root="Pickems" style="position: relative; min-height: 100vh; background: #0d1416; color: #eaf4f4; font-family: 'National Park', system-ui, sans-serif">
@@ -105,6 +108,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 <p style="margin: 0; color: #c4d4d4; line-height: 1.5">{{acc.note}}</p>
 <sc-if value="{{acc.login}}" hint-placeholder-val="{{ false }}"><a href="login.html" style="align-self: flex-start; font-family: 'National Park', system-ui, sans-serif; font-size: 13px">Log in with Discord</a></sc-if>
 </sc-if>
+<button type="button" onClick="{{openLb}}" aria-haspopup="dialog" style="align-self: flex-start; min-height: 36px; display: inline-flex; align-items: center; gap: 6px; padding: 0 14px; border-radius: 999px; border: 1px solid #3a4f53; background: transparent; font-family: 'National Park', system-ui, sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; color: #a5dcdd; cursor: pointer; white-space: nowrap"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8"></path><path d="M12 17v4"></path><path d="M7 4h10v5a5 5 0 0 1-10 0z"></path><path d="M17 5h3v2a3 3 0 0 1-3 3"></path><path d="M7 5H4v2a3 3 0 0 0 3 3"></path></svg>Leaderboard</button>
 </section>
 <section aria-labelledby="next-h" style="flex: 0 1 440px; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px; padding: 18px 20px; border: 1px solid #2a3a3e; border-radius: 12px; background: #172124">
 <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px">
@@ -253,6 +257,13 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </div>
 </sc-if>
 
+<sc-if value="{{lbOpen}}" hint-placeholder-val="{{ false }}">
+<div class="pk-lb-back" onClick="{{lbBack}}">
+<div class="pk-lb" role="dialog" aria-modal="true" aria-labelledby="pk-lb-h">
+<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px">
+<h2 id="pk-lb-h" style="margin: 0; font-family: 'Cabin Sketch', cursive; font-weight: 700; font-size: 44px; line-height: 1; color: #eaf4f4">Pick'ems Leaderboard</h2>
+<button type="button" id="pk-lb-x" onClick="{{closeLb}}" aria-label="Close the leaderboard" style="flex: none; width: 44px; height: 44px; border-radius: 50%; border: 1px solid #3a4f53; background: #172124; color: #eaf4f4; font-size: 22px; line-height: 1; cursor: pointer">×</button>
+</div>
 <section aria-label="Standings" style="width: 100%; display: flex; flex-direction: column; gap: 14px">
 <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 12px">
 <div style="display: flex; flex-direction: column; gap: 8px; min-width: 0">
@@ -298,6 +309,9 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#a5dcdd !impor
 </table>
 </div>
 </section>
+</div>
+</div>
+</sc-if>
 
 </div>
 </sc-if>
@@ -545,7 +559,8 @@ class Component extends DCLogic {
     });
     var view = PCMT_PICKEMS_DATA[0].id;
     try { var v = window.localStorage.getItem('pcmt-pickems-view'); if (v === 'na-s4-soon') v = 'na-s4'; if (v && PCMT_PICKEMS_DATA.some(function (b) { return b.id === v; })) view = v; } catch (e) {}
-    this.state = { view: view, picksBy: picksBy, savedBy: savedBy, saving: false, search: '' };
+    var lbOpen = false; try { lbOpen = window.location.hash === '#leaderboard'; } catch (e) {}
+    this.state = { view: view, picksBy: picksBy, savedBy: savedBy, saving: false, search: '', lbOpen: lbOpen };
   }
   bracket(id) {
     id = id || this.state.view;
@@ -568,6 +583,12 @@ class Component extends DCLogic {
       try { window.sessionStorage.setItem('pcmt-nav', String(Date.now())); } catch (err) {}
     };
     document.addEventListener('click', this._navClick, true);
+    // Pick'ems Leaderboard window (Nov 28 2026): the standings open from the Leaderboard button in Your Pick'ems (or pickems.html#leaderboard)
+    this._lbKey = function (e) { if (e.key === 'Escape' && self.state.lbOpen) { e.preventDefault(); self.closeLb(); } };
+    document.addEventListener('keydown', this._lbKey, true);
+    this._lbHash = function () { if (window.location.hash === '#leaderboard') self.openLb(); };
+    window.addEventListener('hashchange', this._lbHash);
+    if (this.state.lbOpen) this.openLb();
     function imagesReady() {
       var imgs = Array.prototype.slice.call(document.images || []);
       return Promise.all(imgs.map(function (im) {
@@ -581,9 +602,25 @@ class Component extends DCLogic {
     });
   }
 
+  openLb() {
+    this._lbFrom = document.activeElement;
+    try { document.documentElement.style.overflow = 'hidden'; } catch (e) {}
+    if (!this.state.lbOpen) this.setState({ lbOpen: true });
+    setTimeout(function () { var x = document.getElementById('pk-lb-x'); if (x) x.focus(); }, 30);
+  }
+
+  closeLb() {
+    try { document.documentElement.style.overflow = ''; } catch (e) {}
+    this.setState({ lbOpen: false });
+    try { if (window.location.hash === '#leaderboard') window.history.replaceState(null, '', window.location.pathname + window.location.search); } catch (e) {}
+    var from = this._lbFrom; if (from && from.focus && document.contains(from)) setTimeout(function () { from.focus(); }, 0);
+  }
+
   componentWillUnmount() {
     clearTimeout(this._loaderCap); clearTimeout(this._loaderMin); clearTimeout(this._loaderFade); clearTimeout(this._loaderBuf); clearTimeout(this._loaderNav); clearTimeout(this._navHide);
     if (this._navClick) document.removeEventListener('click', this._navClick, true);
+    if (this._lbKey) document.removeEventListener('keydown', this._lbKey, true);
+    if (this._lbHash) window.removeEventListener('hashchange', this._lbHash);
     clearTimeout(this._draftT);
     if (this._pageWillUnmount) this._pageWillUnmount();
   }
@@ -899,7 +936,11 @@ class Component extends DCLogic {
       emptyText: data.length === 0 && niche ? 'Standings appear once a game someone picked in ' + board + ' Pick\'ems has been played.' : data.length === 0 ? (games ? 'Standings appear once a game someone picked has been played.' : finished && !ev.open ? 'No standings: Pick\'ems weren\'t open for these playoffs.' : 'Standings appear once a picked series is finished.') : 'No managers match that search.',
       hasMe: !!mine, me: mine ? { rank: mine.rank, points: mine.m.points, picked: mine.m.picked == null ? '—' : mine.m.picked } : {},
       search: this.state.search || '',
-      setSearch: function (e) { self.setState({ search: e && e.target ? e.target.value : '' }); }
+      setSearch: function (e) { self.setState({ search: e && e.target ? e.target.value : '' }); },
+      lbOpen: !!this.state.lbOpen,
+      openLb: function () { self.openLb(); },
+      closeLb: function () { self.closeLb(); },
+      lbBack: function (e) { if (e && e.target === e.currentTarget) self.closeLb(); }
     };
   }
 }
