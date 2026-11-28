@@ -31,7 +31,7 @@ One update is still held, NOT pushed (only when the owner says to send it): the 
 
 `setup/users-page.sql` was updated to count MVP VS games from `trumps_results.players` (added by trumps-4p.sql) and run again Nov 27 2026.
 
-**Deck Breakdown** (branch `deck-breakdown`, held; made Nov 27 2026):
+**Deck Breakdown** (branch `deck-breakdown`, made Nov 27 2026; shipped Nov 27-28; the page is called "Database" in the page bar since Nov 28, after Guide, with MVP VS moved after The Deck):
 
 | Part | Section | Database |
 |---|---|---|
