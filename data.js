@@ -1752,7 +1752,7 @@ var PCMT_RESULTS = [
         109.7,
         0.958
       ],
-      "~paul": [
+      "paul-s4": [
         12,
         29,
         7,
@@ -1778,7 +1778,7 @@ var PCMT_RESULTS = [
           "~pieta": 19,
           "platinum-s4": 15,
           "pumpkin-s4": 10,
-          "~paul": 10
+          "paul-s4": 10
         }
       },
       {
@@ -1795,7 +1795,7 @@ var PCMT_RESULTS = [
           "pumpkin-s4": 16,
           "~pieta": 15,
           "platinum-s4": 11,
-          "~paul": 2
+          "paul-s4": 2
         }
       }
     ]
@@ -1828,7 +1828,7 @@ var PCMT_RESULTS = [
         204.1,
         1.53
       ],
-      "~teklo": [
+      "teklo-s4": [
         31,
         25,
         8,
@@ -1917,7 +1917,7 @@ var PCMT_RESULTS = [
         "k": {
           "snowfall-s4": 26,
           "haych-s4": 17,
-          "~teklo": 13,
+          "teklo-s4": 13,
           "slow-s4": 10,
           "~caleb": 5,
           "izz-s4": 15,
@@ -1934,7 +1934,7 @@ var PCMT_RESULTS = [
         "k": {
           "haych-s4": 25,
           "snowfall-s4": 18,
-          "~teklo": 18,
+          "teklo-s4": 18,
           "~caleb": 13,
           "slow-s4": 5,
           "izz-s4": 19,

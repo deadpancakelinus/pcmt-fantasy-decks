@@ -31,7 +31,7 @@ const pageUrl = (event, id) => BASE + '/events/' + event + '/' + id;
 // PCMT.gg names map to player ids on the same team (name or id, any case, or NAME_ALIASES); anyone else is kept as "~" + name.
 // PCMT.gg names that differ from the site's (lowercase PCMT.gg name -> player id). Add one when a sync log says
 // "not in the store: ~<name>" for a rostered player (not a sub; subs go on the backend's Subs tab).
-const NAME_ALIASES = { tawngay: 'tawn-s4', sting: 'stingray-s4' };
+const NAME_ALIASES = { tawngay: 'tawn-s4', sting: 'stingray-s4', teklo: 'teklo-s4', paul: 'paul-s4' };
 function toResult(M, event, players) {
   if (!M.completed) throw new Error('Series is not finished yet.');
   if (!M.combinedStats || M.combinedStats.length < 2 || M.combinedStats.some(t => !t.players || t.players.length < 5)) throw new Error('Stats are missing for a team.');
